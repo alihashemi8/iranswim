@@ -112,16 +112,6 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     </nav>
   );
 
-  const renderStatusCard = () => (
-    <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-xs text-slate-500 dark:text-slate-400">
-      <div className="flex items-center gap-2 mb-1">
-        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-        <span className="font-medium text-slate-700 dark:text-slate-200">اتصال سرور فعال</span>
-      </div>
-      <span>نسخه سامانه: ۱.۰.۰ تولید</span>
-    </div>
-  );
-
   const renderBottomSection = (isMobile = false) => (
     <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
       {/* User Info Bar */}
@@ -150,9 +140,6 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
         <LogOut className="w-4 h-4" />
         <span>خروج از حساب کاربری</span>
       </button>
-
-      {/* Status Card */}
-      {renderStatusCard()}
     </div>
   );
 
