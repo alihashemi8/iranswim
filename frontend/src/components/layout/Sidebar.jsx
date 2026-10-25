@@ -1,14 +1,17 @@
 import React, { useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Activity, Bug, ShieldCheck, Zap,
   LayoutDashboard, BookOpen, Users, CreditCard, Calendar,
-  ClipboardCheck, Award, Timer, Trophy, X
+  ClipboardCheck, Award, Trophy, X, LogOut
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 
 export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const toast = useToast();
 
   // Close on Escape key press
   useEffect(() => {
@@ -119,6 +122,40 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     </div>
   );
 
+  const renderBottomSection = (isMobile = false) => (
+    <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 space-y-3">
+      {/* User Info Bar */}
+      <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 flex items-center gap-2.5">
+        <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+          {user.full_name ? user.full_name.charAt(0) : 'U'}
+        </div>
+        <div className="flex flex-col min-w-0 flex-1">
+          <span className="text-xs font-bold text-slate-800 dark:text-slate-100 truncate">{user.full_name}</span>
+          <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono truncate">{user.phone}</span>
+        </div>
+      </div>
+
+      {/* Logout Button */}
+      <button
+        type="button"
+        onClick={() => {
+          logout();
+          toast.info('با موفقیت از حساب کاربری خارج شدید.');
+          navigate('/login');
+          if (isMobile) onClose();
+        }}
+        className="w-full flex items-center justify-center gap-2 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-900 transition-colors shadow-2xs cursor-pointer"
+        title="خروج از حساب کاربری"
+      >
+        <LogOut className="w-4 h-4" />
+        <span>خروج از حساب کاربری</span>
+      </button>
+
+      {/* Status Card */}
+      {renderStatusCard()}
+    </div>
+  );
+
   return (
     <>
       {/* Desktop Sidebar */}
@@ -131,7 +168,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
           </div>
           {renderNavLinks(false)}
         </div>
-        {renderStatusCard()}
+        {renderBottomSection(false)}
       </aside>
 
       {/* Mobile Drawer Overlay & Sidebar */}
@@ -166,10 +203,8 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
               {renderNavLinks(true)}
             </div>
 
-            {/* Bottom info */}
-            <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800">
-              {renderStatusCard()}
-            </div>
+            {/* Bottom section with logout */}
+            {renderBottomSection(true)}
           </aside>
         </div>
       )}
