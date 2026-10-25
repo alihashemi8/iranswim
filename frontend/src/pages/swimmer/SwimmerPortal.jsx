@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, CreditCard, Award, Timer, MapPin, Sparkles } from 'lucide-react';
+import { Calendar, CreditCard, Award, Timer, Sparkles } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
 import { LoadingState } from '../../components/common/LoadingState';

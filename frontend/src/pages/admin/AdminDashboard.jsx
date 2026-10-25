@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, BookOpen, CreditCard, TrendingUp, AlertCircle } from 'lucide-react';
+import { Users, BookOpen, CreditCard, TrendingUp, AlertCircle, Calendar } from 'lucide-react';
 import api from '../../api/client';
 import { StatsCard } from '../../components/common/StatsCard';
 import { Badge } from '../../components/common/Badge';
