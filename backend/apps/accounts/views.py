@@ -31,3 +31,10 @@ class UserListView(generics.ListCreateAPIView):
     permission_classes = [IsAdminUserRole]
     filterset_fields = ['role', 'is_active']
     search_fields = ['first_name', 'last_name', 'phone', 'national_id']
+
+
+class UserDetailView(generics.RetrieveUpdateAPIView):
+    """مشاهده و ویرایش مشخصات، نقش و وضعیت فعال بودن کاربر توسط مدیر"""
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+    permission_classes = [IsAdminUserRole]

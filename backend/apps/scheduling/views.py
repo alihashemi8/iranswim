@@ -17,9 +17,17 @@ class ClassSessionListView(generics.ListCreateAPIView):
         group_id = self.request.query_params.get('group_id')
         if group_id:
             qs = qs.filter(group_id=group_id)
+        coach_id = self.request.query_params.get('coach_id')
+        if coach_id:
+            qs = qs.filter(coach_id=coach_id)
+        status_filter = self.request.query_params.get('status')
+        if status_filter:
+            qs = qs.filter(status=status_filter)
         date = self.request.query_params.get('date')
         if date:
             qs = qs.filter(session_date=date)
+        if self.request.query_params.get('unrecorded') == 'true':
+            qs = qs.filter(session_date__lte=timezone.now().date(), attendance_records__isnull=True)
 
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs

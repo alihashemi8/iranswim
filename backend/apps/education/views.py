@@ -227,3 +227,20 @@ class EnrollmentListView(generics.ListCreateAPIView):
         elif user.role == 'SWIMMER':
             return qs.filter(swimmer__user=user)
         return qs.none()
+
+
+class GroupCoachListCreateView(generics.ListCreateAPIView):
+    """مدیریت و ثبت تخصیص مربیان به گروه‌های آموزشی توسط مدیر"""
+    queryset = GroupCoach.objects.all().select_related('group', 'coach__user')
+    serializer_class = GroupCoachSerializer
+    permission_classes = [IsAdminUserRole]
+
+    def get_queryset(self):
+        qs = GroupCoach.objects.all().select_related('group', 'coach__user')
+        coach_id = self.request.query_params.get('coach_id')
+        if coach_id:
+            qs = qs.filter(coach_id=coach_id)
+        group_id = self.request.query_params.get('group_id')
+        if group_id:
+            qs = qs.filter(group_id=group_id)
+        return qs

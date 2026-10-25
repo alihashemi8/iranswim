@@ -48,6 +48,29 @@ class InvoiceDetailView(generics.RetrieveAPIView):
         return Invoice.objects.none()
 
 
+class InstallmentListView(generics.ListAPIView):
+    """لیست اقساط با فیلتر وضعیت و سررسیدگذشته برای مدیریت بدهکاران"""
+    serializer_class = InstallmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = Installment.objects.all().select_related('invoice__swimmer')
+        status_filter = self.request.query_params.get('status')
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+        if self.request.query_params.get('overdue') == 'true':
+            qs = qs.filter(due_date__lt=timezone.now().date(), status__in=['UNPAID', 'PARTIAL', 'OVERDUE'])
+        swimmer_id = self.request.query_params.get('swimmer_id')
+        if swimmer_id:
+            qs = qs.filter(invoice__swimmer_id=swimmer_id)
+        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+            return qs.order_by('due_date')
+        elif user.role == 'SWIMMER':
+            return qs.filter(invoice__swimmer__user=user).order_by('due_date')
+        return qs.none()
+
+
 class PaymentListView(generics.ListAPIView):
     serializer_class = PaymentSerializer
     permission_classes = [permissions.IsAuthenticated]

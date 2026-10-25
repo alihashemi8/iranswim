@@ -3,7 +3,7 @@ from .views import (
     SkillLevelListView, CourseListView, CourseDetailView,
     SwimmerGroupListView, SwimmerGroupDetailView,
     EnrollmentRequestCreateView, EnrollmentRequestListView,
-    EnrollmentRequestReviewView, EnrollmentListView
+    EnrollmentRequestReviewView, EnrollmentListView, GroupCoachListCreateView
 )
 
 urlpatterns = [
@@ -12,6 +12,7 @@ urlpatterns = [
     path('courses/<int:pk>/', CourseDetailView.as_view(), name='course_detail'),
     path('groups/', SwimmerGroupListView.as_view(), name='group_list'),
     path('groups/<int:pk>/', SwimmerGroupDetailView.as_view(), name='group_detail'),
+    path('group-coaches/', GroupCoachListCreateView.as_view(), name='group_coach_list'),
     path('requests/', EnrollmentRequestListView.as_view(), name='enrollment_request_list'),
     path('requests/submit/', EnrollmentRequestCreateView.as_view(), name='enrollment_request_create'),
     path('requests/<int:pk>/review/', EnrollmentRequestReviewView.as_view(), name='enrollment_request_review'),

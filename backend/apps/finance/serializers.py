@@ -12,12 +12,17 @@ class InstallmentSerializer(serializers.ModelSerializer):
     paid_amount = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
     remaining_amount = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    swimmer_name = serializers.CharField(source='invoice.swimmer.full_name', read_only=True)
+    swimmer_phone = serializers.CharField(source='invoice.swimmer.phone', read_only=True)
+    swimmer_id = serializers.IntegerField(source='invoice.swimmer.id', read_only=True)
+    invoice_number = serializers.CharField(source='invoice.invoice_number', read_only=True)
 
     class Meta:
         model = Installment
         fields = [
-            'id', 'invoice', 'installment_number', 'amount', 'due_date',
-            'status', 'status_display', 'paid_amount', 'remaining_amount'
+            'id', 'invoice', 'invoice_number', 'installment_number', 'amount', 'due_date',
+            'status', 'status_display', 'paid_amount', 'remaining_amount',
+            'swimmer_id', 'swimmer_name', 'swimmer_phone'
         ]
 
 

@@ -1,18 +1,30 @@
 import React, { useState, useEffect } from 'react';
-import { BookOpen, Plus, Clock, MapPin } from 'lucide-react';
+import {
+  BookOpen, Plus, Clock, MapPin, Users,
+  Award, Calendar, AlertTriangle, Layers, ChevronRight
+} from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
+import { ProgressBar } from '../../components/common/Charts';
 import { useToast } from '../../context/ToastContext';
+import { Link } from 'react-router-dom';
 
 export const AdminCoursesPage = () => {
+  const [activeTab, setActiveTab] = useState('GROUPS'); // GROUPS, COURSES, LEVELS, SESSIONS
   const [courses, setCourses] = useState([]);
+  const [groups, setGroups] = useState([]);
+  const [levels, setLevels] = useState([]);
+  const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [form, setForm] = useState({
+  const toast = useToast();
+
+  // Create Course Modal
+  const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
+  const [courseForm, setCourseForm] = useState({
     name: '',
     description: '',
     start_date: '',
@@ -20,218 +32,555 @@ export const AdminCoursesPage = () => {
     base_price: '',
     sessions_count: 12,
   });
-  const [saving, setSaving] = useState(false);
-  const toast = useToast();
+  const [savingCourse, setSavingCourse] = useState(false);
 
-  const fetchCourses = async () => {
+  // Create SwimmerGroup Modal
+  const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
+  const [groupForm, setGroupForm] = useState({
+    course: '',
+    name: '',
+    skill_level: '',
+    capacity: 15,
+    pool_location: 'استخر اصلی آزادی - لاین آموزشی ۲',
+  });
+  const [savingGroup, setSavingGroup] = useState(false);
+
+  const fetchData = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/education/courses/');
-      setCourses(res.data.results || res.data);
+      const [coursesRes, groupsRes, levelsRes, sessionsRes] = await Promise.all([
+        api.get('/education/courses/'),
+        api.get('/education/groups/'),
+        api.get('/education/levels/'),
+        api.get('/scheduling/sessions/'),
+      ]);
+      setCourses(coursesRes.data.results || coursesRes.data);
+      setGroups(groupsRes.data.results || groupsRes.data);
+      setLevels(levelsRes.data.results || levelsRes.data);
+      setSessions(sessionsRes.data.results || sessionsRes.data);
     } catch (err) {
       console.error(err);
-      toast.error('خطا در دریافت لیست دوره‌ها');
+      toast.error('خطا در دریافت اطلاعات کلاس‌ها و برنامه‌ریزی');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchCourses();
+    fetchData();
   }, []);
 
-  const handleCreate = async (e) => {
+  const handleCreateCourse = async (e) => {
     e.preventDefault();
     try {
-      setSaving(true);
-      await api.post('/education/courses/', form);
-      setIsModalOpen(false);
-      setForm({ name: '', description: '', start_date: '', end_date: '', base_price: '', sessions_count: 12 });
+      setSavingCourse(true);
+      await api.post('/education/courses/', courseForm);
+      setIsCourseModalOpen(false);
+      setCourseForm({
+        name: '',
+        description: '',
+        start_date: '',
+        end_date: '',
+        base_price: '',
+        sessions_count: 12,
+      });
       toast.success('دوره آموزشی جدید با موفقیت ایجاد گردید.');
-      fetchCourses();
+      fetchData();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'خطا در ثبت دوره');
     } finally {
-      setSaving(false);
+      setSavingCourse(false);
     }
   };
 
+  const handleCreateGroup = async (e) => {
+    e.preventDefault();
+    if (!groupForm.course || !groupForm.skill_level || !groupForm.name) {
+      toast.error('لطفاً تمام فیلدهای الزامی گروه را پر کنید.');
+      return;
+    }
+    try {
+      setSavingGroup(true);
+      await api.post('/education/groups/', {
+        ...groupForm,
+        course: Number(groupForm.course),
+        skill_level: Number(groupForm.skill_level),
+        capacity: Number(groupForm.capacity),
+      });
+      setIsGroupModalOpen(false);
+      setGroupForm({
+        course: '',
+        name: '',
+        skill_level: '',
+        capacity: 15,
+        pool_location: 'استخر اصلی آزادی - لاین آموزشی ۲',
+      });
+      toast.success('گروه کلاسی جدید با موفقیت تعریف شد.');
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'خطا در ایجاد گروه');
+    } finally {
+      setSavingGroup(false);
+    }
+  };
+
+  const formatPrice = (v) => Number(v || 0).toLocaleString('fa-IR');
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <BookOpen className="w-5 h-5 text-sky-600" />
-            مدیریت دوره‌های آموزشی و گروه‌ها
+            برنامه‌ریزی آموزشی، دوره‌ها، گروه‌ها و جلسات
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            تعریف دوره‌ها، زمان‌بندی روز و ساعت، رصد ظرفیت کلاس‌ها و تخصیص مربیان
+            تفکیک ۴ مفهوم بنیادین (سطح مهارت، دوره، گروه کلاسی، جلسه) و کنترل ظرفیت لاین‌های استخر
           </p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="self-start sm:self-auto gap-2">
-          <Plus className="w-4 h-4" />
-          <span>تعریف دوره جدید</span>
-        </Button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" onClick={() => setIsCourseModalOpen(true)} className="gap-1.5 text-xs">
+            <Plus className="w-4 h-4" />
+            <span>تعریف دوره جدید</span>
+          </Button>
+          <Button onClick={() => setIsGroupModalOpen(true)} className="gap-1.5 text-xs">
+            <Plus className="w-4 h-4" />
+            <span>ایجاد گروه کلاسی جدید</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-xs w-fit">
+        <button
+          type="button"
+          onClick={() => setActiveTab('GROUPS')}
+          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+            activeTab === 'GROUPS'
+              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+          }`}
+        >
+          <Users className="w-4 h-4" />
+          <span>گروه‌های کلاسی و ظرفیت ({groups.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('COURSES')}
+          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+            activeTab === 'COURSES'
+              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+          }`}
+        >
+          <BookOpen className="w-4 h-4" />
+          <span>دوره‌ها و بسته‌ها ({courses.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('LEVELS')}
+          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+            activeTab === 'LEVELS'
+              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+          }`}
+        >
+          <Award className="w-4 h-4" />
+          <span>سطوح مهارتی ({levels.length})</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setActiveTab('SESSIONS')}
+          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+            activeTab === 'SESSIONS'
+              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+          }`}
+        >
+          <Calendar className="w-4 h-4" />
+          <span>جلسات تقویمی ({sessions.length})</span>
+        </button>
       </div>
 
       {loading ? (
-        <LoadingState message="در حال دریافت فهرست دوره‌ها..." />
-      ) : courses.length === 0 ? (
-        <EmptyState title="دوره‌ای تعریف نشده است" description="با کلیک روی دکمه بالا، اولین دوره آموزشی را ایجاد کنید." />
-      ) : (
-        <div className="grid grid-cols-1 gap-6">
-          {courses.map((course) => (
-            <div key={course.id} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs transition-colors">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 gap-2">
+        <LoadingState message="در حال دریافت داده‌های آموزشی..." />
+      ) : activeTab === 'GROUPS' ? (
+        /* TAB 1: SWIMMER GROUPS & CAPACITY */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {groups.map((group) => {
+            const isFull = group.remaining_capacity <= 0;
+            return (
+              <div
+                key={group.id}
+                className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between transition-colors"
+              >
                 <div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">{course.name}</h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{course.description || 'بدون توضیح'}</p>
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <span className="text-xs font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 px-2.5 py-1 rounded-lg">
+                      {group.level_name}
+                    </span>
+                    <Badge variant={isFull ? 'danger' : 'success'}>
+                      {isFull ? 'تکمیل ظرفیت' : 'ثبت‌نام باز'}
+                    </Badge>
+                  </div>
+
+                  <div className="py-3 space-y-2.5">
+                    <div>
+                      <span className="text-[11px] text-slate-400 block">{group.course_name}</span>
+                      <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                        {group.name}
+                      </h3>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                      <span>{group.pool_location}</span>
+                    </div>
+
+                    {/* Weekly Schedule */}
+                    <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700 space-y-1">
+                      <span className="text-[10px] font-semibold text-slate-400 block">برنامه هفتگی:</span>
+                      {(group.schedules || []).length === 0 ? (
+                        <span className="text-[11px] text-slate-400">برنامه ساعتی ثبت نشده است</span>
+                      ) : (
+                        group.schedules.map((sch) => (
+                          <div key={sch.id} className="text-xs font-mono text-slate-700 dark:text-slate-300 flex justify-between">
+                            <span>{sch.weekday_display}</span>
+                            <span>{sch.start_time?.slice(0, 5)} تا {sch.end_time?.slice(0, 5)}</span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+
+                    {/* Capacity Bar */}
+                    <div className="pt-2">
+                      <ProgressBar
+                        label="وضعیت پذیرش لاین"
+                        value={group.current_enrollments_count}
+                        max={group.capacity}
+                        color={isFull ? 'rose' : group.remaining_capacity < 3 ? 'amber' : 'emerald'}
+                        subtitle={`${group.current_enrollments_count} نفر ثبت‌نام‌شده (${group.remaining_capacity} جای خالی)`}
+                      />
+                    </div>
+                  </div>
                 </div>
+
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
+                  <span className="text-slate-500 font-mono">ظرفیت کل: {group.capacity} نفر</span>
+                  <Link
+                    to="/admin/enrollments"
+                    className="text-sky-600 dark:text-sky-400 font-semibold hover:underline"
+                  >
+                    مشاهده متقاضیان ←
+                  </Link>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : activeTab === 'COURSES' ? (
+        /* TAB 2: COURSES */
+        <div className="grid grid-cols-1 gap-4">
+          {courses.map((course) => (
+            <div
+              key={course.id}
+              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+            >
+              <div className="space-y-1">
                 <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-slate-900 dark:text-white text-base">{course.name}</h3>
                   <Badge variant={course.status === 'ACTIVE' ? 'success' : 'neutral'}>
                     {course.status === 'ACTIVE' ? 'در حال برگزاری' : 'پیش‌ثبت‌نام'}
                   </Badge>
-                  <span className="text-sm font-bold text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 px-3 py-1 rounded-xl border border-slate-200/60 dark:border-slate-700 font-mono">
-                    {Number(course.base_price).toLocaleString('fa-IR')} تومان
-                  </span>
+                </div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">{course.description || 'بدون توضیحات'}</p>
+                <div className="flex items-center gap-4 text-xs font-mono text-slate-500 pt-1">
+                  <span>شروع: {new Date(course.start_date).toLocaleDateString('fa-IR')}</span>
+                  <span>پایان: {new Date(course.end_date).toLocaleDateString('fa-IR')}</span>
+                  <span>تعداد جلسات: {course.sessions_count} جلسه</span>
                 </div>
               </div>
 
-              {/* Course Groups */}
-              <div className="mt-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-3">
-                  گروه‌های اجرایی دوره:
-                </h4>
-                {course.groups?.length === 0 ? (
-                  <p className="text-xs text-slate-400 italic">هنوز گروهی برای این دوره تعریف نشده است.</p>
-                ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {course.groups.map((grp) => {
-                      const capacityPercent = Math.min(100, Math.round(((grp.current_enrollments_count || 0) / grp.capacity) * 100));
-                      return (
-                        <div key={grp.id} className="bg-slate-50/70 dark:bg-slate-800/40 rounded-xl p-4 border border-slate-200/80 dark:border-slate-800">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="font-semibold text-sm text-slate-800 dark:text-slate-200">{grp.name}</span>
-                            <Badge variant={grp.remaining_capacity > 0 ? 'info' : 'danger'}>
-                              {grp.level_name}
-                            </Badge>
-                          </div>
-
-                          <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 mb-3">
-                            <div className="flex items-center gap-1.5">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                              <span>{grp.pool_location}</span>
-                            </div>
-                            {grp.schedules?.map((sch) => (
-                              <div key={sch.id} className="flex items-center gap-1.5 font-mono text-[11px] text-slate-500 dark:text-slate-400">
-                                <Clock className="w-3.5 h-3.5 text-slate-400" />
-                                <span>{sch.weekday_display} {sch.start_time.slice(0, 5)} تا {sch.end_time.slice(0, 5)}</span>
-                              </div>
-                            ))}
-                          </div>
-
-                          {/* Capacity Bar */}
-                          <div>
-                            <div className="flex justify-between text-xs mb-1">
-                              <span className="text-slate-500 dark:text-slate-400">ظرفیت تکمیل:</span>
-                              <span className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
-                                {grp.current_enrollments_count || 0} از {grp.capacity} نفر ({grp.remaining_capacity} جای خالی)
-                              </span>
-                            </div>
-                            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all ${
-                                  capacityPercent >= 90 ? 'bg-rose-500' : 'bg-sky-500'
-                                }`}
-                                style={{ width: `${capacityPercent}%` }}
-                              ></div>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
+              <div className="text-left font-mono">
+                <span className="text-base font-bold text-slate-900 dark:text-slate-100 block">
+                  {formatPrice(course.base_price)} تومان
+                </span>
+                <span className="text-xs text-slate-400">شهریه هر شناگر</span>
               </div>
             </div>
           ))}
         </div>
+      ) : activeTab === 'LEVELS' ? (
+        /* TAB 3: SKILL LEVELS */
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {levels.map((lvl) => (
+            <div
+              key={lvl.id}
+              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs transition-colors"
+            >
+              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <div
+                    className="w-3.5 h-3.5 rounded-full"
+                    style={{ backgroundColor: lvl.color_badge || '#0284c7' }}
+                  />
+                  <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+                    سطح {lvl.order}: {lvl.name}
+                  </h3>
+                </div>
+                <Badge variant={lvl.is_active ? 'success' : 'neutral'}>
+                  {lvl.is_active ? 'فعال' : 'غیرفعال'}
+                </Badge>
+              </div>
+
+              <div className="py-3 text-xs text-slate-600 dark:text-slate-400">
+                <p>{lvl.description || 'توضیحات پیش‌نیاز ثبت نشده است.'}</p>
+                <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-between font-mono text-slate-500">
+                  <span>سرفصل‌های ارزیابی:</span>
+                  <span className="font-bold">{(lvl.skills || []).length} مهارت</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* TAB 4: CALENDAR & SESSIONS */
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
+          <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
+            <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+              برنامه زمانی جلسات استخر
+            </h3>
+            <Link to="/admin/sessions" className="text-xs font-semibold text-sky-600 hover:underline">
+              مشاهده تقویم کامل و مدیریت کنسلی ←
+            </Link>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-right">
+              <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                <tr>
+                  <th className="px-4 py-3 rounded-r-xl">گروه کلاسی</th>
+                  <th className="px-4 py-3">مربی مسئول</th>
+                  <th className="px-4 py-3">تاریخ جلسه</th>
+                  <th className="px-4 py-3">ساعت برگزاری</th>
+                  <th className="px-4 py-3">محل استخر</th>
+                  <th className="px-4 py-3 text-left rounded-l-xl">وضعیت جلسه</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
+                {sessions.slice(0, 10).map((s) => (
+                  <tr key={s.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                    <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-100">{s.group_name}</td>
+                    <td className="px-4 py-3 text-xs">{s.coach_name}</td>
+                    <td className="px-4 py-3 font-mono text-xs">{new Date(s.session_date).toLocaleDateString('fa-IR')}</td>
+                    <td className="px-4 py-3 font-mono text-xs">{s.start_time?.slice(0, 5)} تا {s.end_time?.slice(0, 5)}</td>
+                    <td className="px-4 py-3 text-xs text-slate-500">{s.pool_location}</td>
+                    <td className="px-4 py-3 text-left">
+                      <Badge variant={s.status === 'COMPLETED' ? 'success' : s.status === 'CANCELLED' ? 'danger' : 'info'}>
+                        {s.status_display}
+                      </Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       )}
 
-      {/* Create Course Modal */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="تعریف دوره آموزشی جدید">
-        <form onSubmit={handleCreate} className="space-y-4">
+      {/* Modal: Create Course */}
+      <Modal
+        isOpen={isCourseModalOpen}
+        onClose={() => setIsCourseModalOpen(false)}
+        title="تعریف دوره و بسته آموزشی جدید"
+      >
+        <form onSubmit={handleCreateCourse} className="space-y-4">
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">عنوان دوره:</label>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              عنوان دوره *
+            </label>
             <input
               type="text"
               required
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="مثال: دوره آموزش شنای استقامت زمستان ۱۴۰۵"
-              className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              value={courseForm.name}
+              onChange={(e) => setCourseForm({ ...courseForm, name: e.target.value })}
+              placeholder="مثال: دوره آموزش شنای کرال پاییزه"
+              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
             />
           </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                شهریه پایه دوره (تومان) *
+              </label>
+              <input
+                type="number"
+                required
+                value={courseForm.base_price}
+                onChange={(e) => setCourseForm({ ...courseForm, base_price: e.target.value })}
+                className="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                تعداد کل جلسات دوره *
+              </label>
+              <input
+                type="number"
+                required
+                min="1"
+                value={courseForm.sessions_count}
+                onChange={(e) => setCourseForm({ ...courseForm, sessions_count: Number(e.target.value) })}
+                className="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                تاریخ شروع دوره *
+              </label>
+              <input
+                type="date"
+                required
+                value={courseForm.start_date}
+                onChange={(e) => setCourseForm({ ...courseForm, start_date: e.target.value })}
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                تاریخ پایان دوره *
+              </label>
+              <input
+                type="date"
+                required
+                value={courseForm.end_date}
+                onChange={(e) => setCourseForm({ ...courseForm, end_date: e.target.value })}
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+          </div>
+
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">توضیحات دوره:</label>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              توضیحات دوره
+            </label>
             <textarea
               rows={2}
-              value={form.description}
-              onChange={(e) => setForm({ ...form, description: e.target.value })}
-              className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              value={courseForm.description}
+              onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })}
+              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
             />
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">تاریخ شروع:</label>
-              <input
-                type="date"
-                required
-                value={form.start_date}
-                onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-                className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">تاریخ پایان:</label>
-              <input
-                type="date"
-                required
-                value={form.end_date}
-                onChange={(e) => setForm({ ...form, end_date: e.target.value })}
-                className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">شهریه پایه (تومان):</label>
-              <input
-                type="number"
-                required
-                value={form.base_price}
-                onChange={(e) => setForm({ ...form, base_price: e.target.value })}
-                placeholder="2500000"
-                className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
-              />
-            </div>
-            <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">تعداد جلسات کل دوره:</label>
-              <input
-                type="number"
-                required
-                value={form.sessions_count}
-                onChange={(e) => setForm({ ...form, sessions_count: e.target.value })}
-                className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono"
-              />
-            </div>
-          </div>
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
-            <Button variant="secondary" type="button" onClick={() => setIsModalOpen(false)}>
+
+          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <Button type="button" variant="outline" onClick={() => setIsCourseModalOpen(false)}>
               انصراف
             </Button>
-            <Button type="submit" loading={saving}>
-              ذخیره و ثبت دوره
+            <Button type="submit" disabled={savingCourse}>
+              {savingCourse ? 'در حال ثبت...' : 'ایجاد دوره'}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal: Create SwimmerGroup */}
+      <Modal
+        isOpen={isGroupModalOpen}
+        onClose={() => setIsGroupModalOpen(false)}
+        title="ایجاد گروه کلاسی و لاین جدید"
+      >
+        <form onSubmit={handleCreateGroup} className="space-y-4">
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              دوره آموزشی والد *
+            </label>
+            <select
+              required
+              value={groupForm.course}
+              onChange={(e) => setGroupForm({ ...groupForm, course: e.target.value })}
+              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+            >
+              <option value="">یک دوره را انتخاب کنید...</option>
+              {courses.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name} ({formatPrice(c.base_price)} تومان)
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              نام گروه اجرایی *
+            </label>
+            <input
+              type="text"
+              required
+              value={groupForm.name}
+              onChange={(e) => setGroupForm({ ...groupForm, name: e.target.value })}
+              placeholder="مثال: گروه مقدماتی شنبه و دوشنبه ساعت ۱۷"
+              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                سطح مهارت گروه *
+              </label>
+              <select
+                required
+                value={groupForm.skill_level}
+                onChange={(e) => setGroupForm({ ...groupForm, skill_level: e.target.value })}
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              >
+                <option value="">انتخاب سطح...</option>
+                {levels.map((lvl) => (
+                  <option key={lvl.id} value={lvl.id}>
+                    سطح {lvl.order}: {lvl.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                ظرفیت مجاز گروه (نفر) *
+              </label>
+              <input
+                type="number"
+                required
+                min="1"
+                max="50"
+                value={groupForm.capacity}
+                onChange={(e) => setGroupForm({ ...groupForm, capacity: Number(e.target.value) })}
+                className="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              محل استخر و لاین
+            </label>
+            <input
+              type="text"
+              value={groupForm.pool_location}
+              onChange={(e) => setGroupForm({ ...groupForm, pool_location: e.target.value })}
+              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <Button type="button" variant="outline" onClick={() => setIsGroupModalOpen(false)}>
+              انصراف
+            </Button>
+            <Button type="submit" disabled={savingGroup}>
+              {savingGroup ? 'در حال ثبت...' : 'ایجاد گروه'}
             </Button>
           </div>
         </form>

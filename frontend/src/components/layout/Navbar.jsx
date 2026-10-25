@@ -4,7 +4,7 @@ import { Waves, UserCircle2, Menu, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 
-export const Navbar = ({ onMenuClick }) => {
+export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
@@ -17,7 +17,7 @@ export const Navbar = ({ onMenuClick }) => {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 shadow-xs transition-colors">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <div className={`${isFullWidth ? 'w-full px-4 sm:px-6' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'} h-16 flex items-center justify-between`}>
         {/* Brand & Main Navigation */}
         <div className="flex items-center gap-2 sm:gap-8">
           {onMenuClick && (

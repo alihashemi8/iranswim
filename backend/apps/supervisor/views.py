@@ -5,7 +5,7 @@ from django.db import connection
 from rest_framework import generics, status, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from apps.accounts.permissions import IsSupervisorUserRole
+from apps.accounts.permissions import IsSupervisorUserRole, IsAdminOrSupervisor
 from .models import SystemErrorLog, AuditLog
 from .serializers import SystemErrorLogSerializer, AuditLogSerializer
 from apps.accounts.models import User
@@ -155,7 +155,7 @@ class SupervisorTestErrorTriggerView(APIView):
 class SupervisorAuditLogListView(generics.ListAPIView):
     """لیست رخدادهای حساس و لاگ‌های حسابرسی سامانه"""
     serializer_class = AuditLogSerializer
-    permission_classes = [IsSupervisorUserRole]
+    permission_classes = [IsAdminOrSupervisor]
 
     def get_queryset(self):
         qs = AuditLog.objects.all().select_related('actor')
