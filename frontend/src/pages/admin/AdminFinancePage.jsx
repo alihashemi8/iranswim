@@ -330,7 +330,8 @@ export const AdminFinancePage = () => {
       ) : activeTab === 'INVOICES' ? (
         /* TAB 1: INVOICES */
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm text-right">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                 <tr>
@@ -398,6 +399,77 @@ export const AdminFinancePage = () => {
             </table>
           </div>
 
+          {/* Mobile Cards View */}
+          <div className="md:hidden space-y-3">
+            {paginatedInvoices.map((inv) => (
+              <div
+                key={inv.id}
+                className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-3 text-xs"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <span className="font-mono text-xs text-slate-500 dark:text-slate-400 block">
+                      {inv.invoice_number}
+                    </span>
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm mt-0.5">
+                      {inv.swimmer_name}
+                    </h3>
+                  </div>
+                  <Badge variant={statusBadges[inv.status]?.variant || 'neutral'}>
+                    {inv.status_display}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">مبلغ کل</span>
+                    <span className="font-mono text-slate-700 dark:text-slate-300">
+                      {formatPrice(inv.total_amount)} تومان
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">پرداخت‌شده</span>
+                    <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400">
+                      {formatPrice(inv.total_paid)} تومان
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">مانده بدهی</span>
+                    <span className="font-mono font-bold text-rose-600 dark:text-rose-400">
+                      {formatPrice(inv.remaining_balance)} تومان
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">تعداد اقساط</span>
+                    <span className="text-slate-600 dark:text-slate-300">
+                      {(inv.installments || []).length} قسط
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
+                  {inv.status !== 'PAID' && (
+                    <button
+                      type="button"
+                      onClick={() => handleOpenPayModal(inv)}
+                      className="flex-1 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 font-semibold border border-emerald-200 dark:border-emerald-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      <DollarSign className="w-3.5 h-3.5" />
+                      <span>ثبت واریزی</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenAdjModal(inv)}
+                    className="flex-1 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 font-semibold border border-slate-200/60 dark:border-slate-700 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                  >
+                    <span>تعدیل / تخفیف</span>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
           <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
             <span className="text-xs text-slate-500 dark:text-slate-400">
               نمایش {paginatedInvoices.length} از {invoices.length} فاکتور
@@ -429,65 +501,126 @@ export const AdminFinancePage = () => {
                 description="تمام اقساط تا به این لحظه تسویه شده‌اند و هیچ بدهی معوقه‌ای ثبت نشده است."
               />
             ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-right">
-                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
-                    <tr>
-                      <th className="px-4 py-3.5 rounded-r-xl">شناگر بدهکار</th>
-                      <th className="px-4 py-3.5">تلفن تماس</th>
-                      <th className="px-4 py-3.5">شماره قسط و فاکتور</th>
-                      <th className="px-4 py-3.5">مبلغ قسط</th>
-                      <th className="px-4 py-3.5">مانده پرداخت‌نشده</th>
-                      <th className="px-4 py-3.5">تاریخ سررسید</th>
-                      <th className="px-4 py-3.5 text-center rounded-l-xl">عملیات فوری</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
-                    {installments.map((inst) => (
-                      <tr key={inst.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                        <td className="px-4 py-3.5 font-bold text-slate-800 dark:text-slate-100">
-                          {inst.swimmer_name}
-                        </td>
-                        <td className="px-4 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-300">
-                          <a href={`tel:${inst.swimmer_phone}`} className="hover:text-sky-600 flex items-center gap-1">
+              <>
+                {/* Desktop Table View */}
+                <div className="hidden md:block overflow-x-auto">
+                  <table className="w-full text-sm text-right">
+                    <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
+                      <tr>
+                        <th className="px-4 py-3.5 rounded-r-xl">شناگر بدهکار</th>
+                        <th className="px-4 py-3.5">تلفن تماس</th>
+                        <th className="px-4 py-3.5">شماره قسط و فاکتور</th>
+                        <th className="px-4 py-3.5">مبلغ قسط</th>
+                        <th className="px-4 py-3.5">مانده پرداخت‌نشده</th>
+                        <th className="px-4 py-3.5">تاریخ سررسید</th>
+                        <th className="px-4 py-3.5 text-center rounded-l-xl">عملیات فوری</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
+                      {installments.map((inst) => (
+                        <tr key={inst.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                          <td className="px-4 py-3.5 font-bold text-slate-800 dark:text-slate-100">
+                            {inst.swimmer_name}
+                          </td>
+                          <td className="px-4 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-300">
+                            <a href={`tel:${inst.swimmer_phone}`} className="hover:text-sky-600 flex items-center gap-1">
+                              <Phone className="w-3.5 h-3.5 text-slate-400" />
+                              <span>{inst.swimmer_phone}</span>
+                            </a>
+                          </td>
+                          <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-400 font-mono">
+                            قسط {inst.installment_number} ({inst.invoice_number})
+                          </td>
+                          <td className="px-4 py-3.5 font-mono text-xs">
+                            {formatPrice(inst.amount)} تومان
+                          </td>
+                          <td className="px-4 py-3.5 font-mono text-xs font-bold text-rose-600 dark:text-rose-400">
+                            {formatPrice(inst.remaining_amount)} تومان
+                          </td>
+                          <td className="px-4 py-3.5 font-mono text-xs text-rose-500 font-semibold">
+                            {new Date(inst.due_date).toLocaleDateString('fa-IR')}
+                          </td>
+                          <td className="px-4 py-3.5 text-center">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenPayModal(null, inst)}
+                              className="px-3 py-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 font-semibold text-xs shadow-2xs transition-colors cursor-pointer inline-flex items-center gap-1"
+                            >
+                              <DollarSign className="w-3.5 h-3.5" />
+                              <span>ثبت تسویه این قسط</span>
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile Cards View */}
+                <div className="md:hidden space-y-3">
+                  {installments.map((inst) => (
+                    <div
+                      key={inst.id}
+                      className="p-4 rounded-2xl bg-rose-50/30 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 space-y-3 text-xs"
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
+                            {inst.swimmer_name}
+                          </h3>
+                          <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 block mt-0.5">
+                            قسط {inst.installment_number} ({inst.invoice_number})
+                          </span>
+                        </div>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300">
+                          سررسید: {new Date(inst.due_date).toLocaleDateString('fa-IR')}
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-rose-200/40 dark:border-rose-900/30 text-slate-600 dark:text-slate-300">
+                        <div>
+                          <span className="text-slate-400 block text-[10px]">مبلغ قسط</span>
+                          <span className="font-mono text-slate-700 dark:text-slate-300">
+                            {formatPrice(inst.amount)} تومان
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[10px]">مانده معوقه</span>
+                          <span className="font-mono font-bold text-rose-600 dark:text-rose-400">
+                            {formatPrice(inst.remaining_amount)} تومان
+                          </span>
+                        </div>
+                        <div className="col-span-2">
+                          <span className="text-slate-400 block text-[10px]">تماس با شناگر</span>
+                          <a href={`tel:${inst.swimmer_phone}`} className="hover:text-sky-600 flex items-center gap-1 font-mono text-sky-600 dark:text-sky-400 underline decoration-sky-300">
                             <Phone className="w-3.5 h-3.5 text-slate-400" />
                             <span>{inst.swimmer_phone}</span>
                           </a>
-                        </td>
-                        <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-400 font-mono">
-                          قسط {inst.installment_number} ({inst.invoice_number})
-                        </td>
-                        <td className="px-4 py-3.5 font-mono text-xs">
-                          {formatPrice(inst.amount)} تومان
-                        </td>
-                        <td className="px-4 py-3.5 font-mono text-xs font-bold text-rose-600 dark:text-rose-400">
-                          {formatPrice(inst.remaining_amount)} تومان
-                        </td>
-                        <td className="px-4 py-3.5 font-mono text-xs text-rose-500 font-semibold">
-                          {new Date(inst.due_date).toLocaleDateString('fa-IR')}
-                        </td>
-                        <td className="px-4 py-3.5 text-center">
-                          <button
-                            type="button"
-                            onClick={() => handleOpenPayModal(null, inst)}
-                            className="px-3 py-1.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 font-semibold text-xs shadow-2xs transition-colors cursor-pointer inline-flex items-center gap-1"
-                          >
-                            <DollarSign className="w-3.5 h-3.5" />
-                            <span>ثبت تسویه این قسط</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                        </div>
+                      </div>
+
+                      <div className="pt-2 border-t border-rose-200/40 dark:border-rose-900/30">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenPayModal(null, inst)}
+                          className="w-full py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 font-semibold transition-colors cursor-pointer inline-flex items-center justify-center gap-1.5 shadow-2xs"
+                        >
+                          <DollarSign className="w-4 h-4" />
+                          <span>ثبت تسویه این قسط</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
             )}
           </div>
         </div>
       ) : (
         /* TAB 3: PAYMENTS LIST */
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm text-right">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                 <tr>
@@ -530,6 +663,57 @@ export const AdminFinancePage = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Cards View */}
+          <div className="md:hidden space-y-3">
+            {payments.map((p) => (
+              <div
+                key={p.id}
+                className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-3 text-xs"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <span className="font-mono text-xs text-slate-400 block">
+                      {p.payment_number}
+                    </span>
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm mt-0.5">
+                      {p.swimmer_name}
+                    </h3>
+                  </div>
+                  <Badge variant={p.status === 'SUCCESSFUL' ? 'success' : 'warning'}>
+                    {p.status_display}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">مبلغ پرداختی</span>
+                    <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                      {formatPrice(p.amount)} تومان
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">روش پرداخت</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-300">
+                      {methodLabels[p.method] || p.method_display || p.method}
+                    </span>
+                  </div>
+                  {p.transaction_ref && (
+                    <div className="col-span-2">
+                      <span className="text-slate-400 block text-[10px]">شماره پیگیری بانکی</span>
+                      <span className="font-mono text-slate-600 dark:text-slate-400">{p.transaction_ref}</span>
+                    </div>
+                  )}
+                  <div className="col-span-2">
+                    <span className="text-slate-400 block text-[10px]">زمان ثبت</span>
+                    <span className="font-mono text-slate-500 dark:text-slate-400">
+                      {new Date(p.paid_at || p.created_at).toLocaleString('fa-IR')}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

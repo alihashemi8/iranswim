@@ -216,11 +216,13 @@ export const AdminReportsPage = () => {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs transition-colors">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
             <h3 className="font-bold text-sm text-slate-900 dark:text-white mb-4">
               فهرست جزئیات صورتحساب‌ها و مانده بدهی شناگران
             </h3>
-            <div className="overflow-x-auto">
+
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm text-right">
                 <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                   <tr>
@@ -256,15 +258,55 @@ export const AdminReportsPage = () => {
                 </tbody>
               </table>
             </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden space-y-3">
+              {invoices.map((inv) => (
+                <div
+                  key={inv.id}
+                  className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-2.5 text-xs"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <span className="font-mono text-xs text-slate-400 block">{inv.invoice_number}</span>
+                      <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm mt-0.5">{inv.swimmer_name}</h4>
+                    </div>
+                    <Badge variant={inv.status === 'PAID' ? 'success' : inv.status === 'PARTIALLY_PAID' ? 'warning' : 'danger'}>
+                      {inv.status_display}
+                    </Badge>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">مبلغ کل</span>
+                      <span className="font-mono text-slate-700 dark:text-slate-300">{formatPrice(inv.total_amount)} تومان</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">پرداخت‌شده</span>
+                      <span className="font-mono text-emerald-600 font-semibold">{formatPrice(inv.total_paid)} تومان</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">مانده مطالبات</span>
+                      <span className="font-mono font-bold text-rose-600">{formatPrice(inv.remaining_balance)} تومان</span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">تاریخ صدور</span>
+                      <span className="font-mono text-slate-500">{new Date(inv.created_at).toLocaleDateString('fa-IR')}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       ) : reportType === 'EDUCATIONAL' ? (
         /* REPORT 2: EDUCATIONAL & CAPACITY */
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs transition-colors">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
           <h3 className="font-bold text-sm text-slate-900 dark:text-white mb-4">
             تکمیل ظرفیت گروه‌های آموزشی و تخصیص لاین استخر
           </h3>
-          <div className="overflow-x-auto">
+
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm text-right">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                 <tr>
@@ -292,14 +334,57 @@ export const AdminReportsPage = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {groups.map((grp) => (
+              <div
+                key={grp.id}
+                className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-2.5 text-xs"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm">{grp.course_name}</h4>
+                    <span className="text-slate-500 dark:text-slate-400 text-xs block mt-0.5">{grp.name}</span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-lg text-[10px] font-semibold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800">
+                    {grp.level_name}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">ظرفیت کل</span>
+                    <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">{grp.capacity} نفر</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">ثبت‌نام‌شده</span>
+                    <span className="font-mono font-bold text-emerald-600">{grp.current_enrollments_count} نفر</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">باقیمانده</span>
+                    <span className="font-mono font-bold text-amber-600">{grp.remaining_capacity} جای خالی</span>
+                  </div>
+                  {grp.pool_location && (
+                    <div className="col-span-3 pt-1">
+                      <span className="text-slate-400 text-[10px]">محل استخر: </span>
+                      <span className="text-slate-600 dark:text-slate-300">{grp.pool_location}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       ) : (
         /* REPORT 3: ENROLLMENT REQUESTS */
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs transition-colors">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
           <h3 className="font-bold text-sm text-slate-900 dark:text-white mb-4">
             آمار درخواست‌های پذیرش آنلاین و نرخ تبدیل متقاضیان
           </h3>
-          <div className="overflow-x-auto">
+
+          {/* Desktop Table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm text-right">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                 <tr>
@@ -330,6 +415,43 @@ export const AdminReportsPage = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Cards */}
+          <div className="md:hidden space-y-3">
+            {requests.map((r) => (
+              <div
+                key={r.id}
+                className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-2.5 text-xs"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm">{r.applicant_name}</h4>
+                    <a href={`tel:${r.applicant_phone}`} className="font-mono text-sky-600 dark:text-sky-400 text-xs block mt-0.5 underline decoration-sky-300">
+                      {r.applicant_phone}
+                    </a>
+                  </div>
+                  <Badge variant={r.status === 'APPROVED' ? 'success' : r.status === 'PENDING' ? 'warning' : 'danger'}>
+                    {r.status_display}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">دوره درخواستی</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-200">{r.course_name}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">گروه انتخابی</span>
+                    <span className="text-slate-700 dark:text-slate-200">{r.group_name}</span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-slate-400 block text-[10px]">تاریخ ثبت درخواست</span>
+                    <span className="font-mono text-slate-500">{new Date(r.created_at).toLocaleDateString('fa-IR')}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

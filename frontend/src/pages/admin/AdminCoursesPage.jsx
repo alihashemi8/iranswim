@@ -356,7 +356,8 @@ export const AdminCoursesPage = () => {
             </Link>
           </div>
 
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm text-right">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300">
                 <tr>
@@ -385,6 +386,43 @@ export const AdminCoursesPage = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Cards View */}
+          <div className="md:hidden space-y-3">
+            {sessions.slice(0, 10).map((s) => (
+              <div
+                key={s.id}
+                className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-2.5 text-xs"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm">{s.group_name}</h4>
+                    <span className="text-slate-500 dark:text-slate-400 text-xs block mt-0.5">مربی: {s.coach_name || 'نامشخص'}</span>
+                  </div>
+                  <Badge variant={s.status === 'COMPLETED' ? 'success' : s.status === 'CANCELLED' ? 'danger' : 'info'}>
+                    {s.status_display}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">تاریخ</span>
+                    <span className="font-mono text-slate-700 dark:text-slate-300">{new Date(s.session_date).toLocaleDateString('fa-IR')}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">ساعت</span>
+                    <span className="font-mono text-slate-700 dark:text-slate-300">{s.start_time?.slice(0, 5)} تا {s.end_time?.slice(0, 5)}</span>
+                  </div>
+                  {s.pool_location && (
+                    <div className="col-span-2">
+                      <span className="text-slate-400 block text-[10px]">محل استخر</span>
+                      <span className="text-slate-600 dark:text-slate-300">{s.pool_location}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}

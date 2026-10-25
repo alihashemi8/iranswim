@@ -202,52 +202,85 @@ export const AdminLeaguesPage = () => {
                   description="به محض تأیید اولین رکورد یا ارزیابی رسمی برای شناگران این لیگ، جدول رتبه‌بندی به‌روز خواهد شد."
                 />
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-sm text-right">
-                    <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
-                      <tr>
-                        <th className="px-4 py-3.5 text-center rounded-r-xl w-16">رتبه</th>
-                        <th className="px-4 py-3.5">شناگر</th>
-                        <th className="px-4 py-3.5">رده رقابتی</th>
-                        <th className="px-4 py-3.5 text-left rounded-l-xl">مجموع امتیازات معتبر</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
-                      {leaderboard.map((row) => (
-                        <tr key={row.entry_id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                          <td className="px-4 py-3.5 text-center">
-                            {row.rank === 1 ? (
-                              <span className="w-7 h-7 mx-auto rounded-full bg-amber-400 text-amber-950 font-bold flex items-center justify-center text-xs shadow-2xs">
-                                🥇
-                              </span>
-                            ) : row.rank === 2 ? (
-                              <span className="w-7 h-7 mx-auto rounded-full bg-slate-300 text-slate-900 font-bold flex items-center justify-center text-xs shadow-2xs">
-                                🥈
-                              </span>
-                            ) : row.rank === 3 ? (
-                              <span className="w-7 h-7 mx-auto rounded-full bg-amber-700/60 text-white font-bold flex items-center justify-center text-xs shadow-2xs">
-                                🥉
-                              </span>
-                            ) : (
-                              <span className="font-mono text-xs text-slate-500 font-bold">
-                                {row.rank}
-                              </span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3.5 font-bold text-slate-800 dark:text-slate-100">
-                            {row.swimmer_name}
-                          </td>
-                          <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-400">
-                            {row.category_title}
-                          </td>
-                          <td className="px-4 py-3.5 text-left font-mono font-bold text-amber-600 dark:text-amber-400 text-base">
-                            {row.total_points} <span className="text-xs font-normal text-slate-400">امتیاز</span>
-                          </td>
+                <>
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-sm text-right">
+                      <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
+                        <tr>
+                          <th className="px-4 py-3.5 text-center rounded-r-xl w-16">رتبه</th>
+                          <th className="px-4 py-3.5">شناگر</th>
+                          <th className="px-4 py-3.5">رده رقابتی</th>
+                          <th className="px-4 py-3.5 text-left rounded-l-xl">مجموع امتیازات معتبر</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
+                        {leaderboard.map((row) => (
+                          <tr key={row.entry_id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                            <td className="px-4 py-3.5 text-center">
+                              {row.rank === 1 ? (
+                                <span className="w-7 h-7 mx-auto rounded-full bg-amber-400 text-amber-950 font-bold flex items-center justify-center text-xs shadow-2xs">
+                                  🥇
+                                </span>
+                              ) : row.rank === 2 ? (
+                                <span className="w-7 h-7 mx-auto rounded-full bg-slate-300 text-slate-900 font-bold flex items-center justify-center text-xs shadow-2xs">
+                                  🥈
+                                </span>
+                              ) : row.rank === 3 ? (
+                                <span className="w-7 h-7 mx-auto rounded-full bg-amber-700/60 text-white font-bold flex items-center justify-center text-xs shadow-2xs">
+                                  🥉
+                                </span>
+                              ) : (
+                                <span className="font-mono text-xs text-slate-500 font-bold">
+                                  {row.rank}
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3.5 font-bold text-slate-800 dark:text-slate-100">
+                              {row.swimmer_name}
+                            </td>
+                            <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-400">
+                              {row.category_title}
+                            </td>
+                            <td className="px-4 py-3.5 text-left font-mono font-bold text-amber-600 dark:text-amber-400 text-base">
+                              {row.total_points} <span className="text-xs font-normal text-slate-400">امتیاز</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Cards View */}
+                  <div className="md:hidden space-y-3">
+                    {leaderboard.map((row) => (
+                      <div
+                        key={row.entry_id}
+                        className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 flex items-center justify-between gap-3 text-xs"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center font-bold shrink-0">
+                            {row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : (
+                              <span className="font-mono text-xs text-slate-600 dark:text-slate-300">#{row.rank}</span>
+                            )}
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
+                              {row.swimmer_name}
+                            </h4>
+                            <span className="text-slate-500 dark:text-slate-400 text-[11px] block mt-0.5">
+                              {row.category_title}
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="text-left font-mono font-bold text-amber-600 dark:text-amber-400 text-base shrink-0">
+                          {row.total_points} <span className="text-xs font-normal text-slate-400">امتیاز</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </div>
           </div>

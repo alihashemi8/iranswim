@@ -219,7 +219,8 @@ export const AdminAssessmentsPage = () => {
       ) : activeTab === 'RECORDS' ? (
         /* TAB 1: SWIMMING RECORDS */
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm text-right">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                 <tr>
@@ -288,11 +289,82 @@ export const AdminAssessmentsPage = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Cards View */}
+          <div className="md:hidden space-y-3">
+            {records.map((rec) => (
+              <div
+                key={rec.id}
+                className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-3 text-xs"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
+                      {rec.swimmer_name}
+                    </h3>
+                    <span className="text-slate-500 dark:text-slate-400 text-xs block mt-0.5">
+                      {rec.distance_meters} متر {strokeLabels[rec.stroke] || rec.stroke}
+                    </span>
+                  </div>
+                  <Badge
+                    variant={
+                      rec.verification_status === 'VERIFIED'
+                        ? 'success'
+                        : rec.verification_status === 'PENDING'
+                        ? 'warning'
+                        : 'danger'
+                    }
+                  >
+                    {rec.verification_status === 'VERIFIED'
+                      ? 'تأیید رسمی'
+                      : rec.verification_status === 'PENDING'
+                      ? 'در انتظار بررسی'
+                      : 'رد شده'}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">زمان رکورد</span>
+                    <span className="font-mono font-bold text-sky-600 dark:text-sky-400 text-sm">
+                      {rec.duration_seconds} ثانیه
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">نوع استخر</span>
+                    <span className="text-slate-700 dark:text-slate-300">
+                      {rec.pool_course === 'SHORT_25M' ? '۲۵ متر' : '۵۰ متر'}
+                    </span>
+                  </div>
+                  <div className="col-span-2">
+                    <span className="text-slate-400 block text-[10px]">تاریخ ثبت</span>
+                    <span className="font-mono text-slate-500 dark:text-slate-400">
+                      {new Date(rec.recorded_at).toLocaleDateString('fa-IR')}
+                    </span>
+                  </div>
+                </div>
+
+                {rec.verification_status === 'PENDING' && (
+                  <div className="pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedRecord(rec)}
+                      className="w-full py-2.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 hover:bg-amber-100 font-semibold border border-amber-200 dark:border-amber-800 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                    >
+                      <ShieldCheck className="w-4 h-4 text-amber-600" />
+                      <span>بررسی و تأیید رکورد داوری</span>
+                    </button>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       ) : activeTab === 'ASSESSMENTS' ? (
         /* TAB 2: SKILL ASSESSMENTS */
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm text-right">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                 <tr>
@@ -335,6 +407,53 @@ export const AdminAssessmentsPage = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Cards View */}
+          <div className="md:hidden space-y-3">
+            {assessments.map((a) => (
+              <div
+                key={a.id}
+                className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-3 text-xs"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
+                      {a.swimmer_name}
+                    </h3>
+                    <span className="text-slate-500 dark:text-slate-400 text-xs block mt-0.5">
+                      {a.level_name}
+                    </span>
+                  </div>
+                  <Badge variant={a.status === 'PASSED' ? 'success' : a.status === 'IN_PROGRESS' ? 'warning' : 'danger'}>
+                    {a.status === 'PASSED' ? 'قبول' : a.status === 'IN_PROGRESS' ? 'در حال تمرین' : 'نیاز به تمرین'}
+                  </Badge>
+                </div>
+
+                <div className="space-y-1.5 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 text-[11px]">آیتم مهارتی:</span>
+                    <span className="font-semibold text-slate-800 dark:text-slate-200">{a.skill_name}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 text-[11px]">نمره:</span>
+                    <span className="font-mono font-bold text-sky-600 dark:text-sky-400">{a.score} از ۱۰۰</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-400 text-[11px]">تاریخ ارزیابی:</span>
+                    <span className="font-mono text-slate-500 dark:text-slate-400">
+                      {new Date(a.assessed_at).toLocaleDateString('fa-IR')}
+                    </span>
+                  </div>
+                  {a.feedback && (
+                    <div className="pt-1.5 text-slate-600 dark:text-slate-300 bg-slate-100/70 dark:bg-slate-800/70 p-2 rounded-xl text-[11px] leading-relaxed">
+                      <span className="font-semibold text-slate-500 block text-[10px] mb-0.5">بازخورد مربی:</span>
+                      {a.feedback}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       ) : (

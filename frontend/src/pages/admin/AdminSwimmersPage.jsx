@@ -315,7 +315,8 @@ export const AdminSwimmersPage = () => {
         />
       ) : (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
-          <div className="overflow-x-auto">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm text-right">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                 <tr>
@@ -398,6 +399,88 @@ export const AdminSwimmersPage = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Cards View */}
+          <div className="md:hidden space-y-3">
+            {paginatedSwimmers.map((swimmer) => (
+              <div
+                key={swimmer.id}
+                className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-3 text-xs"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs">
+                      {swimmer.first_name ? swimmer.first_name.charAt(0) : 'S'}
+                    </div>
+                    <div>
+                      <span className="font-bold text-slate-800 dark:text-slate-100 text-sm block">
+                        {swimmer.full_name}
+                      </span>
+                      {swimmer.emergency_contact_name && (
+                        <span className="text-[11px] text-slate-400 block mt-0.5">
+                          ولی/رابط: {swimmer.emergency_contact_name}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <Badge variant={swimmer.is_active ? 'success' : 'neutral'}>
+                    {swimmer.is_active ? 'فعال' : 'غیرفعال'}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">سطح مهارت</span>
+                    {swimmer.level_name ? (
+                      <span className="inline-flex items-center gap-1 font-semibold text-sky-700 dark:text-sky-300 mt-0.5">
+                        <Award className="w-3 h-3 text-sky-500" />
+                        {swimmer.level_name}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">تعیین سطح نشده</span>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">تماس</span>
+                    <a href={`tel:${swimmer.phone}`} className="font-mono text-sky-600 dark:text-sky-400 underline decoration-sky-300">
+                      {swimmer.phone}
+                    </a>
+                  </div>
+                  {swimmer.national_id && (
+                    <div>
+                      <span className="text-slate-400 block text-[10px]">کد ملی</span>
+                      <span className="font-mono text-slate-700 dark:text-slate-300">{swimmer.national_id}</span>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-slate-400 block text-[10px]">تاریخ عضویت</span>
+                    <span className="font-mono text-slate-500 dark:text-slate-400">
+                      {new Date(swimmer.created_at).toLocaleDateString('fa-IR')}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
+                  <button
+                    type="button"
+                    onClick={() => handleOpenDossier(swimmer)}
+                    className="flex-1 py-2 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 font-semibold border border-sky-200 dark:border-sky-800 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                    <span>مشاهده پرونده</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEnrollModalSwimmer(swimmer)}
+                    className="flex-1 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 font-semibold border border-emerald-200 dark:border-emerald-800 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer"
+                  >
+                    <PlusCircle className="w-3.5 h-3.5" />
+                    <span>ثبت‌نام در کلاس</span>
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
 
           <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">

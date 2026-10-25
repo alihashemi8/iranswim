@@ -289,51 +289,97 @@ export const AdminDashboard = () => {
             امروز هیچ سانس کلاسی زمان‌بندی نشده است یا کلیه جلسات خاتمه یافته‌اند.
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-right">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
-                <tr>
-                  <th className="px-4 py-3 rounded-r-xl">گروه کلاسی</th>
-                  <th className="px-4 py-3">مربی مسئول</th>
-                  <th className="px-4 py-3">زمان سانس</th>
-                  <th className="px-4 py-3">محل استخر / لاین</th>
-                  <th className="px-4 py-3">وضعیت برگزاری</th>
-                  <th className="px-4 py-3 text-center rounded-l-xl">اقدام سریع</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
-                {todaySessions.map((session) => (
-                  <tr key={session.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-100">
-                      {session.group_name}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-700 dark:text-slate-300">
-                      {session.coach_name}
-                    </td>
-                    <td className="px-4 py-3 font-mono text-xs text-slate-600 dark:text-slate-300">
-                      {session.start_time?.slice(0, 5)} تا {session.end_time?.slice(0, 5)}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-500">
-                      {session.pool_location}
-                    </td>
-                    <td className="px-4 py-3">
-                      <Badge variant={session.status === 'COMPLETED' ? 'success' : session.status === 'CANCELLED' ? 'danger' : 'info'}>
-                        {session.status_display}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3 text-center">
-                      <Link
-                        to="/admin/attendance"
-                        className="px-2.5 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 font-semibold text-xs border border-sky-200 dark:border-sky-800 transition-colors inline-flex items-center gap-1 shadow-2xs"
-                      >
-                        ثبت حضور
-                      </Link>
-                    </td>
+          <>
+            {/* Desktop Table View */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full text-sm text-right">
+                <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
+                  <tr>
+                    <th className="px-4 py-3 rounded-r-xl">گروه کلاسی</th>
+                    <th className="px-4 py-3">مربی مسئول</th>
+                    <th className="px-4 py-3">زمان سانس</th>
+                    <th className="px-4 py-3">محل استخر / لاین</th>
+                    <th className="px-4 py-3">وضعیت برگزاری</th>
+                    <th className="px-4 py-3 text-center rounded-l-xl">اقدام سریع</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
+                  {todaySessions.map((session) => (
+                    <tr key={session.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                      <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-100">
+                        {session.group_name}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-700 dark:text-slate-300">
+                        {session.coach_name}
+                      </td>
+                      <td className="px-4 py-3 font-mono text-xs text-slate-600 dark:text-slate-300">
+                        {session.start_time?.slice(0, 5)} تا {session.end_time?.slice(0, 5)}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-500">
+                        {session.pool_location}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Badge variant={session.status === 'COMPLETED' ? 'success' : session.status === 'CANCELLED' ? 'danger' : 'info'}>
+                          {session.status_display}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <Link
+                          to="/admin/attendance"
+                          className="px-2.5 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 font-semibold text-xs border border-sky-200 dark:border-sky-800 transition-colors inline-flex items-center gap-1 shadow-2xs"
+                        >
+                          ثبت حضور
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-3">
+              {todaySessions.map((session) => (
+                <div
+                  key={session.id}
+                  className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-700 space-y-2.5 text-xs"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-900 dark:text-white text-sm">
+                      {session.group_name}
+                    </span>
+                    <Badge variant={session.status === 'COMPLETED' ? 'success' : session.status === 'CANCELLED' ? 'danger' : 'info'}>
+                      {session.status_display}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-1 text-slate-600 dark:text-slate-300">
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">مربی مسئول:</span>
+                      <span className="font-medium">{session.coach_name}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">ساعت سانس:</span>
+                      <span className="font-mono">{session.start_time?.slice(0, 5)} تا {session.end_time?.slice(0, 5)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-400">محل استخر:</span>
+                      <span>{session.pool_location}</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700">
+                    <Link
+                      to="/admin/attendance"
+                      className="w-full py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors shadow-2xs"
+                    >
+                      ثبت حضور و غیاب کلاس
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
       </div>
 
