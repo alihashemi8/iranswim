@@ -1,0 +1,7 @@
+from django.apps import AppConfig
+
+
+class SwimmersConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'apps.swimmers'
+    label = 'swimmers'
