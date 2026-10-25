@@ -48,8 +48,8 @@ export const Navbar = () => {
               <Waves className="w-6 h-6" />
             </div>
             <div>
-              <span className="font-bold text-lg text-slate-900 tracking-tight block leading-tight">IranSwim</span>
-              <span className="text-[10px] text-slate-500 block leading-tight">آکادمی جامع آموزش و ورزش‌های آبی</span>
+              <span className="font-bold text-lg text-slate-900 tracking-tight block leading-tight">آموزشگاه شنای ایران</span>
+              <span className="text-[10px] text-slate-500 block leading-tight">آکادمی تخصصی و ورزش‌های آبی</span>
             </div>
           </Link>
 

@@ -62,7 +62,7 @@ export const LoginPage = () => {
               <Waves className="w-8 h-8" />
             </div>
           </Link>
-          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">ورود به پرتال یکپارچه آکادمی شنا</h2>
+          <h2 className="text-2xl font-bold text-slate-900 tracking-tight">ورود به پرتال آموزشگاه شنای ایران</h2>
           <p className="text-xs text-slate-500 mt-1">جهت دسترسی به پنل اختصاصی خود، شماره همراه و رمز عبور را وارد نمایید</p>
         </div>
 

@@ -82,12 +82,12 @@ export const HomePage = () => {
           </div>
 
           <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-tight sm:leading-none">
-            آکادمی جامع شنای <span className="text-transparent bg-clip-text bg-gradient-to-l from-cyan-300 to-sky-200">ایران سوییم</span>
+            آکادمی جامع شنای <span className="text-transparent bg-clip-text bg-gradient-to-l from-cyan-300 to-sky-200">ایران</span>
           </h1>
 
           <p className="text-sm sm:text-base text-sky-100/90 leading-relaxed max-w-2xl font-light">
             شنا تنها یک ورزش نیست؛ مهارت نجات زندگی، تقویت کامل عضلات و آرامش ذهن است.
-            در آکادمی ایران سوییم با بهره‌گیری از مربیان رسمی فدراسیون، استخر استاندارد ۵۰ متری و سیستم پایش مداوم،
+            در آموزشگاه شنای ایران با بهره‌گیری از مربیان رسمی فدراسیون، استخر استاندارد ۵۰ متری و سیستم پایش مداوم،
             مسیر شما را از نخستین تماس با آب تا کسب رکوردهای قهرمانی هموار ساخته‌ایم.
           </p>
 
@@ -279,7 +279,7 @@ export const HomePage = () => {
         <div className="text-center max-w-2xl mx-auto space-y-2">
           <Badge variant="success">کادر مربیگری مجرب</Badge>
           <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-            مربیان رسمی و قهرمانان آکادمی ایران سوییم
+            مربیان رسمی و قهرمانان آموزشگاه شنای ایران
           </h2>
           <p className="text-sm text-slate-600">
             آموزش تحت هدایت مربیان دارای کارت درجه ۱ و ۲ فدراسیون شنا، شیرجه و واترپلو جمهوری اسلامی ایران
@@ -471,7 +471,7 @@ export const HomePage = () => {
           <div>
             <div className="flex items-center gap-2 text-sky-700 font-bold text-base mb-2">
               <Waves className="w-5 h-5" />
-              <span>IranSwim - آکادمی جامع شنا</span>
+              <span>آموزشگاه شنای ایران</span>
             </div>
             <p className="text-xs text-slate-500 leading-relaxed">
               سامانه یکپارچه مدیریت آموزشی، حضور و غیاب، رکوردهای زمانی، امور مالی و پایش باگ‌های سیستمی آموزشگاه شنا.
@@ -496,7 +496,7 @@ export const HomePage = () => {
         </div>
 
         <div className="border-t border-slate-100 pt-6 text-center text-slate-400">
-          تمامی حقوق محفوظ است © ۱۴۰۵ - سامانه مدیریت آموزشگاه شنا IranSwim
+          تمامی حقوق محفوظ است © ۱۴۰۵ - سامانه مدیریت آموزشگاه شنای ایران
         </div>
       </footer>
 
