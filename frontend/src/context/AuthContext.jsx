@@ -41,10 +41,10 @@ export const AuthProvider = ({ children }) => {
 
   const quickSwitch = async (role) => {
     const credentials = {
-      ADMIN: { phone: '09121111111', pass: 'admin123456' },
-      SUPERVISOR: { phone: '09122222222', pass: 'super123456' },
-      COACH: { phone: '09123333333', pass: 'coach123456' },
-      SWIMMER: { phone: '09124444444', pass: 'swim123456' },
+      SUPERVISOR: { phone: '09045911122', pass: '12345678' },
+      ADMIN: { phone: '09111111111', pass: '12345678' },
+      COACH: { phone: '09222222222', pass: '12345678' },
+      SWIMMER: { phone: '09333333333', pass: '12345678' },
     };
     const cred = credentials[role];
     if (cred) {
