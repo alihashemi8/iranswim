@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, Clock, MapPin, User } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
@@ -62,6 +62,11 @@ export const AdminSessionsPage = () => {
   const totalPages = Math.ceil(sessions.length / pageSize) || 1;
   const paginatedSessions = sessions.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
+  const formatPoolName = (loc) => {
+    if (!loc) return '';
+    return loc.replace(/\s*[-–—/]?\s*لاین.*$/i, '').trim() || loc;
+  };
+
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
@@ -81,8 +86,9 @@ export const AdminSessionsPage = () => {
       ) : sessions.length === 0 ? (
         <EmptyState title="جلسه‌ای یافت نشد" description="هیچ جلسه کلاسی در سیستم ثبت نشده است." />
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs transition-colors">
-          <div className="overflow-x-auto">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm text-right">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                 <tr>
@@ -90,7 +96,7 @@ export const AdminSessionsPage = () => {
                   <th className="px-4 py-3.5">مربی مسئول</th>
                   <th className="px-4 py-3.5">تاریخ برگزاری</th>
                   <th className="px-4 py-3.5">ساعت کلاس</th>
-                  <th className="px-4 py-3.5">محل و لاین استخر</th>
+                  <th className="px-4 py-3.5">محل استخر</th>
                   <th className="px-4 py-3.5">وضعیت</th>
                   <th className="px-4 py-3.5 text-center rounded-l-xl">اقدام</th>
                 </tr>
@@ -106,7 +112,7 @@ export const AdminSessionsPage = () => {
                       <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-400 font-mono">
                         {sess.start_time?.slice(0, 5)} تا {sess.end_time?.slice(0, 5)}
                       </td>
-                      <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-400">{sess.pool_location}</td>
+                      <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-400">{formatPoolName(sess.pool_location)}</td>
                       <td className="px-4 py-3.5">
                         <Badge variant={meta.variant}>{meta.label}</Badge>
                       </td>
@@ -128,6 +134,80 @@ export const AdminSessionsPage = () => {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="md:hidden space-y-3">
+            {paginatedSessions.map((sess) => {
+              const meta = statusBadges[sess.status] || { label: sess.status, variant: 'neutral' };
+              return (
+                <div
+                  key={sess.id}
+                  className="bg-slate-50/70 dark:bg-slate-800/40 rounded-xl p-4 border border-slate-200/80 dark:border-slate-800 space-y-3"
+                >
+                  <div className="flex items-start justify-between gap-2 border-b border-slate-200/60 dark:border-slate-700/60 pb-3">
+                    <div className="space-y-1">
+                      <span className="font-bold text-sm text-slate-900 dark:text-white leading-snug block">
+                        {sess.group_name}
+                      </span>
+                      {sess.coach_name && (
+                        <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
+                          <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span>مربی: {sess.coach_name}</span>
+                        </div>
+                      )}
+                    </div>
+                    <Badge variant={meta.variant} className="shrink-0">
+                      {meta.label}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-2 text-xs">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                        <Calendar className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>تاریخ برگزاری:</span>
+                      </div>
+                      <span className="font-mono font-medium text-slate-700 dark:text-slate-300">
+                        {sess.session_date}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                        <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>ساعت کلاس:</span>
+                      </div>
+                      <span className="font-mono font-medium text-slate-700 dark:text-slate-300">
+                        {sess.start_time?.slice(0, 5)} تا {sess.end_time?.slice(0, 5)}
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>محل استخر:</span>
+                      </div>
+                      <span className="font-medium text-slate-700 dark:text-slate-300 text-left">
+                        {formatPoolName(sess.pool_location)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {sess.status === 'SCHEDULED' && (
+                    <div className="pt-2.5 border-t border-slate-200/60 dark:border-slate-700/60 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => setCancellingSession(sess)}
+                        className="w-full sm:w-auto px-3.5 py-1.5 text-xs font-semibold text-rose-700 dark:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-xl border border-rose-200 dark:border-rose-900 transition-colors shadow-2xs text-center"
+                      >
+                        لغو جلسه
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
           </div>
 
           <Pagination

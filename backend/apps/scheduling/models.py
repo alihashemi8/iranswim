@@ -26,7 +26,7 @@ class ClassSession(models.Model):
     session_date = models.DateField(_('تاریخ برگزاری جلسه'), db_index=True)
     start_time = models.TimeField(_('ساعت شروع'))
     end_time = models.TimeField(_('ساعت پایان'))
-    pool_location = models.CharField(_('محل و لاین استخر'), max_length=200, default='استخر اصلی')
+    pool_location = models.CharField(_('محل استخر'), max_length=200, default='استخر اصلی')
     status = models.CharField(
         _('وضعیت جلسه'),
         max_length=20,

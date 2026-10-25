@@ -228,7 +228,7 @@ class Command(BaseCommand):
             defaults={
                 'skill_level': lvl2,
                 'capacity': 12,
-                'pool_location': 'استخر ۵۰ متری المپیک - لاین ۳ و ۴',
+                'pool_location': 'استخر ۵۰ متری المپیک',
                 'status': SwimmerGroup.Status.OPEN,
             }
         )
@@ -238,7 +238,7 @@ class Command(BaseCommand):
             defaults={
                 'skill_level': lvl3,
                 'capacity': 8,
-                'pool_location': 'استخر قهرمانی آزادی - لاین اختصاصی ۲',
+                'pool_location': 'استخر قهرمانی آزادی',
                 'status': SwimmerGroup.Status.OPEN,
             }
         )
