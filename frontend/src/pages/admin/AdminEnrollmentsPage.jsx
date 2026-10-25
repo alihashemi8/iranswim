@@ -1,16 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Users, CheckCircle2, XCircle, Clock, AlertTriangle } from 'lucide-react';
+import { Users } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
+import { Pagination } from '../../components/common/Pagination';
+import { useToast } from '../../context/ToastContext';
 
 export const AdminEnrollmentsPage = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const pageSize = 8;
+  const toast = useToast();
   
   const [selectedReq, setSelectedReq] = useState(null);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -23,8 +28,10 @@ export const AdminEnrollmentsPage = () => {
       if (statusFilter) params.status = statusFilter;
       const res = await api.get('/education/requests/', { params });
       setRequests(res.data.results || res.data);
+      setCurrentPage(1);
     } catch (err) {
       console.error(err);
+      toast.error('خطا در دریافت درخواست‌های ثبت‌نام');
     } finally {
       setLoading(false);
     }
@@ -44,9 +51,14 @@ export const AdminEnrollmentsPage = () => {
       });
       setSelectedReq(null);
       setRejectionReason('');
+      toast.success(
+        action === 'APPROVE'
+          ? 'درخواست ثبت‌نام با موفقیت تأیید و فاکتور مالی صادر شد.'
+          : 'درخواست متقاضی رد شد.'
+      );
       fetchRequests();
     } catch (err) {
-      alert(err.response?.data?.detail || 'خطا در ثبت تصمیم بررسی');
+      toast.error(err.response?.data?.detail || 'خطا در ثبت تصمیم بررسی');
     } finally {
       setSubmitting(false);
     }
@@ -59,15 +71,18 @@ export const AdminEnrollmentsPage = () => {
     WAITLIST: { label: 'فهرست انتظار (ظرفیت پر)', variant: 'neutral' },
   };
 
+  const totalPages = Math.ceil(requests.length / pageSize) || 1;
+  const paginatedRequests = requests.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Users className="w-5 h-5 text-sky-600" />
             درخواست‌های ثبت‌نام آنلاین و اعتبارسنجی ظرفیت
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             بررسی متقاضیان، تأیید ثبت‌نام با بررسی تراکنشی ظرفیت کلاس و صدور خودکار صورتحساب
           </p>
         </div>
@@ -75,7 +90,7 @@ export const AdminEnrollmentsPage = () => {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-700 focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
           >
             <option value="">تمام وضعیت‌ها</option>
             <option value="PENDING">در انتظار بررسی</option>
@@ -91,30 +106,30 @@ export const AdminEnrollmentsPage = () => {
       ) : requests.length === 0 ? (
         <EmptyState title="هیچ درخواستی یافت نشد" description="در حال حاضر درخواستی با این وضعیت ثبت نشده است." />
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs transition-colors">
           <div className="overflow-x-auto">
             <table className="w-full text-sm text-right">
-              <thead className="bg-slate-50 text-xs font-semibold text-slate-600 border-b border-slate-200/80">
+              <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                 <tr>
-                  <th className="px-4 py-3.5">نام متقاضی</th>
+                  <th className="px-4 py-3.5 rounded-r-xl">نام متقاضی</th>
                   <th className="px-4 py-3.5">شماره همراه</th>
                   <th className="px-4 py-3.5">دوره درخواستی</th>
                   <th className="px-4 py-3.5">گروه اجرایی</th>
                   <th className="px-4 py-3.5">تاریخ ثبت</th>
                   <th className="px-4 py-3.5">وضعیت</th>
-                  <th className="px-4 py-3.5 text-center">اقدام مدیر</th>
+                  <th className="px-4 py-3.5 text-center rounded-l-xl">اقدام مدیر</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
-                {requests.map((req) => {
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
+                {paginatedRequests.map((req) => {
                   const meta = statusBadges[req.status] || { label: req.status, variant: 'neutral' };
                   return (
-                    <tr key={req.id} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="px-4 py-3.5 font-medium text-slate-900">{req.applicant_name}</td>
-                      <td className="px-4 py-3.5 font-mono text-xs text-slate-600">{req.applicant_phone}</td>
-                      <td className="px-4 py-3.5 text-xs text-slate-700">{req.course_name}</td>
-                      <td className="px-4 py-3.5 text-xs font-medium text-slate-800">{req.group_name}</td>
-                      <td className="px-4 py-3.5 text-xs text-slate-500 font-mono">
+                    <tr key={req.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30 transition-colors">
+                      <td className="px-4 py-3.5 font-semibold text-slate-900 dark:text-white">{req.applicant_name}</td>
+                      <td className="px-4 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-400">{req.applicant_phone}</td>
+                      <td className="px-4 py-3.5 text-xs text-slate-700 dark:text-slate-300">{req.course_name}</td>
+                      <td className="px-4 py-3.5 text-xs font-medium text-slate-800 dark:text-slate-200">{req.group_name}</td>
+                      <td className="px-4 py-3.5 text-xs text-slate-500 dark:text-slate-400 font-mono">
                         {new Date(req.created_at).toLocaleDateString('fa-IR')}
                       </td>
                       <td className="px-4 py-3.5">
@@ -123,13 +138,14 @@ export const AdminEnrollmentsPage = () => {
                       <td className="px-4 py-3.5 text-center">
                         {req.status === 'PENDING' ? (
                           <button
+                            type="button"
                             onClick={() => setSelectedReq(req)}
-                            className="px-3 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 font-medium text-xs rounded-lg border border-sky-200 transition-colors"
+                            className="px-3 py-1.5 bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 font-semibold text-xs rounded-xl border border-sky-200 dark:border-sky-800 transition-colors shadow-2xs"
                           >
                             بررسی و تصمیم
                           </button>
                         ) : (
-                          <span className="text-xs text-slate-400 italic">بررسی‌شده</span>
+                          <span className="text-xs text-slate-400 dark:text-slate-500 italic">بررسی‌شده</span>
                         )}
                       </td>
                     </tr>
@@ -138,6 +154,14 @@ export const AdminEnrollmentsPage = () => {
               </tbody>
             </table>
           </div>
+
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            totalItems={requests.length}
+            pageSize={pageSize}
+            onPageChange={(page) => setCurrentPage(page)}
+          />
         </div>
       )}
 
@@ -149,23 +173,23 @@ export const AdminEnrollmentsPage = () => {
       >
         {selectedReq && (
           <div className="space-y-4">
-            <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-2">
+            <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-xs space-y-2">
               <div className="flex justify-between">
-                <span className="text-slate-500">متقاضی:</span>
-                <span className="font-semibold text-slate-800">{selectedReq.applicant_name}</span>
+                <span className="text-slate-500 dark:text-slate-400">متقاضی:</span>
+                <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedReq.applicant_name}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">شماره تماس:</span>
-                <span className="font-mono text-slate-800">{selectedReq.applicant_phone}</span>
+                <span className="text-slate-500 dark:text-slate-400">شماره تماس:</span>
+                <span className="font-mono text-slate-800 dark:text-slate-200">{selectedReq.applicant_phone}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">دوره و گروه:</span>
-                <span className="font-medium text-slate-800">{selectedReq.course_name} - {selectedReq.group_name}</span>
+                <span className="text-slate-500 dark:text-slate-400">دوره و گروه:</span>
+                <span className="font-medium text-slate-800 dark:text-slate-200">{selectedReq.course_name} - {selectedReq.group_name}</span>
               </div>
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700 block mb-1">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
                 دلیل رد درخواست (در صورت رد):
               </label>
               <textarea
@@ -173,11 +197,11 @@ export const AdminEnrollmentsPage = () => {
                 value={rejectionReason}
                 onChange={(e) => setRejectionReason(e.target.value)}
                 placeholder="در صورت رد درخواست، دلیل را برای شناگر وارد فرمایید..."
-                className="w-full text-sm bg-slate-50 border border-slate-200 rounded-lg p-2.5 focus:bg-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500"
               />
             </div>
 
-            <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-3">
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-3">
               <Button
                 variant="danger"
                 size="sm"

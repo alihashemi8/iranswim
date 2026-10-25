@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { ClipboardCheck, Check, X, AlertCircle, Clock, Save } from 'lucide-react';
+import { ClipboardCheck, Check, Save } from 'lucide-react';
 import api from '../../api/client';
-import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { LoadingState } from '../../components/common/LoadingState';
+import { useToast } from '../../context/ToastContext';
 
 export const CoachAttendancePage = () => {
   const [sessions, setSessions] = useState([]);
@@ -14,6 +14,7 @@ export const CoachAttendancePage = () => {
   const [loadingSwimmers, setLoadingSwimmers] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     const fetchSessions = async () => {
@@ -27,6 +28,7 @@ export const CoachAttendancePage = () => {
         }
       } catch (err) {
         console.error(err);
+        toast.error('خطا در دریافت برنامه‌های کلاسی مربی');
       } finally {
         setLoadingSessions(false);
       }
@@ -70,6 +72,7 @@ export const CoachAttendancePage = () => {
         setAttendanceMap(initialMap);
       } catch (err) {
         console.error(err);
+        toast.error('خطا در دریافت لیست شاگردان کلاس');
       } finally {
         setLoadingSwimmers(false);
       }
@@ -114,9 +117,10 @@ export const CoachAttendancePage = () => {
       });
 
       setSavedSuccess(true);
+      toast.success('دفتر حضور و غیاب جلسه با موفقیت ذخیره و سهمیه‌های اعضا کسر گردید.');
       setTimeout(() => setSavedSuccess(false), 4000);
     } catch (err) {
-      alert(err.response?.data?.detail || 'خطا در ثبت حضور و غیاب');
+      toast.error(err.response?.data?.detail || 'خطا در ثبت حضور و غیاب');
     } finally {
       setSaving(false);
     }
@@ -124,24 +128,24 @@ export const CoachAttendancePage = () => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <ClipboardCheck className="w-5 h-5 text-emerald-600" />
+          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <ClipboardCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
             دفتر حضور و غیاب کلاسی مربی
           </h1>
-          <p className="text-sm text-slate-500 mt-1">
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             ثبت وضعیت حضور، غیبت موجه یا غیرموجه و به‌روزرسانی هوشمند سهمیه جلسات باقیمانده
           </p>
         </div>
 
         {/* Session selector dropdown */}
         <div className="w-full sm:w-72">
-          <label className="text-xs font-semibold text-slate-700 block mb-1">انتخاب جلسه کلاسی:</label>
+          <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">انتخاب جلسه کلاسی:</label>
           <select
             value={selectedSessionId}
             onChange={(e) => setSelectedSessionId(e.target.value)}
-            className="w-full text-xs font-medium bg-slate-50 border border-slate-200 rounded-lg p-2.5 text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full text-xs font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             {sessions.map((sess) => (
               <option key={sess.id} value={sess.id}>
@@ -155,42 +159,42 @@ export const CoachAttendancePage = () => {
       {loadingSessions || loadingSwimmers ? (
         <LoadingState message="در حال فراخوانی لیست شاگردان جلسه..." />
       ) : swimmers.length === 0 ? (
-        <div className="bg-white p-12 text-center rounded-2xl border border-slate-200 text-sm text-slate-500">
+        <div className="bg-white dark:bg-slate-900 p-12 text-center rounded-2xl border border-slate-200 dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400">
           شناگری در این گروه ثبت‌نام نکرده است.
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200/80 overflow-hidden shadow-xs">
-          <div className="p-4 bg-slate-50/70 border-b border-slate-200 flex items-center justify-between">
-            <span className="text-xs font-semibold text-slate-700">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs transition-colors">
+          <div className="p-4 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
               لیست شناگران حاضر در این کلاس ({swimmers.length} نفر)
             </span>
-            <span className="text-[11px] text-slate-500">
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
               * توجه: غیبت موجه از سهمیه کسر نمی‌کند؛ غیبت غیرموجه، حاضر و تأخیر سهمیه را کسر می‌نمایند.
             </span>
           </div>
 
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-100 dark:divide-slate-800/70">
             {swimmers.map((enr) => {
               const cur = attendanceMap[enr.swimmer] || { status: 'PRESENT', note: '' };
               return (
-                <div key={enr.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-slate-50/50 transition-colors">
+                <div key={enr.id} className="p-4 flex flex-col md:flex-row md:items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
                   <div>
-                    <span className="font-bold text-sm text-slate-900 block">{enr.swimmer_name}</span>
-                    <span className="text-xs text-slate-500 font-mono">
+                    <span className="font-bold text-sm text-slate-900 dark:text-white block">{enr.swimmer_name}</span>
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
                       جلسات باقیمانده: {enr.remaining_sessions} از {enr.sessions_purchased}
                     </span>
                   </div>
 
                   <div className="flex flex-wrap items-center gap-2">
                     {/* Status Options */}
-                    <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-lg">
+                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700">
                       <button
                         type="button"
                         onClick={() => setStatus(enr.swimmer, 'PRESENT')}
-                        className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${
+                        className={`px-3 py-1 text-xs rounded-lg font-medium transition-colors ${
                           cur.status === 'PRESENT'
                             ? 'bg-emerald-600 text-white shadow-xs'
-                            : 'text-slate-700 hover:bg-slate-200'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                         }`}
                       >
                         حاضر
@@ -198,10 +202,10 @@ export const CoachAttendancePage = () => {
                       <button
                         type="button"
                         onClick={() => setStatus(enr.swimmer, 'LATE')}
-                        className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${
+                        className={`px-3 py-1 text-xs rounded-lg font-medium transition-colors ${
                           cur.status === 'LATE'
                             ? 'bg-amber-500 text-white shadow-xs'
-                            : 'text-slate-700 hover:bg-slate-200'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                         }`}
                       >
                         با تأخیر
@@ -209,10 +213,10 @@ export const CoachAttendancePage = () => {
                       <button
                         type="button"
                         onClick={() => setStatus(enr.swimmer, 'EXCUSED')}
-                        className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${
+                        className={`px-3 py-1 text-xs rounded-lg font-medium transition-colors ${
                           cur.status === 'EXCUSED'
                             ? 'bg-sky-600 text-white shadow-xs'
-                            : 'text-slate-700 hover:bg-slate-200'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                         }`}
                       >
                         غیبت موجه
@@ -220,10 +224,10 @@ export const CoachAttendancePage = () => {
                       <button
                         type="button"
                         onClick={() => setStatus(enr.swimmer, 'ABSENT')}
-                        className={`px-3 py-1 text-xs rounded-md font-medium transition-colors ${
+                        className={`px-3 py-1 text-xs rounded-lg font-medium transition-colors ${
                           cur.status === 'ABSENT'
                             ? 'bg-rose-600 text-white shadow-xs'
-                            : 'text-slate-700 hover:bg-slate-200'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
                         }`}
                       >
                         غیبت غیرموجه
@@ -236,7 +240,7 @@ export const CoachAttendancePage = () => {
                       placeholder="یادداشت مربی..."
                       value={cur.note}
                       onChange={(e) => setNote(enr.swimmer, e.target.value)}
-                      className="text-xs bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-1.5 w-44 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 w-44 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                     />
                   </div>
                 </div>
@@ -244,21 +248,21 @@ export const CoachAttendancePage = () => {
             })}
           </div>
 
-          <div className="p-4 bg-slate-50 border-t border-slate-200 flex items-center justify-between">
+          <div className="p-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
             {savedSuccess ? (
-              <span className="text-xs font-semibold text-emerald-600 flex items-center gap-1.5">
+              <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
                 <Check className="w-4 h-4" />
                 حضور و غیاب جلسه با موفقیت ذخیره و سهمیه‌ها به‌روزرسانی شد.
               </span>
             ) : (
-              <span className="text-xs text-slate-400">برای اعمال نهایی، دکمه ذخیره را بفشارید.</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500">برای اعمال نهایی، دکمه ذخیره را بفشارید.</span>
             )}
             <Button
               variant="primary"
               size="md"
               loading={saving}
               onClick={handleSave}
-              className="gap-2 bg-emerald-600 hover:bg-emerald-700"
+              className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white"
             >
               <Save className="w-4 h-4" />
               <span>ذخیره نهایی حضور و غیاب</span>

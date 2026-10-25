@@ -1,6 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { ThemeProvider } from './context/ThemeContext';
+import { ToastProvider } from './context/ToastContext';
 import { Navbar } from './components/layout/Navbar';
 import { DashboardShell } from './components/layout/DashboardShell';
 
@@ -34,32 +36,34 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <Routes>
-          {/* Public Website */}
-          <Route
-            path="/"
-            element={
-              <div className="min-h-screen bg-slate-50 flex flex-col">
-                <Navbar />
-                <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-                  <HomePage />
-                </main>
-              </div>
-            }
-          />
-          <Route
-            path="/login"
-            element={
-              <div className="min-h-screen bg-slate-50 flex flex-col">
-                <Navbar />
-                <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-                  <LoginPage />
-                </main>
-              </div>
-            }
-          />
+    <ThemeProvider>
+      <ToastProvider>
+        <AuthProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Public Website */}
+              <Route
+                path="/"
+                element={
+                  <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
+                    <Navbar />
+                    <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+                      <HomePage />
+                    </main>
+                  </div>
+                }
+              />
+              <Route
+                path="/login"
+                element={
+                  <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
+                    <Navbar />
+                    <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+                      <LoginPage />
+                    </main>
+                  </div>
+                }
+              />
 
           {/* Supervisor Protected Routes */}
           <Route
@@ -126,5 +130,7 @@ export default function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </ToastProvider>
+    </ThemeProvider>
   );
 }

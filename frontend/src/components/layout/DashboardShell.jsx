@@ -17,21 +17,21 @@ export const DashboardShell = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
       <Navbar onMenuClick={() => setMobileMenuOpen(true)} />
 
       {/* Mobile Top Action Bar for Quick Sidebar Access */}
-      <div className="md:hidden flex items-center justify-between px-4 py-2 bg-white border-b border-slate-200/90 shadow-2xs">
+      <div className="md:hidden flex items-center justify-between px-4 py-2 bg-white dark:bg-slate-900 border-b border-slate-200/90 dark:border-slate-800 shadow-2xs">
         <button
           type="button"
           onClick={() => setMobileMenuOpen(true)}
-          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-sky-50 text-sky-700 hover:bg-sky-100 text-xs font-semibold transition-colors border border-sky-100"
+          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 hover:bg-sky-100 text-xs font-semibold transition-colors border border-sky-100 dark:border-sky-900"
           aria-label="مشاهده منوی ناوبری"
         >
           <Menu className="w-4 h-4" />
           <span>منوی بخش‌ها</span>
         </button>
-        <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+        <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-medium">
           <span>{user ? (roleTitles[user.role] || user.role) : 'پنل کاربر'}</span>
           <ChevronLeft className="w-3.5 h-3.5 text-slate-400" />
         </div>
