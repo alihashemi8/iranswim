@@ -130,8 +130,8 @@ export const AdminDashboard = () => {
       </div>
 
       {/* 2. Operational KPI Cards - Connected to pages */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Link to="/admin/swimmers?status=active" className="block hover:opacity-95 transition-opacity">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <Link to="/admin/swimmers?status=active" className="block h-full hover:opacity-95 transition-opacity">
           <StatsCard
             title="شناگران فعال"
             value={`${stats?.active_swimmers ?? 0} نفر`}
@@ -141,7 +141,7 @@ export const AdminDashboard = () => {
           />
         </Link>
 
-        <Link to="/admin/coaches?status=ACTIVE" className="block hover:opacity-95 transition-opacity">
+        <Link to="/admin/coaches?status=ACTIVE" className="block h-full hover:opacity-95 transition-opacity">
           <StatsCard
             title="مربیان فعال"
             value={`${coaches.length} مربی`}
@@ -151,7 +151,7 @@ export const AdminDashboard = () => {
           />
         </Link>
 
-        <Link to="/admin/finance" className="block hover:opacity-95 transition-opacity">
+        <Link to="/admin/finance" className="block h-full hover:opacity-95 transition-opacity">
           <StatsCard
             title="درآمد وصول‌شده قطعی"
             value={`${formatPrice(finance?.total_paid)} تومان`}
@@ -161,7 +161,7 @@ export const AdminDashboard = () => {
           />
         </Link>
 
-        <Link to="/admin/finance?tab=installments" className="block hover:opacity-95 transition-opacity">
+        <Link to="/admin/finance?tab=installments" className="block h-full hover:opacity-95 transition-opacity">
           <StatsCard
             title="مطالبات معوق (بدهکاران)"
             value={`${formatPrice(finance?.receivables)} تومان`}

@@ -8,13 +8,6 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
 
-  const roleTitles = {
-    ADMIN: 'مدیر آموزشگاه',
-    SUPERVISOR: 'ناظر فنی سامانه',
-    COACH: 'مربی آکادمی',
-    SWIMMER: 'شناگر',
-  };
-
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 shadow-xs transition-colors">
       <div className={`${isFullWidth ? 'w-full px-4 sm:px-6' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'} h-16 flex items-center justify-between`}>
@@ -64,17 +57,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
           </button>
 
-          {user ? (
-            <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-slate-100/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-xs shadow-2xs">
-                {user.full_name ? user.full_name.charAt(0) : <UserCircle2 className="w-4 h-4" />}
-              </div>
-              <div className="hidden sm:flex flex-col text-right">
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">{user.full_name}</span>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium leading-tight">{roleTitles[user.role] || user.role}</span>
-              </div>
-            </div>
-          ) : (
+          {!user && (
             <div className="flex items-center gap-2">
               <Link
                 to="/login"
