@@ -275,7 +275,7 @@ export const AdminFinancePage = () => {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatsCard
           title="مجموع فاکتورهای صادرشده"
           value={`${formatPrice(summary?.total_invoiced)} تومان`}
@@ -299,7 +299,7 @@ export const AdminFinancePage = () => {
         />
         <StatsCard
           title="اقساط سررسید گذشته"
-          value={`${summary?.overdue_installments_count ?? 0} مورد`}
+          value={`${(summary?.overdue_installments_count ?? 0).toLocaleString('fa-IR')} مورد`}
           subtitle="اقساط معوق پرداخت‌نشده"
           icon={AlertCircle}
           color={(summary?.overdue_installments_count || 0) > 0 ? 'rose' : 'emerald'}

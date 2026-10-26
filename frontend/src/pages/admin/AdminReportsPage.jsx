@@ -189,7 +189,7 @@ export const AdminReportsPage = () => {
       ) : reportType === 'FINANCIAL' ? (
         /* REPORT 1: FINANCIAL */
         <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
             <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
               <span className="text-xs text-slate-400 block mb-1">مجموع کل صورتحساب‌های صادرشده</span>
               <span className="text-lg font-bold font-mono text-slate-800 dark:text-slate-100">
