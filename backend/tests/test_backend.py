@@ -223,3 +223,51 @@ def test_financial_decimal_precision_and_allocations(db, swimmer_user, admin_use
     assert inst1.status == Installment.Status.PAID
     assert invoice.remaining_balance == Decimal('1500000.00')
     assert invoice.status == Invoice.Status.PARTIALLY_PAID
+
+
+@pytest.mark.django_db
+def test_notifications_api_and_read_actions(api_client, admin_user):
+    """تست اختصاصی اندپوینت‌های اعلانات، شمارش ناخوانده‌ها و علامت‌گذاری خوانده‌شده"""
+    from apps.content.models import Notification
+
+    # Clear any previous notifications to test initial seeding
+    Notification.objects.all().delete()
+
+    # Anonymous request must fail
+    anon_res = api_client.get('/api/content/notifications/')
+    assert anon_res.status_code == 401
+
+    api_client.force_authenticate(user=admin_user)
+    res = api_client.get('/api/content/notifications/')
+    assert res.status_code == 200
+    assert 'unread_count' in res.data
+    assert 'results' in res.data
+    assert res.data['unread_count'] == 4
+    assert len(res.data['results']) == 4
+
+    # Verify categories exist
+    categories = {n['category'] for n in res.data['results']}
+    assert 'REGISTRATION' in categories
+    assert 'PAYMENT' in categories
+    assert 'SCHEDULE' in categories
+    assert 'ANNOUNCEMENT' in categories
+
+    # Mark single notification as read
+    first_id = res.data['results'][0]['id']
+    read_res = api_client.post(f'/api/content/notifications/{first_id}/read/')
+    assert read_res.status_code == 200
+    assert read_res.data['is_read'] is True
+
+    # Check unread count is now 3
+    res_after = api_client.get('/api/content/notifications/')
+    assert res_after.data['unread_count'] == 3
+
+    # Mark all as read
+    read_all_res = api_client.post('/api/content/notifications/read-all/')
+    assert read_all_res.status_code == 200
+    assert read_all_res.data['success'] is True
+
+    # Check unread count is now 0
+    res_final = api_client.get('/api/content/notifications/')
+    assert res_final.data['unread_count'] == 0
+

@@ -66,3 +66,41 @@ class Announcement(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.get_audience_display()})"
+
+
+class Notification(models.Model):
+    class Category(models.TextChoices):
+        REGISTRATION = 'REGISTRATION', _('درخواست ثبت‌نام جدید')
+        PAYMENT = 'PAYMENT', _('سررسید یا تأخیر پرداخت اقساط')
+        SCHEDULE = 'SCHEDULE', _('تغییر یا لغو برنامه کلاس')
+        ANNOUNCEMENT = 'ANNOUNCEMENT', _('اطلاعیه‌های مهم سیستم')
+
+    recipient = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name='notifications',
+        verbose_name=_('کاربر گیرنده')
+    )
+    category = models.CharField(
+        _('دسته‌بندی اعلان'),
+        max_length=20,
+        choices=Category.choices,
+        default=Category.ANNOUNCEMENT,
+        db_index=True
+    )
+    title = models.CharField(_('عنوان اعلان'), max_length=200)
+    message = models.TextField(_('متن و توضیحات اعلان'))
+    link = models.CharField(_('مسیر صفحه مرتبط در سامانه'), max_length=255, blank=True)
+    is_read = models.BooleanField(_('خوانده‌شده'), default=False, db_index=True)
+    created_at = models.DateTimeField(_('زمان ثبت'), auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name = _('اعلان')
+        verbose_name_plural = _('اعلان‌ها')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.get_category_display()})"
+

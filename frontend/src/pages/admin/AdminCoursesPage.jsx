@@ -11,7 +11,7 @@ import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { ProgressBar } from '../../components/common/Charts';
 import { useToast } from '../../context/ToastContext';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 
 export const AdminCoursesPage = () => {
   const [activeTab, setActiveTab] = useState('GROUPS'); // GROUPS, COURSES, LEVELS, SESSIONS
@@ -21,6 +21,7 @@ export const AdminCoursesPage = () => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Create Course Modal
   const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
@@ -69,6 +70,26 @@ export const AdminCoursesPage = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Handle Quick Action deep link
+  useEffect(() => {
+    const action = searchParams.get('action');
+    if (action === 'new-group') {
+      setIsGroupModalOpen(true);
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('action');
+        return next;
+      }, { replace: true });
+    } else if (action === 'new-course') {
+      setIsCourseModalOpen(true);
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('action');
+        return next;
+      }, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleCreateCourse = async (e) => {
     e.preventDefault();

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Users, UserPlus, Search, Filter, Eye, BookOpen,
   CreditCard, Calendar, Award, Phone, CheckCircle2,
@@ -25,6 +26,7 @@ export const AdminSwimmersPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Create Swimmer Modal
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -84,6 +86,18 @@ export const AdminSwimmersPage = () => {
   useEffect(() => {
     fetchSwimmers();
   }, [selectedLevel]);
+
+  // Handle Quick Action deep link
+  useEffect(() => {
+    if (searchParams.get('action') === 'new') {
+      setIsAddModalOpen(true);
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('action');
+        return next;
+      }, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();

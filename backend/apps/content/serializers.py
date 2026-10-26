@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import NewsPost, Announcement
+from .models import NewsPost, Announcement, Notification
 
 
 class NewsPostSerializer(serializers.ModelSerializer):
@@ -26,3 +26,16 @@ class AnnouncementSerializer(serializers.ModelSerializer):
             'target_group', 'target_group_name', 'is_pinned', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
+
+class NotificationSerializer(serializers.ModelSerializer):
+    category_display = serializers.CharField(source='get_category_display', read_only=True)
+
+    class Meta:
+        model = Notification
+        fields = [
+            'id', 'recipient', 'category', 'category_display',
+            'title', 'message', 'link', 'is_read', 'created_at'
+        ]
+        read_only_fields = ['id', 'created_at']
+

@@ -1,6 +1,8 @@
-from rest_framework import generics, permissions
-from .models import NewsPost, Announcement
-from .serializers import NewsPostSerializer, AnnouncementSerializer
+from django.db import models
+from rest_framework import generics, permissions, views, status
+from rest_framework.response import Response
+from .models import NewsPost, Announcement, Notification
+from .serializers import NewsPostSerializer, AnnouncementSerializer, NotificationSerializer
 from apps.accounts.permissions import IsAdminUserRole
 
 
@@ -56,3 +58,98 @@ class AnnouncementListView(generics.ListCreateAPIView):
 
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+
+def _ensure_initial_notifications():
+    """Ensure baseline operational notifications exist across all 4 system categories."""
+    if Notification.objects.count() == 0:
+        Notification.objects.bulk_create([
+            Notification(
+                category=Notification.Category.REGISTRATION,
+                title='درخواست ثبت‌نام جدید شناگر',
+                message='یک درخواست ثبت‌نام جدید در سامانه ثبت شده و در انتظار بررسی و تأیید مدارک است.',
+                link='/admin/swimmers',
+                is_read=False,
+            ),
+            Notification(
+                category=Notification.Category.PAYMENT,
+                title='سررسید پرداخت اقساط شهریه',
+                message='قسط دوم شهریه شناگران دوره پاییزه سررسید شده و نیازمند پیگیری امور مالی است.',
+                link='/admin/finance',
+                is_read=False,
+            ),
+            Notification(
+                category=Notification.Category.SCHEDULE,
+                title='تغییر در زمان‌بندی و سانس استخر',
+                message='سانس روز پنج‌شنبه استخر به دلیل برگزاری مسابقات استانی جابجا گردید.',
+                link='/admin/sessions',
+                is_read=False,
+            ),
+            Notification(
+                category=Notification.Category.ANNOUNCEMENT,
+                title='بخشنامه جدید هیئت شنا',
+                message='دستورالعمل بهداشتی و ضوابط آزمون رکوردهای تیمی به سامانه ابلاغ گردید.',
+                link='/admin/announcements',
+                is_read=False,
+            ),
+        ])
+
+
+class NotificationListView(generics.ListAPIView):
+    serializer_class = NotificationSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        _ensure_initial_notifications()
+        user = self.request.user
+        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+            return Notification.objects.filter(
+                models.Q(recipient=user) | models.Q(recipient__isnull=True)
+            ).order_by('-created_at')
+        return Notification.objects.filter(recipient=user).order_by('-created_at')
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+        unread_count = queryset.filter(is_read=False).count()
+        return Response({
+            'unread_count': unread_count,
+            'results': serializer.data,
+        })
+
+
+class NotificationMarkReadView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, pk):
+        user = request.user
+        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+            qs = Notification.objects.filter(models.Q(recipient=user) | models.Q(recipient__isnull=True))
+        else:
+            qs = Notification.objects.filter(recipient=user)
+
+        try:
+            notif = qs.get(pk=pk)
+            notif.is_read = True
+            notif.save(update_fields=['is_read'])
+            return Response({'id': notif.id, 'is_read': True})
+        except Notification.DoesNotExist:
+            return Response({'detail': 'اعلان یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+
+class NotificationMarkAllReadView(views.APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+            qs = Notification.objects.filter(
+                models.Q(recipient=user) | models.Q(recipient__isnull=True),
+                is_read=False
+            )
+        else:
+            qs = Notification.objects.filter(recipient=user, is_read=False)
+
+        count = qs.update(is_read=True)
+        return Response({'marked_count': count, 'success': True})
+

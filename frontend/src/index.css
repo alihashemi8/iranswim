@@ -1,17 +1,80 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Vazirmatn", "Shabnam", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --default-font-family: var(--font-sans);
+}
+
 @custom-variant dark (&:where(.dark, .dark *));
+
+/* Vazirmatn static weights */
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("/fonts/Vazirmatn-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
 
 @font-face {
   font-family: "Vazirmatn";
-  src: url("/fonts/Vazirmatn.woff2") format("woff2");
-  font-weight: 100 900;
+  src: url("/fonts/Vazirmatn-Medium.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("/fonts/Vazirmatn-SemiBold.woff2") format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("/fonts/Vazirmatn-Bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Vazirmatn";
+  src: url("/fonts/Vazirmatn-ExtraBold.woff2") format("woff2");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Shabnam-FD */
+@font-face {
+  font-family: "Shabnam";
+  src: url("/fonts/Shabnam-FD.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Shabnam";
+  src: url("/fonts/Shabnam-Medium-FD.woff2") format("woff2");
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Shabnam";
+  src: url("/fonts/Shabnam-Bold-FD.woff2") format("woff2");
+  font-weight: 700;
   font-style: normal;
   font-display: swap;
 }
 
 :root {
-  --font-sans: "Vazirmatn", system-ui, -apple-system, sans-serif;
+  --font-sans: "Vazirmatn", "Shabnam", system-ui, -apple-system, sans-serif;
   color-scheme: light;
 }
 
@@ -21,6 +84,7 @@ html {
   text-align: right;
   background-color: #f8fafc;
   color: #0f172a;
+  font-feature-settings: "ss01" 1, "cv01" 1;
 }
 
 html.dark {
@@ -32,9 +96,20 @@ html.dark {
 body {
   margin: 0;
   min-height: 100vh;
+  font-family: var(--font-sans);
   background-color: #f8fafc;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01" 1, "cv01" 1;
+}
+
+button, input, optgroup, select, textarea {
+  font-family: inherit;
+}
+
+/* Ensure smooth Persian typography and eliminate harsh negative tracking */
+*, ::before, ::after {
+  letter-spacing: 0;
 }
 
 html.dark body {
@@ -93,3 +168,18 @@ html.dark body {
 .animate-fade-in {
   animation: fadeInBackdrop 0.2s ease-out forwards;
 }
+
+/* Animation for Mobile Bottom Sheet */
+@keyframes slideInUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-up {
+  animation: slideInUp 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+

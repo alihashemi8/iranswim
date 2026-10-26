@@ -74,6 +74,7 @@ export const AdminDashboard = () => {
   }
 
   const formatPrice = (val) => Number(val || 0).toLocaleString('fa-IR');
+  const formatNum = (val) => Number(val || 0).toLocaleString('fa-IR');
 
   // Weekly registrations chart
   const weeklyEnrollmentsData = [
@@ -104,26 +105,26 @@ export const AdminDashboard = () => {
             <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[11px] font-bold tracking-wide">
               پیشخوان عملیاتی مدیر
             </span>
-            <span className="text-sky-200 text-xs font-mono">
+            <span className="text-sky-200 text-xs font-medium">
               امروز: {new Date().toLocaleDateString('fa-IR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
             </span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-black">
             مرکز کنترل و مدیریت آموزشگاه شنای ایران
           </h1>
-          <p className="text-sky-100 text-xs sm:text-sm mt-1 max-w-xl font-light">
+          <p className="text-sky-100 text-xs sm:text-sm mt-1 max-w-xl font-normal leading-relaxed">
             مدیریت افراد، زمان‌بندی گروه‌ها، وصول مطالبات مالی، پیشرفت مهارتی و تصمیم‌گیری‌های عملیاتی روزانه
           </p>
         </div>
 
         {totalUrgentActionItems > 0 && (
           <div className="bg-white/10 backdrop-blur-md px-4 py-3 rounded-2xl border border-white/20 flex items-center gap-3 shrink-0">
-            <div className="w-9 h-9 rounded-xl bg-amber-400 text-amber-950 font-bold flex items-center justify-center shrink-0 shadow-xs text-sm">
-              {totalUrgentActionItems}
+            <div className="w-9 h-9 rounded-xl bg-amber-400 text-amber-950 font-black flex items-center justify-center shrink-0 shadow-xs text-sm">
+              {formatNum(totalUrgentActionItems)}
             </div>
             <div>
               <span className="text-xs font-bold block text-white">مورد نیازمند اقدام فوری</span>
-              <span className="text-[11px] text-sky-100">در صف بررسی و پیگیری مدیر</span>
+              <span className="text-[11px] text-sky-100 font-normal">در صف بررسی و پیگیری مدیر</span>
             </div>
           </div>
         )}
@@ -134,7 +135,7 @@ export const AdminDashboard = () => {
         <Link to="/admin/swimmers?status=active" className="block h-full hover:opacity-95 transition-opacity">
           <StatsCard
             title="شناگران فعال"
-            value={`${stats?.active_swimmers ?? 0} نفر`}
+            value={`${formatNum(stats?.active_swimmers)} نفر`}
             subtitle="دارای پرونده آموزشی فعال"
             icon={Users}
             color="sky"
@@ -144,7 +145,7 @@ export const AdminDashboard = () => {
         <Link to="/admin/coaches?status=ACTIVE" className="block h-full hover:opacity-95 transition-opacity">
           <StatsCard
             title="مربیان فعال"
-            value={`${coaches.length} مربی`}
+            value={`${formatNum(coaches.length)} مربی`}
             subtitle="کادر فعال با گروه تخصیص‌یافته"
             icon={UserCheck}
             color="indigo"
@@ -165,7 +166,7 @@ export const AdminDashboard = () => {
           <StatsCard
             title="مطالبات معوق (بدهکاران)"
             value={`${formatPrice(finance?.receivables)} تومان`}
-            subtitle={`${overdueInstallments.length} قسط سررسید گذشته`}
+            subtitle={`${formatNum(overdueInstallments.length)} قسط سررسید گذشته`}
             icon={AlertCircle}
             color={overdueInstallments.length > 0 ? 'rose' : 'emerald'}
           />
@@ -195,8 +196,8 @@ export const AdminDashboard = () => {
                   <Users className="w-4 h-4 text-sky-600" />
                   درخواست‌های آنلاین ثبت‌نام
                 </span>
-                <span className="px-2 py-0.5 rounded-full bg-sky-200 text-sky-800 font-bold text-xs font-mono">
-                  {pendingRequests.length}
+                <span className="px-2 py-0.5 rounded-full bg-sky-200 text-sky-800 font-bold text-xs">
+                  {formatNum(pendingRequests.length)}
                 </span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-300">
@@ -208,7 +209,7 @@ export const AdminDashboard = () => {
                 to="/admin/enrollments"
                 className="w-full text-center block py-1.5 px-3 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold transition-colors shadow-2xs"
               >
-                بررسی و تأیید درخواست‌ها ({pendingRequests.length}) ←
+                بررسی و تأیید درخواست‌ها ({formatNum(pendingRequests.length)}) ←
               </Link>
             </div>
           </div>
@@ -221,8 +222,8 @@ export const AdminDashboard = () => {
                   <AlertCircle className="w-4 h-4 text-rose-600" />
                   اقساط سررسید گذشته (بدهکاران)
                 </span>
-                <span className="px-2 py-0.5 rounded-full bg-rose-200 text-rose-800 font-bold text-xs font-mono">
-                  {overdueInstallments.length}
+                <span className="px-2 py-0.5 rounded-full bg-rose-200 text-rose-800 font-bold text-xs">
+                  {formatNum(overdueInstallments.length)}
                 </span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-300">
@@ -247,8 +248,8 @@ export const AdminDashboard = () => {
                   <Award className="w-4 h-4 text-amber-600" />
                   رکوردهای شنا در انتظار تأیید
                 </span>
-                <span className="px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 font-bold text-xs font-mono">
-                  {pendingRecords.length}
+                <span className="px-2 py-0.5 rounded-full bg-amber-200 text-amber-800 font-bold text-xs">
+                  {formatNum(pendingRecords.length)}
                 </span>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-300">
@@ -273,7 +274,7 @@ export const AdminDashboard = () => {
           <div>
             <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Calendar className="w-4 h-4 text-sky-600" />
-              برنامه سانس‌های کلاس امروز استخر ({todaySessions.length} سانس)
+              برنامه سانس‌های کلاس امروز استخر ({formatNum(todaySessions.length)} سانس)
             </h2>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               مربیان حاضر، زمان‌بندی دقیق و وضعیت حضور و غیاب هر جلسه کلاسی

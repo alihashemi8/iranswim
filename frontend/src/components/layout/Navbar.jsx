@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Waves, UserCircle2, Menu, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { NotificationDropdown } from './NotificationDropdown';
 
 export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
   const { user } = useAuth();
@@ -45,7 +46,10 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
         </div>
 
         {/* User Account Controls & Theme Switch */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Top Bar Notifications */}
+          {user && <NotificationDropdown />}
+
           {/* Theme Toggle Button */}
           <button
             type="button"

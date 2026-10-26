@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { Sidebar } from './Sidebar';
+import { MobileBottomNav } from './MobileBottomNav';
 
 export const DashboardShell = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -15,10 +16,13 @@ export const DashboardShell = () => {
         <Sidebar isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
 
         {/* Main Workspace Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto w-full min-w-0" dir="rtl">
+        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 md:pb-8 overflow-y-auto w-full min-w-0" dir="rtl">
           <Outlet />
         </main>
       </div>
+
+      {/* Mobile Bottom Navigation Bar */}
+      <MobileBottomNav />
     </div>
   );
 };

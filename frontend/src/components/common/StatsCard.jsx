@@ -13,7 +13,7 @@ export const StatsCard = ({ title, value, subtitle, icon: Icon, color = 'sky', c
     <div className={`bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-slate-300 dark:hover:border-slate-700 transition-all h-full flex flex-col justify-between ${className}`}>
       <div>
         <div className="flex items-start justify-between gap-1.5 sm:gap-2">
-          <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 leading-tight">{title}</span>
+          <span className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 leading-tight">{title}</span>
           {Icon && (
             <div className={`p-1.5 sm:p-2.5 rounded-xl border shrink-0 ${colorMap[color] || colorMap.sky}`}>
               <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -21,10 +21,10 @@ export const StatsCard = ({ title, value, subtitle, icon: Icon, color = 'sky', c
           )}
         </div>
         <div className="mt-2 sm:mt-3">
-          <div className="text-base sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">{value}</div>
+          <div className="text-base sm:text-2xl font-extrabold text-slate-900 dark:text-white">{value}</div>
         </div>
       </div>
-      {subtitle && <p className="mt-1.5 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-tight">{subtitle}</p>}
+      {subtitle && <p className="mt-1.5 text-[11px] sm:text-xs font-normal text-slate-500 dark:text-slate-400 leading-tight">{subtitle}</p>}
     </div>
   );
 };

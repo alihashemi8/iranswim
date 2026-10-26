@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   CreditCard, AlertCircle, FileText, CheckCircle2,
   DollarSign, ArrowUpRight, ArrowDownLeft, Plus,
@@ -26,6 +27,7 @@ export const AdminFinancePage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Record Payment Modal
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
@@ -86,6 +88,25 @@ export const AdminFinancePage = () => {
     });
     setIsPayModalOpen(true);
   };
+
+  // Handle Quick Action deep link
+  useEffect(() => {
+    if (searchParams.get('action') === 'pay') {
+      setActiveTab('INVOICES');
+      if (invoices.length > 0) {
+        const unpaid = invoices.find((inv) => Number(inv.remaining_balance) > 0) || invoices[0];
+        if (unpaid) {
+          handleOpenPayModal(unpaid);
+        }
+      }
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete('action');
+        return next;
+      }, { replace: true });
+    }
+  }, [searchParams, setSearchParams, invoices]);
+
 
   // Submit Payment
   const handleRecordPayment = async (e) => {
