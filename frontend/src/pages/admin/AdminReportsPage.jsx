@@ -189,7 +189,7 @@ export const AdminReportsPage = () => {
       ) : reportType === 'FINANCIAL' ? (
         /* REPORT 1: FINANCIAL */
         <div className="space-y-6">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
               <span className="text-xs text-slate-400 block mb-1">مجموع کل صورتحساب‌های صادرشده</span>
               <span className="text-lg font-bold font-mono text-slate-800 dark:text-slate-100">
@@ -223,7 +223,7 @@ export const AdminReportsPage = () => {
 
             {/* Desktop Table */}
             <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-sm text-right">
+              <table className="w-full text-sm text-right min-w-[650px]">
                 <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                   <tr>
                     <th className="px-4 py-3 rounded-r-xl">شماره فاکتور</th>

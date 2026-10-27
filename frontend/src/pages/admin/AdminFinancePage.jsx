@@ -551,7 +551,7 @@ export const AdminFinancePage = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-2.5">
           {/* 1. جنسیت */}
           <CustomSelect
             label="جنسیت"
@@ -722,7 +722,7 @@ export const AdminFinancePage = () => {
             <>
               {/* Desktop Table View */}
               <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-sm text-right">
+                <table className="w-full text-sm text-right min-w-[700px]">
                   <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                     <tr>
                       <th className="px-4 py-3.5 rounded-r-xl">شماره فاکتور</th>

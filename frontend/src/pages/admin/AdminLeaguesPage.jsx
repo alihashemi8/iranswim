@@ -109,9 +109,9 @@ export const AdminLeaguesPage = () => {
           description="با ایجاد اولین دوره لیگ، جدول رتبه‌بندی فعال می‌گردد."
         />
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
           {/* League Selector & Details Sidebar */}
-          <div className="lg:col-span-1 space-y-4">
+          <div className="md:col-span-1 space-y-4">
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs transition-colors">
               <span className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">
                 فصل‌های مسابقاتی
@@ -166,7 +166,7 @@ export const AdminLeaguesPage = () => {
           </div>
 
           {/* Leaderboard Table */}
-          <div className="lg:col-span-3 space-y-4">
+          <div className="md:col-span-2 lg:col-span-3 space-y-4">
             {/* Filter by Category */}
             <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-colors">
               <div className="flex items-center gap-2">
@@ -205,7 +205,7 @@ export const AdminLeaguesPage = () => {
                 <>
                   {/* Desktop Table View */}
                   <div className="hidden md:block overflow-x-auto">
-                    <table className="w-full text-sm text-right">
+                    <table className="w-full text-sm text-right min-w-[550px]">
                       <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                         <tr>
                           <th className="px-4 py-3.5 text-center rounded-r-xl w-16">رتبه</th>

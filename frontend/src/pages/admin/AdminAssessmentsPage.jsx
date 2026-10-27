@@ -221,7 +221,7 @@ export const AdminAssessmentsPage = () => {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
           {/* Desktop Table View */}
           <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-sm text-right">
+            <table className="w-full text-sm text-right min-w-[640px]">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                 <tr>
                   <th className="px-4 py-3.5 rounded-r-xl">شناگر</th>
@@ -458,7 +458,7 @@ export const AdminAssessmentsPage = () => {
         </div>
       ) : (
         /* TAB 3: SKILL CHECKLIST BY LEVEL */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {levels.map((lvl) => (
             <div
               key={lvl.id}

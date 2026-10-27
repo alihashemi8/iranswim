@@ -207,7 +207,7 @@ export const AdminDashboard = () => {
             <div className="pt-3 mt-3 border-t border-sky-200/60 dark:border-sky-900/60">
               <Link
                 to="/admin/enrollments"
-                className="w-full text-center block py-1.5 px-3 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold transition-colors shadow-2xs"
+                className="w-full text-center block py-2 px-2.5 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold transition-colors shadow-2xs truncate"
               >
                 بررسی و تأیید درخواست‌ها ({formatNum(pendingRequests.length)}) ←
               </Link>
@@ -233,7 +233,7 @@ export const AdminDashboard = () => {
             <div className="pt-3 mt-3 border-t border-rose-200/60 dark:border-rose-900/60">
               <Link
                 to="/admin/finance"
-                className="w-full text-center block py-1.5 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold transition-colors shadow-2xs"
+                className="w-full text-center block py-2 px-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-semibold transition-colors shadow-2xs truncate"
               >
                 مشاهده لیست بدهکاران و تسویه ←
               </Link>
@@ -259,7 +259,7 @@ export const AdminDashboard = () => {
             <div className="pt-3 mt-3 border-t border-amber-200/60 dark:border-amber-900/60">
               <Link
                 to="/admin/assessments"
-                className="w-full text-center block py-1.5 px-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold transition-colors shadow-2xs"
+                className="w-full text-center block py-2 px-2.5 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-semibold transition-colors shadow-2xs truncate"
               >
                 تأیید رسمی رکوردهای مسابقاتی ←
               </Link>
@@ -293,7 +293,7 @@ export const AdminDashboard = () => {
           <>
             {/* Desktop Table View */}
             <div className="hidden md:block overflow-x-auto">
-              <table className="w-full text-sm text-right">
+              <table className="w-full text-sm text-right min-w-[580px]">
                 <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                   <tr>
                     <th className="px-4 py-3 rounded-r-xl">گروه کلاسی</th>
