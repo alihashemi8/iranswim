@@ -31,6 +31,9 @@ export const AdminFinancePage = () => {
   const toast = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
+  // Search Query
+  const [searchQuery, setSearchQuery] = useState('');
+
   // Category Filters: جنسیت, استخر, مربی, سال تولد
   const [genderFilter, setGenderFilter] = useState('ALL');
   const [poolFilter, setPoolFilter] = useState('ALL');
@@ -273,16 +276,52 @@ export const AdminFinancePage = () => {
     if (poolFilter !== 'ALL' && item.pool_name !== poolFilter) return false;
     if (coachFilter !== 'ALL' && item.coach_name !== coachFilter && !item.coach_name?.includes(coachFilter)) return false;
     if (birthYearFilter !== 'ALL' && String(item.birth_year) !== String(birthYearFilter)) return false;
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      const swimmer = String(item.swimmer_name || '').toLowerCase();
+      const invNum = String(item.invoice_number || '').toLowerCase();
+      const payNum = String(item.payment_number || '').toLowerCase();
+      const phone = String(item.swimmer_phone || '').toLowerCase();
+      const ref = String(item.transaction_ref || '').toLowerCase();
+      const notes = String(item.notes || '').toLowerCase();
+      const pool = String(item.pool_name || '').toLowerCase();
+      const coach = String(item.coach_name || '').toLowerCase();
+      const match =
+        swimmer.includes(q) ||
+        invNum.includes(q) ||
+        payNum.includes(q) ||
+        phone.includes(q) ||
+        ref.includes(q) ||
+        notes.includes(q) ||
+        pool.includes(q) ||
+        coach.includes(q);
+      if (!match) return false;
+    }
     return true;
   };
 
-  const filteredInvoices = useMemo(() => invoices.filter(filterItem), [invoices, genderFilter, poolFilter, coachFilter, birthYearFilter]);
-  const filteredInstallments = useMemo(() => installments.filter(filterItem), [installments, genderFilter, poolFilter, coachFilter, birthYearFilter]);
-  const filteredPayments = useMemo(() => payments.filter(filterItem), [payments, genderFilter, poolFilter, coachFilter, birthYearFilter]);
+  const filteredInvoices = useMemo(
+    () => invoices.filter(filterItem),
+    [invoices, genderFilter, poolFilter, coachFilter, birthYearFilter, searchQuery]
+  );
+  const filteredInstallments = useMemo(
+    () => installments.filter(filterItem),
+    [installments, genderFilter, poolFilter, coachFilter, birthYearFilter, searchQuery]
+  );
+  const filteredPayments = useMemo(
+    () => payments.filter(filterItem),
+    [payments, genderFilter, poolFilter, coachFilter, birthYearFilter, searchQuery]
+  );
 
-  const isAnyFilterActive = genderFilter !== 'ALL' || poolFilter !== 'ALL' || coachFilter !== 'ALL' || birthYearFilter !== 'ALL';
+  const isAnyFilterActive =
+    genderFilter !== 'ALL' ||
+    poolFilter !== 'ALL' ||
+    coachFilter !== 'ALL' ||
+    birthYearFilter !== 'ALL' ||
+    Boolean(searchQuery.trim());
 
   const handleResetFilters = () => {
+    setSearchQuery('');
     setGenderFilter('ALL');
     setPoolFilter('ALL');
     setCoachFilter('ALL');
@@ -484,6 +523,34 @@ export const AdminFinancePage = () => {
           )}
         </div>
 
+        {/* جستجوی سریع بالای دراپ‌داون‌ها */}
+        <div className="relative">
+          <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            placeholder="جستجوی نام شناگر، شماره فاکتور، رسید پرداخت، شماره تماس..."
+            className="w-full pr-10 pl-9 py-2.5 text-xs bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent text-slate-800 dark:text-slate-100 placeholder:text-slate-400 transition-all"
+          />
+          {searchQuery && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearchQuery('');
+                setCurrentPage(1);
+              }}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-0.5 rounded-full transition-colors cursor-pointer"
+              title="پاک کردن جستجو"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
           {/* 1. جنسیت */}
           <CustomSelect
@@ -529,6 +596,22 @@ export const AdminFinancePage = () => {
         {isAnyFilterActive && (
           <div className="flex items-center gap-1.5 flex-wrap pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px]">
             <span className="text-slate-400 font-medium">اعمال‌شده:</span>
+            {searchQuery.trim() && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 font-bold">
+                <span>جستجو: «{searchQuery.trim()}»</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchQuery('');
+                    setCurrentPage(1);
+                  }}
+                  className="hover:text-rose-600 cursor-pointer p-0.5 rounded-md"
+                  title="حذف فیلتر جستجو"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
             {genderFilter !== 'ALL' && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 font-bold">
                 <span>جنسیت: {genderFilter === 'MALE' ? 'پسر / آقایان' : 'دختر / بانوان'}</span>

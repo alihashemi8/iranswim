@@ -12,11 +12,11 @@ export const DashboardShell = () => {
       <Navbar onMenuClick={() => setMobileMenuOpen(true)} isFullWidth={true} />
 
       <div className="flex flex-row flex-1 w-full" dir="rtl">
-        {/* Right-docked Sidebar */}
+        {/* Right-docked Sidebar (Icon-only on tablet, full/collapsible on desktop) */}
         <Sidebar isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} />
 
         {/* Main Workspace Content */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 pb-24 md:pb-8 overflow-y-auto w-full min-w-0" dir="rtl">
+        <main className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-8 pb-24 md:pb-8 overflow-y-auto overflow-x-hidden w-full min-w-0" dir="rtl">
           <Outlet />
         </main>
       </div>
