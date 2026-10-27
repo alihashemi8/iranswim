@@ -426,42 +426,42 @@ export const AdminFinancePage = () => {
       </div>
 
       {/* Row 1: Category Tabs */}
-      <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-xs w-full sm:w-fit overflow-x-auto">
+      <div className="flex w-full bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-xs gap-1">
         <button
           type="button"
           onClick={() => { setActiveTab('INVOICES'); setCurrentPage(1); }}
-          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+          className={`flex-1 min-w-0 py-2.5 px-2 sm:px-4 rounded-xl font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap ${
             activeTab === 'INVOICES'
               ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          <FileText className="w-4 h-4" />
-          <span>صورت حساب ها</span>
+          <FileText className="w-4 h-4 shrink-0" />
+          <span className="truncate">صورت حساب ها</span>
         </button>
         <button
           type="button"
           onClick={() => { setActiveTab('INSTALLMENTS'); setCurrentPage(1); }}
-          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+          className={`flex-1 min-w-0 py-2.5 px-2 sm:px-4 rounded-xl font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap ${
             activeTab === 'INSTALLMENTS'
               ? 'bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-300 shadow-2xs'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          <AlertCircle className="w-4 h-4 text-rose-600" />
-          <span>اقساط</span>
+          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+          <span className="truncate">اقساط</span>
         </button>
         <button
           type="button"
           onClick={() => { setActiveTab('PAYMENTS'); setCurrentPage(1); }}
-          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+          className={`flex-1 min-w-0 py-2.5 px-2 sm:px-4 rounded-xl font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 whitespace-nowrap ${
             activeTab === 'PAYMENTS'
               ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-2xs'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <span>رسیدها</span>
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+          <span className="truncate">رسیدها</span>
         </button>
       </div>
 
@@ -1296,11 +1296,11 @@ export const AdminFinancePage = () => {
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <Button type="button" variant="outline" onClick={() => setIsPayModalOpen(false)}>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <Button type="button" variant="outline" onClick={() => setIsPayModalOpen(false)} className="w-full sm:w-auto flex-1 sm:flex-initial">
               انصراف
             </Button>
-            <Button type="submit" disabled={paying}>
+            <Button type="submit" disabled={paying} className="w-full sm:w-auto flex-1 sm:flex-initial">
               {paying ? 'در حال ثبت...' : 'ثبت قطعی پرداخت'}
             </Button>
           </div>
@@ -1357,11 +1357,11 @@ export const AdminFinancePage = () => {
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <Button type="button" variant="outline" onClick={() => setIsAdjModalOpen(false)}>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <Button type="button" variant="outline" onClick={() => setIsAdjModalOpen(false)} className="w-full sm:w-auto flex-1 sm:flex-initial">
               انصراف
             </Button>
-            <Button type="submit" disabled={submittingAdj}>
+            <Button type="submit" disabled={submittingAdj} className="w-full sm:w-auto flex-1 sm:flex-initial">
               {submittingAdj ? 'در حال ثبت سند...' : 'ثبت سند تعدیل مالی'}
             </Button>
           </div>
