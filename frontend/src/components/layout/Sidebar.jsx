@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Link, NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   Activity, Bug, ShieldCheck, Zap,
   LayoutDashboard, BookOpen, Users, CreditCard, Calendar,
   ClipboardCheck, Award, Trophy, Newspaper, Bell, BarChart3,
-  ShieldAlert, UserCheck, X, LogOut, ChevronLeft, ChevronRight,
-  ChevronDown, ChevronUp, Settings, User
+  ShieldAlert, UserCheck, X, LogOut, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -17,14 +16,6 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const location = useLocation();
   const toast = useToast();
   const [collapsed, setCollapsed] = useState(false);
-  const [adminProfileExpanded, setAdminProfileExpanded] = useState(false);
-
-  // Auto-expand admin profile submenu when on profile page
-  useEffect(() => {
-    if (location.pathname.startsWith('/admin/profile')) {
-      setAdminProfileExpanded(true);
-    }
-  }, [location.pathname]);
 
   // Badge notification counts for admin
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
