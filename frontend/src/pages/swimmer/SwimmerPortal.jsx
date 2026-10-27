@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, CreditCard, Award, Timer, Sparkles } from 'lucide-react';
+import { Calendar, CreditCard, Award, Timer, Sparkles, Bell, Pin } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
 import { LoadingState } from '../../components/common/LoadingState';
@@ -12,24 +12,46 @@ export const SwimmerPortal = () => {
   const [invoices, setInvoices] = useState([]);
   const [assessments, setAssessments] = useState([]);
   const [records, setRecords] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchSwimmerData = async () => {
       try {
         setLoading(true);
-        const [enrRes, sessRes, invRes, assRes, recRes] = await Promise.all([
+        const [enrRes, sessRes, invRes, assRes, recRes, annRes] = await Promise.allSettled([
           api.get('/education/enrollments/'),
           api.get('/scheduling/sessions/'),
           api.get('/finance/invoices/'),
           api.get('/assessments/skills/'),
           api.get('/assessments/records/'),
+          api.get('/content/announcements/'),
         ]);
-        setEnrollments(enrRes.data.results || enrRes.data);
-        setSessions(sessRes.data.results || sessRes.data);
-        setInvoices(invRes.data.results || invRes.data);
-        setAssessments(assRes.data.results || assRes.data);
-        setRecords(recRes.data.results || recRes.data);
+
+        if (enrRes.status === 'fulfilled') {
+          const d = enrRes.value.data;
+          setEnrollments(Array.isArray(d) ? d : d.results || []);
+        }
+        if (sessRes.status === 'fulfilled') {
+          const d = sessRes.value.data;
+          setSessions(Array.isArray(d) ? d : d.results || []);
+        }
+        if (invRes.status === 'fulfilled') {
+          const d = invRes.value.data;
+          setInvoices(Array.isArray(d) ? d : d.results || []);
+        }
+        if (assRes.status === 'fulfilled') {
+          const d = assRes.value.data;
+          setAssessments(Array.isArray(d) ? d : d.results || []);
+        }
+        if (recRes.status === 'fulfilled') {
+          const d = recRes.value.data;
+          setRecords(Array.isArray(d) ? d : d.results || []);
+        }
+        if (annRes.status === 'fulfilled') {
+          const d = annRes.value.data;
+          setAnnouncements(Array.isArray(d) ? d : d.results || []);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -63,6 +85,46 @@ export const SwimmerPortal = () => {
           </p>
         </div>
       </div>
+
+      {/* Announcements Banner for Swimmers */}
+      {announcements.length > 0 && (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Bell className="w-4 h-4 text-sky-600" />
+              پیام‌ها و اطلاعیه‌های مهم آموزشگاه
+            </h2>
+            <span className="text-xs text-slate-400 font-mono">
+              {announcements.length} اعلان
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {announcements.slice(0, 4).map((ann) => (
+              <div
+                key={ann.id}
+                className={`p-3.5 rounded-xl border transition-colors ${
+                  ann.is_pinned
+                    ? 'bg-amber-50/60 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/60'
+                    : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/70 dark:border-slate-700/60'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1">
+                    {ann.is_pinned && <Pin className="w-3 h-3 text-amber-600 rotate-45" />}
+                    {ann.title}
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    {new Date(ann.created_at).toLocaleDateString('fa-IR')}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3">
+                  {ann.message}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -145,58 +207,86 @@ export const SwimmerPortal = () => {
             {assessments.map((item) => (
               <div
                 key={item.id}
-                className="p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/40 flex items-start justify-between gap-3"
+                className={`p-3.5 rounded-xl border transition-colors ${
+                  item.status === 'PASSED'
+                    ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-800/80'
+                    : item.status === 'FAILED'
+                    ? 'bg-rose-50/60 dark:bg-rose-950/30 border-rose-200 dark:border-rose-800/80'
+                    : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200/60 dark:border-slate-800'
+                }`}
               >
-                <div>
-                  <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200">{item.skill_name}</h4>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-1">{item.feedback || 'ارزیابی انجام شده'}</p>
-                  <span className="text-[10px] text-slate-400 font-mono mt-1 block">مربی: {item.coach_name}</span>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="font-semibold text-xs text-slate-900 dark:text-white">
+                    {item.skill_name}
+                  </span>
+                  <Badge variant={item.status === 'PASSED' ? 'success' : item.status === 'FAILED' ? 'danger' : 'neutral'}>
+                    {item.status_display}
+                  </Badge>
                 </div>
-                <Badge variant={item.status === 'PASSED' ? 'success' : 'warning'}>
-                  {item.status === 'PASSED' ? 'قبول ✓' : 'نیازمند تمرین'}
-                </Badge>
+                <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center justify-between">
+                  <span>سطح: {item.level_name}</span>
+                  <span className="font-mono">{item.assessed_at ? new Date(item.assessed_at).toLocaleDateString('fa-IR') : 'در انتظار آزمون'}</span>
+                </div>
+                {item.notes && (
+                  <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-2 pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                    نظر مربی: {item.notes}
+                  </p>
+                )}
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {/* Schedule & Financial Grid */}
+      {/* Two Column Layout: Schedule & Invoices */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Next Sessions */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs transition-colors">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white pb-3 mb-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-sky-600" />
-            جلسات کلاسی آینده شما
-          </h3>
+        {/* Next Class Sessions */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs transition-colors">
+          <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100 dark:border-slate-800">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Calendar className="w-4 h-4 text-sky-600" />
+              برنامه جلسات پیش‌رو
+            </h3>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+              {sessions.length} سانس زمان‌بندی‌شده
+            </span>
+          </div>
+
           {sessions.length === 0 ? (
-            <p className="text-xs text-slate-400 py-6 text-center">جلسه‌ای برای شما تنظیم نشده است.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 py-6 text-center">جلسه‌ای در سیستم برنامه‌ریزی نشده است.</p>
           ) : (
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               {sessions.slice(0, 5).map((sess) => (
-                <div key={sess.id} className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200/60 dark:border-slate-800 text-xs flex items-center justify-between">
+                <div key={sess.id} className="p-3.5 bg-slate-50 dark:bg-slate-800/40 rounded-xl border border-slate-200/60 dark:border-slate-800 flex items-center justify-between text-xs">
                   <div>
                     <span className="font-semibold text-slate-800 dark:text-slate-200 block">{sess.group_name}</span>
-                    <span className="text-slate-500 dark:text-slate-400 font-mono mt-0.5 block">{sess.pool_location}</span>
+                    <span className="text-slate-500 dark:text-slate-400 font-mono mt-0.5 block">
+                      {sess.session_date} | ساعت {sess.start_time?.slice(0, 5)} تا {sess.end_time?.slice(0, 5)}
+                    </span>
                   </div>
-                  <div className="text-left font-mono">
-                    <span className="font-bold text-slate-800 dark:text-slate-200 block">{sess.session_date}</span>
-                    <span className="text-slate-500 dark:text-slate-400 text-[11px]">{sess.start_time?.slice(0, 5)} تا {sess.end_time?.slice(0, 5)}</span>
-                  </div>
+                  <Badge variant={sess.status === 'COMPLETED' ? 'success' : 'info'}>
+                    {sess.status_display}
+                  </Badge>
                 </div>
               ))}
             </div>
           )}
         </div>
 
-        {/* Invoices */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs transition-colors">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white pb-3 mb-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
-            <CreditCard className="w-4 h-4 text-emerald-600" />
-            صورتحساب‌ها و اقساط شخصی
-          </h3>
+        {/* Tuition Invoices */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs transition-colors">
+          <div className="flex items-center justify-between pb-3 mb-4 border-b border-slate-100 dark:border-slate-800">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <CreditCard className="w-4 h-4 text-amber-500" />
+              صورتحساب و سوابق شهریه
+            </h3>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+              {invoices.length} صورتحساب
+            </span>
+          </div>
+
           {invoices.length === 0 ? (
-            <p className="text-xs text-slate-400 py-6 text-center">صورتحسابی ثبت نشده است.</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 py-6 text-center">صورتحسابی صادر نشده است.</p>
           ) : (
             <div className="space-y-3">
               {invoices.map((inv) => (

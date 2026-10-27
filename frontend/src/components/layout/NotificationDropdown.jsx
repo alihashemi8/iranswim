@@ -194,12 +194,12 @@ export const NotificationDropdown = () => {
       <button
         type="button"
         onClick={toggleOpen}
-        className="relative p-2 text-slate-500 dark:text-slate-300 hover:text-sky-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors border border-slate-200/80 dark:border-slate-700/80 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40"
+        className="relative w-9 h-9 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-sky-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors border border-slate-200/80 dark:border-slate-700/80 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40"
         title="اعلان‌ها"
         aria-label="مشاهده اعلان‌ها"
         aria-expanded={isOpen}
       >
-        <Bell className="w-4 h-4" />
+        <Bell className="w-6 h-6" />
 
         {/* Unread Badge (hidden when count === 0) */}
         {unreadCount > 0 && (
