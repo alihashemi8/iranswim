@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Waves, LogIn, Menu, Sun, Moon, Globe } from 'lucide-react';
+import { Waves, LogIn, Menu, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { NotificationDropdown } from './NotificationDropdown';
@@ -106,18 +106,8 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
           {/* Divider */}
           <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block" />
 
-          {/* If user is Admin inside Dashboard: Show "مشاهده سایت" instead of profile */}
-          {user && isFullWidth && user.role === 'ADMIN' ? (
-            <Link
-              to="/"
-              className="w-9 h-9 sm:w-auto sm:px-3.5 sm:py-2 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-200/80 dark:border-slate-700/80 rounded-xl transition-all shadow-2xs cursor-pointer group shrink-0"
-              title="مشاهده صفحه اصلی وب‌سایت"
-              aria-label="مشاهده وب‌سایت"
-            >
-              <Globe className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0 group-hover:rotate-12 transition-transform" />
-              <span className="hidden sm:inline font-bold">مشاهده سایت</span>
-            </Link>
-          ) : user ? (
+          {/* Profile button linking directly to Dashboard if logged in, or "ورود / ثبت نام" if not */}
+          {user ? (
             <Link
               to={getDashboardPath(user.role)}
               className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 transition-colors cursor-pointer group"

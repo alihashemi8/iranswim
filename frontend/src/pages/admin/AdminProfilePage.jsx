@@ -3,8 +3,8 @@ import { useSearchParams } from 'react-router-dom';
 import {
   User, UserCheck, ShieldAlert, Settings, KeyRound, Phone,
   CreditCard, Building2, Clock, Globe, Save, Search, Filter,
-  CheckCircle2, XCircle, Lock, Unlock, RefreshCw, FileText,
-  BadgeCheck, Shield, Sliders, Check
+  CheckCircle2, Lock, Unlock, RefreshCw, FileText,
+  BadgeCheck, Shield
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';

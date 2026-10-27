@@ -4,7 +4,7 @@ import {
   Activity, Bug, ShieldCheck, Zap,
   LayoutDashboard, BookOpen, Users, CreditCard, Calendar,
   ClipboardCheck, Award, Trophy, Newspaper, Bell, BarChart3,
-  Sliders, ShieldAlert, UserCheck, X, LogOut, ChevronLeft, ChevronRight,
+  ShieldAlert, UserCheck, X, LogOut, ChevronLeft, ChevronRight,
   ChevronDown, ChevronUp, Settings, User
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
