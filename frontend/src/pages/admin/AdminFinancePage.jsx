@@ -118,8 +118,13 @@ export const AdminFinancePage = () => {
     setIsPayModalOpen(true);
   };
 
-  // Handle Quick Action deep link
+  // Handle Quick Action deep link & tab query param
   useEffect(() => {
+    const tabParam = searchParams.get('tab')?.toUpperCase();
+    if (tabParam && ['INVOICES', 'INSTALLMENTS', 'PAYMENTS'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+
     if (searchParams.get('action') === 'pay') {
       setActiveTab('INVOICES');
       if (invoices.length > 0) {

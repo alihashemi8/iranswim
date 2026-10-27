@@ -80,3 +80,29 @@ class User(AbstractUser):
     @property
     def is_supervisor(self):
         return self.role == self.Role.SUPERVISOR or self.is_superuser
+
+
+class OTPVerification(models.Model):
+    class Purpose(models.TextChoices):
+        REGISTER = 'REGISTER', _('ثبت‌نام')
+        LOGIN = 'LOGIN', _('ورود')
+
+    phone = models.CharField(_('شماره همراه'), max_length=15, db_index=True)
+    code = models.CharField(_('کد یکبار مصرف'), max_length=6)
+    purpose = models.CharField(_('هدف درخواست'), max_length=20, choices=Purpose.choices, default=Purpose.LOGIN)
+    created_at = models.DateTimeField(_('زمان ایجاد'), auto_now_add=True)
+    expires_at = models.DateTimeField(_('زمان انقضا'))
+    is_used = models.BooleanField(_('استفاده شده'), default=False)
+
+    class Meta:
+        verbose_name = _('کد تایید پیامکی')
+        verbose_name_plural = _('کدهای تایید پیامکی')
+        ordering = ['-created_at']
+
+    def is_valid(self):
+        from django.utils import timezone
+        return not self.is_used and timezone.now() <= self.expires_at
+
+    def __str__(self):
+        return f"{self.phone} - {self.code} ({self.purpose})"
+

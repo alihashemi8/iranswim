@@ -312,3 +312,113 @@ def test_announcements_crud_and_notification_sync(api_client, admin_user):
     assert not Announcement.objects.filter(id=ann_id).exists()
 
 
+@pytest.mark.django_db
+def test_otp_registration_and_login_flow(api_client):
+    # 1. Request OTP for registration
+    phone = '09129998877'
+    send_res = api_client.post('/api/auth/otp/send/', {'phone': phone, 'purpose': 'REGISTER'})
+    assert send_res.status_code == 200
+    otp_code = send_res.data['code']
+    assert len(otp_code) == 6
+
+    # 2. Register swimmer with OTP and national_id
+    national_id = '0012345678'
+    reg_payload = {
+        'phone': phone,
+        'code': otp_code,
+        'first_name': 'رضا',
+        'last_name': 'علوی',
+        'national_id': national_id,
+    }
+    reg_res = api_client.post('/api/auth/register-otp/', reg_payload)
+    assert reg_res.status_code == 201
+    assert 'access' in reg_res.data
+    assert reg_res.data['user']['phone'] == phone
+    assert reg_res.data['user']['role'] == 'SWIMMER'
+    assert reg_res.data['user']['is_profile_completed'] is False
+
+    # 3. Login with password (national_id) as required: نام کاربری: شماره و رمز: کد ملی
+    login_res = api_client.post('/api/auth/login/', {'phone': phone, 'password': national_id})
+    assert login_res.status_code == 200
+    assert 'access' in login_res.data
+    assert login_res.data['user']['full_name'] == 'رضا علوی'
+
+    # 4. Login with OTP (بدون رمز)
+    otp_login_send = api_client.post('/api/auth/otp/send/', {'phone': phone, 'purpose': 'LOGIN'})
+    assert otp_login_send.status_code == 200
+    login_otp_code = otp_login_send.data['code']
+
+    otp_verify_res = api_client.post('/api/auth/otp/verify-login/', {'phone': phone, 'code': login_otp_code})
+    assert otp_verify_res.status_code == 200
+    assert 'access' in otp_verify_res.data
+    assert otp_verify_res.data['user']['phone'] == phone
+
+
+@pytest.mark.django_db
+def test_swimmer_profile_completion_and_validation(api_client):
+    import io
+    from PIL import Image
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    # Create dummy image in memory
+    def create_dummy_image(name='test.jpg'):
+        file_obj = io.BytesIO()
+        image = Image.new('RGB', (100, 100), color=(73, 109, 137))
+        image.save(file_obj, format='JPEG')
+        file_obj.seek(0)
+        return SimpleUploadedFile(name, file_obj.read(), content_type='image/jpeg')
+
+    # Register user first
+    phone = '09351112233'
+    send_res = api_client.post('/api/auth/otp/send/', {'phone': phone, 'purpose': 'REGISTER'})
+    code = send_res.data['code']
+    national_id = '0088991122'
+    api_client.post('/api/auth/register-otp/', {
+        'phone': phone,
+        'code': code,
+        'first_name': 'سهراب',
+        'last_name': 'سپهری',
+        'national_id': national_id,
+    })
+
+    user = User.objects.get(phone=phone)
+    api_client.force_authenticate(user=user)
+
+    # 1. Fetch own profile via /api/swimmers/me/
+    me_res = api_client.get('/api/swimmers/me/')
+    assert me_res.status_code == 200
+    assert me_res.data['phone'] == phone
+    assert me_res.data['is_profile_completed'] is False
+
+    # 2. Try to complete profile with missing mandatory fields -> should fail with clear list
+    fail_res = api_client.post('/api/swimmers/me/complete/', {})
+    assert fail_res.status_code == 400
+    assert 'missing_fields' in fail_res.data
+
+    # 3. Complete profile with all required star fields
+    complete_payload = {
+        'first_name': 'سهراب',
+        'last_name': 'سپهری',
+        'date_of_birth': '1388-05-15',
+        'father_name': 'مهدی',
+        'national_id': national_id,
+        'address': 'تهران، خیابان آزادی، کوچه مروارید، پلاک ۱۲',
+        'latitude': 35.6892,
+        'longitude': 51.3890,
+        'father_phone': '09121112233',
+        'mother_phone': '09124445566',
+        'gender': 'MALE',
+        'school_name': 'دبیرستان رازی',
+        'birth_certificate_image': create_dummy_image('shenasname.jpg'),
+        'national_card_image': create_dummy_image('melli.jpg'),
+        'sports_insurance_image': create_dummy_image('bimeh.jpg'),
+        'avatar': create_dummy_image('avatar.jpg'),
+    }
+    comp_res = api_client.post('/api/swimmers/me/complete/', complete_payload, format='multipart')
+    assert comp_res.status_code == 200
+    assert comp_res.data['profile']['is_profile_completed'] is True
+    assert comp_res.data['profile']['father_name'] == 'مهدی'
+    assert comp_res.data['profile']['address'] == complete_payload['address']
+
+
+

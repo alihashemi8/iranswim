@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   ClipboardCheck, Calendar, Clock, Users, CheckCircle,
   XCircle, AlertCircle, HelpCircle, Save, Filter, FileSpreadsheet
@@ -16,6 +17,7 @@ export const AdminAttendancePage = () => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState('ALL'); // ALL, UNRECORDED, TODAY, COMPLETED
+  const [searchParams] = useSearchParams();
   const toast = useToast();
 
   // Active Attendance Registering Modal
@@ -93,6 +95,24 @@ export const AdminAttendancePage = () => {
       setModalLoading(false);
     }
   };
+
+  // Synchronize URL query params (e.g. ?session_id=... or ?filter=TODAY)
+  useEffect(() => {
+    const filter = searchParams.get('filter')?.toUpperCase();
+    if (filter && ['ALL', 'UNRECORDED', 'TODAY', 'COMPLETED'].includes(filter)) {
+      setFilterType(filter);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const sessionId = searchParams.get('session_id');
+    if (sessionId && sessions.length > 0 && !activeSession) {
+      const target = sessions.find((s) => s.id === Number(sessionId));
+      if (target) {
+        handleOpenAttendanceSheet(target);
+      }
+    }
+  }, [searchParams, sessions, activeSession]);
 
   // Status Change in Attendance Sheet
   const handleStatusChange = (swimmerId, status) => {

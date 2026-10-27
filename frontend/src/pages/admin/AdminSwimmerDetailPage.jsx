@@ -10,6 +10,7 @@ import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { LoadingState } from '../../components/common/LoadingState';
 import { StatsCard } from '../../components/common/StatsCard';
+import { MapLocationPicker } from '../../components/common/MapLocationPicker';
 import { useToast } from '../../context/ToastContext';
 
 export const AdminSwimmerDetailPage = () => {
@@ -254,21 +255,27 @@ export const AdminSwimmerDetailPage = () => {
         {activeTab === 'INFO' && (
           <div className="space-y-6">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                <User className="w-4 h-4 text-sky-600" />
-                <span>اطلاعات پایه و مشخصات سجلی</span>
-              </h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  <User className="w-4 h-4 text-sky-600" />
+                  <span>اطلاعات پایه و مشخصات سجلی شناگر</span>
+                </h3>
+                <Badge variant={swimmer.is_profile_completed ? 'success' : 'warning'}>
+                  {swimmer.is_profile_completed ? 'پرونده هویتی تکمیل شده' : 'پرونده ناقص / در انتظار مدارک'}
+                </Badge>
+              </div>
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 text-xs">
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                  <span className="text-slate-400 block mb-1">نام کامل:</span>
+                  <span className="text-slate-400 block mb-1">نام و نام خانوادگی:</span>
                   <span className="font-bold text-slate-800 dark:text-slate-100 text-sm">{swimmer.full_name}</span>
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                  <span className="text-slate-400 block mb-1">شماره تماس اصلی:</span>
-                  <span className="font-mono font-bold text-slate-800 dark:text-slate-100 text-sm">{swimmer.phone}</span>
+                  <span className="text-slate-400 block mb-1">نام پدر:</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-100 text-sm">{swimmer.father_name || '—'}</span>
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                  <span className="text-slate-400 block mb-1">کد ملی:</span>
+                  <span className="text-slate-400 block mb-1">کد ملی شناگر:</span>
                   <span className="font-mono text-slate-700 dark:text-slate-200 font-semibold">{swimmer.national_id || '—'}</span>
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
@@ -276,11 +283,23 @@ export const AdminSwimmerDetailPage = () => {
                   <span className="font-mono text-slate-700 dark:text-slate-200">{swimmer.date_of_birth || 'ثبت‌نشده'}</span>
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                  <span className="text-slate-400 block mb-1">جنسیت:</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-200">{swimmer.gender_display || (swimmer.gender === 'FEMALE' ? 'دختر / بانوان' : 'پسر / آقایان')}</span>
+                </div>
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                  <span className="text-slate-400 block mb-1">نام مدرسه:</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200">{swimmer.school_name || '—'}</span>
+                </div>
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
                   <span className="text-slate-400 block mb-1">سطح مهارت شنا:</span>
                   <span className="font-bold text-sky-600 dark:text-sky-400">{swimmer.level_name || 'تعیین سطح نشده'}</span>
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                  <span className="text-slate-400 block mb-1">تاریخ ثبت پرونده:</span>
+                  <span className="text-slate-400 block mb-1">شماره همراه شناگر:</span>
+                  <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{swimmer.phone}</span>
+                </div>
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                  <span className="text-slate-400 block mb-1">تاریخ عضویت در آکادمی:</span>
                   <span className="font-mono text-slate-700 dark:text-slate-200">
                     {swimmer.created_at ? new Date(swimmer.created_at).toLocaleDateString('fa-IR') : '—'}
                   </span>
@@ -288,20 +307,162 @@ export const AdminSwimmerDetailPage = () => {
               </div>
             </div>
 
-            {/* Emergency Contact */}
+            {/* Parents Contact */}
             <div>
               <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
                 <Phone className="w-4 h-4 text-emerald-600" />
-                <span>اطلاعات تماس اضطراری و والد</span>
+                <span>اطلاعات تماس اولیاء (پدر و مادر)</span>
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 text-xs">
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                  <span className="text-slate-400 block mb-1">نام والد / رابط اضطراری:</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-100">{swimmer.emergency_contact_name || '—'}</span>
+                  <span className="text-slate-400 block mb-1">شماره تماس پدر:</span>
+                  {swimmer.father_phone ? (
+                    <a href={`tel:${swimmer.father_phone}`} className="font-mono font-bold text-sky-600 hover:underline">
+                      {swimmer.father_phone}
+                    </a>
+                  ) : (
+                    <span className="text-slate-400">ثبت‌نشده</span>
+                  )}
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
-                  <span className="text-slate-400 block mb-1">شماره تماس اضطراری:</span>
-                  <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{swimmer.emergency_contact_phone || '—'}</span>
+                  <span className="text-slate-400 block mb-1">شماره تماس مادر:</span>
+                  {swimmer.mother_phone ? (
+                    <a href={`tel:${swimmer.mother_phone}`} className="font-mono font-bold text-pink-600 hover:underline">
+                      {swimmer.mother_phone}
+                    </a>
+                  ) : (
+                    <span className="text-slate-400">ثبت‌نشده</span>
+                  )}
+                </div>
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                  <span className="text-slate-400 block mb-1">رابط اضطراری:</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-100">
+                    {swimmer.emergency_contact_name ? `${swimmer.emergency_contact_name} (${swimmer.emergency_contact_phone || '—'})` : '—'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Home Address & Map Location */}
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                <MapPin className="w-4 h-4 text-sky-600" />
+                <span>نشانی محل سکونت و موقعیت روی نقشه</span>
+              </h3>
+              <div className="space-y-3">
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 text-xs">
+                  <span className="text-slate-400 block mb-1">آدرس متنی:</span>
+                  <span className="text-slate-800 dark:text-slate-100 leading-relaxed font-medium">
+                    {swimmer.address || 'آدرسی توسط شناگر ثبت نشده است.'}
+                  </span>
+                </div>
+
+                {swimmer.latitude && swimmer.longitude ? (
+                  <MapLocationPicker
+                    latitude={swimmer.latitude}
+                    longitude={swimmer.longitude}
+                    readOnly={true}
+                    height="280px"
+                    label="موقعیت ثبت‌شده منزل شناگر روی نقشه"
+                  />
+                ) : (
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 text-slate-400 text-xs">
+                    مختصات جغرافیایی روی نقشه هنوز تعیین نشده است.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Uploaded Documents Gallery */}
+            <div>
+              <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
+                <FileText className="w-4 h-4 text-indigo-600" />
+                <span>مدارک هویتی و تصاویر بارگذاری‌شده</span>
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* 1. شناسنامه */}
+                <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 space-y-2">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                    عکس صفحه اول شناسنامه
+                  </span>
+                  {swimmer.birth_certificate_image ? (
+                    <a
+                      href={swimmer.birth_certificate_image}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block h-36 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:opacity-90 transition-opacity"
+                    >
+                      <img src={swimmer.birth_certificate_image} alt="شناسنامه" className="w-full h-full object-cover" />
+                    </a>
+                  ) : (
+                    <div className="h-36 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400 text-xs">
+                      بارگذاری نشده
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. کارت ملی */}
+                <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 space-y-2">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                    عکس کارت ملی
+                  </span>
+                  {swimmer.national_card_image ? (
+                    <a
+                      href={swimmer.national_card_image}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block h-36 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:opacity-90 transition-opacity"
+                    >
+                      <img src={swimmer.national_card_image} alt="کارت ملی" className="w-full h-full object-cover" />
+                    </a>
+                  ) : (
+                    <div className="h-36 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400 text-xs">
+                      بارگذاری نشده
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. بیمه ورزشی */}
+                <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 space-y-2">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                    عکس کارت بیمه ورزشی
+                  </span>
+                  {swimmer.sports_insurance_image ? (
+                    <a
+                      href={swimmer.sports_insurance_image}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block h-36 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:opacity-90 transition-opacity"
+                    >
+                      <img src={swimmer.sports_insurance_image} alt="بیمه ورزشی" className="w-full h-full object-cover" />
+                    </a>
+                  ) : (
+                    <div className="h-36 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400 text-xs">
+                      بارگذاری نشده
+                    </div>
+                  )}
+                </div>
+
+                {/* 4. عکس پرسنلی */}
+                <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 space-y-2">
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                    عکس پرسنلی / چهره
+                  </span>
+                  {swimmer.avatar ? (
+                    <a
+                      href={swimmer.avatar}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block h-36 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:opacity-90 transition-opacity"
+                    >
+                      <img src={swimmer.avatar} alt="پروفایل" className="w-full h-full object-cover" />
+                    </a>
+                  ) : (
+                    <div className="h-36 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400 text-xs">
+                      بارگذاری نشده
+                    </div>
+                  )}
                 </div>
               </div>
             </div>

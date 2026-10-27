@@ -230,16 +230,16 @@ export const BarChart = ({
     <div className="space-y-3 w-full">
       {title && (
         <div className="flex items-center justify-between">
-          <span className="text-xs font-semibold text-slate-800">{title}</span>
+          <span className="text-xs font-semibold text-slate-800 dark:text-slate-200">{title}</span>
           {activeItem && (
-            <span className="text-xs font-mono font-bold text-sky-700">
+            <span className="text-xs font-mono font-bold text-sky-700 dark:text-sky-300">
               {activeItem.label}: {valueFormatter(activeItem.value)}
             </span>
           )}
         </div>
       )}
 
-      <div className="h-40 flex items-end gap-2 sm:gap-4 p-3 bg-slate-50/80 rounded-2xl border border-slate-100">
+      <div className="h-40 flex items-end gap-2 sm:gap-4 p-3 bg-slate-50/80 dark:bg-slate-800/40 rounded-2xl border border-slate-100 dark:border-slate-800">
         {data.map((item, idx) => {
           const heightPercent = Math.max((Number(item.value || 0) / maxValue) * 100, 6);
           const isSelected = activeItem?.label === item.label;
@@ -251,18 +251,18 @@ export const BarChart = ({
               onMouseEnter={() => setActiveItem(item)}
               onMouseLeave={() => setActiveItem(null)}
             >
-              <div className="text-[10px] font-mono text-slate-400 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="text-[10px] font-mono text-slate-400 dark:text-slate-400 mb-1 opacity-0 group-hover:opacity-100 transition-opacity">
                 {valueFormatter(item.value)}
               </div>
-              <div className="w-full max-w-[40px] bg-slate-200/60 rounded-t-lg overflow-hidden flex flex-col justify-end h-full">
+              <div className="w-full max-w-[40px] bg-slate-200/60 dark:bg-slate-700/60 rounded-t-lg overflow-hidden flex flex-col justify-end h-full">
                 <div
                   style={{ height: `${heightPercent}%` }}
                   className={`w-full rounded-t-lg transition-all duration-500 ${
-                    isSelected ? 'bg-sky-600' : colors[color] || colors.sky
+                    isSelected ? 'bg-sky-600 dark:bg-sky-500' : colors[color] || colors.sky
                   }`}
                 />
               </div>
-              <span className="text-[10px] text-slate-500 mt-2 font-mono truncate max-w-[50px] text-center">
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 mt-2 font-mono truncate max-w-[50px] text-center">
                 {item.label}
               </span>
             </div>
@@ -295,16 +295,16 @@ export const ProgressBar = ({
   return (
     <div className="space-y-1.5 w-full">
       <div className="flex items-center justify-between text-xs">
-        <span className="font-semibold text-slate-800">{label}</span>
-        <span className="font-mono font-bold text-slate-600">{percentage}%</span>
+        <span className="font-semibold text-slate-800 dark:text-slate-200">{label}</span>
+        <span className="font-mono font-bold text-slate-600 dark:text-slate-300">{percentage}%</span>
       </div>
-      <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/50">
+      <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-200/50 dark:border-slate-700/60">
         <div
           style={{ width: `${percentage}%` }}
           className={`h-full rounded-full bg-gradient-to-l ${gradients[color] || gradients.sky} transition-all duration-700 ease-out`}
         />
       </div>
-      {subtitle && <p className="text-[11px] text-slate-400 font-mono">{subtitle}</p>}
+      {subtitle && <p className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">{subtitle}</p>}
     </div>
   );
 };

@@ -40,6 +40,7 @@ import { CoachAssessmentsPage } from './pages/coach/CoachAssessmentsPage';
 
 // Swimmer Pages
 import { SwimmerPortal } from './pages/swimmer/SwimmerPortal';
+import { SwimmerCompleteProfilePage } from './pages/swimmer/SwimmerCompleteProfilePage';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user } = useAuth();
@@ -165,6 +166,7 @@ export default function App() {
                 }
               >
                 <Route index element={<SwimmerPortal />} />
+                <Route path="complete-profile" element={<SwimmerCompleteProfilePage />} />
                 <Route path="schedule" element={<SwimmerPortal />} />
                 <Route path="finance" element={<SwimmerPortal />} />
                 <Route path="progress" element={<SwimmerPortal />} />

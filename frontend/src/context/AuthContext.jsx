@@ -40,7 +40,74 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const sendOtp = async (phone, purpose = 'LOGIN') => {
+    try {
+      const res = await api.post('/auth/otp/send/', { phone, purpose });
+      return { success: true, data: res.data };
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'خطا در ارسال کد تأیید پیامکی.';
+      return { success: false, error: msg };
+    }
+  };
+
+  const loginWithOtp = async (phone, code) => {
+    setLoading(true);
+    try {
+      const res = await api.post('/auth/otp/verify-login/', { phone, code });
+      const { access, refresh, user: userData } = res.data;
+      localStorage.setItem('access_token', access);
+      localStorage.setItem('refresh_token', refresh);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      return { success: true, user: userData };
+    } catch (err) {
+      const msg = err.response?.data?.detail || 'کد تأیید نامعتبر یا منقضی شده است.';
+      return { success: false, error: msg };
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const registerWithOtp = async ({ phone, code, first_name, last_name, national_id }) => {
+    setLoading(true);
+    try {
+      const res = await api.post('/auth/register-otp/', {
+        phone,
+        code,
+        first_name,
+        last_name,
+        national_id,
+      });
+      const { access, refresh, user: userData } = res.data;
+      localStorage.setItem('access_token', access);
+      localStorage.setItem('refresh_token', refresh);
+      localStorage.setItem('user', JSON.stringify(userData));
+      setUser(userData);
+      return { success: true, user: userData };
+    } catch (err) {
+      const data = err.response?.data;
+      let msg = 'خطا در ثبت‌نام. لطفاً اطلاعات ورودی را بررسی نمایید.';
+      if (typeof data === 'string') {
+        msg = data;
+      } else if (data && typeof data === 'object') {
+        if (data.detail) msg = data.detail;
+        else if (data.phone) msg = `شماره موبایل: ${Array.isArray(data.phone) ? data.phone.join(' ') : data.phone}`;
+        else if (data.national_id) msg = `کد ملی: ${Array.isArray(data.national_id) ? data.national_id.join(' ') : data.national_id}`;
+        else if (data.code) msg = `کد تأیید: ${Array.isArray(data.code) ? data.code.join(' ') : data.code}`;
+        else {
+          const firstKey = Object.keys(data)[0];
+          const val = data[firstKey];
+          msg = `${firstKey}: ${Array.isArray(val) ? val.join(' ') : val}`;
+        }
+      }
+      return { success: false, error: msg };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const register = async ({ phone, password, first_name, last_name, national_id, role = 'SWIMMER' }) => {
+
     setLoading(true);
     try {
       await api.post('/auth/register/', {
@@ -105,7 +172,18 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout, quickSwitch, updateUserData, loading }}>
+    <AuthContext.Provider value={{
+      user,
+      login,
+      sendOtp,
+      loginWithOtp,
+      registerWithOtp,
+      register,
+      logout,
+      quickSwitch,
+      updateUserData,
+      loading
+    }}>
       {children}
     </AuthContext.Provider>
   );

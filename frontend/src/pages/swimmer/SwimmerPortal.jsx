@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, CreditCard, Award, Timer, Sparkles, Bell, Pin } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Calendar, CreditCard, Award, Timer, Sparkles, Bell, Pin, ShieldAlert, CheckCircle2, FileText, ArrowLeft } from 'lucide-react';
 import api from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 import { Badge } from '../../components/common/Badge';
 import { LoadingState } from '../../components/common/LoadingState';
 import { StatsCard } from '../../components/common/StatsCard';
 import { ProgressBar } from '../../components/common/Charts';
 
 export const SwimmerPortal = () => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState(null);
   const [enrollments, setEnrollments] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [invoices, setInvoices] = useState([]);
@@ -19,7 +24,8 @@ export const SwimmerPortal = () => {
     const fetchSwimmerData = async () => {
       try {
         setLoading(true);
-        const [enrRes, sessRes, invRes, assRes, recRes, annRes] = await Promise.allSettled([
+        const [meRes, enrRes, sessRes, invRes, assRes, recRes, annRes] = await Promise.allSettled([
+          api.get('/swimmers/me/'),
           api.get('/education/enrollments/'),
           api.get('/scheduling/sessions/'),
           api.get('/finance/invoices/'),
@@ -27,6 +33,11 @@ export const SwimmerPortal = () => {
           api.get('/assessments/records/'),
           api.get('/content/announcements/'),
         ]);
+
+        if (meRes.status === 'fulfilled') {
+          setProfile(meRes.value.data);
+        }
+
 
         if (enrRes.status === 'fulfilled') {
           const d = enrRes.value.data;
@@ -81,10 +92,46 @@ export const SwimmerPortal = () => {
           </div>
           <h1 className="text-xl sm:text-2xl font-bold tracking-tight">پرتال اختصاصی شناگر</h1>
           <p className="text-indigo-100 text-sm mt-1 max-w-xl font-light">
-            مشاهده سهمیه جلسات باقیمانده، برنامه تمرینی، صورتحساب‌ها و نمودار پیشرفت مهارتی شما
+            مشاهده سهمیه جلسات باقیمانده، برنامه تمرینی، صورتحساب‌ها و مدارک هویتی
           </p>
         </div>
+
+        <Link
+          to="/swimmer/complete-profile"
+          className="px-4 py-2.5 bg-white text-sky-800 hover:bg-sky-50 rounded-2xl text-xs font-bold transition-all shadow-md flex items-center gap-2 self-start sm:self-auto cursor-pointer"
+        >
+          <FileText className="w-4 h-4 text-sky-600" />
+          <span>{profile?.is_profile_completed ? 'مشاهده و ویرایش مدارک پرونده' : 'تکمیل مدارک و پرونده شناگر'}</span>
+          <ArrowLeft className="w-3.5 h-3.5" />
+        </Link>
       </div>
+
+      {/* Incomplete Profile Alert Banner */}
+      {profile && !profile.is_profile_completed && (
+        <div className="p-4 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-950/40 dark:to-orange-950/30 border border-amber-200 dark:border-amber-900/60 rounded-3xl shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-xl bg-amber-500/15 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="text-xs sm:text-sm font-bold text-amber-900 dark:text-amber-200">
+                پرونده هویتی و مدارک شناگر ناقص است!
+              </h3>
+              <p className="text-[11px] sm:text-xs text-amber-800 dark:text-amber-300/90 mt-0.5 leading-relaxed">
+                جهت صدور کارت تردد استخر، بیمه ورزشی فدراسیون و ثبت‌نام در گروه‌ها، تکمیل فیلدهای ستاره‌دار و آپلود مدارک هویتی الزامی می‌باشد.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/swimmer/complete-profile"
+            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl transition-colors shadow-xs flex items-center gap-1.5 shrink-0 self-end sm:self-auto"
+          >
+            <span>تکمیل فوری پرونده</span>
+            <ArrowLeft className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+      )}
+
 
       {/* Announcements Banner for Swimmers */}
       {announcements.length > 0 && (
