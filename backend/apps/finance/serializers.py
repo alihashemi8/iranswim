@@ -127,6 +127,7 @@ class FinancialAdjustmentSerializer(serializers.ModelSerializer):
 
 class InvoiceSerializer(serializers.ModelSerializer):
     swimmer_name = serializers.CharField(source='swimmer.full_name', read_only=True)
+    swimmer_phone = serializers.CharField(source='swimmer.phone', read_only=True)
     items = InvoiceItemSerializer(many=True, read_only=True)
     installments = InstallmentSerializer(many=True, read_only=True)
     adjustments = FinancialAdjustmentSerializer(many=True, read_only=True)
@@ -145,7 +146,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Invoice
         fields = [
-            'id', 'invoice_number', 'swimmer', 'swimmer_name', 'enrollment',
+            'id', 'invoice_number', 'swimmer', 'swimmer_name', 'swimmer_phone', 'enrollment',
             'total_amount', 'currency', 'status', 'status_display', 'issue_date',
             'due_date', 'notes', 'items', 'installments', 'adjustments',
             'total_paid', 'total_discount', 'total_refund', 'remaining_balance',
@@ -184,6 +185,7 @@ class PaymentAllocationSerializer(serializers.ModelSerializer):
 
 class PaymentSerializer(serializers.ModelSerializer):
     swimmer_name = serializers.CharField(source='swimmer.full_name', read_only=True)
+    swimmer_phone = serializers.CharField(source='swimmer.phone', read_only=True)
     method_display = serializers.CharField(source='get_method_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     allocations = PaymentAllocationSerializer(many=True, read_only=True)
@@ -197,7 +199,7 @@ class PaymentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Payment
         fields = [
-            'id', 'payment_number', 'swimmer', 'swimmer_name', 'amount',
+            'id', 'payment_number', 'swimmer', 'swimmer_name', 'swimmer_phone', 'amount',
             'currency', 'method', 'method_display', 'status', 'status_display',
             'transaction_ref', 'idempotency_key', 'paid_at', 'notes',
             'allocations', 'gender', 'gender_display', 'birth_year', 'birth_date', 'pool_name', 'coach_name',

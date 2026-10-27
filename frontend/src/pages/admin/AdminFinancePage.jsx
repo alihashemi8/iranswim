@@ -15,6 +15,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { StatsCard } from '../../components/common/StatsCard';
 import { Pagination } from '../../components/common/Pagination';
 import { CustomSelect } from '../../components/common/CustomSelect';
+import { SwimmerProfileModal } from '../../components/common/SwimmerProfileModal';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
 
@@ -39,6 +40,32 @@ export const AdminFinancePage = () => {
   const [poolFilter, setPoolFilter] = useState('ALL');
   const [coachFilter, setCoachFilter] = useState('ALL');
   const [birthYearFilter, setBirthYearFilter] = useState('ALL');
+
+  // Swimmer Dossier Profile Modal
+  const [selectedSwimmerForProfile, setSelectedSwimmerForProfile] = useState(null);
+  const [isSwimmerProfileOpen, setIsSwimmerProfileOpen] = useState(false);
+
+  const cleanCoachName = (name) => {
+    if (!name || name === '—') return '—';
+    return String(name)
+      .replace(/^مربی[:\s]+/, '')
+      .replace(/\s*\(مربی\)\s*$/, '')
+      .trim() || '—';
+  };
+
+  const handleOpenSwimmerProfile = (item) => {
+    if (!item) return;
+    const swimmerId = item.swimmer_id || item.swimmer || (typeof item.id === 'number' && item.swimmer_name ? item.swimmer_id : null);
+    setSelectedSwimmerForProfile({
+      id: swimmerId,
+      swimmer_name: item.swimmer_name,
+      swimmer_phone: item.swimmer_phone,
+      gender: item.gender,
+      gender_display: item.gender_display,
+      birth_year: item.birth_year,
+    });
+    setIsSwimmerProfileOpen(true);
+  };
 
   // Record Payment Modal
   const [isPayModalOpen, setIsPayModalOpen] = useState(false);
@@ -721,8 +748,8 @@ export const AdminFinancePage = () => {
                 <table className="w-full text-sm text-right min-w-[700px]">
                   <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                     <tr>
-                      <th className="px-4 py-3.5 rounded-r-xl">شماره فاکتور</th>
-                      <th className="px-4 py-3.5">نام و مشخصات شناگر</th>
+                      <th className="px-4 py-3.5 rounded-r-xl">شناگر</th>
+                      <th className="px-4 py-3.5">مربی</th>
                       <th className="px-4 py-3.5">مبلغ کل</th>
                       <th className="px-4 py-3.5">پرداخت‌شده</th>
                       <th className="px-4 py-3.5">مانده بدهی</th>
@@ -733,26 +760,26 @@ export const AdminFinancePage = () => {
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
                     {paginatedInvoices.map((inv) => (
-                      <tr key={inv.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                        <td className="px-4 py-3.5 font-mono font-bold text-slate-800 dark:text-slate-100">
-                          {inv.invoice_number}
-                        </td>
+                      <tr
+                        key={inv.id}
+                        onClick={() => handleOpenSwimmerProfile(inv)}
+                        className="hover:bg-sky-50/40 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                        title="جهت مشاهده پرونده شناگر کلیک کنید"
+                      >
                         <td className="px-4 py-3.5">
-                          <div className="font-semibold text-slate-800 dark:text-slate-100">
-                            {inv.swimmer_name}
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                              {inv.swimmer_name ? inv.swimmer_name.trim().charAt(0) : <User className="w-4 h-4" />}
+                            </div>
+                            <span className="font-bold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                              {inv.swimmer_name}
+                            </span>
                           </div>
-                          <div className="text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5 mt-0.5">
-                            <span>{inv.gender_display || (inv.gender === 'FEMALE' ? 'دختر / بانوان' : 'پسر / آقایان')}</span>
-                            <span>•</span>
-                            <span>متولد {inv.birth_year ? `${inv.birth_year}` : '—'}</span>
-                            <span>•</span>
-                            <span className="text-slate-600 dark:text-slate-400">{inv.pool_name}</span>
-                            {inv.coach_name && inv.coach_name !== '—' && (
-                              <>
-                                <span>•</span>
-                                <span>مربی: {inv.coach_name}</span>
-                              </>
-                            )}
+                        </td>
+                        <td className="px-4 py-3.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                          <div className="flex items-center gap-1.5">
+                            <UserCheck className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                            <span>{cleanCoachName(inv.coach_name)}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3.5 font-mono text-xs text-slate-700 dark:text-slate-300">
@@ -772,7 +799,7 @@ export const AdminFinancePage = () => {
                             {inv.status_display}
                           </Badge>
                         </td>
-                        <td className="px-4 py-3.5 text-center">
+                        <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-center gap-1.5">
                             {inv.status !== 'PAID' && (
                               <button
@@ -805,43 +832,32 @@ export const AdminFinancePage = () => {
                 {paginatedInvoices.map((inv) => (
                   <div
                     key={inv.id}
-                    className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-3 text-xs"
+                    onClick={() => handleOpenSwimmerProfile(inv)}
+                    className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-3 text-xs hover:border-sky-300 dark:hover:border-sky-700 cursor-pointer transition-colors group shadow-2xs"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <span className="font-mono text-xs text-slate-500 dark:text-slate-400 block">
-                          {inv.invoice_number}
-                        </span>
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm mt-0.5">
-                          {inv.swimmer_name}
-                        </h3>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                          {inv.swimmer_name ? inv.swimmer_name.trim().charAt(0) : <User className="w-4 h-4" />}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                            {inv.swimmer_name}
+                          </h3>
+                        </div>
                       </div>
                       <Badge variant={statusBadges[inv.status]?.variant || 'neutral'}>
                         {inv.status_display}
                       </Badge>
                     </div>
 
-                    {/* Metadata tags */}
-                    <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px]">
-                      <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
-                        {inv.gender_display || (inv.gender === 'FEMALE' ? 'دختر / بانوان' : 'پسر / آقایان')}
-                      </span>
-                      {inv.birth_year && (
-                        <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">
-                          متولد {inv.birth_year}
-                        </span>
-                      )}
-                      {inv.pool_name && inv.pool_name !== '—' && (
-                        <span className="px-2 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300">
-                          {inv.pool_name}
-                        </span>
-                      )}
-                      {inv.coach_name && inv.coach_name !== '—' && (
-                        <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300">
-                          مربی: {inv.coach_name}
-                        </span>
-                      )}
-                    </div>
+                    {/* Coach tag (Pool and lane completely removed) */}
+                    {inv.coach_name && inv.coach_name !== '—' && (
+                      <div className="flex items-center gap-1.5 text-[11px] text-indigo-700 dark:text-indigo-300 bg-indigo-50/70 dark:bg-indigo-950/40 px-2.5 py-1 rounded-lg w-fit">
+                        <UserCheck className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>{cleanCoachName(inv.coach_name)}</span>
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
                       <div>
@@ -965,7 +981,8 @@ export const AdminFinancePage = () => {
                   <table className="w-full text-sm text-right">
                     <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                       <tr>
-                        <th className="px-4 py-3.5 rounded-r-xl">شناگر بدهکار</th>
+                        <th className="px-4 py-3.5 rounded-r-xl">شناگر</th>
+                        <th className="px-4 py-3.5">مربی</th>
                         <th className="px-4 py-3.5">تلفن تماس</th>
                         <th className="px-4 py-3.5">شماره قسط و فاکتور</th>
                         <th className="px-4 py-3.5">مبلغ قسط</th>
@@ -976,24 +993,29 @@ export const AdminFinancePage = () => {
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
                       {filteredInstallments.map((inst) => (
-                        <tr key={inst.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                          <td className="px-4 py-3.5 font-bold text-slate-800 dark:text-slate-100">
-                            <div>{inst.swimmer_name}</div>
-                            <div className="text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5 mt-0.5 font-normal">
-                              <span>{inst.gender_display || (inst.gender === 'FEMALE' ? 'دختر / بانوان' : 'پسر / آقایان')}</span>
-                              <span>•</span>
-                              <span>متولد {inst.birth_year ? `${inst.birth_year}` : '—'}</span>
-                              <span>•</span>
-                              <span className="text-slate-600 dark:text-slate-400">{inst.pool_name}</span>
-                              {inst.coach_name && inst.coach_name !== '—' && (
-                                <>
-                                  <span>•</span>
-                                  <span>مربی: {inst.coach_name}</span>
-                                </>
-                              )}
+                        <tr
+                          key={inst.id}
+                          onClick={() => handleOpenSwimmerProfile(inst)}
+                          className="hover:bg-sky-50/40 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                          title="جهت مشاهده پرونده شناگر کلیک کنید"
+                        >
+                          <td className="px-4 py-3.5">
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                                {inst.swimmer_name ? inst.swimmer_name.trim().charAt(0) : <User className="w-4 h-4" />}
+                              </div>
+                              <span className="font-bold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                                {inst.swimmer_name}
+                              </span>
                             </div>
                           </td>
-                          <td className="px-4 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-300">
+                          <td className="px-4 py-3.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                            <div className="flex items-center gap-1.5">
+                              <UserCheck className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                              <span>{cleanCoachName(inst.coach_name)}</span>
+                            </div>
+                          </td>
+                          <td className="px-4 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-300" onClick={(e) => e.stopPropagation()}>
                             <a href={`tel:${inst.swimmer_phone}`} className="hover:text-sky-600 flex items-center gap-1">
                               <Phone className="w-3.5 h-3.5 text-slate-400" />
                               <span>{inst.swimmer_phone}</span>
@@ -1011,7 +1033,7 @@ export const AdminFinancePage = () => {
                           <td className="px-4 py-3.5 font-mono text-xs text-rose-500 font-semibold">
                             {new Date(inst.due_date).toLocaleDateString('fa-IR')}
                           </td>
-                          <td className="px-4 py-3.5 text-center">
+                          <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
                             <button
                               type="button"
                               onClick={() => handleOpenPayModal(null, inst)}
@@ -1032,43 +1054,35 @@ export const AdminFinancePage = () => {
                   {filteredInstallments.map((inst) => (
                     <div
                       key={inst.id}
-                      className="p-4 rounded-2xl bg-rose-50/30 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 space-y-3 text-xs"
+                      onClick={() => handleOpenSwimmerProfile(inst)}
+                      className="p-4 rounded-2xl bg-rose-50/30 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 space-y-3 text-xs hover:border-sky-300 dark:hover:border-sky-700 cursor-pointer transition-colors group shadow-2xs"
                     >
                       <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm">
-                            {inst.swimmer_name}
-                          </h3>
-                          <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 block mt-0.5">
-                            قسط {inst.installment_number} ({inst.invoice_number})
-                          </span>
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                            {inst.swimmer_name ? inst.swimmer_name.trim().charAt(0) : <User className="w-4 h-4" />}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                              {inst.swimmer_name}
+                            </h3>
+                            <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 block mt-0.5">
+                              قسط {inst.installment_number} ({inst.invoice_number})
+                            </span>
+                          </div>
                         </div>
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-100 text-rose-700 dark:bg-rose-900/60 dark:text-rose-300 shrink-0">
                           سررسید: {new Date(inst.due_date).toLocaleDateString('fa-IR')}
                         </span>
                       </div>
 
-                      {/* Metadata tags */}
-                      <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px]">
-                        <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
-                          {inst.gender_display || (inst.gender === 'FEMALE' ? 'دختر / بانوان' : 'پسر / آقایان')}
-                        </span>
-                        {inst.birth_year && (
-                          <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">
-                            متولد {inst.birth_year}
-                          </span>
-                        )}
-                        {inst.pool_name && inst.pool_name !== '—' && (
-                          <span className="px-2 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300">
-                            {inst.pool_name}
-                          </span>
-                        )}
-                        {inst.coach_name && inst.coach_name !== '—' && (
-                          <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300">
-                            مربی: {inst.coach_name}
-                          </span>
-                        )}
-                      </div>
+                      {/* Coach name display (Pool and lane completely removed) */}
+                      {inst.coach_name && inst.coach_name !== '—' && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-indigo-700 dark:text-indigo-300 bg-indigo-50/70 dark:bg-indigo-950/40 px-2.5 py-1 rounded-lg w-fit">
+                          <UserCheck className="w-3.5 h-3.5 text-indigo-500" />
+                          <span>{cleanCoachName(inst.coach_name)}</span>
+                        </div>
+                      )}
 
                       <div className="grid grid-cols-2 gap-2 pt-2 border-t border-rose-200/40 dark:border-rose-900/30 text-slate-600 dark:text-slate-300">
                         <div>
@@ -1083,7 +1097,7 @@ export const AdminFinancePage = () => {
                             {formatPrice(inst.remaining_amount)} تومان
                           </span>
                         </div>
-                        <div className="col-span-2">
+                        <div className="col-span-2" onClick={(e) => e.stopPropagation()}>
                           <span className="text-slate-400 block text-[10px]">تماس با شناگر</span>
                           <a href={`tel:${inst.swimmer_phone}`} className="hover:text-sky-600 flex items-center gap-1 font-mono text-sky-600 dark:text-sky-400 underline decoration-sky-300">
                             <Phone className="w-3.5 h-3.5 text-slate-400" />
@@ -1092,7 +1106,7 @@ export const AdminFinancePage = () => {
                         </div>
                       </div>
 
-                      <div className="pt-2 border-t border-rose-200/40 dark:border-rose-900/30">
+                      <div className="pt-2 border-t border-rose-200/40 dark:border-rose-900/30" onClick={(e) => e.stopPropagation()}>
                         <button
                           type="button"
                           onClick={() => handleOpenPayModal(null, inst)}
@@ -1165,6 +1179,7 @@ export const AdminFinancePage = () => {
                   <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                     <tr>
                       <th className="px-4 py-3.5 rounded-r-xl">شناگر</th>
+                      <th className="px-4 py-3.5">مربی</th>
                       <th className="px-4 py-3.5">مبلغ پرداختی</th>
                       <th className="px-4 py-3.5">روش پرداخت</th>
                       <th className="px-4 py-3.5">وضعیت</th>
@@ -1173,21 +1188,26 @@ export const AdminFinancePage = () => {
                   </thead>
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
                     {filteredPayments.map((p) => (
-                      <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                        <td className="px-4 py-3.5 font-semibold text-slate-800 dark:text-slate-100">
-                          <div>{p.swimmer_name}</div>
-                          <div className="text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5 mt-0.5 font-normal">
-                            <span>{p.gender_display || (p.gender === 'FEMALE' ? 'دختر / بانوان' : 'پسر / آقایان')}</span>
-                            <span>•</span>
-                            <span>متولد {p.birth_year ? `${p.birth_year}` : '—'}</span>
-                            <span>•</span>
-                            <span className="text-slate-600 dark:text-slate-400">{p.pool_name}</span>
-                            {p.coach_name && p.coach_name !== '—' && (
-                              <>
-                                <span>•</span>
-                                <span>مربی: {p.coach_name}</span>
-                              </>
-                            )}
+                      <tr
+                        key={p.id}
+                        onClick={() => handleOpenSwimmerProfile(p)}
+                        className="hover:bg-sky-50/40 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                        title="جهت مشاهده پرونده شناگر کلیک کنید"
+                      >
+                        <td className="px-4 py-3.5">
+                          <div className="flex items-center gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                              {p.swimmer_name ? p.swimmer_name.trim().charAt(0) : <User className="w-4 h-4" />}
+                            </div>
+                            <span className="font-bold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                              {p.swimmer_name}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                          <div className="flex items-center gap-1.5">
+                            <UserCheck className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                            <span>{cleanCoachName(p.coach_name)}</span>
                           </div>
                         </td>
                         <td className="px-4 py-3.5 font-mono font-bold text-emerald-600 dark:text-emerald-400">
@@ -1215,40 +1235,32 @@ export const AdminFinancePage = () => {
                 {filteredPayments.map((p) => (
                   <div
                     key={p.id}
-                    className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-3 text-xs"
+                    onClick={() => handleOpenSwimmerProfile(p)}
+                    className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-3 text-xs hover:border-sky-300 dark:hover:border-sky-700 cursor-pointer transition-colors group shadow-2xs"
                   >
                     <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm mt-0.5">
-                          {p.swimmer_name}
-                        </h3>
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                          {p.swimmer_name ? p.swimmer_name.trim().charAt(0) : <User className="w-4 h-4" />}
+                        </div>
+                        <div>
+                          <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm mt-0.5 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                            {p.swimmer_name}
+                          </h3>
+                        </div>
                       </div>
                       <Badge variant={p.status === 'SUCCESSFUL' ? 'success' : 'warning'}>
                         {p.status_display}
                       </Badge>
                     </div>
 
-                    {/* Metadata tags */}
-                    <div className="flex flex-wrap items-center gap-1.5 pt-1 text-[11px]">
-                      <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
-                        {p.gender_display || (p.gender === 'FEMALE' ? 'دختر / بانوان' : 'پسر / آقایان')}
-                      </span>
-                      {p.birth_year && (
-                        <span className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-mono">
-                          متولد {p.birth_year}
-                        </span>
-                      )}
-                      {p.pool_name && p.pool_name !== '—' && (
-                        <span className="px-2 py-0.5 rounded-md bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300">
-                          {p.pool_name}
-                        </span>
-                      )}
-                      {p.coach_name && p.coach_name !== '—' && (
-                        <span className="px-2 py-0.5 rounded-md bg-indigo-50 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-300">
-                          مربی: {p.coach_name}
-                        </span>
-                      )}
-                    </div>
+                    {/* Coach tag (Pool and lane completely removed) */}
+                    {p.coach_name && p.coach_name !== '—' && (
+                      <div className="flex items-center gap-1.5 text-[11px] text-indigo-700 dark:text-indigo-300 bg-indigo-50/70 dark:bg-indigo-950/40 px-2.5 py-1 rounded-lg w-fit">
+                        <UserCheck className="w-3.5 h-3.5 text-indigo-500" />
+                        <span>{cleanCoachName(p.coach_name)}</span>
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
                       <div>
@@ -1429,6 +1441,17 @@ export const AdminFinancePage = () => {
           </div>
         </form>
       </Modal>
+
+      {/* Swimmer Dossier Full Profile Modal */}
+      <SwimmerProfileModal
+        isOpen={isSwimmerProfileOpen}
+        onClose={() => {
+          setIsSwimmerProfileOpen(false);
+          setSelectedSwimmerForProfile(null);
+        }}
+        swimmerId={selectedSwimmerForProfile?.id}
+        initialSwimmer={selectedSwimmerForProfile}
+      />
     </div>
   );
 };
