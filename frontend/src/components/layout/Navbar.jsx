@@ -103,36 +103,40 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
           {/* Top Bar Notifications (when logged in) */}
           {user && <NotificationDropdown />}
 
-          {/* Divider */}
-          <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block" />
+          {/* On Public Website (!isFullWidth): Show Profile (if logged in) or "ورود / ثبت نام" (if not) */}
+          {!isFullWidth && (
+            <>
+              {/* Divider */}
+              <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block" />
 
-          {/* Profile button linking directly to Dashboard if logged in, or "ورود / ثبت نام" if not */}
-          {user ? (
-            <Link
-              to={getDashboardPath(user.role)}
-              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 transition-colors cursor-pointer group"
-              title="ورود به داشبورد"
-            >
-              <div className={`w-8 h-8 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-bold text-xs shadow-2xs shrink-0`}>
-                {user.full_name ? user.full_name.trim().charAt(0) : 'U'}
-              </div>
-              <div className="hidden sm:flex flex-col text-right leading-tight max-w-[130px] md:max-w-[160px]">
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
-                  {user.full_name || 'داشبورد کاربر'}
-                </span>
-                <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate">
-                  {roleTitles[user.role] || 'ورود به داشبورد'}
-                </span>
-              </div>
-            </Link>
-          ) : (
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer"
-            >
-              <LogIn className="w-4 h-4 shrink-0" />
-              <span>ورود / ثبت نام</span>
-            </Link>
+              {user ? (
+                <Link
+                  to={getDashboardPath(user.role)}
+                  className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 transition-colors cursor-pointer group"
+                  title="ورود به داشبورد"
+                >
+                  <div className={`w-8 h-8 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-bold text-xs shadow-2xs shrink-0`}>
+                    {user.full_name ? user.full_name.trim().charAt(0) : 'U'}
+                  </div>
+                  <div className="hidden sm:flex flex-col text-right leading-tight max-w-[130px] md:max-w-[160px]">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
+                      {user.full_name || 'داشبورد کاربر'}
+                    </span>
+                    <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate">
+                      {roleTitles[user.role] || 'ورود به داشبورد'}
+                    </span>
+                  </div>
+                </Link>
+              ) : (
+                <Link
+                  to="/login"
+                  className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer"
+                >
+                  <LogIn className="w-4 h-4 shrink-0" />
+                  <span>ورود / ثبت نام</span>
+                </Link>
+              )}
+            </>
           )}
         </div>
       </div>
