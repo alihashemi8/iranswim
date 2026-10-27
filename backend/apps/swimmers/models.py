@@ -4,6 +4,10 @@ from django.utils.translation import gettext_lazy as _
 
 
 class SwimmerProfile(models.Model):
+    class Gender(models.TextChoices):
+        MALE = 'MALE', _('پسر / آقایان')
+        FEMALE = 'FEMALE', _('دختر / بانوان')
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -14,6 +18,7 @@ class SwimmerProfile(models.Model):
     )
     first_name = models.CharField(_('نام'), max_length=100)
     last_name = models.CharField(_('نام خانوادگی'), max_length=100)
+    gender = models.CharField(_('جنسیت'), max_length=10, choices=Gender.choices, default=Gender.MALE, blank=True)
     phone = models.CharField(_('تلفن تماس'), max_length=15, blank=True)
     national_id = models.CharField(_('کد ملی'), max_length=10, blank=True, db_index=True)
     date_of_birth = models.DateField(_('تاریخ تولد'), null=True, blank=True)

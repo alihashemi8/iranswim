@@ -6,11 +6,12 @@ from apps.education.models import SkillLevel
 class SwimmerProfileSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(read_only=True)
     level_name = serializers.CharField(source='current_level.name', read_only=True)
+    gender_display = serializers.CharField(source='get_gender_display', read_only=True)
 
     class Meta:
         model = SwimmerProfile
         fields = [
-            'id', 'user', 'first_name', 'last_name', 'full_name', 'phone',
+            'id', 'user', 'first_name', 'last_name', 'full_name', 'gender', 'gender_display', 'phone',
             'national_id', 'date_of_birth', 'emergency_contact_name',
             'emergency_contact_phone', 'current_level', 'level_name',
             'medical_notes', 'is_active', 'created_at'
