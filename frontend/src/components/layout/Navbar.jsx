@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Waves, UserCircle2, Menu, Sun, Moon, Globe } from 'lucide-react';
+import { Waves, LogIn, Menu, Sun, Moon, Globe } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { NotificationDropdown } from './NotificationDropdown';
@@ -10,16 +10,38 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
   const { theme, toggleTheme } = useTheme();
 
   const roleTitles = {
-    ADMIN: 'پنل مدیریت آموزشگاه',
+    ADMIN: 'مدیر آموزشگاه',
     COACH: 'میز کار مربی',
-    SUPERVISOR: 'نظارت فنی و زیرساخت',
-    SWIMMER: 'پرتال اختصاصی شناگر',
+    SUPERVISOR: 'ناظر فنی',
+    SWIMMER: 'شناگر',
+  };
+
+  const roleGradients = {
+    ADMIN: 'from-sky-600 to-cyan-500',
+    COACH: 'from-emerald-600 to-teal-500',
+    SUPERVISOR: 'from-amber-600 to-orange-500',
+    SWIMMER: 'from-cyan-600 to-blue-500',
+  };
+
+  const getDashboardPath = (role) => {
+    switch (role) {
+      case 'ADMIN':
+        return '/admin';
+      case 'COACH':
+        return '/coach';
+      case 'SUPERVISOR':
+        return '/supervisor';
+      case 'SWIMMER':
+        return '/swimmer';
+      default:
+        return '/';
+    }
   };
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800 shadow-xs transition-colors">
       <div className={`${isFullWidth ? 'w-full px-3 sm:px-6' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'} h-16 flex items-center justify-between`}>
-        {/* Brand & Main Navigation */}
+        {/* Brand & Main Navigation (Right side in RTL) */}
         <div className="flex items-center gap-2 sm:gap-4 md:gap-6 min-w-0">
           {onMenuClick && (
             <button
@@ -43,20 +65,12 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             </div>
           </Link>
 
-          {/* In Dashboard: Role context badge and website link */}
+          {/* In Dashboard: Role context badge */}
           {isFullWidth && user && (
             <div className="hidden sm:flex items-center gap-2 mr-1">
               <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200/70 dark:border-sky-800/80">
                 {roleTitles[user.role] || 'داشبورد کاربری'}
               </span>
-              <Link
-                to="/"
-                className="hidden lg:inline-flex items-center gap-1 px-2 py-1 text-xs text-slate-500 hover:text-sky-600 dark:text-slate-400 dark:hover:text-sky-300 transition-colors"
-                title="مشاهده صفحه اصلی وب‌سایت"
-              >
-                <Globe className="w-3.5 h-3.5" />
-                <span>مشاهده سایت</span>
-              </Link>
             </div>
           )}
 
@@ -73,11 +87,8 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
           )}
         </div>
 
-        {/* User Account Controls & Theme Switch */}
+        {/* User Account Controls & Theme Switch (Left side in RTL) */}
         <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          {/* Top Bar Notifications */}
-          {user && <NotificationDropdown />}
-
           {/* Theme Toggle Button */}
           <button
             type="button"
@@ -89,33 +100,49 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             {theme === 'dark' ? <Sun className="w-5 h-5 text-amber-400" /> : <Moon className="w-5 h-5 text-slate-600 dark:text-slate-300" />}
           </button>
 
-          {/* In Dashboard: user identity badge on tablet & desktop */}
-          {isFullWidth && user && (
-            <div className="hidden md:flex items-center gap-2.5 pr-2 mr-0.5 border-r border-slate-200 dark:border-slate-800">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-xs shadow-2xs">
-                {user.full_name ? user.full_name.charAt(0) : 'U'}
-              </div>
-              <div className="flex flex-col text-right">
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight truncate max-w-[130px]">
-                  {user.full_name}
-                </span>
-                <span className="text-[10px] text-slate-400 font-mono">
-                  {user.phone}
-                </span>
-              </div>
-            </div>
-          )}
+          {/* Top Bar Notifications (when logged in) */}
+          {user && <NotificationDropdown />}
 
-          {!user && (
-            <div className="flex items-center gap-2">
-              <Link
-                to="/login"
-                className="inline-flex items-center gap-1.5 px-4 py-2 text-xs sm:text-sm font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-xs transition-colors"
-              >
-                <UserCircle2 className="w-4 h-4" />
-                <span>ورود به پرتال</span>
-              </Link>
-            </div>
+          {/* Divider */}
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block" />
+
+          {/* If user is Admin inside Dashboard: Show "مشاهده سایت" instead of profile */}
+          {user && isFullWidth && user.role === 'ADMIN' ? (
+            <Link
+              to="/"
+              className="w-9 h-9 sm:w-auto sm:px-3.5 sm:py-2 flex items-center justify-center gap-2 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-sky-600 dark:hover:text-sky-400 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-200/80 dark:border-slate-700/80 rounded-xl transition-all shadow-2xs cursor-pointer group shrink-0"
+              title="مشاهده صفحه اصلی وب‌سایت"
+              aria-label="مشاهده وب‌سایت"
+            >
+              <Globe className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0 group-hover:rotate-12 transition-transform" />
+              <span className="hidden sm:inline font-bold">مشاهده سایت</span>
+            </Link>
+          ) : user ? (
+            <Link
+              to={getDashboardPath(user.role)}
+              className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 transition-colors cursor-pointer group"
+              title="ورود به داشبورد"
+            >
+              <div className={`w-8 h-8 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-bold text-xs shadow-2xs shrink-0`}>
+                {user.full_name ? user.full_name.trim().charAt(0) : 'U'}
+              </div>
+              <div className="hidden sm:flex flex-col text-right leading-tight max-w-[130px] md:max-w-[160px]">
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
+                  {user.full_name || 'داشبورد کاربر'}
+                </span>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate">
+                  {roleTitles[user.role] || 'ورود به داشبورد'}
+                </span>
+              </div>
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-sky-600 to-cyan-600 hover:from-sky-700 hover:to-cyan-700 rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer"
+            >
+              <LogIn className="w-4 h-4 shrink-0" />
+              <span>ورود / ثبت نام</span>
+            </Link>
           )}
         </div>
       </div>

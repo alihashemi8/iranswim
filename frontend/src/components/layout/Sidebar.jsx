@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   Activity, Bug, ShieldCheck, Zap,
   LayoutDashboard, BookOpen, Users, CreditCard, Calendar,
   ClipboardCheck, Award, Trophy, Newspaper, Bell, BarChart3,
-  Sliders, ShieldAlert, UserCheck, X, LogOut, ChevronLeft, ChevronRight
+  Sliders, ShieldAlert, UserCheck, X, LogOut, ChevronLeft, ChevronRight,
+  ChevronDown, ChevronUp, Settings, User
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -13,8 +14,17 @@ import api from '../../api/client';
 export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
   const [collapsed, setCollapsed] = useState(false);
+  const [adminProfileExpanded, setAdminProfileExpanded] = useState(true);
+
+  // Auto-expand admin profile menu when on profile page
+  useEffect(() => {
+    if (location.pathname.startsWith('/admin/profile')) {
+      setAdminProfileExpanded(true);
+    }
+  }, [location.pathname]);
 
   // Badge notification counts for admin
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
@@ -126,13 +136,6 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       groupTitle: 'گزارش‌ها و تحلیل',
       items: [
         { to: '/admin/reports', label: 'گزارش‌های جامع', icon: BarChart3 },
-      ],
-    },
-    {
-      groupTitle: 'سیستم و امنیت',
-      items: [
-        { to: '/admin/settings', label: 'تنظیمات آموزشگاه', icon: Sliders },
-        { to: '/admin/security', label: 'کاربران و امنیت', icon: ShieldAlert },
       ],
     },
   ];
@@ -350,31 +353,327 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     </nav>
   );
 
-  const renderBottomSection = (isMobile = false) => (
-    <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
-      {/* User Info Card */}
-      {isMobile ? (
-        <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 flex items-center gap-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs">
-            {user.full_name ? user.full_name.charAt(0) : 'U'}
+  const handleLogout = (isMobile = false) => {
+    logout();
+    toast.info('با موفقیت از حساب کاربری خارج شدید.');
+    navigate('/login');
+    if (isMobile) onClose();
+  };
+
+  const renderBottomSection = (isMobile = false) => {
+    const isProfilePage = location.pathname.startsWith('/admin/profile');
+    const currentTab = new URLSearchParams(location.search).get('tab')?.toLowerCase() || 'profile';
+
+    if (user.role === 'ADMIN') {
+      if (isMobile) {
+        return (
+          <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+            <div className="px-2 text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wider">
+              پروفایل مدیر
+            </div>
+
+            <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/70 overflow-hidden transition-all shadow-2xs">
+              {/* Header Toggle */}
+              <div className="p-2.5 flex items-center justify-between text-right">
+                <NavLink
+                  to="/admin/profile"
+                  onClick={onClose}
+                  className="flex items-center gap-2.5 min-w-0 flex-1 hover:opacity-80 transition-opacity"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs">
+                    {user.full_name ? user.full_name.charAt(0) : 'U'}
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">
+                      {user.full_name}
+                    </span>
+                    <span className="text-[11px] text-sky-600 dark:text-sky-400 font-semibold">
+                      مدیر آموزشگاه
+                    </span>
+                  </div>
+                </NavLink>
+
+                <button
+                  type="button"
+                  onClick={() => setAdminProfileExpanded(!adminProfileExpanded)}
+                  className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg cursor-pointer"
+                  aria-label="تغییر وضعیت نمایش منو"
+                >
+                  {adminProfileExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+              </div>
+
+              {/* Submenu links */}
+              {adminProfileExpanded && (
+                <div className="px-2 pb-2.5 pt-1 space-y-1 border-t border-slate-200/50 dark:border-slate-700/50 animate-fade-in">
+                  <NavLink
+                    to="/admin/profile?tab=profile"
+                    onClick={onClose}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                      isProfilePage && currentTab === 'profile'
+                        ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-3 border-sky-600 shadow-2xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                    }`}
+                  >
+                    <User className="w-4 h-4 shrink-0 text-sky-600 dark:text-sky-400" />
+                    <span>مشخصات و پروفایل</span>
+                  </NavLink>
+
+                  <NavLink
+                    to="/admin/profile?tab=settings"
+                    onClick={onClose}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                      (isProfilePage && currentTab === 'settings') || location.pathname.startsWith('/admin/settings')
+                        ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-3 border-sky-600 shadow-2xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                    }`}
+                  >
+                    <Settings className="w-4 h-4 shrink-0 text-sky-600 dark:text-sky-400" />
+                    <span>تنظیمات آموزشگاه</span>
+                  </NavLink>
+
+                  <NavLink
+                    to="/admin/profile?tab=users"
+                    onClick={onClose}
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                      (isProfilePage && currentTab === 'users') || location.pathname.startsWith('/admin/security')
+                        ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-3 border-sky-600 shadow-2xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                    }`}
+                  >
+                    <ShieldAlert className="w-4 h-4 shrink-0 text-sky-600 dark:text-sky-400" />
+                    <span>کاربران و امنیت</span>
+                  </NavLink>
+
+                  <div className="h-px bg-slate-200/60 dark:bg-slate-700/60 my-1" />
+
+                  <button
+                    type="button"
+                    onClick={() => handleLogout(true)}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
+                  >
+                    <LogOut className="w-4 h-4 shrink-0" />
+                    <span>خروج از حساب</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="flex flex-col min-w-0 flex-1">
-            <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">
-              {user.full_name}
-            </span>
-            <span className="text-xs text-slate-400 font-mono truncate">
-              {user.phone}
-            </span>
-          </div>
-        </div>
-      ) : (
-        <>
+        );
+      }
+
+      // Desktop & Tablet
+      return (
+        <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
           {/* Full card on desktop xl when not collapsed */}
           <div
-            className={`p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 items-center gap-3 ${
-              collapsed ? 'hidden' : 'hidden xl:flex'
+            className={`space-y-1.5 ${
+              collapsed ? 'hidden' : 'hidden xl:block'
             }`}
           >
+            <div className="px-3 text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wider">
+              پروفایل مدیر
+            </div>
+
+            <div className="rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/70 overflow-hidden transition-all shadow-2xs">
+              {/* Header Toggle */}
+              <div className="p-2.5 flex items-center justify-between text-right">
+                <NavLink
+                  to="/admin/profile"
+                  className="flex items-center gap-2.5 min-w-0 flex-1 hover:opacity-85 transition-opacity"
+                  title="مشاهده صفحه پروفایل مدیر"
+                >
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs">
+                    {user.full_name ? user.full_name.charAt(0) : 'U'}
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">
+                      {user.full_name}
+                    </span>
+                    <span className="text-[11px] text-sky-600 dark:text-sky-400 font-semibold">
+                      مدیر آموزشگاه
+                    </span>
+                  </div>
+                </NavLink>
+
+                <button
+                  type="button"
+                  onClick={() => setAdminProfileExpanded(!adminProfileExpanded)}
+                  className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg cursor-pointer"
+                  aria-label="تغییر وضعیت نمایش منو"
+                >
+                  {adminProfileExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </button>
+              </div>
+
+              {/* Submenu links */}
+              {adminProfileExpanded && (
+                <div className="px-2 pb-2.5 pt-1 space-y-1 border-t border-slate-200/50 dark:border-slate-700/50 animate-fade-in">
+                  <NavLink
+                    to="/admin/profile?tab=profile"
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all group ${
+                      isProfilePage && currentTab === 'profile'
+                        ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-3 border-sky-600 shadow-2xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                    }`}
+                  >
+                    <User className="w-4 h-4 shrink-0 text-sky-600 dark:text-sky-400 transition-transform group-hover:scale-110" />
+                    <span>مشخصات و پروفایل</span>
+                  </NavLink>
+
+                  <NavLink
+                    to="/admin/profile?tab=settings"
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all group ${
+                      (isProfilePage && currentTab === 'settings') || location.pathname.startsWith('/admin/settings')
+                        ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-3 border-sky-600 shadow-2xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                    }`}
+                  >
+                    <Settings className="w-4 h-4 shrink-0 text-sky-600 dark:text-sky-400 transition-transform group-hover:scale-110" />
+                    <span>تنظیمات آموزشگاه</span>
+                  </NavLink>
+
+                  <NavLink
+                    to="/admin/profile?tab=users"
+                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold transition-all group ${
+                      (isProfilePage && currentTab === 'users') || location.pathname.startsWith('/admin/security')
+                        ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-3 border-sky-600 shadow-2xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                    }`}
+                  >
+                    <ShieldAlert className="w-4 h-4 shrink-0 text-sky-600 dark:text-sky-400 transition-transform group-hover:scale-110" />
+                    <span>کاربران و امنیت</span>
+                  </NavLink>
+
+                  <div className="h-px bg-slate-200/60 dark:bg-slate-700/60 my-1" />
+
+                  <button
+                    type="button"
+                    onClick={() => handleLogout(false)}
+                    className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer group"
+                  >
+                    <LogOut className="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" />
+                    <span>خروج از حساب</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Compact View on tablet or when collapsed */}
+          <div
+            className={`w-full flex-col items-center gap-1.5 ${
+              collapsed ? 'flex' : 'flex xl:hidden'
+            }`}
+          >
+            {/* Avatar with Tooltip */}
+            <NavLink
+              to="/admin/profile"
+              className="w-full flex justify-center group relative cursor-pointer"
+              title={`${user.full_name || 'مدیر'} (پروفایل مدیر)`}
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs hover:ring-2 hover:ring-sky-400 transition-all">
+                {user.full_name ? user.full_name.charAt(0) : 'U'}
+              </div>
+              <div className="absolute right-full mr-2.5 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900/95 dark:bg-slate-800/95 text-white text-xs font-semibold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50">
+                <div className="font-bold">{user.full_name}</div>
+                <div className="text-[10px] text-sky-300 font-semibold">پروفایل مدیر آموزشگاه</div>
+                <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-y-4 border-y-transparent border-l-4 border-l-slate-900/95 dark:border-l-slate-800/95" />
+              </div>
+            </NavLink>
+
+            {/* Compact Admin Links */}
+            <div className="w-full flex flex-col items-center gap-1 pt-1">
+              <NavLink
+                to="/admin/profile?tab=profile"
+                title="مشخصات و پروفایل"
+                aria-label="مشخصات و پروفایل"
+                className={`relative flex items-center justify-center p-2 rounded-xl text-sm font-semibold transition-all group ${
+                  isProfilePage && currentTab === 'profile'
+                    ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-3 border-sky-600 shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                }`}
+              >
+                <User className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" />
+                <div
+                  role="tooltip"
+                  className="absolute right-full mr-2.5 px-2.5 py-1.5 bg-slate-900/95 dark:bg-slate-800/95 text-white text-xs font-semibold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 backdrop-blur-xs"
+                >
+                  <span>مشخصات و پروفایل</span>
+                  <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-y-4 border-y-transparent border-l-4 border-l-slate-900/95 dark:border-l-slate-800/95" />
+                </div>
+              </NavLink>
+
+              <NavLink
+                to="/admin/profile?tab=settings"
+                title="تنظیمات آموزشگاه"
+                aria-label="تنظیمات آموزشگاه"
+                className={`relative flex items-center justify-center p-2 rounded-xl text-sm font-semibold transition-all group ${
+                  (isProfilePage && currentTab === 'settings') || location.pathname.startsWith('/admin/settings')
+                    ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-3 border-sky-600 shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                }`}
+              >
+                <Settings className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" />
+                <div
+                  role="tooltip"
+                  className="absolute right-full mr-2.5 px-2.5 py-1.5 bg-slate-900/95 dark:bg-slate-800/95 text-white text-xs font-semibold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 backdrop-blur-xs"
+                >
+                  <span>تنظیمات آموزشگاه</span>
+                  <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-y-4 border-y-transparent border-l-4 border-l-slate-900/95 dark:border-l-slate-800/95" />
+                </div>
+              </NavLink>
+
+              <NavLink
+                to="/admin/profile?tab=users"
+                title="کاربران و امنیت"
+                aria-label="کاربران و امنیت"
+                className={`relative flex items-center justify-center p-2 rounded-xl text-sm font-semibold transition-all group ${
+                  (isProfilePage && currentTab === 'users') || location.pathname.startsWith('/admin/security')
+                    ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-3 border-sky-600 shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100'
+                }`}
+              >
+                <ShieldAlert className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" />
+                <div
+                  role="tooltip"
+                  className="absolute right-full mr-2.5 px-2.5 py-1.5 bg-slate-900/95 dark:bg-slate-800/95 text-white text-xs font-semibold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 backdrop-blur-xs"
+                >
+                  <span>کاربران و امنیت</span>
+                  <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-y-4 border-y-transparent border-l-4 border-l-slate-900/95 dark:border-l-slate-800/95" />
+                </div>
+              </NavLink>
+
+              <div className="h-px w-8 bg-slate-100 dark:bg-slate-800 my-0.5" />
+
+              <button
+                type="button"
+                onClick={() => handleLogout(false)}
+                title="خروج از حساب کاربری"
+                aria-label="خروج از حساب کاربری"
+                className="relative flex items-center justify-center p-2 rounded-xl text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors group cursor-pointer"
+              >
+                <LogOut className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" />
+                <div
+                  role="tooltip"
+                  className="absolute right-full mr-2.5 px-2.5 py-1.5 bg-rose-950 text-white text-xs font-semibold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 backdrop-blur-xs"
+                >
+                  <span>خروج از حساب</span>
+                  <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-y-4 border-y-transparent border-l-4 border-l-rose-950" />
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    // Default for other roles (Coach, Swimmer, Supervisor)
+    return (
+      <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
+        {/* User Info Card */}
+        {isMobile ? (
+          <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 flex items-center gap-3">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs">
               {user.full_name ? user.full_name.charAt(0) : 'U'}
             </div>
@@ -387,66 +686,82 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
               </span>
             </div>
           </div>
-
-          {/* Compact Avatar on tablet or when collapsed */}
-          <div
-            className={`w-full justify-center group relative cursor-default ${
-              collapsed ? 'flex' : 'flex xl:hidden'
-            }`}
-            title={`${user.full_name || 'کاربر'} (${user.phone || ''})`}
-          >
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs hover:ring-2 hover:ring-sky-400 transition-all">
-              {user.full_name ? user.full_name.charAt(0) : 'U'}
+        ) : (
+          <>
+            {/* Full card on desktop xl when not collapsed */}
+            <div
+              className={`p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 items-center gap-3 ${
+                collapsed ? 'hidden' : 'hidden xl:flex'
+              }`}
+            >
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs">
+                {user.full_name ? user.full_name.charAt(0) : 'U'}
+              </div>
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">
+                  {user.full_name}
+                </span>
+                <span className="text-xs text-slate-400 font-mono truncate">
+                  {user.phone}
+                </span>
+              </div>
             </div>
-            {/* Tooltip for avatar in icon-only mode */}
-            <div className="absolute right-full mr-2.5 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900/95 dark:bg-slate-800/95 text-white text-xs font-semibold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50">
-              <div className="font-bold">{user.full_name}</div>
-              <div className="text-[10px] text-slate-400 font-mono">{user.phone}</div>
-              <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-y-4 border-y-transparent border-l-4 border-l-slate-900/95 dark:border-l-slate-800/95" />
+
+            {/* Compact Avatar on tablet or when collapsed */}
+            <div
+              className={`w-full justify-center group relative cursor-default ${
+                collapsed ? 'flex' : 'flex xl:hidden'
+              }`}
+              title={`${user.full_name || 'کاربر'} (${user.phone || ''})`}
+            >
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs hover:ring-2 hover:ring-sky-400 transition-all">
+                {user.full_name ? user.full_name.charAt(0) : 'U'}
+              </div>
+              {/* Tooltip for avatar in icon-only mode */}
+              <div className="absolute right-full mr-2.5 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900/95 dark:bg-slate-800/95 text-white text-xs font-semibold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50">
+                <div className="font-bold">{user.full_name}</div>
+                <div className="text-[10px] text-slate-400 font-mono">{user.phone}</div>
+                <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-y-4 border-y-transparent border-l-4 border-l-slate-900/95 dark:border-l-slate-800/95" />
+              </div>
             </div>
-          </div>
-        </>
-      )}
-
-      {/* Logout Button */}
-      <button
-        type="button"
-        onClick={() => {
-          logout();
-          toast.info('با موفقیت از حساب کاربری خارج شدید.');
-          navigate('/login');
-          if (isMobile) onClose();
-        }}
-        className={`w-full flex items-center justify-center rounded-xl text-sm font-semibold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-900 transition-colors shadow-2xs cursor-pointer group relative ${
-          isMobile
-            ? 'gap-2 px-3.5 py-2.5'
-            : collapsed
-            ? 'p-2.5'
-            : 'p-2.5 xl:px-3.5 xl:py-2.5 xl:gap-2'
-        }`}
-        title="خروج از حساب کاربری"
-        aria-label="خروج از حساب کاربری"
-      >
-        <LogOut className="w-4.5 h-4.5 shrink-0" />
-        <span className={isMobile ? 'inline' : collapsed ? 'hidden' : 'hidden xl:inline'}>
-          خروج از حساب
-        </span>
-
-        {/* Tooltip in icon-only mode */}
-        {!isMobile && (
-          <div
-            role="tooltip"
-            className={`absolute right-full mr-2.5 px-2.5 py-1.5 bg-rose-950 text-white text-xs font-semibold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 ${
-              collapsed ? 'block' : 'block xl:hidden'
-            }`}
-          >
-            <span>خروج از حساب</span>
-            <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-y-4 border-y-transparent border-l-4 border-l-rose-950" />
-          </div>
+          </>
         )}
-      </button>
-    </div>
-  );
+
+        {/* Logout Button */}
+        <button
+          type="button"
+          onClick={() => handleLogout(isMobile)}
+          className={`w-full flex items-center justify-center rounded-xl text-sm font-semibold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-900 transition-colors shadow-2xs cursor-pointer group relative ${
+            isMobile
+              ? 'gap-2 px-3.5 py-2.5'
+              : collapsed
+              ? 'p-2.5'
+              : 'p-2.5 xl:px-3.5 xl:py-2.5 xl:gap-2'
+          }`}
+          title="خروج از حساب کاربری"
+          aria-label="خروج از حساب کاربری"
+        >
+          <LogOut className="w-4.5 h-4.5 shrink-0" />
+          <span className={isMobile ? 'inline' : collapsed ? 'hidden' : 'hidden xl:inline'}>
+            خروج از حساب
+          </span>
+
+          {/* Tooltip in icon-only mode */}
+          {!isMobile && (
+            <div
+              role="tooltip"
+              className={`absolute right-full mr-2.5 px-2.5 py-1.5 bg-rose-950 text-white text-xs font-semibold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 ${
+                collapsed ? 'block' : 'block xl:hidden'
+              }`}
+            >
+              <span>خروج از حساب</span>
+              <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-y-4 border-y-transparent border-l-4 border-l-rose-950" />
+            </div>
+          )}
+        </button>
+      </div>
+    );
+  };
 
   return (
     <>

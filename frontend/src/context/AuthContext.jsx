@@ -40,6 +40,39 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const register = async ({ phone, password, first_name, last_name, national_id, role = 'SWIMMER' }) => {
+    setLoading(true);
+    try {
+      await api.post('/auth/register/', {
+        phone,
+        password,
+        first_name,
+        last_name,
+        national_id,
+        role,
+      });
+      return await login(phone, password);
+    } catch (err) {
+      const data = err.response?.data;
+      let msg = 'خطا در ثبت نام. لطفاً ورودی‌های خود را بررسی نمایید.';
+      if (typeof data === 'string') {
+        msg = data;
+      } else if (data && typeof data === 'object') {
+        if (data.detail) msg = data.detail;
+        else if (data.phone) msg = `شماره موبایل: ${Array.isArray(data.phone) ? data.phone.join(' ') : data.phone}`;
+        else if (data.national_id) msg = `کد ملی: ${Array.isArray(data.national_id) ? data.national_id.join(' ') : data.national_id}`;
+        else {
+          const firstKey = Object.keys(data)[0];
+          const val = data[firstKey];
+          msg = `${firstKey}: ${Array.isArray(val) ? val.join(' ') : val}`;
+        }
+      }
+      return { success: false, error: msg };
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem('access_token');
     localStorage.removeItem('refresh_token');
@@ -60,8 +93,19 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const updateUserData = (updatedFields) => {
+    setUser((prev) => {
+      const next = { ...prev, ...updatedFields };
+      if (updatedFields.first_name || updatedFields.last_name) {
+        next.full_name = `${next.first_name || ''} ${next.last_name || ''}`.trim() || next.phone;
+      }
+      localStorage.setItem('user', JSON.stringify(next));
+      return next;
+    });
+  };
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, quickSwitch, loading }}>
+    <AuthContext.Provider value={{ user, login, register, logout, quickSwitch, updateUserData, loading }}>
       {children}
     </AuthContext.Provider>
   );

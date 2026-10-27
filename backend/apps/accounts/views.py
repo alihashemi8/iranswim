@@ -18,6 +18,17 @@ class CurrentUserView(APIView):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
 
+    def patch(self, request):
+        user = request.user
+        password = request.data.get('password')
+        if password:
+            user.set_password(password)
+            user.save()
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()

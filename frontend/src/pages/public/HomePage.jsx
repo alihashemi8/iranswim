@@ -10,8 +10,10 @@ import { Button } from '../../components/common/Button';
 import { LoadingState } from '../../components/common/LoadingState';
 import { Modal } from '../../components/common/Modal';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../../context/AuthContext';
 
 export const HomePage = () => {
+  const { user } = useAuth();
   const [courses, setCourses] = useState([]);
   const [coaches, setCoaches] = useState([]);
   const [news, setNews] = useState([]);
@@ -105,12 +107,26 @@ export const HomePage = () => {
             >
               آشنایی با کادر مربیان
             </a>
-            <Link
-              to="/login"
-              className="px-6 py-3.5 bg-white text-sky-900 hover:bg-sky-50 font-semibold rounded-xl shadow-md transition-all text-sm"
-            >
-              ورود به پرتال اعضا
-            </Link>
+            {user ? (
+              <Link
+                to={
+                  user.role === 'ADMIN' ? '/admin' :
+                  user.role === 'COACH' ? '/coach' :
+                  user.role === 'SUPERVISOR' ? '/supervisor' : '/swimmer'
+                }
+                className="px-6 py-3.5 bg-white text-sky-900 hover:bg-sky-50 font-bold rounded-xl shadow-md transition-all text-sm inline-flex items-center gap-2"
+              >
+                <span>ورود به پیشخوان کاربری</span>
+                <ArrowLeft className="w-4 h-4" />
+              </Link>
+            ) : (
+              <Link
+                to="/login"
+                className="px-6 py-3.5 bg-white text-sky-900 hover:bg-sky-50 font-semibold rounded-xl shadow-md transition-all text-sm"
+              >
+                ورود / ثبت‌نام اعضا
+              </Link>
+            )}
           </div>
 
           {/* Quick Stat Chips */}

@@ -28,6 +28,7 @@ import { AdminAnnouncementsPage } from './pages/admin/AdminAnnouncementsPage';
 import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
 import { AdminSecurityPage } from './pages/admin/AdminSecurityPage';
+import { AdminProfilePage } from './pages/admin/AdminProfilePage';
 import { AdminEnrollmentsPage } from './pages/admin/AdminEnrollmentsPage';
 import { AdminSessionsPage } from './pages/admin/AdminSessionsPage';
 
@@ -128,9 +129,10 @@ export default function App() {
                 {/* 6. Reports & Analytics */}
                 <Route path="reports" element={<AdminReportsPage />} />
 
-                {/* 7. System & Security */}
-                <Route path="settings" element={<AdminSettingsPage />} />
-                <Route path="security" element={<AdminSecurityPage />} />
+                {/* 7. Profile & System Management */}
+                <Route path="profile" element={<AdminProfilePage />} />
+                <Route path="settings" element={<Navigate to="/admin/profile?tab=settings" replace />} />
+                <Route path="security" element={<Navigate to="/admin/profile?tab=users" replace />} />
 
                 {/* Auxiliary direct routes */}
                 <Route path="enrollments" element={<AdminEnrollmentsPage />} />
