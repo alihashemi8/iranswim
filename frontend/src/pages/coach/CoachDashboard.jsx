@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Users } from 'lucide-react';
+import { Calendar, Users, Bell, Pin } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
 import { LoadingState } from '../../components/common/LoadingState';
@@ -9,6 +9,7 @@ import { useToast } from '../../context/ToastContext';
 export const CoachDashboard = () => {
   const [sessions, setSessions] = useState([]);
   const [groups, setGroups] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
 
@@ -16,12 +17,24 @@ export const CoachDashboard = () => {
     const fetchCoachData = async () => {
       try {
         setLoading(true);
-        const [sessRes, grpRes] = await Promise.all([
+        const [sessRes, grpRes, annRes] = await Promise.allSettled([
           api.get('/scheduling/sessions/'),
           api.get('/education/groups/'),
+          api.get('/content/announcements/'),
         ]);
-        setSessions(sessRes.data.results || sessRes.data);
-        setGroups(grpRes.data.results || grpRes.data);
+
+        if (sessRes.status === 'fulfilled') {
+          const d = sessRes.value.data;
+          setSessions(Array.isArray(d) ? d : d.results || []);
+        }
+        if (grpRes.status === 'fulfilled') {
+          const d = grpRes.value.data;
+          setGroups(Array.isArray(d) ? d : d.results || []);
+        }
+        if (annRes.status === 'fulfilled') {
+          const d = annRes.value.data;
+          setAnnouncements(Array.isArray(d) ? d : d.results || []);
+        }
       } catch (err) {
         console.error(err);
         toast.error('خطا در دریافت اطلاعات مربی');
@@ -44,6 +57,46 @@ export const CoachDashboard = () => {
           مشاهده کلاس‌های تخصیص‌یافته، ثبت سریع حضور و غیاب و ارزیابی مهارت‌های شاگردان
         </p>
       </div>
+
+      {/* Announcements Banner for Coaches */}
+      {announcements.length > 0 && (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Bell className="w-4 h-4 text-sky-600" />
+              پیام‌ها و اطلاعیه‌های آموزشگاه برای مربیان
+            </h2>
+            <span className="text-xs text-slate-400 font-mono">
+              {announcements.length} اعلان
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {announcements.slice(0, 4).map((ann) => (
+              <div
+                key={ann.id}
+                className={`p-3.5 rounded-xl border transition-colors ${
+                  ann.is_pinned
+                    ? 'bg-amber-50/60 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/60'
+                    : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/70 dark:border-slate-700/60'
+                }`}
+              >
+                <div className="flex items-center justify-between gap-2 mb-1.5">
+                  <span className="font-bold text-xs text-slate-900 dark:text-white flex items-center gap-1">
+                    {ann.is_pinned && <Pin className="w-3 h-3 text-amber-600 rotate-45" />}
+                    {ann.title}
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-mono">
+                    {new Date(ann.created_at).toLocaleDateString('fa-IR')}
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3">
+                  {ann.message}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Assigned Groups */}

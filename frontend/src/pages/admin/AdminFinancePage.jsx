@@ -4,7 +4,7 @@ import {
   CreditCard, AlertCircle, FileText, CheckCircle2,
   DollarSign, ArrowUpRight, ArrowDownLeft, Plus,
   FileSpreadsheet, Search, RefreshCw, User, Phone,
-  Filter, RotateCcw, Calendar, MapPin, UserCheck, Users
+  Filter, RotateCcw, Calendar, MapPin, UserCheck, Users, X
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -14,6 +14,7 @@ import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { StatsCard } from '../../components/common/StatsCard';
 import { Pagination } from '../../components/common/Pagination';
+import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
 
@@ -246,6 +247,27 @@ export const AdminFinancePage = () => {
     return Array.from(new Set(list)).sort((a, b) => Number(a) - Number(b));
   }, [invoices, installments, payments]);
 
+  const genderOptions = [
+    { value: 'ALL', label: 'همه جنسیت‌ها' },
+    { value: 'MALE', label: 'پسر / آقایان' },
+    { value: 'FEMALE', label: 'دختر / بانوان' },
+  ];
+
+  const poolOptions = useMemo(() => [
+    { value: 'ALL', label: 'همه استخرها' },
+    ...availablePools.map((p) => ({ value: p, label: p })),
+  ], [availablePools]);
+
+  const coachOptions = useMemo(() => [
+    { value: 'ALL', label: 'همه مربیان' },
+    ...availableCoaches.map((c) => ({ value: c, label: c })),
+  ], [availableCoaches]);
+
+  const birthYearOptions = useMemo(() => [
+    { value: 'ALL', label: 'همه سال‌های تولد' },
+    ...availableBirthYears.map((y) => ({ value: y, label: `متولدین سال ${y}` })),
+  ], [availableBirthYears]);
+
   const filterItem = (item) => {
     if (genderFilter !== 'ALL' && item.gender !== genderFilter) return false;
     if (poolFilter !== 'ALL' && item.pool_name !== poolFilter) return false;
@@ -403,73 +425,49 @@ export const AdminFinancePage = () => {
         />
       </div>
 
-      {/* Row 1: Category Tabs + Top Action Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-xs w-full sm:w-fit overflow-x-auto">
-          <button
-            type="button"
-            onClick={() => { setActiveTab('INVOICES'); setCurrentPage(1); }}
-            className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-              activeTab === 'INVOICES'
-                ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            <FileText className="w-4 h-4" />
-            <span>صورتحساب‌ها ({filteredInvoices.length})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => { setActiveTab('INSTALLMENTS'); setCurrentPage(1); }}
-            className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-              activeTab === 'INSTALLMENTS'
-                ? 'bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-300 shadow-2xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            <AlertCircle className="w-4 h-4 text-rose-600" />
-            <span>اقساط معوق و بدهکاران ({filteredInstallments.length})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => { setActiveTab('PAYMENTS'); setCurrentPage(1); }}
-            className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-              activeTab === 'PAYMENTS'
-                ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-2xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-            }`}
-          >
-            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-            <span>رسیدها و پرداخت‌ها ({filteredPayments.length})</span>
-          </button>
-        </div>
-
-        {/* Action Buttons above table */}
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          <Button
-            variant="outline"
-            onClick={handleExportCurrent}
-            className="gap-1.5 text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 shadow-2xs"
-            title="خروجی فایل اکسل"
-          >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span>خروجی اکسل</span>
-          </Button>
-          <Button
-            variant="outline"
-            onClick={fetchFinance}
-            className="gap-1.5 text-xs shadow-2xs"
-            title="به‌روزرسانی داده‌ها"
-          >
-            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
-            <span>به‌روزرسانی</span>
-          </Button>
-        </div>
+      {/* Row 1: Category Tabs */}
+      <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-xs w-full sm:w-fit overflow-x-auto">
+        <button
+          type="button"
+          onClick={() => { setActiveTab('INVOICES'); setCurrentPage(1); }}
+          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'INVOICES'
+              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+          }`}
+        >
+          <FileText className="w-4 h-4" />
+          <span>صورت حساب ها</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => { setActiveTab('INSTALLMENTS'); setCurrentPage(1); }}
+          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'INSTALLMENTS'
+              ? 'bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-300 shadow-2xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+          }`}
+        >
+          <AlertCircle className="w-4 h-4 text-rose-600" />
+          <span>اقساط</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => { setActiveTab('PAYMENTS'); setCurrentPage(1); }}
+          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+            activeTab === 'PAYMENTS'
+              ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-2xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+          }`}
+        >
+          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          <span>رسیدها</span>
+        </button>
       </div>
 
-      {/* Row 2: Secondary Category Row: "جنسیت", "استخر", "مربی", "سال تولد" */}
-      <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs transition-colors">
-        <div className="flex items-center justify-between gap-2 mb-3">
+      {/* Row 2: Secondary Category Row (Custom Designed Dropdowns): "جنسیت", "استخر", "مربی", "سال تولد" */}
+      <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs transition-colors space-y-3">
+        <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-200">
             <Filter className="w-4 h-4 text-sky-600" />
             <span>دسته‌بندی و فیلترهای تکمیلی:</span>
@@ -488,84 +486,103 @@ export const AdminFinancePage = () => {
 
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5">
           {/* 1. جنسیت */}
-          <div>
-            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">
-              جنسیت
-            </label>
-            <div className="relative">
-              <Users className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <select
-                value={genderFilter}
-                onChange={(e) => { setGenderFilter(e.target.value); setCurrentPage(1); }}
-                className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pr-8 pl-3 py-2 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer"
-              >
-                <option value="ALL">همه جنسیت‌ها</option>
-                <option value="MALE">پسر / آقایان</option>
-                <option value="FEMALE">دختر / بانوان</option>
-              </select>
-            </div>
-          </div>
+          <CustomSelect
+            label="جنسیت"
+            icon={Users}
+            value={genderFilter}
+            onChange={(val) => { setGenderFilter(val); setCurrentPage(1); }}
+            options={genderOptions}
+          />
 
           {/* 2. استخر */}
-          <div>
-            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">
-              استخر
-            </label>
-            <div className="relative">
-              <MapPin className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <select
-                value={poolFilter}
-                onChange={(e) => { setPoolFilter(e.target.value); setCurrentPage(1); }}
-                className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pr-8 pl-3 py-2 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer truncate"
-              >
-                <option value="ALL">همه استخرها</option>
-                {availablePools.map((pool) => (
-                  <option key={pool} value={pool}>{pool}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <CustomSelect
+            label="استخر"
+            icon={MapPin}
+            value={poolFilter}
+            onChange={(val) => { setPoolFilter(val); setCurrentPage(1); }}
+            options={poolOptions}
+            searchable={availablePools.length > 5}
+          />
 
           {/* 3. مربی */}
-          <div>
-            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">
-              مربی
-            </label>
-            <div className="relative">
-              <UserCheck className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <select
-                value={coachFilter}
-                onChange={(e) => { setCoachFilter(e.target.value); setCurrentPage(1); }}
-                className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pr-8 pl-3 py-2 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer truncate"
-              >
-                <option value="ALL">همه مربیان</option>
-                {availableCoaches.map((coach) => (
-                  <option key={coach} value={coach}>{coach}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <CustomSelect
+            label="مربی"
+            icon={UserCheck}
+            value={coachFilter}
+            onChange={(val) => { setCoachFilter(val); setCurrentPage(1); }}
+            options={coachOptions}
+            searchable={availableCoaches.length > 5}
+          />
 
           {/* 4. سال تولد */}
-          <div>
-            <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-300 block mb-1">
-              سال تولد
-            </label>
-            <div className="relative">
-              <Calendar className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-              <select
-                value={birthYearFilter}
-                onChange={(e) => { setBirthYearFilter(e.target.value); setCurrentPage(1); }}
-                className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl pr-8 pl-3 py-2 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 cursor-pointer font-mono"
-              >
-                <option value="ALL">همه سال‌های تولد</option>
-                {availableBirthYears.map((year) => (
-                  <option key={year} value={year}>متولدین سال {year}</option>
-                ))}
-              </select>
-            </div>
-          </div>
+          <CustomSelect
+            label="سال تولد"
+            icon={Calendar}
+            value={birthYearFilter}
+            onChange={(val) => { setBirthYearFilter(val); setCurrentPage(1); }}
+            options={birthYearOptions}
+            searchable={availableBirthYears.length > 5}
+          />
         </div>
+
+        {/* Applied filters tags bar */}
+        {isAnyFilterActive && (
+          <div className="flex items-center gap-1.5 flex-wrap pt-2.5 border-t border-slate-100 dark:border-slate-800 text-[11px]">
+            <span className="text-slate-400 font-medium">اعمال‌شده:</span>
+            {genderFilter !== 'ALL' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 font-bold">
+                <span>جنسیت: {genderFilter === 'MALE' ? 'پسر / آقایان' : 'دختر / بانوان'}</span>
+                <button
+                  type="button"
+                  onClick={() => setGenderFilter('ALL')}
+                  className="hover:text-rose-600 cursor-pointer p-0.5 rounded-md"
+                  title="حذف این فیلتر"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {poolFilter !== 'ALL' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 font-bold">
+                <span>استخر: {poolFilter}</span>
+                <button
+                  type="button"
+                  onClick={() => setPoolFilter('ALL')}
+                  className="hover:text-rose-600 cursor-pointer p-0.5 rounded-md"
+                  title="حذف این فیلتر"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {coachFilter !== 'ALL' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 font-bold">
+                <span>مربی: {coachFilter}</span>
+                <button
+                  type="button"
+                  onClick={() => setCoachFilter('ALL')}
+                  className="hover:text-rose-600 cursor-pointer p-0.5 rounded-md"
+                  title="حذف این فیلتر"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {birthYearFilter !== 'ALL' && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 font-bold">
+                <span>متولدین {birthYearFilter}</span>
+                <button
+                  type="button"
+                  onClick={() => setBirthYearFilter('ALL')}
+                  className="hover:text-rose-600 cursor-pointer p-0.5 rounded-md"
+                  title="حذف این فیلتر"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {loading ? (
@@ -583,15 +600,26 @@ export const AdminFinancePage = () => {
                 </span>
               </h2>
             </div>
-            <Button
-              variant="outline"
-              onClick={handleExportInvoicesCsv}
-              className="gap-1.5 text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
-              title="خروجی فایل اکسل صورتحساب‌ها"
-            >
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-              <span>خروجی اکسل</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleExportInvoicesCsv}
+                className="w-9 h-9 flex items-center justify-center text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-xl transition-colors cursor-pointer shadow-2xs"
+                title="خروجی فایل اکسل صورتحساب‌ها"
+                aria-label="خروجی اکسل"
+              >
+                <FileSpreadsheet className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
+              </button>
+              <button
+                type="button"
+                onClick={fetchFinance}
+                className="w-9 h-9 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 rounded-xl transition-colors cursor-pointer shadow-2xs"
+                title="به‌روزرسانی داده‌ها"
+                aria-label="به‌روزرسانی"
+              >
+                <RefreshCw className={`w-4.5 h-4.5 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
           </div>
 
           {filteredInvoices.length === 0 ? (
@@ -816,15 +844,26 @@ export const AdminFinancePage = () => {
                   فهرست اقساط سررسید گذشته نیازمند پیگیری وصول شهریه
                 </p>
               </div>
-              <Button
-                variant="outline"
-                onClick={handleExportInstallmentsCsv}
-                className="gap-1.5 text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
-                title="خروجی فایل اکسل لیست بدهکاران"
-              >
-                <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-                <span>خروجی اکسل</span>
-              </Button>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleExportInstallmentsCsv}
+                  className="w-9 h-9 flex items-center justify-center text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-xl transition-colors cursor-pointer shadow-2xs"
+                  title="خروجی فایل اکسل لیست بدهکاران"
+                  aria-label="خروجی اکسل"
+                >
+                  <FileSpreadsheet className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
+                </button>
+                <button
+                  type="button"
+                  onClick={fetchFinance}
+                  className="w-9 h-9 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 rounded-xl transition-colors cursor-pointer shadow-2xs"
+                  title="به‌روزرسانی داده‌ها"
+                  aria-label="به‌روزرسانی"
+                >
+                  <RefreshCw className={`w-4.5 h-4.5 ${loading ? 'animate-spin' : ''}`} />
+                </button>
+              </div>
             </div>
 
             {filteredInstallments.length === 0 ? (
@@ -1004,15 +1043,26 @@ export const AdminFinancePage = () => {
                 </span>
               </h2>
             </div>
-            <Button
-              variant="outline"
-              onClick={handleExportPaymentsCsv}
-              className="gap-1.5 text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
-              title="خروجی فایل اکسل تراکنش‌ها"
-            >
-              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-              <span>خروجی اکسل</span>
-            </Button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleExportPaymentsCsv}
+                className="w-9 h-9 flex items-center justify-center text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 border border-emerald-300 dark:border-emerald-800 rounded-xl transition-colors cursor-pointer shadow-2xs"
+                title="خروجی فایل اکسل تراکنش‌ها"
+                aria-label="خروجی اکسل"
+              >
+                <FileSpreadsheet className="w-4.5 h-4.5 text-emerald-600 dark:text-emerald-400" />
+              </button>
+              <button
+                type="button"
+                onClick={fetchFinance}
+                className="w-9 h-9 flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200/80 dark:border-slate-700/80 rounded-xl transition-colors cursor-pointer shadow-2xs"
+                title="به‌روزرسانی داده‌ها"
+                aria-label="به‌روزرسانی"
+              >
+                <RefreshCw className={`w-4.5 h-4.5 ${loading ? 'animate-spin' : ''}`} />
+              </button>
+            </div>
           </div>
 
           {filteredPayments.length === 0 ? (

@@ -29,7 +29,9 @@ api.interceptors.response.use(
       const refreshToken = localStorage.getItem('refresh_token');
       if (refreshToken) {
         try {
-          const res = await axios.post('/api/auth/refresh/', { refresh: refreshToken });
+          const baseUrl = api.defaults.baseURL || '/api';
+          const cleanBase = baseUrl.replace(/\/+$/, '');
+          const res = await axios.post(`${cleanBase}/auth/refresh/`, { refresh: refreshToken });
           if (res.data?.access) {
             localStorage.setItem('access_token', res.data.access);
             originalRequest.headers.Authorization = `Bearer ${res.data.access}`;
@@ -39,7 +41,13 @@ api.interceptors.response.use(
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
           localStorage.removeItem('user');
+          window.dispatchEvent(new CustomEvent('auth:unauthorized'));
         }
+      } else {
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user');
+        window.dispatchEvent(new CustomEvent('auth:unauthorized'));
       }
     }
     return Promise.reject(error);

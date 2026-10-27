@@ -2,13 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Bell, Check, CheckCheck, UserPlus, CreditCard,
-  Calendar, Pin, AlertCircle, RefreshCw, Loader2, ArrowLeft
+  Calendar, Pin, AlertCircle, RefreshCw, Loader2, ArrowLeft, LogIn
 } from 'lucide-react';
 import api from '../../api/client';
 import { formatPersianDate } from '../../utils/date';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 
 export const NotificationDropdown = () => {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -22,6 +24,14 @@ export const NotificationDropdown = () => {
   const toast = useToast();
 
   const fetchNotifications = async (isManual = false) => {
+    const token = localStorage.getItem('access_token');
+    if (!token) {
+      setNotifications([]);
+      setUnreadCount(0);
+      setError(null);
+      return;
+    }
+
     try {
       if (isManual) setLoading(true);
       setError(null);
@@ -34,27 +44,37 @@ export const NotificationDropdown = () => {
       setNotifications(results);
       setUnreadCount(count);
     } catch (err) {
-      console.error(err);
-      setError('خطا در دریافت اعلان‌ها');
+      console.error('Error fetching notifications:', err);
+      if (err.response?.status === 401) {
+        setError('نشست کاربری شما منقضی شده است. لطفاً مجدداً وارد سامانه شوید.');
+      } else {
+        setError('خطا در دریافت اعلان‌ها از سرور');
+      }
       if (isManual) {
-        toast.error('خطا در ارتباط با سرور جهت دریافت اعلان‌ها');
+        toast.error('خطا در برقراری ارتباط جهت دریافت اعلان‌ها');
       }
     } finally {
       if (isManual) setLoading(false);
     }
   };
 
-  // Initial load
+  // Initial load and whenever the authenticated user changes
   useEffect(() => {
-    fetchNotifications(false);
-  }, []);
+    if (user) {
+      fetchNotifications(false);
+    } else {
+      setNotifications([]);
+      setUnreadCount(0);
+      setError(null);
+    }
+  }, [user]);
 
   // Fetch when opening if empty or refreshed
   const toggleOpen = () => {
     const nextState = !isOpen;
     setIsOpen(nextState);
     if (nextState) {
-      fetchNotifications(true);
+      fetchNotifications(false);
     }
   };
 
@@ -131,7 +151,14 @@ export const NotificationDropdown = () => {
     }
     setIsOpen(false);
     if (notif.link) {
-      navigate(notif.link);
+      // Role-safe navigation: If link points to admin and user is not admin, redirect to user dashboard
+      if (notif.link.startsWith('/admin') && user?.role !== 'ADMIN' && !user?.is_superuser) {
+        if (user?.role === 'COACH') navigate('/coach');
+        else if (user?.role === 'SWIMMER') navigate('/swimmer');
+        else navigate('/');
+      } else {
+        navigate(notif.link);
+      }
     }
   };
 
@@ -246,19 +273,34 @@ export const NotificationDropdown = () => {
                   <span className="text-xs">در حال بارگذاری اعلان‌ها...</span>
                 </div>
               ) : error ? (
-                <div className="py-10 px-4 text-center space-y-2">
+                <div className="py-10 px-4 text-center space-y-3">
                   <AlertCircle className="w-7 h-7 text-rose-500 mx-auto" />
                   <p className="text-xs text-rose-600 dark:text-rose-400 font-medium">
                     {error}
                   </p>
-                  <button
-                    type="button"
-                    onClick={() => fetchNotifications(true)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-xl transition-colors cursor-pointer"
-                  >
-                    <RefreshCw className="w-3 h-3" />
-                    <span>تلاش مجدد</span>
-                  </button>
+                  <div className="flex items-center justify-center gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => fetchNotifications(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-xl transition-colors cursor-pointer"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      <span>تلاش مجدد</span>
+                    </button>
+                    {error.includes('منقضی') && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsOpen(false);
+                          navigate('/login');
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/50 rounded-xl transition-colors cursor-pointer"
+                      >
+                        <LogIn className="w-3 h-3" />
+                        <span>ورود به سامانه</span>
+                      </button>
+                    )}
+                  </div>
                 </div>
               ) : notifications.length === 0 ? (
                 <div className="py-12 px-4 text-center space-y-2">
@@ -353,7 +395,13 @@ export const NotificationDropdown = () => {
                 type="button"
                 onClick={() => {
                   setIsOpen(false);
-                  navigate('/admin/announcements');
+                  if (user?.role === 'ADMIN' || user?.is_superuser) {
+                    navigate('/admin/announcements');
+                  } else if (user?.role === 'COACH') {
+                    navigate('/coach');
+                  } else {
+                    navigate('/swimmer');
+                  }
                 }}
                 className="w-full py-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/50 rounded-xl transition-colors cursor-pointer"
               >

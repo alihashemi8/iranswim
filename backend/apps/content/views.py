@@ -35,6 +35,31 @@ class NewsPostDetailView(generics.RetrieveUpdateDestroyAPIView):
         return [IsAdminUserRole()]
 
 
+def _ensure_initial_announcements():
+    """Ensure baseline operational announcements exist in the database."""
+    if Announcement.objects.count() == 0:
+        Announcement.objects.bulk_create([
+            Announcement(
+                title='جلسه توجیهی مسابقات استانی شنا',
+                message='شناگران عضو لیگ روز شنبه ساعت ۱۸ جهت دریافت کارت مسابقات و هماهنگی نهایی در دفتر آکادمی حاضر شوند.',
+                audience=Announcement.Audience.ALL,
+                is_pinned=True,
+            ),
+            Announcement(
+                title='ضوابط بهداشتی و ایمنی استخر در فصل پاییز',
+                message='استفاده از کلاه شنا، عینک استاندارد و دوش قبل از ورود به کاسه استخر برای تمامی شناگران الزامی است.',
+                audience=Announcement.Audience.ALL,
+                is_pinned=False,
+            ),
+            Announcement(
+                title='جلسه هماهنگی کادر مربیان آکادمی',
+                message='جلسه بررسی رکوردهای ثبت‌شده و ارزیابی هفتگی شناگران روز پنج‌شنبه برگزار خواهد شد.',
+                audience=Announcement.Audience.COACHES,
+                is_pinned=False,
+            ),
+        ])
+
+
 class AnnouncementListView(generics.ListCreateAPIView):
     serializer_class = AnnouncementSerializer
 
@@ -44,6 +69,7 @@ class AnnouncementListView(generics.ListCreateAPIView):
         return [IsAdminUserRole()]
 
     def get_queryset(self):
+        _ensure_initial_announcements()
         user = self.request.user
         qs = Announcement.objects.all()
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
@@ -57,7 +83,26 @@ class AnnouncementListView(generics.ListCreateAPIView):
         return Announcement.objects.none()
 
     def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
+        announcement = serializer.save(created_by=self.request.user)
+        # Automatically connect announcement to the notification system so users receive an alert!
+        Notification.objects.create(
+            category=Notification.Category.ANNOUNCEMENT,
+            title=f"اعلان جدید: {announcement.title}",
+            message=announcement.message[:250],
+            link='/admin/announcements' if self.request.user.role == 'ADMIN' else '/',
+            is_read=False,
+            recipient=None,
+        )
+
+
+class AnnouncementDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Announcement.objects.all()
+    serializer_class = AnnouncementSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.IsAuthenticated()]
+        return [IsAdminUserRole()]
 
 
 def _ensure_initial_notifications():
@@ -102,11 +147,10 @@ class NotificationListView(generics.ListAPIView):
     def get_queryset(self):
         _ensure_initial_notifications()
         user = self.request.user
-        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
-            return Notification.objects.filter(
-                models.Q(recipient=user) | models.Q(recipient__isnull=True)
-            ).order_by('-created_at')
-        return Notification.objects.filter(recipient=user).order_by('-created_at')
+        # All authenticated users (Admin, Supervisor, Coach, Swimmer) can see broadcast notifications
+        return Notification.objects.filter(
+            models.Q(recipient=user) | models.Q(recipient__isnull=True)
+        ).order_by('-created_at')
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -123,10 +167,7 @@ class NotificationMarkReadView(views.APIView):
 
     def post(self, request, pk):
         user = request.user
-        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
-            qs = Notification.objects.filter(models.Q(recipient=user) | models.Q(recipient__isnull=True))
-        else:
-            qs = Notification.objects.filter(recipient=user)
+        qs = Notification.objects.filter(models.Q(recipient=user) | models.Q(recipient__isnull=True))
 
         try:
             notif = qs.get(pk=pk)
@@ -142,13 +183,10 @@ class NotificationMarkAllReadView(views.APIView):
 
     def post(self, request):
         user = request.user
-        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
-            qs = Notification.objects.filter(
-                models.Q(recipient=user) | models.Q(recipient__isnull=True),
-                is_read=False
-            )
-        else:
-            qs = Notification.objects.filter(recipient=user, is_read=False)
+        qs = Notification.objects.filter(
+            models.Q(recipient=user) | models.Q(recipient__isnull=True),
+            is_read=False
+        )
 
         count = qs.update(is_read=True)
         return Response({'marked_count': count, 'success': True})

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Bell, Send, Pin, Users, BookOpen, Clock,
-  CheckCircle2, AlertCircle, Trash2
+  CheckCircle2, AlertCircle, Trash2, RefreshCw
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -15,6 +15,8 @@ export const AdminAnnouncementsPage = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
   const toast = useToast();
 
   // Create Announcement Modal
@@ -31,15 +33,31 @@ export const AdminAnnouncementsPage = () => {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [annRes, grpRes] = await Promise.all([
+      setError(null);
+      const [annRes, grpRes] = await Promise.allSettled([
         api.get('/content/announcements/'),
         api.get('/education/groups/'),
       ]);
-      setAnnouncements(annRes.data.results || annRes.data);
-      setGroups(grpRes.data.results || grpRes.data);
+
+      if (annRes.status === 'fulfilled') {
+        const d = annRes.value.data;
+        const list = Array.isArray(d) ? d : d.results || [];
+        setAnnouncements(list);
+      } else {
+        console.error('Error fetching announcements:', annRes.reason);
+        setError('خطا در دریافت لیست پیام‌ها و اعلان‌ها');
+        toast.error('خطا در دریافت لیست اعلان‌ها از سرور');
+      }
+
+      if (grpRes.status === 'fulfilled') {
+        const d = grpRes.value.data;
+        const grpList = Array.isArray(d) ? d : d.results || [];
+        setGroups(grpList);
+      }
     } catch (err) {
-      console.error(err);
-      toast.error('خطا در دریافت لیست اعلان‌ها');
+      console.error('Fetch error:', err);
+      setError('خطا در برقراری ارتباط با سامانه اعلانات');
+      toast.error('خطا در برقراری ارتباط با سرور');
     } finally {
       setLoading(false);
     }
@@ -71,7 +89,7 @@ export const AdminAnnouncementsPage = () => {
       };
 
       await api.post('/content/announcements/', payload);
-      toast.success('پیام اعلان با موفقیت برای مخاطبان ارسال شد.');
+      toast.success('پیام اعلان با موفقیت ثبت شد و اعلان سیستمی آن منتشر گردید.');
       setIsModalOpen(false);
       setForm({
         title: '',
@@ -85,6 +103,37 @@ export const AdminAnnouncementsPage = () => {
       toast.error(err.response?.data?.detail || 'خطا در ارسال اعلان');
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('آیا از حذف این پیام اعلان مطمئن هستید؟')) return;
+    try {
+      setDeletingId(id);
+      await api.delete(`/content/announcements/${id}/`);
+      setAnnouncements((prev) => prev.filter((item) => item.id !== id));
+      toast.success('پیام اعلان با موفقیت حذف گردید.');
+    } catch (err) {
+      console.error('Delete error:', err);
+      toast.error('خطا در حذف پیام اعلان');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const handleTogglePin = async (item) => {
+    try {
+      const nextState = !item.is_pinned;
+      await api.patch(`/content/announcements/${item.id}/`, {
+        is_pinned: nextState,
+      });
+      setAnnouncements((prev) =>
+        prev.map((a) => (a.id === item.id ? { ...a, is_pinned: nextState } : a))
+      );
+      toast.success(nextState ? 'پیام اعلان پین شد.' : 'اعلان از حالت پین خارج گردید.');
+    } catch (err) {
+      console.error('Pin toggle error:', err);
+      toast.error('خطا در تغییر وضعیت پین اعلان');
     }
   };
 
@@ -108,14 +157,39 @@ export const AdminAnnouncementsPage = () => {
             ارسال هشدارهای فوری، یادآوری سررسید اقساط، تغییر ساعت یا لغو کلاس برای شناگران و مربیان
           </p>
         </div>
-        <Button onClick={() => setIsModalOpen(true)} className="gap-1.5 text-xs">
-          <Send className="w-4 h-4" />
-          <span>ارسال اعلان جدید</span>
-        </Button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={fetchData}
+            disabled={loading}
+            className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            title="به‌روزرسانی لیست اعلان‌ها"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <Button onClick={() => setIsModalOpen(true)} className="gap-1.5 text-xs">
+            <Send className="w-4 h-4" />
+            <span>ارسال اعلان جدید</span>
+          </Button>
+        </div>
       </div>
 
       {loading ? (
         <LoadingState message="در حال دریافت پیام‌های سیستمی..." />
+      ) : error ? (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-900/60 p-8 text-center space-y-3">
+          <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
+          <h3 className="text-sm font-bold text-rose-700 dark:text-rose-400">
+            {error}
+          </h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+            ارتباط با سرور جهت دریافت فهرست اعلان‌ها برقرار نشد. لطفاً وضعیت اینترنت یا اتصال بک‌اند را بررسی کنید.
+          </p>
+          <Button onClick={fetchData} variant="outline" className="gap-1.5 text-xs">
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>تلاش مجدد</span>
+          </Button>
+        </div>
       ) : announcements.length === 0 ? (
         <EmptyState
           title="اعلانی ثبت نشده است"
@@ -152,6 +226,29 @@ export const AdminAnnouncementsPage = () => {
                   <span className="text-[11px] font-mono text-slate-400">
                     {new Date(item.created_at).toLocaleDateString('fa-IR')}
                   </span>
+                  {/* Pin toggle button */}
+                  <button
+                    type="button"
+                    onClick={() => handleTogglePin(item)}
+                    className={`p-1.5 rounded-lg border text-xs transition-colors cursor-pointer ${
+                      item.is_pinned
+                        ? 'text-amber-600 border-amber-200 dark:border-amber-800 hover:bg-amber-100/50'
+                        : 'text-slate-400 border-slate-200 dark:border-slate-700 hover:text-amber-600'
+                    }`}
+                    title={item.is_pinned ? 'حذف پین' : 'پین کردن اعلان'}
+                  >
+                    <Pin className="w-3.5 h-3.5" />
+                  </button>
+                  {/* Delete button */}
+                  <button
+                    type="button"
+                    onClick={() => handleDelete(item.id)}
+                    disabled={deletingId === item.id}
+                    className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-600 hover:border-rose-300 dark:hover:border-rose-800 transition-colors cursor-pointer disabled:opacity-50"
+                    title="حذف اعلان"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
               </div>
 

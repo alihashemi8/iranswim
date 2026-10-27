@@ -30,7 +30,6 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             </div>
             <div>
               <span className="font-bold text-lg text-slate-900 dark:text-white tracking-tight block leading-tight">آموزشگاه شنای ایران</span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 block leading-tight">آکادمی تخصصی و ورزش‌های آبی</span>
             </div>
           </Link>
 
@@ -54,11 +53,11 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
           <button
             type="button"
             onClick={toggleTheme}
-            className="p-2 text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors border border-slate-200/80 dark:border-slate-700/80"
+            className="w-9 h-9 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors border border-slate-200/80 dark:border-slate-700/80 cursor-pointer"
             title={theme === 'dark' ? 'حالت روشن' : 'حالت شب / تاریک'}
             aria-label="تغییر تم"
           >
-            {theme === 'dark' ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-slate-600" />}
+            {theme === 'dark' ? <Sun className="w-6 h-6 text-amber-400" /> : <Moon className="w-6 h-6 text-slate-600 dark:text-slate-300" />}
           </button>
 
           {!user && (
