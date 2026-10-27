@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   BarChart3, FileSpreadsheet, Filter, CreditCard,
   Users, BookOpen, Calendar, TrendingUp, CheckCircle, ArrowDownToLine,
@@ -8,11 +9,11 @@ import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { LoadingState } from '../../components/common/LoadingState';
-import { SwimmerProfileModal } from '../../components/common/SwimmerProfileModal';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
 
 export const AdminReportsPage = () => {
+  const navigate = useNavigate();
   const [reportType, setReportType] = useState('FINANCIAL'); // FINANCIAL, EDUCATIONAL, ENROLLMENT
   const [loading, setLoading] = useState(true);
   const [summary, setSummary] = useState(null);
@@ -22,9 +23,6 @@ export const AdminReportsPage = () => {
   const [requests, setRequests] = useState([]);
   const [installments, setInstallments] = useState([]);
   const toast = useToast();
-
-  const [selectedSwimmerForProfile, setSelectedSwimmerForProfile] = useState(null);
-  const [isSwimmerProfileOpen, setIsSwimmerProfileOpen] = useState(false);
 
   const cleanCoachName = (name) => {
     if (!name || name === '—') return '—';
@@ -36,16 +34,10 @@ export const AdminReportsPage = () => {
 
   const handleOpenSwimmerProfile = (item) => {
     if (!item) return;
-    const swimmerId = item.swimmer_id || item.swimmer || (typeof item.id === 'number' && item.swimmer_name ? item.swimmer_id : null);
-    setSelectedSwimmerForProfile({
-      id: swimmerId,
-      swimmer_name: item.swimmer_name,
-      swimmer_phone: item.swimmer_phone,
-      gender: item.gender,
-      gender_display: item.gender_display,
-      birth_year: item.birth_year,
-    });
-    setIsSwimmerProfileOpen(true);
+    const swimmerId = item.swimmer_id || item.swimmer || (typeof item.id === 'number' && item.swimmer_name ? item.swimmer_id : null) || item.id;
+    if (swimmerId) {
+      navigate(`/admin/swimmers/${swimmerId}`);
+    }
   };
 
   const fetchReportsData = async () => {
@@ -516,17 +508,6 @@ export const AdminReportsPage = () => {
           </div>
         </div>
       )}
-
-      {/* Swimmer Profile Modal */}
-      <SwimmerProfileModal
-        isOpen={isSwimmerProfileOpen}
-        onClose={() => {
-          setIsSwimmerProfileOpen(false);
-          setSelectedSwimmerForProfile(null);
-        }}
-        swimmerId={selectedSwimmerForProfile?.id}
-        initialSwimmer={selectedSwimmerForProfile}
-      />
     </div>
   );
 };

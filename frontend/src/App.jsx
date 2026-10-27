@@ -17,6 +17,7 @@ import { SupervisorTestTriggerPage } from './pages/supervisor/SupervisorTestTrig
 // Admin Pages
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminSwimmersPage } from './pages/admin/AdminSwimmersPage';
+import { AdminSwimmerDetailPage } from './pages/admin/AdminSwimmerDetailPage';
 import { AdminCoachesPage } from './pages/admin/AdminCoachesPage';
 import { AdminCoursesPage } from './pages/admin/AdminCoursesPage';
 import { AdminAttendancePage } from './pages/admin/AdminAttendancePage';
@@ -111,6 +112,7 @@ export default function App() {
 
                 {/* 2. Educational Management */}
                 <Route path="swimmers" element={<AdminSwimmersPage />} />
+                <Route path="swimmers/:id" element={<AdminSwimmerDetailPage />} />
                 <Route path="coaches" element={<AdminCoachesPage />} />
                 <Route path="courses" element={<AdminCoursesPage />} />
                 <Route path="attendance" element={<AdminAttendancePage />} />

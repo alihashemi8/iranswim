@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   CreditCard, AlertCircle, FileText, CheckCircle2,
   DollarSign, ArrowUpRight, ArrowDownLeft, Plus,
@@ -15,7 +15,6 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { StatsCard } from '../../components/common/StatsCard';
 import { Pagination } from '../../components/common/Pagination';
 import { CustomSelect } from '../../components/common/CustomSelect';
-import { SwimmerProfileModal } from '../../components/common/SwimmerProfileModal';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
 
@@ -41,9 +40,7 @@ export const AdminFinancePage = () => {
   const [coachFilter, setCoachFilter] = useState('ALL');
   const [birthYearFilter, setBirthYearFilter] = useState('ALL');
 
-  // Swimmer Dossier Profile Modal
-  const [selectedSwimmerForProfile, setSelectedSwimmerForProfile] = useState(null);
-  const [isSwimmerProfileOpen, setIsSwimmerProfileOpen] = useState(false);
+  const navigate = useNavigate();
 
   const cleanCoachName = (name) => {
     if (!name || name === '—') return '—';
@@ -55,16 +52,10 @@ export const AdminFinancePage = () => {
 
   const handleOpenSwimmerProfile = (item) => {
     if (!item) return;
-    const swimmerId = item.swimmer_id || item.swimmer || (typeof item.id === 'number' && item.swimmer_name ? item.swimmer_id : null);
-    setSelectedSwimmerForProfile({
-      id: swimmerId,
-      swimmer_name: item.swimmer_name,
-      swimmer_phone: item.swimmer_phone,
-      gender: item.gender,
-      gender_display: item.gender_display,
-      birth_year: item.birth_year,
-    });
-    setIsSwimmerProfileOpen(true);
+    const swimmerId = item.swimmer_id || item.swimmer || (typeof item.id === 'number' && item.swimmer_name ? item.swimmer_id : null) || item.id;
+    if (swimmerId) {
+      navigate(`/admin/swimmers/${swimmerId}`);
+    }
   };
 
   // Record Payment Modal
@@ -1441,17 +1432,6 @@ export const AdminFinancePage = () => {
           </div>
         </form>
       </Modal>
-
-      {/* Swimmer Dossier Full Profile Modal */}
-      <SwimmerProfileModal
-        isOpen={isSwimmerProfileOpen}
-        onClose={() => {
-          setIsSwimmerProfileOpen(false);
-          setSelectedSwimmerForProfile(null);
-        }}
-        swimmerId={selectedSwimmerForProfile?.id}
-        initialSwimmer={selectedSwimmerForProfile}
-      />
     </div>
   );
 };
