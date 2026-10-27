@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, useNavigate, useLocation } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Activity, Bug, ShieldCheck, Zap,
   LayoutDashboard, BookOpen, Users, CreditCard, Calendar,
   ClipboardCheck, Award, Trophy, Newspaper, Bell, BarChart3,
-  ShieldAlert, UserCheck, X, LogOut, ChevronLeft, ChevronRight
+  UserCheck, X, LogOut, ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -13,7 +13,6 @@ import api from '../../api/client';
 export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
   const toast = useToast();
   const [collapsed, setCollapsed] = useState(false);
 
@@ -80,9 +79,6 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     SUPERVISOR: 'from-amber-600 to-orange-500',
     SWIMMER: 'from-cyan-600 to-blue-500',
   };
-
-  const isProfilePage = location.pathname.startsWith('/admin/profile');
-  const currentTab = new URLSearchParams(location.search).get('tab')?.toLowerCase() || 'profile';
 
   // Admin Grouped Navigation
   const adminGroups = [
@@ -204,123 +200,52 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     if (isMobile) onClose();
   };
 
-  // Fixed Top User Profile Header
+  // Fixed Top User Profile Header (Click navigates directly to user's page without dropdown)
   const renderTopProfile = (isMobile = false) => {
+    const profilePath = user.role === 'ADMIN' ? '/admin/profile' :
+      user.role === 'COACH' ? '/coach' :
+      user.role === 'SWIMMER' ? '/swimmer' :
+      user.role === 'SUPERVISOR' ? '/supervisor' : '/';
+
     if (isMobile) {
       return (
         <div className="shrink-0 p-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
           <div className="flex items-center justify-between gap-2.5">
-            {user.role === 'ADMIN' ? (
-              <NavLink
-                to="/admin/profile"
-                onClick={onClose}
-                className="flex items-center gap-2.5 min-w-0 flex-1 hover:opacity-85 transition-opacity"
-                title="مشاهده صفحه پروفایل مدیر"
-              >
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs">
-                  {user.full_name ? user.full_name.charAt(0) : 'U'}
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">
-                    {user.full_name}
-                  </span>
-                  <span className="text-[11px] text-sky-600 dark:text-sky-400 font-semibold">
-                    مدیر آموزشگاه
-                  </span>
-                </div>
-              </NavLink>
-            ) : (
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs`}>
-                  {user.full_name ? user.full_name.charAt(0) : 'U'}
-                </div>
-                <div className="flex flex-col min-w-0">
-                  <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">
-                    {user.full_name}
-                  </span>
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className="text-sky-600 dark:text-sky-400 font-semibold text-[11px] truncate">
-                      {roleTitles[user.role] || 'کاربر سیستم'}
-                    </span>
-                    {user.phone && (
-                      <>
-                        <span className="text-slate-300 dark:text-slate-700">•</span>
-                        <span className="text-slate-400 font-mono text-[11px] truncate">{user.phone}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
+            <NavLink
+              to={profilePath}
+              onClick={onClose}
+              className={({ isActive }) =>
+                `flex items-center gap-2.5 min-w-0 flex-1 p-1 -m-1 rounded-xl transition-all group ${
+                  isActive
+                    ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold'
+                    : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                }`
+              }
+              title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : 'مشاهده پروفایل'}
+            >
+              <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}>
+                {user.full_name ? user.full_name.charAt(0) : 'U'}
               </div>
-            )}
+              <div className="flex flex-col min-w-0 flex-1">
+                <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                  {user.full_name}
+                </span>
+                <span className="text-[11px] text-sky-600 dark:text-sky-400 font-semibold truncate">
+                  {roleTitles[user.role] || 'کاربر سیستم'}
+                </span>
+              </div>
+            </NavLink>
 
-            <div className="flex items-center gap-1 shrink-0">
-              {user.role === 'ADMIN' && (
-                <button
-                  type="button"
-                  onClick={() => setAdminProfileExpanded(!adminProfileExpanded)}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors"
-                  aria-label="تغییر وضعیت نمایش منوی پروفایل"
-                  title={adminProfileExpanded ? 'بستن منوی پروفایل' : 'باز کردن منوی پروفایل'}
-                >
-                  {adminProfileExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={onClose}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
-                aria-label="بستن منو"
-                title="بستن منو"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
+              aria-label="بستن منو"
+              title="بستن منو"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
-
-          {/* Admin Profile Quick Links Submenu in Mobile */}
-          {user.role === 'ADMIN' && adminProfileExpanded && (
-            <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-1 animate-fade-in">
-              <NavLink
-                to="/admin/profile?tab=profile"
-                onClick={onClose}
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  isProfilePage && currentTab === 'profile'
-                    ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-2 border-sky-600'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              >
-                <User className="w-3.5 h-3.5 shrink-0 text-sky-600 dark:text-sky-400" />
-                <span>مشخصات و اطلاعات</span>
-              </NavLink>
-
-              <NavLink
-                to="/admin/profile?tab=settings"
-                onClick={onClose}
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  (isProfilePage && currentTab === 'settings') || location.pathname.startsWith('/admin/settings')
-                    ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-2 border-sky-600'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              >
-                <Settings className="w-3.5 h-3.5 shrink-0 text-sky-600 dark:text-sky-400" />
-                <span>تنظیمات آموزشگاه</span>
-              </NavLink>
-
-              <NavLink
-                to="/admin/profile?tab=users"
-                onClick={onClose}
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                  (isProfilePage && currentTab === 'users') || location.pathname.startsWith('/admin/security')
-                    ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-2 border-sky-600'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              >
-                <ShieldAlert className="w-3.5 h-3.5 shrink-0 text-sky-600 dark:text-sky-400" />
-                <span>کاربران و امنیت</span>
-              </NavLink>
-            </div>
-          )}
         </div>
       );
     }
@@ -330,124 +255,43 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       <div className="shrink-0 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
         {/* Full card on desktop xl when not collapsed */}
         <div
-          className={`p-2.5 xl:p-3 flex-col ${
+          className={`p-2.5 xl:p-3 flex items-center justify-between gap-2 ${
             collapsed ? 'hidden' : 'hidden xl:flex'
           }`}
         >
-          <div className="flex items-center justify-between gap-2">
-            {user.role === 'ADMIN' ? (
-              <NavLink
-                to="/admin/profile"
-                className={({ isActive }) =>
-                  `flex items-center gap-2.5 min-w-0 flex-1 p-1.5 -m-1.5 rounded-xl transition-all group ${
-                    isActive
-                      ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-3 border-sky-600 shadow-2xs'
-                      : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
-                  }`
-                }
-                title="مشاهده صفحه پروفایل مدیر"
-              >
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
-                  {user.full_name ? user.full_name.charAt(0) : 'U'}
-                </div>
-                <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
-                    {user.full_name}
-                  </span>
-                  <span className="text-[11px] text-sky-600 dark:text-sky-400 font-semibold truncate">
-                    مدیر آموزشگاه
-                  </span>
-                </div>
-              </NavLink>
-            ) : (
-              <div className="flex items-center gap-2.5 min-w-0 flex-1">
-                <div className={`w-9 h-9 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs`}>
-                  {user.full_name ? user.full_name.charAt(0) : 'U'}
-                </div>
-                <div className="flex flex-col min-w-0 flex-1">
-                  <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate">
-                    {user.full_name}
-                  </span>
-                  <div className="flex items-center gap-1.5 text-xs">
-                    <span className="text-sky-600 dark:text-sky-400 font-semibold text-[11px] truncate">
-                      {roleTitles[user.role] || 'کاربر سیستم'}
-                    </span>
-                    {user.phone && (
-                      <>
-                        <span className="text-slate-300 dark:text-slate-700">•</span>
-                        <span className="text-slate-400 font-mono text-[11px] truncate">{user.phone}</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <div className="flex items-center gap-0.5 shrink-0">
-              {user.role === 'ADMIN' && (
-                <button
-                  type="button"
-                  onClick={() => setAdminProfileExpanded(!adminProfileExpanded)}
-                  className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors"
-                  title={adminProfileExpanded ? 'بستن منوی پروفایل' : 'باز کردن منوی پروفایل'}
-                  aria-label="تغییر وضعیت نمایش منوی پروفایل"
-                >
-                  {adminProfileExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                </button>
-              )}
-
-              <button
-                type="button"
-                onClick={() => setCollapsed(true)}
-                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors"
-                title="جمع کردن سایدبار"
-                aria-label="جمع کردن سایدبار"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
+          <NavLink
+            to={profilePath}
+            className={({ isActive }) =>
+              `flex items-center gap-2.5 min-w-0 flex-1 p-1.5 -m-1.5 rounded-xl transition-all group ${
+                isActive
+                  ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-3 border-sky-600 shadow-2xs'
+                  : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
+              }`
+            }
+            title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : 'مشاهده پروفایل'}
+          >
+            <div className={`w-9 h-9 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}>
+              {user.full_name ? user.full_name.charAt(0) : 'U'}
             </div>
-          </div>
-
-          {/* Admin Profile Submenu on Desktop */}
-          {user.role === 'ADMIN' && adminProfileExpanded && (
-            <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 space-y-1 animate-fade-in">
-              <NavLink
-                to="/admin/profile?tab=profile"
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group ${
-                  isProfilePage && currentTab === 'profile'
-                    ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-2 border-sky-600'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              >
-                <User className="w-3.5 h-3.5 shrink-0 text-sky-600 dark:text-sky-400 transition-transform group-hover:scale-110" />
-                <span>مشخصات و اطلاعات</span>
-              </NavLink>
-
-              <NavLink
-                to="/admin/profile?tab=settings"
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group ${
-                  (isProfilePage && currentTab === 'settings') || location.pathname.startsWith('/admin/settings')
-                    ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-2 border-sky-600'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              >
-                <Settings className="w-3.5 h-3.5 shrink-0 text-sky-600 dark:text-sky-400 transition-transform group-hover:scale-110" />
-                <span>تنظیمات آموزشگاه</span>
-              </NavLink>
-
-              <NavLink
-                to="/admin/profile?tab=users"
-                className={`flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all group ${
-                  (isProfilePage && currentTab === 'users') || location.pathname.startsWith('/admin/security')
-                    ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-2 border-sky-600'
-                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              >
-                <ShieldAlert className="w-3.5 h-3.5 shrink-0 text-sky-600 dark:text-sky-400 transition-transform group-hover:scale-110" />
-                <span>کاربران و امنیت</span>
-              </NavLink>
+            <div className="flex flex-col min-w-0 flex-1">
+              <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                {user.full_name}
+              </span>
+              <span className="text-[11px] text-sky-600 dark:text-sky-400 font-semibold truncate">
+                {roleTitles[user.role] || 'کاربر سیستم'}
+              </span>
             </div>
-          )}
+          </NavLink>
+
+          <button
+            type="button"
+            onClick={() => setCollapsed(true)}
+            className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg cursor-pointer transition-colors shrink-0"
+            title="جمع کردن سایدبار"
+            aria-label="جمع کردن سایدبار"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
         </div>
 
         {/* Compact View on tablet or when collapsed */}
@@ -456,23 +300,14 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
             collapsed ? 'flex' : 'flex xl:hidden'
           }`}
         >
-          <div className="relative group flex justify-center">
-            {user.role === 'ADMIN' ? (
-              <NavLink
-                to="/admin/profile"
-                className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs hover:ring-2 hover:ring-sky-400 transition-all cursor-pointer"
-                title={`${user.full_name || 'مدیر'} (پروفایل مدیر)`}
-              >
-                {user.full_name ? user.full_name.charAt(0) : 'U'}
-              </NavLink>
-            ) : (
-              <div
-                className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs hover:ring-2 hover:ring-sky-400 transition-all cursor-default`}
-                title={`${user.full_name || 'کاربر'} (${roleTitles[user.role] || ''})`}
-              >
-                {user.full_name ? user.full_name.charAt(0) : 'U'}
-              </div>
-            )}
+          <NavLink
+            to={profilePath}
+            className="relative group flex justify-center cursor-pointer"
+            title={`${user.full_name || 'کاربر'} (${roleTitles[user.role] || ''})`}
+          >
+            <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs hover:ring-2 hover:ring-sky-400 transition-all`}>
+              {user.full_name ? user.full_name.charAt(0) : 'U'}
+            </div>
 
             {/* Tooltip in icon-only mode */}
             <div
@@ -482,14 +317,12 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
               <div className="font-bold">{user.full_name}</div>
               <div className="text-[11px] text-sky-400">{roleTitles[user.role] || 'کاربر سیستم'}</div>
               {user.phone && <div className="text-[10px] text-slate-400 font-mono">{user.phone}</div>}
-              {user.role === 'ADMIN' && (
-                <div className="text-[10px] text-slate-300 border-t border-slate-700/60 mt-1 pt-0.5">
-                  کلیک برای صفحه پروفایل
-                </div>
-              )}
+              <div className="text-[10px] text-slate-300 border-t border-slate-700/60 mt-1 pt-0.5">
+                کلیک برای ورود به صفحه
+              </div>
               <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-y-4 border-y-transparent border-l-4 border-l-slate-900/95 dark:border-l-slate-800/95" />
             </div>
-          </div>
+          </NavLink>
 
           {/* Expand button on desktop xl when collapsed */}
           {collapsed && (
