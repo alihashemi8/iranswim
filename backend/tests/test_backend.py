@@ -271,3 +271,44 @@ def test_notifications_api_and_read_actions(api_client, admin_user):
     res_final = api_client.get('/api/content/notifications/')
     assert res_final.data['unread_count'] == 0
 
+
+@pytest.mark.django_db
+def test_announcements_crud_and_notification_sync(api_client, admin_user):
+    """تست اعلانات درون‌برنامه‌ای، اتصال به سیستم اعلان‌ها و عملیات حذف و تغییر پین"""
+    from apps.content.models import Announcement, Notification
+
+    api_client.force_authenticate(user=admin_user)
+
+    # 1. Get announcements list
+    res = api_client.get('/api/content/announcements/')
+    assert res.status_code == 200
+    initial_count = len(res.data.get('results', res.data))
+
+    # 2. Create new announcement
+    payload = {
+        'title': 'تست اطلاعیه آزمایشی',
+        'message': 'این یک پیام اعلان برای آزمایش سیستم است.',
+        'audience': 'ALL',
+        'is_pinned': True,
+    }
+    create_res = api_client.post('/api/content/announcements/', payload)
+    assert create_res.status_code == 201
+    ann_id = create_res.data['id']
+    assert create_res.data['title'] == payload['title']
+    assert create_res.data['is_pinned'] is True
+
+    # 3. Verify notification was created and connected
+    notif = Notification.objects.filter(category=Notification.Category.ANNOUNCEMENT, title__contains='تست اطلاعیه آزمایشی').first()
+    assert notif is not None
+
+    # 4. Toggle pin status via PATCH
+    patch_res = api_client.patch(f'/api/content/announcements/{ann_id}/', {'is_pinned': False})
+    assert patch_res.status_code == 200
+    assert patch_res.data['is_pinned'] is False
+
+    # 5. Delete announcement
+    del_res = api_client.delete(f'/api/content/announcements/{ann_id}/')
+    assert del_res.status_code == 204
+    assert not Announcement.objects.filter(id=ann_id).exists()
+
+
