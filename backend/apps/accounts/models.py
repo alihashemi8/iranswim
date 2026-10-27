@@ -61,6 +61,11 @@ class User(AbstractUser):
         return full if full else self.phone
 
     @property
+    def full_name(self):
+        full = f"{self.first_name} {self.last_name}".strip()
+        return full if full else self.phone
+
+    @property
     def is_admin(self):
         return self.role == self.Role.ADMIN or self.is_superuser
 

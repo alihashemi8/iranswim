@@ -18,19 +18,14 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
 
   // Badge notification counts for admin
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
-  const [overdueCount, setOverdueCount] = useState(0);
 
   useEffect(() => {
     if (user?.role === 'ADMIN') {
       const fetchBadges = async () => {
         try {
-          const [reqRes, finRes] = await Promise.all([
-            api.get('/education/requests/?status=PENDING'),
-            api.get('/finance/summary/'),
-          ]);
+          const reqRes = await api.get('/education/requests/?status=PENDING');
           const reqs = reqRes.data.results || reqRes.data;
           setPendingRequestsCount(reqs.length || 0);
-          setOverdueCount(finRes.data?.overdue_installments_count || 0);
         } catch {
           // Non-critical badge fetch
         }
@@ -90,8 +85,18 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
           label: 'داشبورد عملیاتی',
           icon: LayoutDashboard,
           end: true,
-          badge: (pendingRequestsCount + overdueCount) > 0 ? (pendingRequestsCount + overdueCount) : null,
+          badge: pendingRequestsCount > 0 ? pendingRequestsCount : null,
           badgeColor: 'bg-rose-500 text-white',
+        },
+      ],
+    },
+    {
+      groupTitle: 'امور مالی',
+      items: [
+        {
+          to: '/admin/finance',
+          label: 'شهریه و مطالبات',
+          icon: CreditCard,
         },
       ],
     },
@@ -115,18 +120,6 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       items: [
         { to: '/admin/assessments', label: 'ارزیابی و رکوردها', icon: Award },
         { to: '/admin/leagues', label: 'لیگ و مسابقات', icon: Trophy },
-      ],
-    },
-    {
-      groupTitle: 'امور مالی',
-      items: [
-        {
-          to: '/admin/finance',
-          label: 'شهریه و مطالبات',
-          icon: CreditCard,
-          badge: overdueCount > 0 ? overdueCount : null,
-          badgeColor: 'bg-rose-500 text-white',
-        },
       ],
     },
     {

@@ -471,6 +471,12 @@ class Command(BaseCommand):
                 }
             )
 
+        from django.core.management import call_command
+        try:
+            call_command('seed_finance')
+        except Exception as e:
+            self.stdout.write(f'توجه: خطای اجرای seed_finance: {e}')
+
         self.stdout.write(self.style.SUCCESS('اطلاعات با موفقیت در دیتابیس مستقر شدند.'))
         self.stdout.write(self.style.SUCCESS('کاربران درخواستی با رمز 12345678:'))
         self.stdout.write('  مدیر: 09111111111 / 12345678')
