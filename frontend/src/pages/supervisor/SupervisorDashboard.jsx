@@ -40,7 +40,7 @@ export const SupervisorDashboard = () => {
   }, []);
 
   if (loading && !data) {
-    return <LoadingState message="در حال استعلام وضعیت سلامت سرور و پایگاه داده..." />;
+    return <LoadingState type="dashboard" message="در حال استعلام وضعیت سلامت سرور و پایگاه داده..." />;
   }
 
   const isHealthy = data?.database?.status === 'HEALTHY';

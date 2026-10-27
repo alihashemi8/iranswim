@@ -82,7 +82,7 @@ export const AdminSessionsPage = () => {
       </div>
 
       {loading ? (
-        <LoadingState message="در حال بارگذاری جلسات کلاسی..." />
+        <LoadingState type="table" rows={6} message="در حال بارگذاری جلسات کلاسی..." />
       ) : sessions.length === 0 ? (
         <EmptyState title="جلسه‌ای یافت نشد" description="هیچ جلسه کلاسی در سیستم ثبت نشده است." />
       ) : (

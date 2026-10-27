@@ -62,7 +62,7 @@ export const SwimmerPortal = () => {
   }, []);
 
   if (loading) {
-    return <LoadingState message="در حال بارگذاری پرونده شناگر..." />;
+    return <LoadingState type="dashboard" message="در حال بارگذاری پرونده شناگر..." />;
   }
 
   const activeEnrollment = enrollments[0];

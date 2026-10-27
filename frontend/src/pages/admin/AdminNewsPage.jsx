@@ -149,7 +149,7 @@ export const AdminNewsPage = () => {
       </div>
 
       {loading ? (
-        <LoadingState message="در حال بارگذاری اخبار..." />
+        <LoadingState type="cards" count={6} message="در حال بارگذاری اخبار..." />
       ) : news.length === 0 ? (
         <EmptyState
           title="خبری ثبت نشده است"

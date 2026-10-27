@@ -185,7 +185,7 @@ export const AdminReportsPage = () => {
       </div>
 
       {loading ? (
-        <LoadingState message="در حال تهیه و پردازش داده‌های گزارش..." />
+        <LoadingState type="dashboard" message="در حال تهیه و پردازش داده‌های گزارش..." />
       ) : reportType === 'FINANCIAL' ? (
         /* REPORT 1: FINANCIAL */
         <div className="space-y-6">

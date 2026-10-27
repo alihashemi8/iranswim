@@ -147,7 +147,7 @@ export const SupervisorErrorsPage = () => {
 
       {/* Errors Table */}
       {loading ? (
-        <LoadingState message="در حال دریافت لاگ‌های خطای سرور..." />
+        <LoadingState type="table" rows={6} message="در حال دریافت لاگ‌های خطای سرور..." />
       ) : errors.length === 0 ? (
         <EmptyState
           title="هیچ خطایی ثبت نشده است"

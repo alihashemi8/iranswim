@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Navbar } from './Navbar';
 import { Sidebar } from './Sidebar';
 import { MobileBottomNav } from './MobileBottomNav';
+import { DashboardSkeleton } from '../common/Skeleton';
 
 export const DashboardShell = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -17,7 +18,9 @@ export const DashboardShell = () => {
 
         {/* Main Workspace Content */}
         <main className="flex-1 p-3.5 sm:p-5 md:p-6 lg:p-8 pb-24 md:pb-8 overflow-y-auto overflow-x-hidden w-full min-w-0" dir="rtl">
-          <Outlet />
+          <Suspense fallback={<DashboardSkeleton />}>
+            <Outlet />
+          </Suspense>
         </main>
       </div>
 

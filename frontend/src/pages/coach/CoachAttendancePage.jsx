@@ -157,7 +157,7 @@ export const CoachAttendancePage = () => {
       </div>
 
       {loadingSessions || loadingSwimmers ? (
-        <LoadingState message="در حال فراخوانی لیست شاگردان جلسه..." />
+        <LoadingState type="table" rows={6} message="در حال فراخوانی لیست شاگردان جلسه..." />
       ) : swimmers.length === 0 ? (
         <div className="bg-white dark:bg-slate-900 p-12 text-center rounded-2xl border border-slate-200 dark:border-slate-800 text-sm text-slate-500 dark:text-slate-400">
           شناگری در این گروه ثبت‌نام نکرده است.

@@ -102,7 +102,7 @@ export const AdminEnrollmentsPage = () => {
       </div>
 
       {loading ? (
-        <LoadingState message="در حال بارگذاری درخواست‌های ثبت‌نام..." />
+        <LoadingState type="table" rows={6} message="در حال بارگذاری درخواست‌های ثبت‌نام..." />
       ) : requests.length === 0 ? (
         <EmptyState title="هیچ درخواستی یافت نشد" description="در حال حاضر درخواستی با این وضعیت ثبت نشده است." />
       ) : (

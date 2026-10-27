@@ -46,7 +46,7 @@ export const CoachDashboard = () => {
   }, []);
 
   if (loading) {
-    return <LoadingState message="در حال دریافت برنامه کلاس‌های مربی..." />;
+    return <LoadingState type="dashboard" message="در حال دریافت برنامه کلاس‌های مربی..." />;
   }
 
   return (

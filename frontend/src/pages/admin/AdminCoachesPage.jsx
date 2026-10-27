@@ -187,7 +187,7 @@ export const AdminCoachesPage = () => {
 
       {/* Grid of Coaches */}
       {loading ? (
-        <LoadingState message="در حال دریافت اطلاعات مربیان آموزشگاه..." />
+        <LoadingState type="cards" count={6} message="در حال دریافت اطلاعات مربیان آموزشگاه..." />
       ) : coaches.length === 0 ? (
         <EmptyState
           title="مربی‌ای یافت نشد"
@@ -386,7 +386,7 @@ export const AdminCoachesPage = () => {
       >
         <div className="space-y-4">
           {sessionsLoading ? (
-            <LoadingState message="در حال بارگذاری جلسات مربی..." />
+            <LoadingState type="inline" message="در حال بارگذاری جلسات مربی..." />
           ) : coachSessions.length === 0 ? (
             <div className="text-center py-8 text-xs text-slate-400">
               جلسه کلاسی برای این مربی در تقویم آموزشی یافت نشد.

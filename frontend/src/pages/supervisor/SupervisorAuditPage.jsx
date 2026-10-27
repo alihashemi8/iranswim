@@ -78,7 +78,7 @@ export const SupervisorAuditPage = () => {
       </div>
 
       {loading ? (
-        <LoadingState message="در حال خواندن وقایع حسابرسی..." />
+        <LoadingState type="table" rows={6} message="در حال خواندن وقایع حسابرسی..." />
       ) : logs.length === 0 ? (
         <EmptyState title="هیچ لاگ حسابرسی یافت نشد" description="هنوز رخداد حساسی با این مشخصات ثبت نشده است." />
       ) : (

@@ -223,7 +223,7 @@ export const AdminAttendancePage = () => {
 
       {/* Sessions Attendance List */}
       {loading ? (
-        <LoadingState message="در حال دریافت جلسات کلاسی..." />
+        <LoadingState type="table" rows={6} message="در حال دریافت جلسات کلاسی..." />
       ) : sessions.length === 0 ? (
         <EmptyState
           title="جلسه‌ای برای نمایش یافت نشد"
@@ -376,7 +376,7 @@ export const AdminAttendancePage = () => {
           </div>
 
           {modalLoading ? (
-            <LoadingState message="در حال بارگذاری لیست شاگردان این کلاس..." />
+            <LoadingState type="inline" message="در حال بارگذاری لیست شاگردان این کلاس..." />
           ) : groupEnrollments.length === 0 ? (
             <div className="text-center py-8 text-xs text-slate-400">
               هیچ شناگری در این گروه ثبت‌نام قطعی ندارد.

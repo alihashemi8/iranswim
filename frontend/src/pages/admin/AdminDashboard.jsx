@@ -70,7 +70,7 @@ export const AdminDashboard = () => {
   }, []);
 
   if (loading && !stats) {
-    return <LoadingState message="در حال دریافت اطلاعات مرکز فرماندهی آموزشگاه شنا..." />;
+    return <LoadingState type="dashboard" message="در حال دریافت اطلاعات مرکز فرماندهی آموزشگاه شنا..." />;
   }
 
   const formatPrice = (val) => Number(val || 0).toLocaleString('fa-IR');

@@ -394,7 +394,6 @@ export const AdminFinancePage = () => {
 
   const handleExportPaymentsCsv = () => {
     const rows = filteredPayments.map((p) => ({
-      payment_number: p.payment_number,
       swimmer: p.swimmer_name,
       gender: p.gender_display || (p.gender === 'FEMALE' ? 'دختر / بانوان' : 'پسر / آقایان'),
       pool: p.pool_name || '—',
@@ -402,12 +401,10 @@ export const AdminFinancePage = () => {
       birth_year: p.birth_year || '—',
       amount: formatPrice(p.amount),
       method: methodLabels[p.method] || p.method_display || p.method,
-      ref: p.transaction_ref || '—',
       status: p.status_display,
       date: new Date(p.paid_at || p.created_at).toLocaleString('fa-IR'),
     }));
     exportToCsv('IranSwim_Payments_List', rows, {
-      payment_number: 'شماره رسید',
       swimmer: 'شناگر',
       gender: 'جنسیت',
       pool: 'استخر',
@@ -415,7 +412,6 @@ export const AdminFinancePage = () => {
       birth_year: 'سال تولد',
       amount: 'مبلغ پرداختی (تومان)',
       method: 'روش پرداخت',
-      ref: 'شماره پیگیری',
       status: 'وضعیت',
       date: 'زمان ثبت تراکنش',
     });
@@ -669,7 +665,7 @@ export const AdminFinancePage = () => {
       </div>
 
       {loading ? (
-        <LoadingState message="در حال دریافت اطلاعات مالی..." />
+        <LoadingState type="table" rows={6} message="در حال دریافت اطلاعات مالی..." />
       ) : activeTab === 'INVOICES' ? (
         /* TAB 1: INVOICES */
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
@@ -1168,11 +1164,9 @@ export const AdminFinancePage = () => {
                 <table className="w-full text-sm text-right">
                   <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                     <tr>
-                      <th className="px-4 py-3.5 rounded-r-xl">شماره رسید تراکنش</th>
-                      <th className="px-4 py-3.5">شناگر</th>
+                      <th className="px-4 py-3.5 rounded-r-xl">شناگر</th>
                       <th className="px-4 py-3.5">مبلغ پرداختی</th>
                       <th className="px-4 py-3.5">روش پرداخت</th>
-                      <th className="px-4 py-3.5">شماره پیگیری / مرجع بانکی</th>
                       <th className="px-4 py-3.5">وضعیت</th>
                       <th className="px-4 py-3.5 rounded-l-xl">زمان ثبت تراکنش</th>
                     </tr>
@@ -1180,9 +1174,6 @@ export const AdminFinancePage = () => {
                   <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
                     {filteredPayments.map((p) => (
                       <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                        <td className="px-4 py-3.5 font-mono font-bold text-slate-800 dark:text-slate-100">
-                          {p.payment_number}
-                        </td>
                         <td className="px-4 py-3.5 font-semibold text-slate-800 dark:text-slate-100">
                           <div>{p.swimmer_name}</div>
                           <div className="text-[11px] text-slate-400 dark:text-slate-500 flex items-center gap-1.5 mt-0.5 font-normal">
@@ -1204,9 +1195,6 @@ export const AdminFinancePage = () => {
                         </td>
                         <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-300">
                           {methodLabels[p.method] || p.method_display || p.method}
-                        </td>
-                        <td className="px-4 py-3.5 font-mono text-xs text-slate-500">
-                          {p.transaction_ref || '—'}
                         </td>
                         <td className="px-4 py-3.5">
                           <Badge variant={p.status === 'SUCCESSFUL' ? 'success' : 'warning'}>
@@ -1231,9 +1219,6 @@ export const AdminFinancePage = () => {
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div>
-                        <span className="font-mono text-xs text-slate-400 block">
-                          {p.payment_number}
-                        </span>
                         <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm mt-0.5">
                           {p.swimmer_name}
                         </h3>
@@ -1278,12 +1263,6 @@ export const AdminFinancePage = () => {
                           {methodLabels[p.method] || p.method_display || p.method}
                         </span>
                       </div>
-                      {p.transaction_ref && (
-                        <div className="col-span-2">
-                          <span className="text-slate-400 block text-[10px]">شماره پیگیری بانکی</span>
-                          <span className="font-mono text-slate-600 dark:text-slate-400">{p.transaction_ref}</span>
-                        </div>
-                      )}
                       <div className="col-span-2">
                         <span className="text-slate-400 block text-[10px]">زمان ثبت</span>
                         <span className="font-mono text-slate-500 dark:text-slate-400">

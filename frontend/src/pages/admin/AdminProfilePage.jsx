@@ -795,7 +795,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
           </div>
 
           {loadingUsers ? (
-            <LoadingState message="در حال بارگذاری اطلاعات کاربران..." />
+            <LoadingState type="table" rows={5} message="در حال بارگذاری اطلاعات کاربران..." />
           ) : securitySubTab === 'USERS' ? (
             <div className="space-y-4">
               {/* Filter & Search Bar */}

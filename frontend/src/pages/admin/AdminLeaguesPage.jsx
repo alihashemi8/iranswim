@@ -102,7 +102,7 @@ export const AdminLeaguesPage = () => {
       </div>
 
       {loading ? (
-        <LoadingState message="در حال بارگذاری اطلاعات دوره‌های لیگ..." />
+        <LoadingState type="cards" count={4} message="در حال بارگذاری اطلاعات دوره‌های لیگ..." />
       ) : leagues.length === 0 ? (
         <EmptyState
           title="دوره‌ای برای لیگ تعریف نشده است"
@@ -195,7 +195,7 @@ export const AdminLeaguesPage = () => {
             {/* Table */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
               {boardLoading ? (
-                <LoadingState message="در حال محاسبه جدول زنده رتبه‌بندی..." />
+                <LoadingState type="table" rows={5} message="در حال محاسبه جدول زنده رتبه‌بندی..." />
               ) : leaderboard.length === 0 ? (
                 <EmptyState
                   title="امتیازی ثبت نشده است"

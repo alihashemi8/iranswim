@@ -129,7 +129,7 @@ export const CoachAssessmentsPage = () => {
       </div>
 
       {loading ? (
-        <LoadingState message="در حال دریافت اطلاعات ارزیابی‌ها و رکوردها..." />
+        <LoadingState type="table" rows={6} message="در حال دریافت اطلاعات ارزیابی‌ها و رکوردها..." />
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Skill Assessments Table */}

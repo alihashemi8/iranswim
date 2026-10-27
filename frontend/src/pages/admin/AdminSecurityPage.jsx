@@ -158,7 +158,7 @@ export const AdminSecurityPage = () => {
       </div>
 
       {loading ? (
-        <LoadingState message="در حال دریافت داده‌های امنیتی..." />
+        <LoadingState type="table" rows={6} message="در حال دریافت داده‌های امنیتی..." />
       ) : activeTab === 'USERS' ? (
         /* TAB 1: USERS MANAGEMENT */
         <div className="space-y-4">

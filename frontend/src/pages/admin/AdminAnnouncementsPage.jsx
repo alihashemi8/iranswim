@@ -175,7 +175,7 @@ export const AdminAnnouncementsPage = () => {
       </div>
 
       {loading ? (
-        <LoadingState message="در حال دریافت پیام‌های سیستمی..." />
+        <LoadingState type="list" count={5} message="در حال دریافت پیام‌های سیستمی..." />
       ) : error ? (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-900/60 p-8 text-center space-y-3">
           <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />

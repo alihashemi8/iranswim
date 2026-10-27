@@ -321,7 +321,7 @@ export const AdminSwimmersPage = () => {
 
       {/* Main Table */}
       {loading ? (
-        <LoadingState message="در حال بارگذاری لیست شناگران..." />
+        <LoadingState type="table" rows={6} message="در حال بارگذاری لیست شناگران..." />
       ) : paginatedSwimmers.length === 0 ? (
         <EmptyState
           title="شناگری یافت نشد"
@@ -745,7 +745,7 @@ export const AdminSwimmersPage = () => {
           </div>
 
           {dossierLoading ? (
-            <LoadingState message="در حال استخراج داده‌های پرونده شناگر..." />
+            <LoadingState type="inline" message="در حال استخراج داده‌های پرونده شناگر..." />
           ) : (
             <div>
               {/* TAB 1: INFO */}

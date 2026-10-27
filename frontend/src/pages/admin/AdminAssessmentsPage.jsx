@@ -215,7 +215,7 @@ export const AdminAssessmentsPage = () => {
       </div>
 
       {loading ? (
-        <LoadingState message="در حال بارگذاری اطلاعات ارزیابی..." />
+        <LoadingState type="table" rows={6} message="در حال بارگذاری اطلاعات ارزیابی..." />
       ) : activeTab === 'RECORDS' ? (
         /* TAB 1: SWIMMING RECORDS */
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">

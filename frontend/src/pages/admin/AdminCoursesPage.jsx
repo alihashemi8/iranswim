@@ -225,7 +225,7 @@ export const AdminCoursesPage = () => {
       </div>
 
       {loading ? (
-        <LoadingState message="در حال دریافت داده‌های آموزشی..." />
+        <LoadingState type="cards" count={6} message="در حال دریافت داده‌های آموزشی..." />
       ) : activeTab === 'GROUPS' ? (
         /* TAB 1: SWIMMER GROUPS & CAPACITY */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
