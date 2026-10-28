@@ -4,7 +4,8 @@ import {
   Activity, Bug, ShieldCheck, Zap,
   LayoutDashboard, BookOpen, Users, CreditCard, Calendar,
   ClipboardCheck, Award, Trophy, Newspaper, Bell, BarChart3,
-  UserCheck, X, LogOut, ChevronLeft, ChevronRight
+  UserCheck, X, LogOut, ChevronLeft, ChevronRight,
+  TrendingUp, MessageSquareQuote, FileText, Settings
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -162,15 +163,36 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     },
   ];
 
-  // Swimmer Navigation
+  // Swimmer & Parent Navigation (4 visual groups, 10 modules)
   const swimmerGroups = [
     {
-      groupTitle: 'پرتال من',
+      groupTitle: 'خانه',
       items: [
-        { to: '/swimmer', label: 'پرتال و خلاصه وضعیت', icon: LayoutDashboard, end: true },
-        { to: '/swimmer/schedule', label: 'برنامه کلاس‌ها و سهمیه', icon: Calendar },
-        { to: '/swimmer/finance', label: 'صورتحساب و رسیدها', icon: CreditCard },
-        { to: '/swimmer/progress', label: 'سوابق مهارت و لیگ', icon: Trophy },
+        { to: '/swimmer', label: 'داشبورد و وضعیت کلی', icon: LayoutDashboard, end: true },
+      ],
+    },
+    {
+      groupTitle: 'فعالیت ورزشی',
+      items: [
+        { to: '/swimmer/schedule', label: 'برنامه کلاس‌ها', icon: Calendar },
+        { to: '/swimmer/progress', label: 'پیشرفت ورزشی', icon: TrendingUp },
+        { to: '/swimmer/league', label: 'لیگ و رتبه‌بندی', icon: Trophy },
+        { to: '/swimmer/attendance', label: 'حضور و غیاب', icon: ClipboardCheck },
+      ],
+    },
+    {
+      groupTitle: 'مالی و ارتباطات',
+      items: [
+        { to: '/swimmer/finance', label: 'امور مالی و اقساط', icon: CreditCard },
+        { to: '/swimmer/announcements', label: 'اطلاعیه‌ها و اخبار', icon: Bell },
+        { to: '/swimmer/support', label: 'پشتیبانی و ارتباط', icon: MessageSquareQuote },
+      ],
+    },
+    {
+      groupTitle: 'حساب کاربری',
+      items: [
+        { to: '/swimmer/documents', label: 'پرونده و مدارک', icon: FileText },
+        { to: '/swimmer/settings', label: 'تنظیمات حساب', icon: Settings },
       ],
     },
   ];

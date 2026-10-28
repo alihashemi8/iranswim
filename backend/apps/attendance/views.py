@@ -29,7 +29,9 @@ class AttendanceListView(generics.ListAPIView):
             coach_profile = getattr(user, 'coach_profile', None)
             return qs.filter(session__coach=coach_profile) if coach_profile else qs.none()
         elif user.role == 'SWIMMER':
-            return qs.filter(swimmer__user=user)
+            from apps.swimmers.utils import get_accessible_swimmer_ids
+            ids = get_accessible_swimmer_ids(user, self.request)
+            return qs.filter(swimmer_id__in=ids)
         return qs.none()
 
 

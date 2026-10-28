@@ -120,6 +120,7 @@ class VerifyOTPLoginView(APIView):
                 'full_name': f"{user.first_name} {user.last_name}".strip() or user.phone,
                 'role': user.role,
                 'is_superuser': user.is_superuser,
+                'is_password_changed': user.is_password_changed,
                 'swimmer_id': getattr(profile, 'id', None),
                 'coach_id': getattr(getattr(user, 'coach_profile', None), 'id', None),
                 'is_profile_completed': is_profile_completed,
@@ -157,17 +158,18 @@ class RegisterWithOTPView(APIView):
         otp.is_used = True
         otp.save()
 
-        # Create user with password = national_id (as required: "نام کاربری: شماره و رمز: کد ملی")
+        # Create user with password = national_id as temporary initial password
         user = User.objects.create_user(
             phone=phone,
             password=national_id,
             national_id=national_id,
             first_name=first_name,
             last_name=last_name,
-            role=User.Role.SWIMMER
+            role=User.Role.SWIMMER,
+            is_password_changed=False
         )
 
-        from apps.swimmers.models import SwimmerProfile
+        from apps.swimmers.models import SwimmerProfile, SwimmerGuardianRelation
         swimmer_profile = SwimmerProfile.objects.create(
             user=user,
             first_name=first_name,
@@ -175,6 +177,13 @@ class RegisterWithOTPView(APIView):
             phone=phone,
             national_id=national_id,
             is_profile_completed=False
+        )
+
+        # Create primary guardian relation
+        SwimmerGuardianRelation.objects.get_or_create(
+            guardian=user,
+            swimmer=swimmer_profile,
+            defaults={'relationship_type': 'SELF', 'is_primary': True, 'is_verified': True}
         )
 
         refresh = RefreshToken.for_user(user)
@@ -191,11 +200,54 @@ class RegisterWithOTPView(APIView):
                 'full_name': f"{user.first_name} {user.last_name}".strip() or user.phone,
                 'role': user.role,
                 'is_superuser': user.is_superuser,
+                'is_password_changed': False,
                 'swimmer_id': swimmer_profile.id,
                 'coach_id': None,
                 'is_profile_completed': False,
             }
         }, status=status.HTTP_201_CREATED)
+
+
+class ChangePasswordView(APIView):
+    """تغییر کلمه عبور و ارتقای رمز اولیه (کد ملی) به رمز عبور قوی"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        old_password = request.data.get('old_password', '').strip()
+        new_password = request.data.get('new_password', '').strip()
+        confirm_password = request.data.get('confirm_password', '').strip()
+
+        if not new_password or len(new_password) < 6:
+            return Response(
+                {'detail': 'کلمه عبور جدید باید حداقل ۶ کاراکتر باشد.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        if new_password != confirm_password:
+            return Response(
+                {'detail': 'تکرار کلمه عبور جدید با آن مطابقت ندارد.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # Allow change if user hasn't changed initial password or provided valid old_password
+        is_initial = not user.is_password_changed
+        valid_old = user.check_password(old_password) or (user.national_id and old_password == user.national_id)
+
+        if not is_initial and not valid_old:
+            return Response(
+                {'detail': 'کلمه عبور فعلی نامعتبر است.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        user.set_password(new_password)
+        user.is_password_changed = True
+        user.save()
+
+        return Response({
+            'detail': 'کلمه عبور شما با موفقیت تغییر یافت.',
+            'is_password_changed': True
+        }, status=status.HTTP_200_OK)
 
 
 class CurrentUserView(APIView):

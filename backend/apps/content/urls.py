@@ -1,7 +1,8 @@
 from django.urls import path
 from .views import (
     NewsPostListView, NewsPostDetailView, AnnouncementListView, AnnouncementDetailView,
-    NotificationListView, NotificationMarkReadView, NotificationMarkAllReadView
+    NotificationListView, NotificationMarkReadView, NotificationMarkAllReadView,
+    SupportTicketListView, SupportTicketDetailView
 )
 
 urlpatterns = [
@@ -12,5 +13,7 @@ urlpatterns = [
     path('notifications/', NotificationListView.as_view(), name='notification_list'),
     path('notifications/<int:pk>/read/', NotificationMarkReadView.as_view(), name='notification_mark_read'),
     path('notifications/read-all/', NotificationMarkAllReadView.as_view(), name='notification_mark_all_read'),
+    path('tickets/', SupportTicketListView.as_view(), name='ticket_list'),
+    path('tickets/<int:pk>/', SupportTicketDetailView.as_view(), name='ticket_detail'),
 ]
 

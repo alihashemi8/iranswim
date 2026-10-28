@@ -35,9 +35,10 @@ class ClassSessionListView(generics.ListCreateAPIView):
             coach_profile = getattr(user, 'coach_profile', None)
             return qs.filter(coach=coach_profile) if coach_profile else qs.none()
         elif user.role == 'SWIMMER':
-            swimmer_profile = getattr(user, 'swimmer_profile', None)
-            if swimmer_profile:
-                return qs.filter(group__enrollments__swimmer=swimmer_profile).distinct()
+            from apps.swimmers.utils import get_accessible_swimmer_ids
+            ids = get_accessible_swimmer_ids(user, self.request)
+            if ids:
+                return qs.filter(group__enrollments__swimmer_id__in=ids).distinct()
             return qs.none()
         return qs.none()
 

@@ -42,6 +42,7 @@ class User(AbstractUser):
     phone = models.CharField(_('شماره همراه'), max_length=15, unique=True, db_index=True)
     national_id = models.CharField(_('کد ملی'), max_length=10, blank=True, null=True, db_index=True)
     role = models.CharField(_('نقش کاربری'), max_length=20, choices=Role.choices, default=Role.SWIMMER, db_index=True)
+    is_password_changed = models.BooleanField(_('رمز عبور تغییر کرده'), default=True)
     avatar = models.ImageField(_('تصویر پروفایل'), upload_to='avatars/', null=True, blank=True)
     created_at = models.DateTimeField(_('تاریخ ایجاد'), auto_now_add=True)
     updated_at = models.DateTimeField(_('آخرین به‌روزرسانی'), auto_now=True)

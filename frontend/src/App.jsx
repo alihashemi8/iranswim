@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
+import { SwimmerProvider } from './context/SwimmerContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { Navbar } from './components/layout/Navbar';
@@ -41,6 +42,16 @@ import { CoachAssessmentsPage } from './pages/coach/CoachAssessmentsPage';
 // Swimmer Pages
 import { SwimmerPortal } from './pages/swimmer/SwimmerPortal';
 import { SwimmerCompleteProfilePage } from './pages/swimmer/SwimmerCompleteProfilePage';
+import { SwimmerDashboardPage } from './pages/swimmer/SwimmerDashboardPage';
+import { SwimmerSchedulePage } from './pages/swimmer/SwimmerSchedulePage';
+import { SwimmerProgressPage } from './pages/swimmer/SwimmerProgressPage';
+import { SwimmerLeaguePage } from './pages/swimmer/SwimmerLeaguePage';
+import { SwimmerFinancePage } from './pages/swimmer/SwimmerFinancePage';
+import { SwimmerAttendancePage } from './pages/swimmer/SwimmerAttendancePage';
+import { SwimmerDocumentsPage } from './pages/swimmer/SwimmerDocumentsPage';
+import { SwimmerAnnouncementsPage } from './pages/swimmer/SwimmerAnnouncementsPage';
+import { SwimmerSupportPage } from './pages/swimmer/SwimmerSupportPage';
+import { SwimmerSettingsPage } from './pages/swimmer/SwimmerSettingsPage';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user } = useAuth();
@@ -58,7 +69,8 @@ export default function App() {
     <ThemeProvider>
       <ToastProvider>
         <AuthProvider>
-          <BrowserRouter>
+          <SwimmerProvider>
+            <BrowserRouter>
             <Routes>
               {/* Public Website */}
               <Route
@@ -156,7 +168,7 @@ export default function App() {
                 <Route path="assessments" element={<CoachAssessmentsPage />} />
               </Route>
 
-              {/* Swimmer Protected Routes */}
+              {/* Swimmer Protected Routes (10 Modules Hub) */}
               <Route
                 path="/swimmer"
                 element={
@@ -165,19 +177,33 @@ export default function App() {
                   </ProtectedRoute>
                 }
               >
-                <Route index element={<SwimmerPortal />} />
+                {/* 1. Dashboard */}
+                <Route index element={<SwimmerDashboardPage />} />
+
+                {/* 2. Athletic Activity */}
+                <Route path="schedule" element={<SwimmerSchedulePage />} />
+                <Route path="progress" element={<SwimmerProgressPage />} />
+                <Route path="league" element={<SwimmerLeaguePage />} />
+                <Route path="attendance" element={<SwimmerAttendancePage />} />
+
+                {/* 3. Finance & Communications */}
+                <Route path="finance" element={<SwimmerFinancePage />} />
+                <Route path="announcements" element={<SwimmerAnnouncementsPage />} />
+                <Route path="support" element={<SwimmerSupportPage />} />
+
+                {/* 4. Account & Documents */}
+                <Route path="documents" element={<SwimmerDocumentsPage />} />
+                <Route path="settings" element={<SwimmerSettingsPage />} />
                 <Route path="complete-profile" element={<SwimmerCompleteProfilePage />} />
-                <Route path="schedule" element={<SwimmerPortal />} />
-                <Route path="finance" element={<SwimmerPortal />} />
-                <Route path="progress" element={<SwimmerPortal />} />
               </Route>
 
               {/* Fallback */}
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
-        </AuthProvider>
-      </ToastProvider>
+        </SwimmerProvider>
+      </AuthProvider>
+    </ToastProvider>
     </ThemeProvider>
   );
 }

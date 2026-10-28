@@ -1,8 +1,12 @@
 from django.db import models
+from django.utils import timezone
 from rest_framework import generics, permissions, views, status
 from rest_framework.response import Response
-from .models import NewsPost, Announcement, Notification
-from .serializers import NewsPostSerializer, AnnouncementSerializer, NotificationSerializer
+from .models import NewsPost, Announcement, Notification, SupportTicket
+from .serializers import (
+    NewsPostSerializer, AnnouncementSerializer, NotificationSerializer,
+    SupportTicketSerializer
+)
 from apps.accounts.permissions import IsAdminUserRole
 
 
@@ -190,4 +194,73 @@ class NotificationMarkAllReadView(views.APIView):
 
         count = qs.update(is_read=True)
         return Response({'marked_count': count, 'success': True})
+
+
+class SupportTicketListView(generics.ListCreateAPIView):
+    """ثبت و مشاهده تیکت‌های پشتیبانی شناگر و اولیا"""
+    serializer_class = SupportTicketSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+            return SupportTicket.objects.all().select_related('user', 'swimmer').order_by('-created_at')
+        return SupportTicket.objects.filter(user=user).select_related('user', 'swimmer').order_by('-created_at')
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        swimmer_id = self.request.data.get('swimmer') or self.request.data.get('swimmer_id')
+        swimmer = None
+        if swimmer_id:
+            from apps.swimmers.models import SwimmerProfile
+            swimmer = SwimmerProfile.objects.filter(id=swimmer_id).first()
+        elif hasattr(user, 'swimmer_profile') and user.swimmer_profile:
+            swimmer = user.swimmer_profile
+
+        ticket = serializer.save(user=user, swimmer=swimmer, status=SupportTicket.Status.SUBMITTED)
+
+        # Notify academy admin
+        Notification.objects.create(
+            category=Notification.Category.ANNOUNCEMENT,
+            title=f"تیکت پشتیبانی جدید: {ticket.subject}",
+            message=f"تیکت جدیدی در موضوع {ticket.get_category_display()} توسط {user.full_name} ثبت گردید.",
+            link='/admin/support',
+            is_read=False
+        )
+
+
+class SupportTicketDetailView(generics.RetrieveUpdateAPIView):
+    """مشاهده و پاسخ‌دهی به تیکت پشتیبانی"""
+    serializer_class = SupportTicketSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+            return SupportTicket.objects.all()
+        return SupportTicket.objects.filter(user=user)
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+            response_text = self.request.data.get('response')
+            new_status = self.request.data.get('status', SupportTicket.Status.ANSWERED)
+            ticket = serializer.save(
+                response=response_text or serializer.instance.response,
+                status=new_status,
+                responded_by=user,
+                responded_at=timezone.now()
+            )
+            # Notify user
+            Notification.objects.create(
+                recipient=ticket.user,
+                category=Notification.Category.ANNOUNCEMENT,
+                title=f"پاسخ به تیکت: {ticket.subject}",
+                message=f"پاسخ آموزشگاه: {ticket.response[:200]}",
+                link='/swimmer/support',
+                is_read=False
+            )
+        else:
+            serializer.save()
+
 

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import NewsPost, Announcement, Notification
+from .models import NewsPost, Announcement, Notification, SupportTicket
 
 
 class NewsPostSerializer(serializers.ModelSerializer):
@@ -38,4 +38,22 @@ class NotificationSerializer(serializers.ModelSerializer):
             'title', 'message', 'link', 'is_read', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
+
+class SupportTicketSerializer(serializers.ModelSerializer):
+    category_display = serializers.CharField(source='get_category_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    user_name = serializers.CharField(source='user.full_name', read_only=True)
+    swimmer_name = serializers.CharField(source='swimmer.full_name', read_only=True)
+
+    class Meta:
+        model = SupportTicket
+        fields = [
+            'id', 'user', 'user_name', 'swimmer', 'swimmer_name',
+            'category', 'category_display', 'subject', 'description',
+            'attachment', 'status', 'status_display', 'response',
+            'responded_at', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'user', 'status', 'response', 'responded_at', 'created_at', 'updated_at']
+
 

@@ -67,6 +67,7 @@ class IranSwimTokenObtainPairSerializer(TokenObtainPairSerializer):
             'full_name': f"{user.first_name} {user.last_name}".strip() or user.phone,
             'role': user.role,
             'is_superuser': user.is_superuser,
+            'is_password_changed': user.is_password_changed,
             'swimmer_id': getattr(profile, 'id', None),
             'coach_id': getattr(getattr(user, 'coach_profile', None), 'id', None),
             'is_profile_completed': is_profile_completed,
@@ -84,7 +85,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'phone', 'first_name', 'last_name', 'full_name',
-            'national_id', 'role', 'is_active', 'swimmer_id', 'coach_id',
+            'national_id', 'role', 'is_active', 'is_password_changed', 'swimmer_id', 'coach_id',
             'is_profile_completed', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']

@@ -104,3 +104,71 @@ class Notification(models.Model):
     def __str__(self):
         return f"{self.title} ({self.get_category_display()})"
 
+
+class SupportTicket(models.Model):
+    class Category(models.TextChoices):
+        REGISTRATION = 'REGISTRATION', _('ثبت‌نام و پذیرش')
+        FINANCE = 'FINANCE', _('امور مالی و شهریه')
+        SCHEDULE = 'SCHEDULE', _('برنامه کلاس و جابه‌جایی')
+        DOCUMENTS = 'DOCUMENTS', _('مدارک و بیمه ورزشی')
+        OTHER = 'OTHER', _('سایر موارد')
+
+    class Status(models.TextChoices):
+        SUBMITTED = 'SUBMITTED', _('ثبت‌شده')
+        IN_PROGRESS = 'IN_PROGRESS', _('در حال بررسی')
+        NEED_INFO = 'NEED_INFO', _('نیازمند اطلاعات بیشتر')
+        ANSWERED = 'ANSWERED', _('پاسخ داده‌شده')
+        CLOSED = 'CLOSED', _('بسته‌شده')
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='support_tickets',
+        verbose_name=_('کاربر ارسال‌کننده')
+    )
+    swimmer = models.ForeignKey(
+        'swimmers.SwimmerProfile',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='support_tickets',
+        verbose_name=_('شناگر مرتبط')
+    )
+    category = models.CharField(
+        _('موضوع درخواست'),
+        max_length=30,
+        choices=Category.choices,
+        default=Category.OTHER
+    )
+    subject = models.CharField(_('عنوان پیام'), max_length=200)
+    description = models.TextField(_('شرح درخواست / مشکل'))
+    attachment = models.FileField(_('فایل یا تصویر پیوست'), upload_to='tickets/', null=True, blank=True)
+    status = models.CharField(
+        _('وضعیت'),
+        max_length=20,
+        choices=Status.choices,
+        default=Status.SUBMITTED,
+        db_index=True
+    )
+    response = models.TextField(_('پاسخ آموزشگاه'), blank=True)
+    responded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='responded_tickets',
+        verbose_name=_('پاسخ‌دهنده')
+    )
+    responded_at = models.DateTimeField(_('زمان پاسخ'), null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _('درخواست پشتیبانی')
+        verbose_name_plural = _('تیکت‌های پشتیبانی')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"[{self.get_status_display()}] {self.subject}"
+
+

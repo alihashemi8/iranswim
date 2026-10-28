@@ -30,7 +30,9 @@ class InvoiceListView(generics.ListCreateAPIView):
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs
         elif user.role == 'SWIMMER':
-            return qs.filter(swimmer__user=user)
+            from apps.swimmers.utils import get_accessible_swimmer_ids
+            ids = get_accessible_swimmer_ids(user, self.request)
+            return qs.filter(swimmer_id__in=ids)
         return qs.none()
 
 
@@ -44,7 +46,9 @@ class InvoiceDetailView(generics.RetrieveAPIView):
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return Invoice.objects.all()
         elif user.role == 'SWIMMER':
-            return Invoice.objects.filter(swimmer__user=user)
+            from apps.swimmers.utils import get_accessible_swimmer_ids
+            ids = get_accessible_swimmer_ids(user, self.request)
+            return Invoice.objects.filter(swimmer_id__in=ids)
         return Invoice.objects.none()
 
 
@@ -67,7 +71,9 @@ class InstallmentListView(generics.ListAPIView):
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs.order_by('due_date')
         elif user.role == 'SWIMMER':
-            return qs.filter(invoice__swimmer__user=user).order_by('due_date')
+            from apps.swimmers.utils import get_accessible_swimmer_ids
+            ids = get_accessible_swimmer_ids(user, self.request)
+            return qs.filter(invoice__swimmer_id__in=ids).order_by('due_date')
         return qs.none()
 
 
@@ -85,7 +91,9 @@ class PaymentListView(generics.ListAPIView):
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs
         elif user.role == 'SWIMMER':
-            return qs.filter(swimmer__user=user)
+            from apps.swimmers.utils import get_accessible_swimmer_ids
+            ids = get_accessible_swimmer_ids(user, self.request)
+            return qs.filter(swimmer_id__in=ids)
         return qs.none()
 
 

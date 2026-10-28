@@ -7,12 +7,16 @@ const api = axios.create({
   },
 });
 
-// Request interceptor to attach JWT token
+// Request interceptor to attach JWT token and active Swimmer ID
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('access_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    }
+    const activeSwimmerId = localStorage.getItem('active_swimmer_id');
+    if (activeSwimmerId) {
+      config.headers['X-Swimmer-Id'] = activeSwimmerId;
     }
     return config;
   },

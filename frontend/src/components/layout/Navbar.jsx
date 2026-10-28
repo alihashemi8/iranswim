@@ -4,6 +4,7 @@ import { Waves, LogIn, Menu, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { NotificationDropdown } from './NotificationDropdown';
+import { ChildSwitcher } from './ChildSwitcher';
 
 export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
   const { user } = useAuth();
@@ -65,12 +66,16 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             </div>
           </Link>
 
-          {/* In Dashboard: Role context badge */}
+          {/* In Dashboard: Role context badge and Child Switcher for swimmers */}
           {isFullWidth && user && (
-            <div className="hidden sm:flex items-center gap-2 mr-1">
-              <span className="px-2.5 py-1 rounded-lg text-xs font-bold bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200/70 dark:border-sky-800/80">
-                {roleTitles[user.role] || 'داشبورد کاربری'}
-              </span>
+            <div className="flex items-center gap-2 mr-1">
+              {user.role === 'SWIMMER' ? (
+                <ChildSwitcher />
+              ) : (
+                <span className="hidden sm:inline-block px-2.5 py-1 rounded-lg text-xs font-bold bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200/70 dark:border-sky-800/80">
+                  {roleTitles[user.role] || 'داشبورد کاربری'}
+                </span>
+              )}
             </div>
           )}
 

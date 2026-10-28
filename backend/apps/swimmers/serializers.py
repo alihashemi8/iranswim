@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import SwimmerProfile
+from .models import SwimmerProfile, SwimmerGuardianRelation
 from apps.education.models import SkillLevel
 
 
@@ -8,6 +8,9 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
     level_name = serializers.CharField(source='current_level.name', read_only=True)
     gender_display = serializers.CharField(source='get_gender_display', read_only=True)
     has_required_info = serializers.BooleanField(read_only=True)
+    birth_certificate_status_display = serializers.CharField(source='get_birth_certificate_status_display', read_only=True)
+    national_card_status_display = serializers.CharField(source='get_national_card_status_display', read_only=True)
+    sports_insurance_status_display = serializers.CharField(source='get_sports_insurance_status_display', read_only=True)
 
     class Meta:
         model = SwimmerProfile
@@ -17,11 +20,28 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
             'date_of_birth', 'father_name', 'father_phone', 'mother_phone',
             'emergency_contact_name', 'emergency_contact_phone',
             'address', 'latitude', 'longitude', 'school_name',
-            'avatar', 'birth_certificate_image', 'national_card_image', 'sports_insurance_image',
+            'avatar', 'birth_certificate_image', 'birth_certificate_status', 'birth_certificate_status_display',
+            'national_card_image', 'national_card_status', 'national_card_status_display',
+            'sports_insurance_image', 'sports_insurance_status', 'sports_insurance_status_display',
+            'sports_insurance_expiry', 'documents_rejection_reason',
             'is_profile_completed', 'has_required_info',
             'current_level', 'level_name', 'medical_notes', 'is_active', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class SwimmerGuardianRelationSerializer(serializers.ModelSerializer):
+    swimmer_detail = SwimmerProfileSerializer(source='swimmer', read_only=True)
+    relationship_display = serializers.CharField(source='get_relationship_type_display', read_only=True)
+
+    class Meta:
+        model = SwimmerGuardianRelation
+        fields = [
+            'id', 'guardian', 'swimmer', 'swimmer_detail',
+            'relationship_type', 'relationship_display',
+            'is_primary', 'is_verified', 'created_at'
+        ]
+        read_only_fields = ['id', 'created_at']
 
     def validate(self, attrs):
         # If completing profile or updating contact info, ensure at least father_phone or mother_phone is provided if completing

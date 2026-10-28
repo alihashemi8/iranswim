@@ -421,4 +421,112 @@ def test_swimmer_profile_completion_and_validation(api_client):
     assert comp_res.data['profile']['address'] == complete_payload['address']
 
 
+@pytest.mark.django_db
+def test_guardian_multi_child_and_password_change(api_client, admin_user):
+    """تست پشتیبانی از چند فرزند برای یک حساب والد و تغییر رمز اولیه کد ملی به رمز قوی"""
+    parent_phone = '09351234567'
+    national_id = '0012345678'
+    
+    # 1. Register parent with OTP
+    from apps.accounts.models import OTPVerification
+    OTPVerification.objects.create(
+        phone=parent_phone,
+        code='112233',
+        purpose='REGISTER',
+        expires_at=timezone.now() + datetime.timedelta(minutes=5)
+    )
+    reg_res = api_client.post('/api/auth/register-otp/', {
+        'phone': parent_phone,
+        'code': '112233',
+        'first_name': 'مریم',
+        'last_name': 'کریمی',
+        'national_id': national_id,
+    })
+    assert reg_res.status_code == 201
+    parent_user = User.objects.get(phone=parent_phone)
+    assert parent_user.is_password_changed is False
+
+    api_client.force_authenticate(user=parent_user)
+
+    # 2. Add second child (آرتین) under the same parent account
+    add_child_res = api_client.post('/api/swimmers/my-children/', {
+        'first_name': 'آرتین',
+        'last_name': 'کریمی',
+        'national_id': '0098765432',
+        'gender': 'MALE',
+        'relationship_type': 'MOTHER',
+    })
+    assert add_child_res.status_code == 201
+    second_child_id = add_child_res.data['swimmer']
+
+    # 3. List children
+    children_res = api_client.get('/api/swimmers/my-children/')
+    assert children_res.status_code == 200
+    assert len(children_res.data) == 2
+
+    # 4. Access second child profile specifically
+    child_profile_res = api_client.get(f'/api/swimmers/me/?swimmer_id={second_child_id}')
+    assert child_profile_res.status_code == 200
+    assert child_profile_res.data['first_name'] == 'آرتین'
+
+    # 5. Change initial password to strong password
+    pwd_res = api_client.post('/api/auth/change-password/', {
+        'old_password': national_id,
+        'new_password': 'MyStrongPassword@2026',
+        'confirm_password': 'MyStrongPassword@2026',
+    })
+    assert pwd_res.status_code == 200
+    parent_user.refresh_from_db()
+    assert parent_user.is_password_changed is True
+    assert parent_user.check_password('MyStrongPassword@2026') is True
+
+
+@pytest.mark.django_db
+def test_support_ticket_flow(api_client, admin_user):
+    """تست ثبت تیکت پشتیبانی شناگر و پاسخ‌دهی مدیریت آموزشگاه"""
+    user = User.objects.create_user(
+        phone='09360000001',
+        password='pass123456',
+        first_name='پارسا',
+        last_name='افشار',
+        role=User.Role.SWIMMER
+    )
+    from apps.swimmers.models import SwimmerProfile
+    swimmer = SwimmerProfile.objects.create(
+        user=user,
+        first_name='پارسا',
+        last_name='افشار',
+        phone=user.phone
+    )
+
+    api_client.force_authenticate(user=user)
+
+    # 1. User submits ticket
+    ticket_res = api_client.post('/api/content/tickets/', {
+        'category': 'SCHEDULE',
+        'subject': 'درخواست غیبت موجه به دلیل مسابقات مدرسه',
+        'description': 'شناگر در تاریخ پنج‌شنبه در مسابقات شنای دانش‌آموزی شرکت دارد.',
+    })
+    assert ticket_res.status_code == 201
+    ticket_id = ticket_res.data['id']
+    assert ticket_res.data['status'] == 'SUBMITTED'
+
+    # 2. Admin views and responds
+    api_client.force_authenticate(user=admin_user)
+    reply_res = api_client.patch(f'/api/content/tickets/{ticket_id}/', {
+        'response': 'با غیبت موجه موافقت شد و سهمیه جلسه کسر نخواهد گردید.',
+        'status': 'ANSWERED',
+    })
+    assert reply_res.status_code == 200
+    assert reply_res.data['status'] == 'ANSWERED'
+
+    # 3. User verifies response
+    api_client.force_authenticate(user=user)
+    user_tickets_res = api_client.get('/api/content/tickets/')
+    assert user_tickets_res.status_code == 200
+    assert user_tickets_res.data['results'][0]['status'] == 'ANSWERED'
+    assert 'با غیبت موجه موافقت شد' in user_tickets_res.data['results'][0]['response']
+
+
+
 

@@ -23,7 +23,9 @@ class SkillAssessmentListView(generics.ListCreateAPIView):
         elif user.role == 'COACH':
             return qs
         elif user.role == 'SWIMMER':
-            return qs.filter(swimmer__user=user)
+            from apps.swimmers.utils import get_accessible_swimmer_ids
+            ids = get_accessible_swimmer_ids(user, self.request)
+            return qs.filter(swimmer_id__in=ids)
         return qs.none()
 
     def perform_create(self, serializer):
@@ -50,7 +52,9 @@ class SwimmingRecordListView(generics.ListCreateAPIView):
             return qs
         elif user.role == 'SWIMMER':
             # Swimmer sees only verified records or their own pending records
-            return qs.filter(swimmer__user=user)
+            from apps.swimmers.utils import get_accessible_swimmer_ids
+            ids = get_accessible_swimmer_ids(user, self.request)
+            return qs.filter(swimmer_id__in=ids)
         return qs.filter(verification_status='VERIFIED')
 
     def perform_create(self, serializer):

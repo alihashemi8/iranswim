@@ -3,6 +3,13 @@ from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 
 
+class DocumentStatus(models.TextChoices):
+    UNUPLOADED = 'UNUPLOADED', _('بارگذاری‌نشده')
+    PENDING = 'PENDING', _('در انتظار بررسی')
+    APPROVED = 'APPROVED', _('تأییدشده')
+    REVISION_REQUIRED = 'REVISION_REQUIRED', _('نیازمند اصلاح')
+
+
 class SwimmerProfile(models.Model):
     class Gender(models.TextChoices):
         MALE = 'MALE', _('پسر / آقایان')
@@ -33,8 +40,13 @@ class SwimmerProfile(models.Model):
     school_name = models.CharField(_('نام مدرسه'), max_length=150, blank=True)
     avatar = models.ImageField(_('عکس پروفایل'), upload_to='swimmers/avatars/', null=True, blank=True)
     birth_certificate_image = models.ImageField(_('عکس صفحه اول شناسنامه'), upload_to='swimmers/documents/', null=True, blank=True)
+    birth_certificate_status = models.CharField(_('وضعیت شناسنامه'), max_length=20, choices=DocumentStatus.choices, default=DocumentStatus.UNUPLOADED)
     national_card_image = models.ImageField(_('عکس کارت ملی'), upload_to='swimmers/documents/', null=True, blank=True)
+    national_card_status = models.CharField(_('وضعیت کارت ملی'), max_length=20, choices=DocumentStatus.choices, default=DocumentStatus.UNUPLOADED)
     sports_insurance_image = models.ImageField(_('عکس بیمه ورزشی'), upload_to='swimmers/documents/', null=True, blank=True)
+    sports_insurance_status = models.CharField(_('وضعیت بیمه ورزشی'), max_length=20, choices=DocumentStatus.choices, default=DocumentStatus.UNUPLOADED)
+    sports_insurance_expiry = models.DateField(_('تاریخ انقضای بیمه ورزشی'), null=True, blank=True)
+    documents_rejection_reason = models.TextField(_('دلیل و موارد نیازمند اصلاح مدارک'), blank=True)
     is_profile_completed = models.BooleanField(_('تکمیل پرونده انجام شده'), default=False, db_index=True)
     current_level = models.ForeignKey(
         'education.SkillLevel',
@@ -71,4 +83,42 @@ class SwimmerProfile(models.Model):
             self.birth_certificate_image and self.national_card_image and
             self.sports_insurance_image
         )
+
+
+class SwimmerGuardianRelation(models.Model):
+    class RelationType(models.TextChoices):
+        FATHER = 'FATHER', _('پدر')
+        MOTHER = 'MOTHER', _('مادر')
+        GUARDIAN = 'GUARDIAN', _('سرپرست قانونی')
+        SELF = 'SELF', _('خود شناگر')
+
+    guardian = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='swimmer_relations',
+        verbose_name=_('کاربر سرپرست/شناگر')
+    )
+    swimmer = models.ForeignKey(
+        'SwimmerProfile',
+        on_delete=models.CASCADE,
+        related_name='guardian_relations',
+        verbose_name=_('پرونده شناگر')
+    )
+    relationship_type = models.CharField(
+        _('نسبت'),
+        max_length=20,
+        choices=RelationType.choices,
+        default=RelationType.GUARDIAN
+    )
+    is_primary = models.BooleanField(_('سرپرست اصلی'), default=True)
+    is_verified = models.BooleanField(_('تأییدشده'), default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('ارتباط سرپرست با شناگر')
+        verbose_name_plural = _('روابط سرپرستی شناگران')
+        unique_together = ('guardian', 'swimmer')
+
+    def __str__(self):
+        return f"{self.guardian.phone} -> {self.swimmer.full_name} ({self.get_relationship_type_display()})"
 
