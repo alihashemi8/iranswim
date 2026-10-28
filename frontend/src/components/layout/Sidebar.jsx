@@ -224,13 +224,13 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
 
     if (isMobile) {
       return (
-        <div className="shrink-0 p-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
-          <div className="flex items-center justify-between gap-2.5">
+        <div className="shrink-0 p-3.5 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+          <div className="flex items-center justify-between gap-3">
             <NavLink
               to={profilePath}
               onClick={onClose}
               className={({ isActive }) =>
-                `flex items-center gap-2.5 min-w-0 flex-1 p-1 -m-1 rounded-xl transition-all group ${
+                `flex items-center gap-3 min-w-0 flex-1 p-1 -m-1 rounded-xl transition-all group ${
                   isActive
                     ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-bold'
                     : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
@@ -238,14 +238,14 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
               }
               title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : 'مشاهده پروفایل'}
             >
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}>
+              <div className={`w-11 h-11 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-base shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}>
                 {user.full_name ? user.full_name.charAt(0) : 'U'}
               </div>
               <div className="flex flex-col min-w-0 flex-1">
-                <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                <span className="text-base font-black text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   {user.full_name}
                 </span>
-                <span className="text-xs text-blue-600 dark:text-blue-400 font-bold truncate">
+                <span className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-bold truncate">
                   {roleTitles[user.role] || 'کاربر سیستم'}
                 </span>
               </div>
@@ -270,14 +270,14 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       <div className="shrink-0 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
         {/* Full card on desktop xl when not collapsed */}
         <div
-          className={`p-2.5 xl:p-3 flex items-center justify-between gap-2 ${
+          className={`p-3 xl:p-3.5 flex items-center justify-between gap-2.5 ${
             collapsed ? 'hidden' : 'hidden xl:flex'
           }`}
         >
           <NavLink
             to={profilePath}
             className={({ isActive }) =>
-              `flex items-center gap-2.5 min-w-0 flex-1 p-1.5 -m-1.5 rounded-xl transition-all group ${
+              `flex items-center gap-3 min-w-0 flex-1 p-1.5 -m-1.5 rounded-xl transition-all group ${
                 isActive
                   ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-bold border-r-3 border-blue-600 shadow-2xs'
                   : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
@@ -285,14 +285,14 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
             }
             title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : 'مشاهده پروفایل'}
           >
-            <div className={`w-9 h-9 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}>
+            <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-base shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}>
               {user.full_name ? user.full_name.charAt(0) : 'U'}
             </div>
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <span className="text-sm xl:text-[15px] font-black text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 {user.full_name}
               </span>
-              <span className="text-xs text-blue-600 dark:text-blue-400 font-bold truncate">
+              <span className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-bold truncate">
                 {roleTitles[user.role] || 'کاربر سیستم'}
               </span>
             </div>
@@ -320,19 +320,19 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
             className="relative group flex justify-center cursor-pointer"
             title={`${user.full_name || 'کاربر'} (${roleTitles[user.role] || ''})`}
           >
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs hover:ring-2 hover:ring-sky-400 transition-all`}>
+            <div className={`w-11 h-11 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-black text-base shrink-0 shadow-2xs hover:ring-2 hover:ring-sky-400 transition-all`}>
               {user.full_name ? user.full_name.charAt(0) : 'U'}
             </div>
 
             {/* Tooltip in icon-only mode */}
             <div
               role="tooltip"
-              className="absolute right-full mr-2.5 top-1/2 -translate-y-1/2 px-2.5 py-1.5 bg-slate-900/95 dark:bg-slate-800/95 text-white text-xs font-semibold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 backdrop-blur-xs"
+              className="absolute right-full mr-2.5 top-1/2 -translate-y-1/2 px-3 py-2 bg-slate-900/95 dark:bg-slate-800/95 text-white text-xs font-semibold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 backdrop-blur-xs"
             >
-              <div className="font-bold">{user.full_name}</div>
-              <div className="text-[11px] text-sky-400">{roleTitles[user.role] || 'کاربر سیستم'}</div>
-              {user.phone && <div className="text-[10px] text-slate-400 font-mono">{user.phone}</div>}
-              <div className="text-[10px] text-slate-300 border-t border-slate-700/60 mt-1 pt-0.5">
+              <div className="font-black text-sm">{user.full_name}</div>
+              <div className="text-xs font-bold text-sky-400 mt-0.5">{roleTitles[user.role] || 'کاربر سیستم'}</div>
+              {user.phone && <div className="text-xs text-slate-300 font-mono mt-0.5">{user.phone}</div>}
+              <div className="text-xs text-slate-300 border-t border-slate-700/60 mt-1 pt-1 font-medium">
                 کلیک برای ورود به صفحه
               </div>
               <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-y-4 border-y-transparent border-l-4 border-l-slate-900/95 dark:border-l-slate-800/95" />
@@ -357,13 +357,13 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   };
 
   const renderNavSection = (isMobile = false) => (
-    <nav className="space-y-3">
+    <nav className="space-y-3.5">
       {activeNavigationGroups.map((grp, gIdx) => (
-        <div key={gIdx} className="space-y-1">
+        <div key={gIdx} className="space-y-1.5">
           {/* Section Group Title: shown on mobile and on desktop xl (when not collapsed), hidden on tablet */}
           {grp.groupTitle && (
             <div
-              className={`px-3 text-xs font-bold text-slate-400 dark:text-slate-500 tracking-wider mb-1.5 ${
+              className={`px-3 text-xs sm:text-sm font-extrabold text-slate-400 dark:text-slate-500 tracking-wider mb-2 ${
                 isMobile ? 'block' : collapsed ? 'hidden' : 'hidden xl:block'
               }`}
             >
@@ -374,7 +374,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
           {/* Group Divider in icon-only mode (tablet or collapsed desktop) */}
           {gIdx > 0 && !isMobile && (
             <div
-              className={`h-px bg-slate-100 dark:bg-slate-800 my-2 mx-1.5 ${
+              className={`h-px bg-slate-100 dark:bg-slate-800 my-2.5 mx-1.5 ${
                 collapsed ? 'block' : 'block xl:hidden'
               }`}
             />
@@ -394,16 +394,16 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                 title={link.label}
                 aria-label={link.label}
                 className={({ isActive }) =>
-                  `relative flex items-center rounded-xl text-sm font-semibold transition-all group ${
+                  `relative flex items-center rounded-xl text-sm xl:text-[15px] font-bold transition-all group ${
                     isActive
-                      ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-bold border-r-3 border-blue-600 shadow-2xs'
+                      ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-black border-r-3 border-blue-600 shadow-2xs'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
                   } ${
                     isMobile
-                      ? 'justify-between px-3.5 py-2.5 w-full'
+                      ? 'justify-between px-3.5 py-3 w-full'
                       : collapsed
                       ? 'justify-center px-2 py-2.5 w-full'
-                      : 'justify-center xl:justify-between px-2 xl:px-3.5 py-2.5 w-full'
+                      : 'justify-center xl:justify-between px-2 xl:px-3.5 py-2.5 xl:py-3 w-full'
                   }`
                 }
               >
@@ -418,7 +418,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                     {/* Badge in icon-only mode (on tablet or when collapsed) */}
                     {!isMobile && link.badge && (
                       <span
-                        className={`absolute -top-1.5 -right-2 min-w-4 h-4 px-1 rounded-full text-[10px] font-mono font-bold flex items-center justify-center shadow-xs ${
+                        className={`absolute -top-1.5 -right-2 min-w-4.5 h-4.5 px-1 rounded-full text-[11px] font-mono font-bold flex items-center justify-center shadow-xs ${
                           link.badgeColor || 'bg-sky-600 text-white'
                         } ${collapsed ? 'flex' : 'flex xl:hidden'}`}
                       >
@@ -444,7 +444,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                 {/* Desktop Full Badge: visible only on desktop xl when not collapsed */}
                 {link.badge && (
                   <span
-                    className={`px-2 py-0.5 rounded-full text-xs font-mono font-bold shrink-0 shadow-2xs ${
+                    className={`px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-mono font-black shrink-0 shadow-2xs ${
                       link.badgeColor || 'bg-sky-600 text-white'
                     } ${
                       isMobile
@@ -462,13 +462,13 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                 {!isMobile && (
                   <div
                     role="tooltip"
-                    className={`absolute right-full mr-2.5 px-2.5 py-1.5 bg-slate-900/95 dark:bg-slate-800/95 text-white text-xs font-semibold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 backdrop-blur-xs ${
+                    className={`absolute right-full mr-2.5 px-3 py-2 bg-slate-900/95 dark:bg-slate-800/95 text-white text-xs sm:text-sm font-bold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 backdrop-blur-xs ${
                       collapsed ? 'block' : 'block xl:hidden'
                     }`}
                   >
                     <span>{link.label}</span>
                     {link.badge && (
-                      <span className="mr-1.5 px-1.5 py-0.2 rounded-full text-[10px] bg-rose-500 text-white font-mono">
+                      <span className="mr-1.5 px-2 py-0.5 rounded-full text-xs bg-rose-500 text-white font-mono font-bold">
                         {link.badge}
                       </span>
                     )}
@@ -484,21 +484,21 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   );
 
   const renderBottomSection = (isMobile = false) => (
-    <div className="shrink-0 p-2.5 xl:p-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <div className="shrink-0 p-3 xl:p-3.5 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
       <button
         type="button"
         onClick={() => handleLogout(isMobile)}
-        className={`w-full flex items-center justify-center rounded-xl text-sm font-semibold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-900 transition-colors shadow-2xs cursor-pointer group relative ${
+        className={`w-full flex items-center justify-center rounded-xl text-sm xl:text-[15px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-900 transition-colors shadow-2xs cursor-pointer group relative ${
           isMobile
-            ? 'gap-2 px-3.5 py-2.5'
+            ? 'gap-2 px-3.5 py-3'
             : collapsed
             ? 'p-2.5'
-            : 'p-2.5 xl:px-3.5 xl:py-2.5 xl:gap-2'
+            : 'p-2.5 xl:px-3.5 xl:py-3 xl:gap-2.5'
         }`}
         title="خروج از حساب کاربری"
         aria-label="خروج از حساب کاربری"
       >
-        <LogOut className="w-4.5 h-4.5 shrink-0 transition-transform group-hover:scale-110" />
+        <LogOut className="w-5 h-5 shrink-0 transition-transform group-hover:scale-110" />
         <span className={isMobile ? 'inline' : collapsed ? 'hidden' : 'hidden xl:inline'}>
           خروج از حساب
         </span>
@@ -507,7 +507,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
         {!isMobile && (
           <div
             role="tooltip"
-            className={`absolute right-full mr-2.5 px-2.5 py-1.5 bg-rose-950 text-white text-xs font-semibold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 backdrop-blur-xs ${
+            className={`absolute right-full mr-2.5 px-3 py-2 bg-rose-950 text-white text-xs sm:text-sm font-bold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 backdrop-blur-xs ${
               collapsed ? 'block' : 'block xl:hidden'
             }`}
           >
@@ -521,10 +521,10 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
 
   return (
     <>
-      {/* Docked Sidebar (Icon-only on tablet w-20, full w-64 on desktop xl or collapsible) */}
+      {/* Docked Sidebar (Icon-only on tablet w-20, full w-68 on desktop xl or collapsible) */}
       <aside
         className={`hidden md:flex flex-col shrink-0 bg-white dark:bg-slate-900 border-l border-slate-200/80 dark:border-slate-800 sticky top-16 h-[calc(100vh-4rem)] transition-all duration-200 overflow-hidden ${
-          collapsed ? 'w-20' : 'w-20 xl:w-64'
+          collapsed ? 'w-20' : 'w-20 xl:w-68'
         }`}
       >
         {/* Fixed Top User Profile Header */}
