@@ -25,51 +25,53 @@ export const Carousel = ({
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isManuallyPaused, setIsManuallyPaused] = useState(false);
-  const [itemsPerView, setItemsPerView] = useState(1);
-  const [isReducedMotion, setIsReducedMotion] = useState(false);
 
   const containerRef = useRef(null);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const userInteractionTimeout = useRef(null);
 
-  // Check prefers-reduced-motion
+  // Check prefers-reduced-motion with lazy initializer
+  const [isReducedMotion, setIsReducedMotion] = useState(() => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+    return false;
+  });
+
+  const [itemsPerView, setItemsPerView] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const width = window.innerWidth;
+      if (width >= 1024) return visibleItems.desktop || 3;
+      if (width >= 768) return visibleItems.tablet || 2;
+      return visibleItems.mobile || 1;
+    }
+    return visibleItems.desktop || 3;
+  });
+
   useEffect(() => {
+    if (!window.matchMedia) return;
     const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    setIsReducedMotion(mediaQuery.matches);
     const handler = (e) => setIsReducedMotion(e.matches);
     mediaQuery.addEventListener('change', handler);
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
-  // Update itemsPerView based on window width
   useEffect(() => {
-    const updateView = () => {
+    const handleResize = () => {
       const width = window.innerWidth;
-      if (width >= 1024) {
-        setItemsPerView(visibleItems.desktop || 3);
-      } else if (width >= 768) {
-        setItemsPerView(visibleItems.tablet || 2);
-      } else {
-        setItemsPerView(visibleItems.mobile || 1);
-      }
+      if (width >= 1024) setItemsPerView(visibleItems.desktop || 3);
+      else if (width >= 768) setItemsPerView(visibleItems.tablet || 2);
+      else setItemsPerView(visibleItems.mobile || 1);
     };
-
-    updateView();
-    window.addEventListener('resize', updateView);
-    return () => window.removeEventListener('resize', updateView);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [visibleItems]);
 
   const totalItems = items.length;
   const maxIndex = Math.max(0, totalItems - itemsPerView);
   const canSlide = totalItems > itemsPerView;
-
-  // Clamp currentIndex when itemsPerView changes
-  useEffect(() => {
-    if (currentIndex > maxIndex) {
-      setCurrentIndex(maxIndex);
-    }
-  }, [maxIndex, currentIndex]);
+  const safeIndex = Math.min(currentIndex, maxIndex);
 
   const nextSlide = useCallback(() => {
     if (!canSlide) return;
@@ -170,7 +172,7 @@ export const Carousel = ({
   const itemWidthPercent = 100 / itemsPerView;
 
   // In RTL, moving to slide index N translates the track to the right (+N * itemWidthPercent %)
-  const translatePercent = currentIndex * itemWidthPercent;
+  const translatePercent = safeIndex * itemWidthPercent;
 
   // Dot count: number of possible starting positions
   const dotCount = maxIndex + 1;
@@ -180,7 +182,7 @@ export const Carousel = ({
   return (
     <div
       ref={containerRef}
-      className={`relative select-none ${className}`}
+      className={`relative select-none w-full max-w-full min-w-0 overflow-hidden ${className}`}
       aria-roledescription="carousel"
       aria-label={ariaLabel}
       onMouseEnter={() => setIsHovered(true)}
@@ -199,7 +201,7 @@ export const Carousel = ({
         <div className="flex items-center gap-2">
           {canSlide && (
             <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-              {currentIndex + 1} از {dotCount}
+              {safeIndex + 1} از {dotCount}
             </span>
           )}
           {canSlide && !isReducedMotion && (
@@ -248,9 +250,9 @@ export const Carousel = ({
       </div>
 
       {/* Overflow Track Viewport */}
-      <div className="overflow-hidden rounded-2xl sm:rounded-3xl p-1 -m-1">
+      <div className="w-full max-w-full min-w-0 overflow-hidden rounded-2xl sm:rounded-3xl p-1 -m-1">
         <div
-          className={`flex ${isReducedMotion ? '' : 'transition-transform duration-500 ease-out'}`}
+          className={`flex min-w-0 ${isReducedMotion ? '' : 'transition-transform duration-500 ease-out'}`}
           style={{
             transform: `translateX(${translatePercent}%)`,
           }}
@@ -258,7 +260,7 @@ export const Carousel = ({
           {items.map((item, index) => (
             <div
               key={item.id || index}
-              className={`shrink-0 px-2 sm:px-3 ${itemClassName}`}
+              className={`shrink-0 px-2 sm:px-3 min-w-0 ${itemClassName}`}
               style={{ width: `${itemWidthPercent}%` }}
               role="group"
               aria-roledescription="slide"
@@ -274,7 +276,7 @@ export const Carousel = ({
       {canSlide && dotCount > 1 && (
         <div className="flex items-center justify-center gap-1.5 mt-6">
           {Array.from({ length: dotCount }).map((_, dotIdx) => {
-            const isActive = dotIdx === currentIndex;
+            const isActive = dotIdx === safeIndex;
             return (
               <button
                 key={dotIdx}

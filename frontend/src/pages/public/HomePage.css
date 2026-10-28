@@ -1,0 +1,680 @@
+.landing-experience {
+  --pool-ink: #173b4b;
+  --pool-paper: #f5f8f5;
+  --pool-water: #087e91;
+  --pool-mint: #9ce4d8;
+  --pool-yellow: #ffd46a;
+  color: var(--pool-ink);
+  background: transparent;
+  isolation: isolate;
+}
+
+.landing-water {
+  background-color: #77c9df;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+.landing-water--fixed {
+  position: fixed;
+  inset: 0;
+  background-position: center;
+}
+
+.landing-water--scrolling {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  background-position: center top;
+  background-size: 100% 100%;
+}
+
+.landing-water__caustics {
+  position: fixed;
+  inset: 0;
+  mix-blend-mode: soft-light;
+  opacity: .32;
+}
+
+.landing-water__light {
+  background: linear-gradient(180deg, rgb(226 248 246 / 4%), rgb(2 47 73 / 8%));
+}
+
+.landing-water--fixed::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 25% 20%, rgb(255 255 255 / 35%), transparent 38%),
+    linear-gradient(180deg, rgb(242 255 252 / 12%), rgb(193 236 235 / 28%));
+}
+
+.landing-hero {
+  min-height: min(760px, calc(100svh - 4.5rem));
+  display: flex;
+  align-items: center;
+}
+
+.landing-hero__panel {
+  width: 100%;
+  padding: clamp(1.25rem, 4vw, 3.5rem);
+  border-radius: 2rem 2rem 2rem 0.65rem;
+  border: 1px solid rgb(255 255 255 / 88%);
+  background: rgb(249 253 251 / 84%);
+  box-shadow: 0 28px 72px rgb(25 72 83 / 24%), inset 0 1px #fff;
+  backdrop-filter: none;
+}
+
+.landing-hero__panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+  background:
+    linear-gradient(270deg, rgb(244 252 248 / 94%) 2%, rgb(244 252 248 / 86%) 46%, rgb(244 252 248 / 28%) 100%),
+    linear-gradient(0deg, rgb(244 252 248 / 35%), transparent 60%),
+    url("/images/olympic-pool-aerial.webp") center 18% / cover;
+}
+
+.landing-hero__panel > .grid {
+  position: relative;
+  z-index: 1;
+}
+
+.landing-experience :is(h1, h2, h3, h4) {
+  color: var(--pool-ink);
+  text-wrap: pretty;
+}
+
+.landing-hero__panel :is(p, .text-cyan-200, .text-cyan-300\/90, .text-slate-200\/90) {
+  color: #355965;
+}
+
+.landing-hero__panel h1 span {
+  color: transparent;
+}
+
+.landing-hero__panel .bg-cyan-950\/70 {
+  color: #176a70;
+  background: rgb(224 245 239 / 92%);
+  border-color: #c7e8df;
+}
+
+.landing-hero__panel .bg-slate-900\/60 {
+  background: rgb(249 253 250 / 92%);
+  border-color: rgb(255 255 255 / 92%);
+  box-shadow: 0 12px 28px rgb(25 72 83 / 10%);
+}
+
+.landing-hero__panel .bg-slate-900\/90 {
+  color: #173b4b;
+  background: rgb(249 253 250 / 94%);
+  border-color: #d7eae4;
+  backdrop-filter: none;
+}
+
+.landing-hero__panel .text-slate-300\/80,
+.landing-hero__panel .text-cyan-100 {
+  color: #355965;
+}
+
+.landing-hero__panel .bg-gradient-to-t {
+  background-image: linear-gradient(to top, rgb(238 249 245 / 95%), transparent 68%);
+}
+
+.landing-hero__panel .bg-slate-900\/80 {
+  color: #173b4b;
+  background: rgb(249 253 250 / 94%);
+  border-color: #d7eae4;
+  backdrop-filter: none;
+}
+
+.landing-hero__panel .bg-teal-500 {
+  color: #fff;
+  background: #0b8e87;
+}
+
+.landing-experience :is(a, button):focus-visible {
+  outline: 3px solid var(--pool-yellow);
+  outline-offset: 4px;
+}
+
+.pool-header {
+  color: #173b4b;
+  background: rgb(249 253 251 / 88%) !important;
+  border-color: rgb(255 255 255 / 86%) !important;
+  box-shadow: 0 8px 28px rgb(29 79 89 / 14%) !important;
+  backdrop-filter: blur(10px);
+}
+
+.pool-header > div:first-child :is(nav, nav a, a, button) {
+  color: #173b4b;
+}
+
+.pool-header nav a:hover,
+.pool-header > div:first-child a:hover {
+  color: #087e91;
+}
+
+.landing-section {
+  scroll-margin-top: 6rem;
+}
+
+.landing-section__heading h2 {
+  color: inherit;
+}
+
+#about {
+  max-width: 100%;
+  padding: clamp(3rem, 7vw, 6.5rem) max(1rem, calc((100vw - 80rem) / 2));
+  color: #173b4b;
+  background: transparent;
+}
+
+#about > div:first-child {
+  max-width: 80rem;
+  margin-inline: auto;
+  text-align: right;
+}
+
+#about > div:last-child {
+  max-width: 80rem;
+  margin-inline: auto;
+  gap: 1rem;
+}
+
+#about > div:last-child > div {
+  min-height: 17rem;
+  padding: 2rem;
+  border: 0;
+  border-top: 2px solid #5eb9b5;
+  border-radius: 0 1.75rem 0.5rem 1.75rem;
+  background: rgb(247 252 249 / 94%);
+  box-shadow: 0 22px 44px rgb(2 24 39 / 26%), inset 0 1px rgb(255 255 255 / 90%);
+  backdrop-filter: none;
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+#about > div:last-child > div:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 30px 55px rgb(2 24 39 / 34%), inset 0 1px rgb(255 255 255 / 95%);
+}
+
+#about > div:last-child > div:nth-child(2) {
+  margin-top: 2rem;
+  border-color: #df9b66;
+}
+
+#about > div:last-child > div:nth-child(3) {
+  border-color: #8ab59d;
+}
+
+#about > div:last-child > div > div:first-child {
+  color: #087e91;
+  background: #e3f4f0;
+  border-color: #c5e8df;
+  box-shadow: none;
+}
+
+#about :is(h2, h3) {
+  color: var(--pool-ink);
+}
+
+#about p {
+  color: #4c626d;
+}
+
+#courses {
+  max-width: 100%;
+  padding: clamp(3rem, 7vw, 6rem) max(1rem, calc((100vw - 80rem) / 2));
+  color: #173b4b;
+  background: transparent;
+}
+
+#courses .landing-section__heading {
+  max-width: 80rem;
+  margin: 0 auto 2rem;
+  border-color: rgb(9 39 58 / 18%);
+}
+
+#courses .landing-section__heading p {
+  color: #486875;
+}
+
+#courses .landing-section__heading > span {
+  color: #255968;
+  background: rgb(245 252 249 / 89%);
+  border: 1px solid rgb(255 255 255 / 92%);
+  box-shadow: 0 8px 22px rgb(24 74 84 / 14%);
+}
+
+#courses > div.grid {
+  max-width: 80rem;
+  margin-inline: auto;
+}
+
+.landing-course {
+  position: relative;
+  padding: 1.5rem;
+  color: #173b4b;
+  background: rgb(250 254 251 / 94%);
+  border-radius: 1.5rem 1.5rem 0.45rem 1.5rem;
+  border: 1px solid rgb(255 255 255 / 92%);
+  box-shadow: 0 24px 50px rgb(25 72 83 / 22%), inset 0 1px #fff;
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+.landing-course:hover {
+  transform: translateY(-8px) rotate(-.35deg);
+  box-shadow: 0 34px 62px rgb(25 72 83 / 30%), inset 0 1px #fff;
+}
+
+.landing-course--1 {
+  margin-top: 1.5rem;
+  background: rgb(237 249 244 / 96%);
+  border-radius: 1.5rem 0.45rem 1.5rem 1.5rem;
+}
+
+.landing-course--2 {
+  background: rgb(238 248 250 / 96%);
+}
+
+.landing-course > div:first-child > svg {
+  color: #128d8b;
+}
+
+.landing-course__eyebrow {
+  color: #157a78;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.landing-course p {
+  color: #4c626d;
+}
+
+.landing-course__meta,
+.landing-course__groups li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid rgb(23 59 75 / 14%);
+  color: #4c626d;
+}
+
+.landing-course__meta span:last-child {
+  color: #a86125;
+  font-weight: 700;
+}
+
+.landing-course__link {
+  color: #087e91;
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.landing-empty-state {
+  max-width: 80rem;
+  margin-inline: auto;
+  padding: 1rem 1.25rem;
+  color: #173b4b;
+  background: rgb(250 254 251 / 94%);
+  border: 1px solid rgb(255 255 255 / 92%);
+  border-radius: 1rem;
+  box-shadow: 0 18px 35px rgb(25 72 83 / 20%);
+}
+
+.landing-coach-card,
+.landing-news-card {
+  box-shadow: 0 24px 50px rgb(25 72 83 / 22%), inset 0 1px #fff;
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+.landing-coach-card:hover,
+.landing-news-card:hover {
+  box-shadow: 0 34px 60px rgb(25 72 83 / 30%), inset 0 1px #fff;
+}
+
+.landing-coach-card {
+  color: #173b4b;
+  background: rgb(250 254 251 / 95%) !important;
+  border-color: rgb(255 255 255 / 94%) !important;
+}
+
+.landing-coach-card > div:first-child > div:first-child {
+  border-color: #b7ded6;
+  background: #e9f6f1;
+  box-shadow: none;
+}
+
+.landing-coach-card :is(h3, p) {
+  color: #173b4b;
+}
+
+.landing-coach-card .bg-cyan-950 {
+  color: #087e91;
+  background: #e3f4f0;
+  border-color: #c1e6df;
+}
+
+.landing-news-card {
+  color: #173b4b;
+  background: rgb(250 254 251 / 96%) !important;
+  border-color: rgb(255 255 255 / 94%) !important;
+}
+
+.landing-news-card :is(h3, p) {
+  color: #173b4b;
+}
+
+.landing-news-card .bg-slate-900\/90 {
+  background: rgb(246 252 249 / 92%);
+  border-color: #d6eae4;
+}
+
+.landing-carousel {
+  overflow: visible;
+}
+
+.landing-carousel > div:nth-of-type(2) {
+  padding-block: .75rem;
+  margin-block: -.5rem;
+}
+
+#coaches {
+  padding-block: clamp(3rem, 7vw, 6rem);
+}
+
+#coaches > div:first-child p,
+#news > div:first-child p {
+  color: #486875;
+}
+
+#coaches > div:first-child > span {
+  color: #176f75;
+  background: rgb(249 253 250 / 92%);
+  border-color: rgb(255 255 255 / 92%);
+}
+
+#coaches .landing-coach-card [class*="bg-cyan-950"] {
+  color: #087e91;
+  background: #e7f5f1;
+  border-color: #c7e8df;
+}
+
+#news .landing-news-card .bg-cyan-950\/70 {
+  color: #087e91;
+  background: #e7f5f1;
+  border-color: #c7e8df;
+}
+
+#news .landing-news-card button {
+  color: #087e91;
+  background: #e7f5f1;
+  border-color: #c7e8df;
+}
+
+#news .landing-news-card button:hover {
+  color: #075b68;
+  background: #d6eee8;
+}
+
+#facilities {
+  max-width: 100%;
+  padding: clamp(3rem, 7vw, 6rem) max(1rem, calc((100vw - 80rem) / 2));
+  color: #173b4b;
+  background: transparent;
+}
+
+#facilities > div {
+  max-width: 80rem;
+  margin-inline: auto;
+}
+
+#facilities :is(h2, h4) {
+  color: #173b4b;
+}
+
+#facilities > div:first-child p {
+  color: #486875;
+}
+
+#facilities .grid h4 {
+  color: var(--pool-ink);
+}
+
+#facilities .grid p {
+  color: #4c626d;
+}
+
+#facilities .grid > div {
+  min-height: 15rem;
+  padding: 1.5rem;
+  border: 1px solid rgb(255 255 255 / 92%);
+  border-radius: 1.5rem .45rem 1.5rem 1.5rem;
+  background: rgb(250 254 251 / 94%);
+  box-shadow: 0 22px 44px rgb(25 72 83 / 22%), inset 0 1px #fff;
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+#facilities .grid > div [class*="bg-teal-950"],
+#facilities .grid > div [class*="bg-amber-950"],
+#facilities .grid > div [class*="bg-orange-950"],
+#facilities .grid > div [class*="bg-indigo-950"] {
+  color: #087e91;
+  background: #e4f4f0;
+  border-color: #c7e8df;
+}
+
+#facilities .grid > div:hover {
+  transform: translateY(-7px);
+  box-shadow: 0 30px 54px rgb(25 72 83 / 30%), inset 0 1px #fff;
+}
+
+#news {
+  padding-block: clamp(3rem, 7vw, 6rem);
+}
+
+.landing-cta > div {
+  background: rgb(250 254 251 / 94%);
+  border-color: rgb(255 255 255 / 92%);
+  box-shadow: 0 28px 64px rgb(25 72 83 / 22%);
+}
+
+.landing-cta > div :is(h2, p) {
+  color: #173b4b;
+}
+
+.landing-cta > div .text-cyan-200 {
+  color: #176f75;
+}
+
+.landing-cta > div a[href^="tel:"] {
+  color: #176f75;
+  background: #e7f5f1;
+  border-color: #c7e8df;
+  backdrop-filter: none;
+}
+
+.landing-cta > div > div:first-child {
+  opacity: .16;
+}
+
+.landing-cta > div .bg-cyan-950\/80 {
+  color: #126f73;
+  background: #e5f5f0;
+  border-color: #c8e9e1;
+}
+
+.landing-experience footer {
+  color: #355865;
+  background: linear-gradient(180deg, rgb(224 247 244 / 76%), rgb(210 238 235 / 84%));
+  border-color: rgb(255 255 255 / 90%);
+  backdrop-filter: blur(12px);
+}
+
+.landing-experience footer a:hover {
+  color: #087e91;
+}
+
+.landing-experience footer :is(h4, .text-white, .text-slate-300, .text-slate-400) {
+  color: #355965;
+}
+
+.landing-experience footer .bg-emerald-950\/60 {
+  color: #167456;
+  background: #e6f6ed;
+  border-color: #c4e7d1;
+}
+
+.landing-experience > .fixed.inset-0.z-50 {
+  background: rgb(223 246 240 / 72%);
+  backdrop-filter: blur(7px);
+}
+
+.landing-experience > .fixed.inset-0.z-50 .bg-slate-900\/90 {
+  color: #176f75;
+  background: rgb(250 254 251 / 94%);
+  border-color: #d6eae4;
+  backdrop-filter: none;
+}
+
+.landing-experience > .fixed.inset-0.z-50 .bg-slate-800\/70 {
+  color: #355965;
+  background: #edf7f3;
+  border-color: #d4e9e2;
+}
+
+.landing-experience > .fixed.inset-0.z-50 :is(.text-slate-300, .text-cyan-100, .text-cyan-300) {
+  color: #355965;
+}
+
+.landing-experience > .fixed.inset-0.z-50 .border-slate-800 {
+  border-color: #d9e9e4;
+}
+
+.auth-page > .auth-panel {
+  color: #173b4b;
+  background: rgb(250 254 251 / 96%);
+  border-color: rgb(255 255 255 / 94%);
+  box-shadow: 0 30px 80px rgb(25 72 83 / 24%), inset 0 1px #fff;
+}
+
+.auth-panel__intro {
+  color: #173b4b;
+  background-color: #d8efec !important;
+}
+
+.auth-panel__intro > div:first-child {
+  filter: saturate(.75);
+}
+
+.auth-panel__veil {
+  background: linear-gradient(180deg, rgb(238 250 247 / 46%), rgb(232 247 243 / 78%));
+  backdrop-filter: none;
+}
+
+.auth-panel__intro :is(h1, h2, h3, p, span, a) {
+  color: #173b4b;
+}
+
+.auth-panel__intro .text-cyan-200,
+.auth-panel__intro .text-sky-100 {
+  color: #355965;
+}
+
+.auth-panel__intro [class*="bg-white/10"] {
+  color: #173b4b;
+  background: rgb(255 255 255 / 64%);
+  border-color: rgb(255 255 255 / 85%);
+  backdrop-filter: none;
+}
+
+@media (max-width: 767px) {
+  .landing-hero {
+    min-height: 0;
+    padding-top: 1.25rem;
+  }
+
+  .landing-hero__panel {
+    padding: 1.25rem;
+    border-radius: 1.5rem 1.5rem 1.5rem 0.45rem;
+  }
+
+  .landing-hero__panel::before {
+    background:
+      linear-gradient(180deg, rgb(244 252 248 / 68%), rgb(244 252 248 / 92%) 68%),
+      url("/images/olympic-pool-aerial.webp") center 18% / cover;
+  }
+
+  .landing-water {
+    background-position: 51% center;
+  }
+
+  .landing-water--scrolling {
+    background-position: 51% top;
+    background-size: 100% 100%;
+  }
+
+  #about,
+  #courses,
+  #facilities {
+    padding-inline: 1rem;
+  }
+
+  #about > div:last-child > div:nth-child(2),
+  .landing-course--1 {
+    margin-top: 0;
+  }
+
+  #facilities .grid > div {
+    min-height: auto;
+    border-inline-start: 1px solid rgb(211 248 241 / 55%);
+  }
+}
+
+.auth-page {
+  position: relative;
+  min-height: calc(100svh - 5rem);
+  isolation: isolate;
+}
+
+.auth-page > .auth-panel {
+  position: relative;
+  z-index: 20;
+  background: rgb(250 252 250 / 96%);
+  border: 1px solid rgb(225 249 244 / 78%);
+  border-radius: 1.5rem 1.5rem 1.5rem .45rem;
+  box-shadow: 0 30px 80px rgb(1 20 32 / 40%), inset 0 1px #fff;
+}
+
+@media (max-width: 1023px) {
+  .auth-page > .auth-panel {
+    background: rgb(250 252 250 / 97%);
+  }
+}
+
+html.dark .auth-page > .auth-panel {
+  background: rgb(250 254 251 / 96%);
+  border-color: rgb(255 255 255 / 94%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #about > div:last-child > div,
+  .landing-course,
+  .landing-coach-card,
+  .landing-news-card,
+  #facilities .grid > div {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-experience *,
+  .landing-experience *::before,
+  .landing-experience *::after {
+    scroll-behavior: auto !important;
+  }
+}

@@ -8,6 +8,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/common/Button';
 import { useToast } from '../../context/ToastContext';
+import { AquaticPoolBackground } from '../../components/landing/AquaticPoolBackground';
 
 export const toEnglishDigits = (str) => {
   if (!str) return '';
@@ -254,22 +255,23 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-[calc(100vh-5rem)] flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div className="auth-page min-h-[calc(100vh-5rem)] flex items-center justify-center p-4 sm:p-6 lg:p-8">
+      <AquaticPoolBackground />
       {/* Main Container Card */}
-      <div className="w-full max-w-5xl bg-white dark:bg-slate-900 rounded-[2.25rem] border border-slate-200/80 dark:border-slate-800 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 transition-all">
+      <div className="auth-panel w-full max-w-5xl bg-white dark:bg-slate-900 rounded-[2.25rem] border border-slate-200/80 dark:border-slate-800 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 transition-all">
         
         {/* ============================================================== */}
         {/* RIGHT COLUMN (DESKTOP HERO / BRANDING PANEL)                   */}
         {/* ============================================================== */}
-        <div className="hidden lg:flex lg:col-span-5 relative flex-col justify-between p-10 text-white overflow-hidden bg-slate-950">
+        <div className="auth-panel__intro hidden lg:flex lg:col-span-5 relative flex-col justify-between p-10 text-white overflow-hidden bg-slate-950">
           {/* Background swimming imagery with rich gradient overlay */}
           <div
             className="absolute inset-0 bg-cover bg-center transition-transform duration-700 hover:scale-105"
             style={{
-              backgroundImage: `url('https://images.unsplash.com/photo-1519315901367-f34ff9154487?auto=format&fit=crop&w=1200&q=80')`,
+              backgroundImage: 'url("/images/olympic-pool-aerial.webp")',
             }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-sky-950/85 to-indigo-950/80 backdrop-blur-[1px]" />
+          <div className="auth-panel__veil absolute inset-0 bg-gradient-to-t from-slate-950 via-sky-950/85 to-indigo-950/80 backdrop-blur-[1px]" />
 
           {/* Top Brand Tag */}
           <div className="relative z-10 space-y-3">

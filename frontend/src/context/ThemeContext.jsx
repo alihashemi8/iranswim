@@ -1,31 +1,20 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useLayoutEffect } from 'react';
 
-const ThemeContext = createContext({
-  theme: 'light',
-  toggleTheme: () => {},
-});
+const ThemeContext = createContext({ theme: 'light' });
 
 export const ThemeProvider = ({ children }) => {
-  const [theme, setTheme] = useState(() => {
-    return localStorage.getItem('iranswim_theme') || 'light';
-  });
-
-  useEffect(() => {
+  useLayoutEffect(() => {
     const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else {
-      root.classList.remove('dark');
+    root.classList.remove('dark');
+    try {
+      localStorage.setItem('iranswim_theme', 'light');
+    } catch {
+      // The app remains light even when browser storage is unavailable.
     }
-    localStorage.setItem('iranswim_theme', theme);
-  }, [theme]);
-
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'light' ? 'dark' : 'light'));
-  };
+  }, []);
 
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider value={{ theme: 'light' }}>
       {children}
     </ThemeContext.Provider>
   );
