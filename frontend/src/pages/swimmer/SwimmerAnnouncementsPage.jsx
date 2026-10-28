@@ -54,11 +54,11 @@ export const SwimmerAnnouncementsPage = () => {
             <span className="p-1.5 rounded-xl bg-orange-50 dark:bg-orange-950/70 text-orange-600 dark:text-orange-400 border border-orange-200/60 dark:border-orange-900/60">
               <Bell className="w-5 h-5" />
             </span>
-            <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
               اطلاعیه‌ها، اخبار و پیام‌های مربی
             </h1>
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             اعلانات رسمی اداری، تعطیلات فصلی، پیام‌های اختصاصی گروه و مقالات آموزشی
           </p>
         </div>
@@ -68,10 +68,10 @@ export const SwimmerAnnouncementsPage = () => {
           <button
             type="button"
             onClick={() => setActiveTab('ANNOUNCEMENTS')}
-            className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === 'ANNOUNCEMENTS'
                 ? 'bg-white dark:bg-slate-900 text-orange-600 dark:text-orange-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
             }`}
           >
             <Bell className="w-4 h-4" />
@@ -80,10 +80,10 @@ export const SwimmerAnnouncementsPage = () => {
           <button
             type="button"
             onClick={() => setActiveTab('NEWS')}
-            className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 ${
               activeTab === 'NEWS'
                 ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
-                : 'text-slate-600 dark:text-slate-400'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
             }`}
           >
             <Newspaper className="w-4 h-4" />
@@ -94,44 +94,44 @@ export const SwimmerAnnouncementsPage = () => {
 
       {/* Announcements List */}
       {activeTab === 'ANNOUNCEMENTS' && (
-        <div className="space-y-3">
+        <div className="space-y-3.5">
           {announcements.length > 0 ? (
             announcements.map((ann) => (
               <div
                 key={ann.id}
-                className={`p-5 rounded-3xl border transition-all ${
+                className={`p-5 sm:p-6 rounded-3xl border transition-all ${
                   ann.is_pinned
                     ? 'bg-amber-50/60 dark:bg-amber-950/30 border-amber-200 dark:border-amber-900/60 shadow-xs'
                     : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 shadow-xs'
                 }`}
               >
-                <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="flex items-center justify-between gap-2 mb-2.5">
                   <div className="flex items-center gap-2">
                     {ann.is_pinned && (
-                      <span className="p-1 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-400">
-                        <Pin className="w-3.5 h-3.5 rotate-45" />
+                      <span className="p-1.5 rounded-lg bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-400">
+                        <Pin className="w-4 h-4 rotate-45" />
                       </span>
                     )}
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                       {ann.title}
                     </h3>
                   </div>
-                  <span className="text-[11px] text-slate-400 font-mono">
+                  <span className="text-xs sm:text-sm text-slate-500 font-mono">
                     {new Date(ann.created_at).toLocaleDateString('fa-IR')}
                   </span>
                 </div>
-                <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed pr-1">
+                <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed pr-1 font-normal">
                   {ann.message}
                 </p>
                 {ann.target_group_name && (
-                  <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 text-[10px] text-sky-600 font-bold">
+                  <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800 text-xs sm:text-sm text-sky-600 dark:text-sky-400 font-bold">
                     پیام اختصاصی گروه: {ann.target_group_name}
                   </div>
                 )}
               </div>
             ))
           ) : (
-            <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 text-xs text-slate-400">
+            <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 text-sm text-slate-400">
               هیچ اعلانی یافت نشد.
             </div>
           )}
@@ -145,26 +145,26 @@ export const SwimmerAnnouncementsPage = () => {
             news.map((item) => (
               <div
                 key={item.id}
-                className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs space-y-3 flex flex-col justify-between"
+                className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-3 flex flex-col justify-between"
               >
                 <div>
-                  <div className="flex items-center justify-between gap-2 mb-2">
+                  <div className="flex items-center justify-between gap-2 mb-2.5">
                     <Badge variant="info">{item.category_display || 'عمومی'}</Badge>
-                    <span className="text-[11px] text-slate-400 font-mono">
+                    <span className="text-xs sm:text-sm text-slate-500 font-mono">
                       {item.publish_at?.slice(0, 10)}
                     </span>
                   </div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white leading-snug">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white leading-snug">
                     {item.title}
                   </h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-2 leading-relaxed line-clamp-3">
+                  <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 mt-2.5 leading-relaxed line-clamp-3 font-normal">
                     {item.summary || item.body}
                   </p>
                 </div>
               </div>
             ))
           ) : (
-            <div className="col-span-2 p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 text-xs text-slate-400">
+            <div className="col-span-2 p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 text-sm text-slate-400">
               هیچ خبری در وب‌سایت منتشر نشده است.
             </div>
           )}

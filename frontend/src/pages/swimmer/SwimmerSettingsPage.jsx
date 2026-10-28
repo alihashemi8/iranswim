@@ -68,11 +68,11 @@ export const SwimmerSettingsPage = () => {
             <span className="p-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400">
               <Settings className="w-5 h-5" />
             </span>
-            <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
               تنظیمات حساب کاربری و امنیت
             </h1>
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             تغییر رمز عبور، مدیریت روش‌های ورود و بازیابی با پیامک (OTP)، و حریم خصوصی
           </p>
         </div>
@@ -80,22 +80,22 @@ export const SwimmerSettingsPage = () => {
         <button
           type="button"
           onClick={handleLogout}
-          className="px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-2xl border border-rose-200 dark:border-rose-900/60 transition-colors flex items-center gap-1.5 cursor-pointer self-end md:self-auto"
+          className="px-4 py-2.5 text-xs sm:text-sm font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-2xl border border-rose-200 dark:border-rose-900/60 transition-colors flex items-center gap-2 cursor-pointer self-end md:self-auto"
         >
-          <LogOut className="w-4 h-4" />
+          <LogOut className="w-4.5 h-4.5" />
           <span>خروج از حساب</span>
         </button>
       </div>
 
       {/* Warning for Initial Password (if National ID is still password) */}
       {user && !user.is_password_changed && (
-        <div className="p-4 rounded-3xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 flex items-start gap-3">
-          <AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-          <div className="space-y-1">
-            <h4 className="text-xs sm:text-sm font-bold text-rose-900 dark:text-rose-100">
+        <div className="p-5 rounded-3xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 flex items-start gap-3.5">
+          <AlertTriangle className="w-6 h-6 text-rose-600 shrink-0 mt-0.5" />
+          <div className="space-y-1.5">
+            <h4 className="text-sm sm:text-base font-bold text-rose-900 dark:text-rose-100">
               توجه امنیتی بسیار مهم: شما در حال حاضر از رمز اولیه (کد ملی) استفاده می‌کنید!
             </h4>
-            <p className="text-[11px] sm:text-xs text-rose-800 dark:text-rose-200/90 leading-relaxed">
+            <p className="text-xs sm:text-sm text-rose-800 dark:text-rose-200/90 leading-relaxed font-medium">
               کد ملی اطلاعاتی قابل حدس و عمومی است. لطفاً فوراً از فرم زیر یک کلمه عبور اختصاصی و قوی برای حساب خود تعیین فرمایید.
             </p>
           </div>
@@ -105,14 +105,14 @@ export const SwimmerSettingsPage = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Password Change Card */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-          <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-            <KeyRound className="w-4 h-4 text-sky-600" />
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+            <KeyRound className="w-4.5 h-4.5 text-sky-600" />
             تعیین یا تغییر کلمه عبور اختصاصی
           </h3>
 
           <form onSubmit={handlePasswordChange} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 رمز عبور فعلی (یا کد ملی)
               </label>
               <div className="relative">
@@ -121,13 +121,13 @@ export const SwimmerSettingsPage = () => {
                   value={passwordForm.old_password}
                   onChange={(e) => setPasswordForm({ ...passwordForm, old_password: e.target.value })}
                   placeholder="رمز عبور فعلی"
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500 font-mono"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowOld(!showOld)}
-                  className="absolute left-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="absolute left-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
                   {showOld ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -135,7 +135,7 @@ export const SwimmerSettingsPage = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 کلمه عبور جدید (حداقل ۶ کاراکتر)
               </label>
               <div className="relative">
@@ -144,13 +144,13 @@ export const SwimmerSettingsPage = () => {
                   value={passwordForm.new_password}
                   onChange={(e) => setPasswordForm({ ...passwordForm, new_password: e.target.value })}
                   placeholder="رمز عبور جدید و قوی"
-                  className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500 font-mono"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowNew(!showNew)}
-                  className="absolute left-2.5 top-2.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+                  className="absolute left-3 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
                   {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
@@ -158,7 +158,7 @@ export const SwimmerSettingsPage = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 تکرار کلمه عبور جدید
               </label>
               <input
@@ -166,7 +166,7 @@ export const SwimmerSettingsPage = () => {
                 value={passwordForm.confirm_password}
                 onChange={(e) => setPasswordForm({ ...passwordForm, confirm_password: e.target.value })}
                 placeholder="تکرار رمز عبور جدید"
-                className="w-full px-3 py-2 text-xs rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500 font-mono"
+                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500 font-mono"
                 required
               />
             </div>
@@ -174,7 +174,7 @@ export const SwimmerSettingsPage = () => {
             <button
               type="submit"
               disabled={changingPassword}
-              className="w-full py-2.5 text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl transition-all shadow-xs disabled:opacity-50 cursor-pointer"
+              className="w-full py-3 text-sm sm:text-base font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl transition-all shadow-xs disabled:opacity-50 cursor-pointer"
             >
               {changingPassword ? 'در حال ذخیره...' : 'ذخیره کلمه عبور جدید'}
             </button>
@@ -184,25 +184,25 @@ export const SwimmerSettingsPage = () => {
         {/* Security & Account Information */}
         <div className="space-y-6">
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-              <Smartphone className="w-4 h-4 text-emerald-600" />
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <Smartphone className="w-4.5 h-4.5 text-emerald-600" />
               شناسه ورود و بازیابی حساب
             </h3>
 
-            <div className="space-y-3 text-xs">
-              <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40">
+            <div className="space-y-3.5 text-sm">
+              <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40">
                 <div>
-                  <span className="text-slate-500 block mb-0.5">شماره همراه اصلی (شناسه ورود):</span>
-                  <span className="font-mono font-bold text-slate-900 dark:text-white">
+                  <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 block mb-1 font-medium">شماره همراه اصلی (شناسه ورود):</span>
+                  <span className="font-mono font-black text-slate-900 dark:text-white text-base sm:text-lg">
                     {user?.phone || '—'}
                   </span>
                 </div>
-                <span className="text-emerald-600 font-bold flex items-center gap-1 text-[11px]">
-                  <CheckCircle2 className="w-3.5 h-3.5" /> تایید با OTP
+                <span className="text-emerald-600 font-bold flex items-center gap-1.5 text-xs sm:text-sm">
+                  <CheckCircle2 className="w-4 h-4" /> تایید با OTP
                 </span>
               </div>
 
-              <p className="text-[11px] text-slate-500 leading-relaxed pr-1">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed pr-1 font-medium">
                 ورود به سامانه در هر زمان با ارسال کد یکبار مصرف پیامکی (OTP) به شماره همراه فوق امکان‌پذیر است. در صورت نیاز به تغییر شماره همراه، به دلیل ملاحظات امنیتی با دفتر آموزشگاه هماهنگ فرمایید.
               </p>
             </div>
@@ -210,18 +210,18 @@ export const SwimmerSettingsPage = () => {
 
           {/* Notification Preferences */}
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-              <Bell className="w-4 h-4 text-sky-600" />
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+              <Bell className="w-4.5 h-4.5 text-sky-600" />
               ترجیحات دریافت اعلان‌ها
             </h3>
 
             <div className="space-y-3">
-              <label className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
+              <label className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
                 <div>
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                  <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 block">
                     پیامک یادآوری جلسه و تغییرات سانس
                   </span>
-                  <span className="text-[10px] text-slate-400">
+                  <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
                     ارسال پیامک فوری در صورت جابه‌جایی یا لغو جلسه استخر
                   </span>
                 </div>
@@ -229,16 +229,16 @@ export const SwimmerSettingsPage = () => {
                   type="checkbox"
                   checked={smsNotif}
                   onChange={(e) => setSmsNotif(e.target.checked)}
-                  className="rounded text-sky-600 focus:ring-sky-500 w-4 h-4"
+                  className="rounded text-sky-600 focus:ring-sky-500 w-4.5 h-4.5 cursor-pointer"
                 />
               </label>
 
-              <label className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer">
+              <label className="flex items-center justify-between p-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition-colors">
                 <div>
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                  <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 block">
                     اعلان‌های درون‌برنامه‌ای نمرات ارزیابی مربی
                   </span>
-                  <span className="text-[10px] text-slate-400">
+                  <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">
                     نمایش نشانگر قرمز زنگوله به محض ثبت نمره جدید
                   </span>
                 </div>
@@ -246,7 +246,7 @@ export const SwimmerSettingsPage = () => {
                   type="checkbox"
                   checked={appNotif}
                   onChange={(e) => setAppNotif(e.target.checked)}
-                  className="rounded text-sky-600 focus:ring-sky-500 w-4 h-4"
+                  className="rounded text-sky-600 focus:ring-sky-500 w-4.5 h-4.5 cursor-pointer"
                 />
               </label>
             </div>

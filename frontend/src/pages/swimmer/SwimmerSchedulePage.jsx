@@ -83,30 +83,30 @@ export const SwimmerSchedulePage = () => {
             <span className="p-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/70 text-teal-600 dark:text-teal-400 border border-teal-200/60 dark:border-teal-900/60">
               <Calendar className="w-5 h-5" />
             </span>
-            <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
               برنامه کلاس‌ها و زمان‌بندی استخر
             </h1>
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             برنامه تمرینی هفتگی، ساعات حضور، استخر محل برگزاری و وضعیت جلسات
           </p>
         </div>
 
         {/* Quota status pill */}
-        <div className="flex items-center gap-3 bg-teal-50/80 dark:bg-teal-950/50 p-2.5 rounded-2xl border border-teal-200 dark:border-teal-800">
+        <div className="flex items-center gap-3 bg-teal-50/80 dark:bg-teal-950/50 p-3 rounded-2xl border border-teal-200 dark:border-teal-800">
           <div className="text-right">
-            <span className="text-[11px] text-teal-700 dark:text-teal-300 font-bold block">
+            <span className="text-xs sm:text-sm text-teal-700 dark:text-teal-300 font-bold block">
               سهمیه باقیمانده دوره:
             </span>
-            <span className="text-sm font-extrabold text-slate-900 dark:text-white font-mono">
+            <span className="text-base sm:text-lg font-black text-slate-900 dark:text-white font-mono">
               {totalRemaining} جلسه
             </span>
           </div>
           <Link
             to="/swimmer/support"
-            className="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-2xs flex items-center gap-1 cursor-pointer"
+            className="px-3.5 py-2 text-sm font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer"
           >
-            <ArrowRightLeft className="w-3.5 h-3.5" />
+            <ArrowRightLeft className="w-4 h-4" />
             <span>درخواست جابه‌جایی یا غیبت</span>
           </Link>
         </div>
@@ -114,16 +114,16 @@ export const SwimmerSchedulePage = () => {
 
       {/* Group Info Banner */}
       {activeEnrollment && (
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-teal-50/60 via-sky-50/40 to-blue-50/40 dark:from-teal-950/30 dark:to-slate-850 border border-teal-200/60 dark:border-teal-900/50 flex flex-wrap items-center justify-between gap-3">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+        <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-teal-50/60 via-sky-50/40 to-blue-50/40 dark:from-teal-950/30 dark:to-slate-850 border border-teal-200/60 dark:border-teal-900/50 flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3.5">
+            <div className="w-11 h-11 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
               {activeEnrollment.group_name?.charAt(0) || 'گ'}
             </div>
             <div>
-              <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                 گروه: {activeEnrollment.group_name} ({activeEnrollment.course_title})
               </h3>
-              <p className="text-[11px] text-slate-500 mt-0.5">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5">
                 مربی دوره: {activeEnrollment.coach_name || 'کادر فنی آکادمی'} · تاریخ ثبت‌نام:{' '}
                 {activeEnrollment.created_at?.slice(0, 10)}
               </p>
@@ -141,7 +141,7 @@ export const SwimmerSchedulePage = () => {
           <button
             type="button"
             onClick={() => setFilter('ALL')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
               filter === 'ALL'
                 ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -152,7 +152,7 @@ export const SwimmerSchedulePage = () => {
           <button
             type="button"
             onClick={() => setFilter('UPCOMING')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
               filter === 'UPCOMING'
                 ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -163,7 +163,7 @@ export const SwimmerSchedulePage = () => {
           <button
             type="button"
             onClick={() => setFilter('PAST')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer ${
+            className={`px-4 py-2 text-xs sm:text-sm font-bold rounded-xl transition-all cursor-pointer ${
               filter === 'PAST'
                 ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -176,45 +176,45 @@ export const SwimmerSchedulePage = () => {
 
       {/* Sessions List */}
       {filteredSessions.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredSessions.map((sess) => (
             <div
               key={sess.id}
-              className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-sky-300 dark:hover:border-sky-800 transition-all flex flex-col justify-between gap-3"
+              className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-sky-300 dark:hover:border-sky-800 transition-all flex flex-col justify-between gap-3"
             >
               <div>
-                <div className="flex items-center justify-between gap-2 mb-2">
-                  <span className="text-xs font-extrabold text-sky-700 dark:text-sky-300 font-mono flex items-center gap-1.5">
-                    <Calendar className="w-3.5 h-3.5" />
+                <div className="flex items-center justify-between gap-2 mb-2.5">
+                  <span className="text-sm font-black text-sky-700 dark:text-sky-300 font-mono flex items-center gap-1.5">
+                    <Calendar className="w-4 h-4" />
                     {sess.session_date}
                   </span>
                   {getStatusBadge(sess.status)}
                 </div>
 
-                <h3 className="text-sm font-bold text-slate-800 dark:text-slate-100">
+                <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">
                   {sess.group_name || 'کلاس تمرینی شنا'}
                 </h3>
 
-                <div className="mt-2.5 space-y-1.5 text-xs text-slate-600 dark:text-slate-300">
+                <div className="mt-3 space-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium">
                   <div className="flex items-center gap-2">
-                    <Clock className="w-3.5 h-3.5 text-sky-600" />
+                    <Clock className="w-4 h-4 text-sky-600" />
                     <span>
                       ساعت {sess.start_time?.slice(0, 5)} الی {sess.end_time?.slice(0, 5)}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <User className="w-3.5 h-3.5 text-sky-600" />
+                    <User className="w-4 h-4 text-sky-600" />
                     <span>مربی مسئول: {sess.coach_name || 'کادر فنی آکادمی'}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <MapPin className="w-3.5 h-3.5 text-sky-600" />
+                    <MapPin className="w-4 h-4 text-sky-600" />
                     <span>محل استخر: مجموعه آبی سرپوشیده ایران‌سویم (خط ۱ و ۲)</span>
                   </div>
                 </div>
               </div>
 
               {sess.status === 'CANCELLED' && (
-                <div className="p-2.5 bg-rose-50 dark:bg-rose-950/40 rounded-xl border border-rose-200 dark:border-rose-900/60 text-[11px] text-rose-700 dark:text-rose-300">
+                <div className="p-3 bg-rose-50 dark:bg-rose-950/40 rounded-xl border border-rose-200 dark:border-rose-900/60 text-xs sm:text-sm text-rose-700 dark:text-rose-300 font-medium">
                   ⚠️ این جلسه به دلیل هماهنگی یا مسابقات لغو شده است و سهمیه‌ای از شناگر کسر نمی‌گردد.
                 </div>
               )}
@@ -224,10 +224,10 @@ export const SwimmerSchedulePage = () => {
       ) : (
         <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
           <Calendar className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-          <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+          <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-200">
             جلسه‌ای برای این فیلتر یافت نشد
           </h3>
-          <p className="text-xs text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 mt-1">
             لطفاً فیلتر «همه جلسات» را انتخاب فرمایید.
           </p>
         </div>

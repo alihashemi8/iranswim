@@ -245,7 +245,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                 <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   {user.full_name}
                 </span>
-                <span className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold truncate">
+                <span className="text-xs text-blue-600 dark:text-blue-400 font-bold truncate">
                   {roleTitles[user.role] || 'کاربر سیستم'}
                 </span>
               </div>
@@ -292,7 +292,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
               <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 {user.full_name}
               </span>
-              <span className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold truncate">
+              <span className="text-xs text-blue-600 dark:text-blue-400 font-bold truncate">
                 {roleTitles[user.role] || 'کاربر سیستم'}
               </span>
             </div>

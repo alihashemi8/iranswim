@@ -64,8 +64,8 @@ export const StatsCard = ({
       className={`relative bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs ${currentStyle.hoverBorder} transition-all duration-200 h-full flex flex-col justify-between overflow-hidden group ${className}`}
     >
       <div>
-        <div className="flex items-start justify-between gap-1.5 sm:gap-2">
-          <span className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-300 leading-tight">
+        <div className="flex items-start justify-between gap-2">
+          <span className="text-sm sm:text-base font-bold text-slate-700 dark:text-slate-200 leading-snug">
             {title}
           </span>
           {Icon && (
@@ -76,19 +76,19 @@ export const StatsCard = ({
             </div>
           )}
         </div>
-        <div className="mt-2.5 sm:mt-3 flex items-baseline gap-2">
-          <div className="text-base sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+        <div className="mt-2.5 sm:mt-3 flex items-baseline gap-2 flex-wrap">
+          <div className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             {value}
           </div>
           {badge && (
-            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+            <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
               {badge}
             </span>
           )}
         </div>
       </div>
       {subtitle && (
-        <p className="mt-2 text-[11px] sm:text-xs font-normal text-slate-500 dark:text-slate-400 leading-tight">
+        <p className="mt-2 text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed">
           {subtitle}
         </p>
       )}

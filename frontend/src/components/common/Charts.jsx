@@ -297,18 +297,18 @@ export const ProgressBar = ({
   };
 
   return (
-    <div className="space-y-1.5 w-full">
-      <div className="flex items-center justify-between text-xs">
-        <span className="font-semibold text-slate-800 dark:text-slate-200">{label}</span>
-        <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{percentage}%</span>
+    <div className="space-y-2 w-full">
+      <div className="flex items-center justify-between">
+        <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">{label}</span>
+        <span className="font-mono font-black text-sm sm:text-base text-slate-800 dark:text-slate-200">٪{percentage}</span>
       </div>
-      <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-200/60 dark:border-slate-700/60">
+      <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-200/60 dark:border-slate-700/60">
         <div
           style={{ width: `${percentage}%` }}
           className={`h-full rounded-full bg-gradient-to-l ${gradients[color] || gradients.teal} transition-all duration-700 ease-out`}
         />
       </div>
-      {subtitle && <p className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">{subtitle}</p>}
+      {subtitle && <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed">{subtitle}</p>}
     </div>
   );
 };

@@ -262,16 +262,16 @@ export const SwimmerCompleteProfilePage = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-6 pb-12">
       {/* Top Banner */}
-      <div className="bg-gradient-to-l from-sky-600 via-sky-700 to-indigo-800 rounded-3xl p-6 sm:p-7 text-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-gradient-to-l from-sky-600 via-sky-700 to-indigo-800 rounded-3xl p-6 sm:p-8 text-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-xs font-semibold mb-2 text-cyan-100">
-            <Sparkles className="w-3.5 h-3.5" />
+          <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white/15 backdrop-blur-md rounded-full text-xs sm:text-sm font-bold mb-2 text-cyan-100">
+            <Sparkles className="w-4 h-4" />
             {isCompletedBefore ? 'ویرایش پرونده شناگر' : 'مرحله تکمیل مدارک و عضویت'}
           </div>
-          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
             {isCompletedBefore ? 'ویرایش اطلاعات و مدارک شناگر' : 'تکمیل مشخصات و مدارک الزامی شناگر'}
           </h1>
-          <p className="text-sky-100 text-xs sm:text-sm mt-1 max-w-2xl font-light leading-relaxed">
+          <p className="text-sky-100 text-sm sm:text-base mt-2 max-w-2xl font-normal leading-relaxed">
             فرآیند ثبت‌نام در ۳ گام ساده طراحی شده است. لطفاً موارد ستاره‌دار (*) را با دقت تکمیل فرمایید.
           </p>
         </div>
@@ -279,10 +279,10 @@ export const SwimmerCompleteProfilePage = () => {
         <button
           type="button"
           onClick={() => navigate('/swimmer')}
-          className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
+          className="px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl text-xs sm:text-sm font-bold transition-colors flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
         >
           <span>انتقال به پیشخوان</span>
-          <ArrowLeft className="w-3.5 h-3.5" />
+          <ArrowLeft className="w-4 h-4" />
         </button>
       </div>
 
@@ -291,18 +291,18 @@ export const SwimmerCompleteProfilePage = () => {
       {/* ============================================================== */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
         {/* Top percentage row */}
-        <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
-          <span className="flex items-center gap-1.5">
-            <span className="w-2 h-2 rounded-full bg-sky-500 animate-ping"></span>
+        <div className="flex items-center justify-between text-sm font-bold text-slate-700 dark:text-slate-300">
+          <span className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-ping"></span>
             <span>گام {currentStep} از ۳: {steps[currentStep - 1].title}</span>
           </span>
-          <span className="font-mono text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-2.5 py-1 rounded-xl">
+          <span className="font-mono font-black text-sm sm:text-base text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-3 py-1 rounded-xl">
             {progressPercentage}٪ تکمیل شده
           </span>
         </div>
 
         {/* Dynamic Progress Bar */}
-        <div className="w-full bg-slate-100 dark:bg-slate-800 h-2.5 rounded-full overflow-hidden p-0.5">
+        <div className="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden p-0.5">
           <div
             className="bg-gradient-to-r from-sky-500 via-indigo-500 to-cyan-400 h-full rounded-full transition-all duration-500 ease-out shadow-sm"
             style={{ width: `${progressPercentage}%` }}
@@ -310,7 +310,7 @@ export const SwimmerCompleteProfilePage = () => {
         </div>
 
         {/* Step Cards / Tabs Indicator */}
-        <div className="grid grid-cols-3 gap-2 sm:gap-3 pt-1">
+        <div className="grid grid-cols-3 gap-2 sm:gap-3.5 pt-1">
           {steps.map((st) => {
             const Icon = st.icon;
             const isPassed = currentStep > st.number;
@@ -329,7 +329,7 @@ export const SwimmerCompleteProfilePage = () => {
                     if (validateStep2()) setCurrentStep(3);
                   }
                 }}
-                className={`p-3 rounded-2xl border text-right transition-all cursor-pointer flex items-center gap-2.5 ${
+                className={`p-3 sm:p-3.5 rounded-2xl border text-right transition-all cursor-pointer flex items-center gap-2.5 sm:gap-3 ${
                   isCurrent
                     ? 'bg-sky-50/80 dark:bg-sky-950/50 border-sky-400 dark:border-sky-700 shadow-xs ring-2 ring-sky-500/20'
                     : isPassed
@@ -338,7 +338,7 @@ export const SwimmerCompleteProfilePage = () => {
                 }`}
               >
                 <div
-                  className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold transition-colors ${
+                  className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold transition-colors ${
                     isPassed
                       ? 'bg-emerald-500 text-white'
                       : isCurrent
@@ -346,13 +346,13 @@ export const SwimmerCompleteProfilePage = () => {
                       : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                   }`}
                 >
-                  {isPassed ? <CheckCircle2 className="w-4 h-4" /> : st.number}
+                  {isPassed ? <CheckCircle2 className="w-5 h-5" /> : st.number}
                 </div>
                 <div className="hidden sm:block min-w-0">
-                  <span className={`text-xs font-bold block truncate ${isCurrent ? 'text-sky-900 dark:text-sky-200' : 'text-slate-800 dark:text-slate-300'}`}>
+                  <span className={`text-xs sm:text-sm font-bold block truncate ${isCurrent ? 'text-sky-900 dark:text-sky-200' : 'text-slate-800 dark:text-slate-300'}`}>
                     {st.title}
                   </span>
-                  <span className="text-[10px] text-slate-400 truncate block">
+                  <span className="text-xs text-slate-400 truncate block mt-0.5 font-medium">
                     {st.desc}
                   </span>
                 </div>
@@ -364,8 +364,8 @@ export const SwimmerCompleteProfilePage = () => {
 
       {/* Error alert */}
       {error && (
-        <div className="p-4 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-200 rounded-2xl text-xs flex items-center gap-2 font-medium animate-in fade-in">
-          <AlertCircle className="w-4 h-4 shrink-0 text-rose-600" />
+        <div className="p-4 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-200 rounded-2xl text-xs sm:text-sm flex items-center gap-2 font-medium animate-in fade-in">
+          <AlertCircle className="w-5 h-5 shrink-0 text-rose-600" />
           <span>{error}</span>
         </div>
       )}
@@ -379,16 +379,16 @@ export const SwimmerCompleteProfilePage = () => {
         {/* STEP 1: PERSONAL INFORMATION                               */}
         {/* ========================================================== */}
         {currentStep === 1 && (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-5 animate-in fade-in duration-300">
-            <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-              <User className="w-4 h-4 text-sky-600" />
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white">گام اول: مشخصات هویتی و فردی شناگر</h2>
-              <span className="text-[11px] text-slate-400 mr-auto font-normal">موارد ستاره‌دار (*) الزامی هستند</span>
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-6 animate-in fade-in duration-300">
+            <div className="flex items-center gap-2.5 pb-3.5 border-b border-slate-100 dark:border-slate-800">
+              <User className="w-5 h-5 text-sky-600" />
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">گام اول: مشخصات هویتی و فردی شناگر</h2>
+              <span className="text-xs sm:text-sm text-slate-400 mr-auto font-medium">موارد ستاره‌دار (*) الزامی هستند</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                   نام شناگر <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <input
@@ -397,12 +397,12 @@ export const SwimmerCompleteProfilePage = () => {
                   value={firstName}
                   onChange={(e) => setFirstName(e.target.value)}
                   placeholder="مثال: آرتین"
-                  className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                  className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-3.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                   نام خانوادگی شناگر <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <input
@@ -411,12 +411,12 @@ export const SwimmerCompleteProfilePage = () => {
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
                   placeholder="مثال: رادمنش"
-                  className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                  className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-3.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                   نام پدر <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <input
@@ -425,16 +425,16 @@ export const SwimmerCompleteProfilePage = () => {
                   value={fatherName}
                   onChange={(e) => setFatherName(e.target.value)}
                   placeholder="مثال: محمد"
-                  className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                  className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-3.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
                 />
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                   کد ملی شناگر (۱۰ رقمی) <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="relative">
-                  <CreditCard className="w-4 h-4 text-slate-400 absolute right-3 top-3.5" />
+                  <CreditCard className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
                   <input
                     type="text"
                     required
@@ -442,36 +442,36 @@ export const SwimmerCompleteProfilePage = () => {
                     value={nationalId}
                     onChange={(e) => setNationalId(e.target.value)}
                     placeholder="0012345678"
-                    className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 font-mono focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                    className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 font-mono font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                   تاریخ تولد <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="relative">
-                  <Calendar className="w-4 h-4 text-slate-400 absolute right-3 top-3.5" />
+                  <Calendar className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
                   <input
                     type="date"
                     required
                     value={dateOfBirth}
                     onChange={(e) => setDateOfBirth(e.target.value)}
-                    className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 font-mono focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                    className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 font-mono font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                   جنسیت <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setGender('MALE')}
-                    className={`flex-1 py-2.5 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                    className={`flex-1 py-2.5 px-3 rounded-xl border text-sm font-bold transition-all cursor-pointer ${
                       gender === 'MALE'
                         ? 'bg-sky-500 text-white border-sky-500 shadow-2xs'
                         : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
@@ -482,7 +482,7 @@ export const SwimmerCompleteProfilePage = () => {
                   <button
                     type="button"
                     onClick={() => setGender('FEMALE')}
-                    className={`flex-1 py-2.5 px-3 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                    className={`flex-1 py-2.5 px-3 rounded-xl border text-sm font-bold transition-all cursor-pointer ${
                       gender === 'FEMALE'
                         ? 'bg-pink-500 text-white border-pink-500 shadow-2xs'
                         : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
@@ -494,35 +494,35 @@ export const SwimmerCompleteProfilePage = () => {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                   نام مدرسه (اختیاری)
                 </label>
                 <div className="relative">
-                  <School className="w-4 h-4 text-slate-400 absolute right-3 top-3.5" />
+                  <School className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
                   <input
                     type="text"
                     value={schoolName}
                     onChange={(e) => setSchoolName(e.target.value)}
                     placeholder="مثال: دبیرستان نمونه دولتی رشد"
-                    className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                    className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
                   />
                 </div>
               </div>
 
               {/* Photo Upload (Optional) */}
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                   عکس پرسنلی شناگر (اختیاری)
                 </label>
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 overflow-hidden">
+                  <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 overflow-hidden">
                     {avatarPreview ? (
                       <img src={avatarPreview} alt="عکس پرسنلی" className="w-full h-full object-cover" />
                     ) : (
                       <ImageIcon className="w-5 h-5 text-slate-400" />
                     )}
                   </div>
-                  <label className="px-3 py-2 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-xl text-xs font-semibold cursor-pointer border border-slate-200/80 transition-colors">
+                  <label className="px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-xl text-xs sm:text-sm font-bold cursor-pointer border border-slate-200/80 transition-colors">
                     <span>{avatarPreview ? 'تغییر عکس' : 'انتخاب عکس چهره'}</span>
                     <input
                       type="file"
@@ -540,7 +540,7 @@ export const SwimmerCompleteProfilePage = () => {
               <Button
                 type="button"
                 onClick={handleNextStep}
-                className="px-6 py-2.5 text-xs font-bold gap-2 cursor-pointer shadow-sm"
+                className="px-7 py-3 text-sm sm:text-base font-bold gap-2 cursor-pointer shadow-sm"
               >
                 <span>مرحله بعدی: نشانی و تماس اولیاء</span>
                 <ArrowLeft className="w-4 h-4" />
@@ -553,52 +553,52 @@ export const SwimmerCompleteProfilePage = () => {
         {/* STEP 2: PARENTS & ADDRESS (MAP PICKER)                     */}
         {/* ========================================================== */}
         {currentStep === 2 && (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-5 animate-in fade-in duration-300">
-            <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-              <Home className="w-4 h-4 text-sky-600" />
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white">گام دوم: اطلاعات اولیاء، نشانی منزل و تعیین موقعیت روی نقشه</h2>
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-6 animate-in fade-in duration-300">
+            <div className="flex items-center gap-2.5 pb-3.5 border-b border-slate-100 dark:border-slate-800">
+              <Home className="w-5 h-5 text-sky-600" />
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">گام دوم: اطلاعات اولیاء، نشانی منزل و تعیین موقعیت روی نقشه</h2>
             </div>
 
-            <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl text-xs text-amber-800 dark:text-amber-300 flex items-center gap-2">
+            <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl text-xs sm:text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2.5 font-medium leading-relaxed">
               <Phone className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
               <span>شماره تماس پدر یا مادر: ثبت <strong>حداقل یکی از شماره‌های تماس پدر یا مادر الزامی است</strong>.</span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                   شماره تماس پدر:
                 </label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 text-slate-400 absolute right-3 top-3.5" />
+                  <Phone className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
                   <input
                     type="tel"
                     value={fatherPhone}
                     onChange={(e) => setFatherPhone(e.target.value)}
                     placeholder="09123456789"
-                    className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 font-mono focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                    className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 font-mono font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                   شماره تماس مادر:
                 </label>
                 <div className="relative">
-                  <Phone className="w-4 h-4 text-slate-400 absolute right-3 top-3.5" />
+                  <Phone className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
                   <input
                     type="tel"
                     value={motherPhone}
                     onChange={(e) => setMotherPhone(e.target.value)}
                     placeholder="09129876543"
-                    className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 font-mono focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                    className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 font-mono font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                   />
                 </div>
               </div>
 
               <div className="sm:col-span-2">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                   آدرس دقیق متنی منزل <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <textarea
@@ -607,7 +607,7 @@ export const SwimmerCompleteProfilePage = () => {
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   placeholder="شهر، خیابان، کوچه، پلاک، واحد..."
-                  className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                  className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
                 />
               </div>
 
@@ -632,7 +632,7 @@ export const SwimmerCompleteProfilePage = () => {
                 type="button"
                 variant="outline"
                 onClick={handlePrevStep}
-                className="px-5 py-2.5 text-xs font-bold gap-2 cursor-pointer"
+                className="px-5 py-2.5 text-xs sm:text-sm font-bold gap-2 cursor-pointer"
               >
                 <ArrowRight className="w-4 h-4" />
                 <span>مرحله قبلی</span>
@@ -641,7 +641,7 @@ export const SwimmerCompleteProfilePage = () => {
               <Button
                 type="button"
                 onClick={handleNextStep}
-                className="px-6 py-2.5 text-xs font-bold gap-2 cursor-pointer shadow-sm"
+                className="px-7 py-3 text-sm sm:text-base font-bold gap-2 cursor-pointer shadow-sm"
               >
                 <span>مرحله بعدی: بارگذاری مدارک هویتی</span>
                 <ArrowLeft className="w-4 h-4" />
@@ -654,24 +654,24 @@ export const SwimmerCompleteProfilePage = () => {
         {/* STEP 3: DOCUMENTS UPLOAD & FINAL SUBMIT                    */}
         {/* ========================================================== */}
         {currentStep === 3 && (
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-5 animate-in fade-in duration-300">
-            <div className="flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
-              <Upload className="w-4 h-4 text-sky-600" />
-              <h2 className="text-sm font-bold text-slate-900 dark:text-white">گام سوم: بارگذاری تصاویر و مدارک هویتی شناگر</h2>
-              <span className="text-[11px] text-slate-400 mr-auto font-normal">تمام موارد این بخش الزامی هستند</span>
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-6 animate-in fade-in duration-300">
+            <div className="flex items-center gap-2.5 pb-3.5 border-b border-slate-100 dark:border-slate-800">
+              <Upload className="w-5 h-5 text-sky-600" />
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">گام سوم: بارگذاری تصاویر و مدارک هویتی شناگر</h2>
+              <span className="text-xs sm:text-sm text-slate-400 mr-auto font-medium">تمام موارد این بخش الزامی هستند</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               {/* 1. عکس صفحه اول شناسنامه (*) */}
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 space-y-2.5">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-                    <FileText className="w-3.5 h-3.5 text-sky-600" />
+                  <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <FileText className="w-4 h-4 text-sky-600" />
                     صفحه اول شناسنامه <span className="text-rose-500 font-bold">*</span>
                   </span>
                   {birthCertPreview && (
-                    <span className="text-[10px] font-semibold text-emerald-600 flex items-center gap-0.5">
-                      <CheckCircle2 className="w-3 h-3" />
+                    <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
                       تایید
                     </span>
                   )}
@@ -681,7 +681,7 @@ export const SwimmerCompleteProfilePage = () => {
                   <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 group h-40 bg-slate-100 dark:bg-slate-900 flex items-center justify-center">
                     <img src={birthCertPreview} alt="شناسنامه" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <label className="p-2 bg-white text-slate-800 rounded-lg text-xs font-semibold cursor-pointer shadow hover:bg-slate-100">
+                      <label className="p-2.5 bg-white text-slate-800 rounded-lg text-xs sm:text-sm font-bold cursor-pointer shadow hover:bg-slate-100">
                         تغییر عکس
                         <input
                           type="file"
@@ -695,8 +695,8 @@ export const SwimmerCompleteProfilePage = () => {
                 ) : (
                   <label className="flex flex-col items-center justify-center h-40 border-2 border-dashed border-sky-300 dark:border-sky-800 hover:border-sky-500 rounded-xl cursor-pointer bg-sky-50/40 dark:bg-sky-950/20 transition-colors p-3 text-center">
                     <Upload className="w-6 h-6 text-sky-600 mb-1" />
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">عکس شناسنامه</span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">فرمت‌های JPG یا PNG</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">عکس شناسنامه</span>
+                    <span className="text-xs text-slate-400 mt-1 font-medium">فرمت‌های JPG یا PNG</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -708,15 +708,15 @@ export const SwimmerCompleteProfilePage = () => {
               </div>
 
               {/* 2. عکس کارت ملی (*) */}
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 space-y-2.5">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-                    <CreditCard className="w-3.5 h-3.5 text-sky-600" />
+                  <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <CreditCard className="w-4 h-4 text-sky-600" />
                     کارت ملی شناگر <span className="text-rose-500 font-bold">*</span>
                   </span>
                   {nationalCardPreview && (
-                    <span className="text-[10px] font-semibold text-emerald-600 flex items-center gap-0.5">
-                      <CheckCircle2 className="w-3 h-3" />
+                    <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
                       تایید
                     </span>
                   )}
@@ -726,7 +726,7 @@ export const SwimmerCompleteProfilePage = () => {
                   <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 group h-40 bg-slate-100 dark:bg-slate-900 flex items-center justify-center">
                     <img src={nationalCardPreview} alt="کارت ملی" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <label className="p-2 bg-white text-slate-800 rounded-lg text-xs font-semibold cursor-pointer shadow hover:bg-slate-100">
+                      <label className="p-2.5 bg-white text-slate-800 rounded-lg text-xs sm:text-sm font-bold cursor-pointer shadow hover:bg-slate-100">
                         تغییر عکس
                         <input
                           type="file"
@@ -740,8 +740,8 @@ export const SwimmerCompleteProfilePage = () => {
                 ) : (
                   <label className="flex flex-col items-center justify-center h-40 border-2 border-dashed border-sky-300 dark:border-sky-800 hover:border-sky-500 rounded-xl cursor-pointer bg-sky-50/40 dark:bg-sky-950/20 transition-colors p-3 text-center">
                     <CreditCard className="w-6 h-6 text-sky-600 mb-1" />
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">عکس کارت ملی</span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">فرمت‌های JPG یا PNG</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">عکس کارت ملی</span>
+                    <span className="text-xs text-slate-400 mt-1 font-medium">فرمت‌های JPG یا PNG</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -753,15 +753,15 @@ export const SwimmerCompleteProfilePage = () => {
               </div>
 
               {/* 3. عکس بیمه ورزشی (*) */}
-              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 space-y-2.5">
+              <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
-                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-emerald-600" />
                     بیمه ورزشی معتبر <span className="text-rose-500 font-bold">*</span>
                   </span>
                   {sportsInsurancePreview && (
-                    <span className="text-[10px] font-semibold text-emerald-600 flex items-center gap-0.5">
-                      <CheckCircle2 className="w-3 h-3" />
+                    <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
                       تایید
                     </span>
                   )}
@@ -771,7 +771,7 @@ export const SwimmerCompleteProfilePage = () => {
                   <div className="relative rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 group h-40 bg-slate-100 dark:bg-slate-900 flex items-center justify-center">
                     <img src={sportsInsurancePreview} alt="بیمه ورزشی" className="w-full h-full object-cover" />
                     <div className="absolute inset-0 bg-slate-900/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <label className="p-2 bg-white text-slate-800 rounded-lg text-xs font-semibold cursor-pointer shadow hover:bg-slate-100">
+                      <label className="p-2.5 bg-white text-slate-800 rounded-lg text-xs sm:text-sm font-bold cursor-pointer shadow hover:bg-slate-100">
                         تغییر عکس
                         <input
                           type="file"
@@ -785,8 +785,8 @@ export const SwimmerCompleteProfilePage = () => {
                 ) : (
                   <label className="flex flex-col items-center justify-center h-40 border-2 border-dashed border-emerald-300 dark:border-emerald-800 hover:border-emerald-500 rounded-xl cursor-pointer bg-emerald-50/40 dark:bg-emerald-950/20 transition-colors p-3 text-center">
                     <ShieldCheck className="w-6 h-6 text-emerald-600 mb-1" />
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300">عکس بیمه ورزشی</span>
-                    <span className="text-[10px] text-slate-400 mt-0.5">فدراسیون پزشکی ورزشی</span>
+                    <span className="text-sm font-bold text-slate-700 dark:text-slate-300">عکس بیمه ورزشی</span>
+                    <span className="text-xs text-slate-400 mt-1 font-medium">فدراسیون پزشکی ورزشی</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -804,7 +804,7 @@ export const SwimmerCompleteProfilePage = () => {
                 type="button"
                 variant="outline"
                 onClick={handlePrevStep}
-                className="px-5 py-2.5 text-xs font-bold gap-2 cursor-pointer"
+                className="px-5 py-2.5 text-xs sm:text-sm font-bold gap-2 cursor-pointer"
               >
                 <ArrowRight className="w-4 h-4" />
                 <span>مرحله قبلی</span>
@@ -813,9 +813,9 @@ export const SwimmerCompleteProfilePage = () => {
               <Button
                 type="submit"
                 loading={saving}
-                className="px-8 py-3 text-sm font-bold gap-2 shadow-md cursor-pointer"
+                className="px-8 py-3.5 text-sm sm:text-base font-bold gap-2 shadow-md cursor-pointer"
               >
-                <CheckCircle2 className="w-4 h-4" />
+                <CheckCircle2 className="w-5 h-5" />
                 <span>ثبت نهایی و تکمیل پرونده شناگر</span>
               </Button>
             </div>

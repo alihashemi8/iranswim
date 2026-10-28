@@ -155,47 +155,47 @@ export const SwimmerDashboardPage = () => {
       {/* 1. Hero Banner: Deep Oceanic Navy Brand Identity with Aquatic Glow */}
       <div className="bg-gradient-to-l from-slate-900 via-blue-950 to-cyan-950 rounded-3xl p-6 sm:p-8 text-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 relative overflow-hidden border border-blue-900/40">
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-xs font-semibold mb-2.5 text-cyan-200 border border-white/10">
-            <Waves className="w-3.5 h-3.5 text-cyan-300" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-white/10 backdrop-blur-md rounded-full text-sm font-bold mb-2.5 text-cyan-200 border border-white/10">
+            <Waves className="w-4 h-4 text-cyan-300" />
             <span>باشگاه شنا و آکادمی ورزش‌های آبی</span>
           </div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-extrabold tracking-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight">
             سلام، {swimmerName}! 👋
           </h1>
-          <div className="flex flex-wrap items-center gap-2 mt-2 text-xs sm:text-sm font-light text-slate-200">
+          <div className="flex flex-wrap items-center gap-2.5 mt-2.5 text-sm sm:text-base font-normal text-slate-200">
             <span>سطح ورزشی:</span>
-            <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded-md">
+            <span className="font-extrabold text-white bg-white/15 px-2.5 py-0.5 rounded-lg">
               {profile?.level_name || 'سطح مقدماتی ۱'}
             </span>
             <span className="text-slate-400">·</span>
             <span>وضعیت پرونده:</span>
             {profile?.is_profile_completed ? (
-              <span className="inline-flex items-center gap-1 font-semibold text-teal-300 bg-teal-950/60 border border-teal-500/30 px-2 py-0.5 rounded-md">
-                <CheckCircle2 className="w-3.5 h-3.5" />
+              <span className="inline-flex items-center gap-1.5 font-bold text-teal-300 bg-teal-950/70 border border-teal-500/40 px-2.5 py-0.5 rounded-lg text-sm">
+                <CheckCircle2 className="w-4 h-4" />
                 تکمیل‌شده و فعال
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1 font-semibold text-orange-300 bg-orange-950/60 border border-orange-500/30 px-2 py-0.5 rounded-md">
-                <AlertCircle className="w-3.5 h-3.5" />
+              <span className="inline-flex items-center gap-1.5 font-bold text-orange-300 bg-orange-950/70 border border-orange-500/40 px-2.5 py-0.5 rounded-lg text-sm">
+                <AlertCircle className="w-4 h-4" />
                 در انتظار مدارک
               </span>
             )}
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5 relative z-10 self-stretch sm:self-auto">
+        <div className="flex flex-wrap items-center gap-3 relative z-10 self-stretch sm:self-auto">
           <Link
             to="/swimmer/schedule"
-            className="flex-1 sm:flex-none px-4 py-2.5 bg-white text-blue-950 hover:bg-cyan-50 rounded-2xl text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 sm:flex-none px-5 py-3 bg-white text-blue-950 hover:bg-cyan-50 rounded-2xl text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
           >
-            <Calendar className="w-4 h-4 text-blue-700" />
+            <Calendar className="w-4.5 h-4.5 text-blue-700" />
             <span>برنامه کلاس‌ها</span>
           </Link>
           <Link
             to="/swimmer/documents"
-            className="flex-1 sm:flex-none px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white backdrop-blur-md rounded-2xl text-xs font-bold transition-all border border-white/20 flex items-center justify-center gap-1.5 cursor-pointer"
+            className="flex-1 sm:flex-none px-5 py-3 bg-white/10 hover:bg-white/20 text-white backdrop-blur-md rounded-2xl text-sm font-bold transition-all border border-white/20 flex items-center justify-center gap-2 cursor-pointer"
           >
-            <FileText className="w-4 h-4 text-cyan-200" />
+            <FileText className="w-4.5 h-4.5 text-cyan-200" />
             <span>پرونده و مدارک</span>
           </Link>
         </div>
@@ -205,11 +205,11 @@ export const SwimmerDashboardPage = () => {
       {actionItems.length > 0 && (
         <div className="space-y-3">
           <div className="flex items-center justify-between px-1">
-            <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-orange-500" />
+            <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-orange-500" />
               <span>کارهای نیازمند اقدام شما</span>
             </h2>
-            <span className="text-xs font-bold font-mono px-2.5 py-0.5 rounded-full bg-orange-100 dark:bg-orange-950/70 text-orange-800 dark:text-orange-200 border border-orange-200 dark:border-orange-800">
+            <span className="text-xs sm:text-sm font-bold font-mono px-3 py-1 rounded-full bg-orange-100 dark:bg-orange-950/70 text-orange-800 dark:text-orange-200 border border-orange-200 dark:border-orange-800">
               {actionItems.length} اقدام ضروری
             </span>
           </div>
@@ -227,20 +227,20 @@ export const SwimmerDashboardPage = () => {
                 }`}
               >
                 <div>
-                  <h3 className="text-xs font-bold text-slate-900 dark:text-white mb-1 flex items-center gap-1.5">
-                    {act.level === 'danger' && <span className="w-2 h-2 rounded-full bg-orange-600 animate-pulse" />}
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white mb-1.5 flex items-center gap-2">
+                    {act.level === 'danger' && <span className="w-2.5 h-2.5 rounded-full bg-orange-600 animate-pulse" />}
                     {act.title}
                   </h3>
-                  <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                     {act.desc}
                   </p>
                 </div>
                 <Link
                   to={act.link}
-                  className="self-end inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-800 hover:border-orange-500 shadow-2xs transition-colors cursor-pointer"
+                  className="self-end inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl bg-white dark:bg-slate-900 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-800 hover:border-orange-500 shadow-2xs transition-colors cursor-pointer"
                 >
                   <span>{act.actionText}</span>
-                  <ChevronLeft className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+                  <ChevronLeft className="w-4 h-4 text-orange-600 dark:text-orange-400" />
                 </Link>
               </div>
             ))}
@@ -256,29 +256,29 @@ export const SwimmerDashboardPage = () => {
               <Clock className="w-6 h-6" />
             </div>
             <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-[11px] font-bold text-teal-800 dark:text-teal-200 bg-teal-100/90 dark:bg-teal-950/80 px-2.5 py-0.5 rounded-lg border border-teal-200 dark:border-teal-800 inline-flex items-center gap-1">
-                  <Waves className="w-3 h-3 text-teal-600 dark:text-teal-400" />
+              <div className="flex items-center gap-2 mb-1.5 flex-wrap">
+                <span className="text-xs sm:text-sm font-bold text-teal-800 dark:text-teal-200 bg-teal-100/90 dark:bg-teal-950/80 px-2.5 py-0.5 rounded-lg border border-teal-200 dark:border-teal-800 inline-flex items-center gap-1.5">
+                  <Waves className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                   جلسه تمرینی بعدی در استخر
                 </span>
-                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 font-mono">
+                <span className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400 font-mono">
                   {nextSession.session_date}
                 </span>
               </div>
-              <h3 className="text-base sm:text-lg font-extrabold text-slate-900 dark:text-white">
+              <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
                 {nextSession.group_name || 'کلاس شنای آکادمی'}
               </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-300 mt-1.5 flex flex-wrap items-center gap-3">
-                <span className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-2 flex flex-wrap items-center gap-3.5 font-medium">
+                <span className="flex items-center gap-1.5">
+                  <Clock className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                   ساعت {nextSession.start_time?.slice(0, 5)} الی {nextSession.end_time?.slice(0, 5)}
                 </span>
-                <span className="flex items-center gap-1">
-                  <User className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                <span className="flex items-center gap-1.5">
+                  <User className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                   مربی: {nextSession.coach_name || 'کادر فنی آکادمی'}
                 </span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-teal-600 dark:text-teal-400" />
                   استخر کاسه اصلی
                 </span>
               </p>
@@ -286,7 +286,7 @@ export const SwimmerDashboardPage = () => {
           </div>
           <Link
             to="/swimmer/schedule"
-            className="px-4 py-2 text-xs font-bold text-teal-900 dark:text-teal-100 bg-white dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-teal-950/60 rounded-xl border border-teal-200 dark:border-teal-800 transition-colors shadow-2xs flex items-center gap-1.5 self-end md:self-center shrink-0 cursor-pointer"
+            className="px-4 py-2.5 text-sm font-bold text-teal-900 dark:text-teal-100 bg-white dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-teal-950/60 rounded-xl border border-teal-200 dark:border-teal-800 transition-colors shadow-2xs flex items-center gap-1.5 self-end md:self-center shrink-0 cursor-pointer"
           >
             <span>مشاهده جزئیات برنامه</span>
             <ChevronLeft className="w-4 h-4 text-teal-600" />
@@ -299,17 +299,17 @@ export const SwimmerDashboardPage = () => {
               <Calendar className="w-5 h-5" />
             </div>
             <div>
-              <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+              <p className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200">
                 در حال حاضر جلسه زمان‌بندی‌شده فعالی ثبت نشده است
               </p>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
                 پس از تخصیص سانس یا شروع دوره جدید، جلسات استخر در اینجا قابل مشاهده خواهند بود.
               </p>
             </div>
           </div>
           <Link
             to="/swimmer/schedule"
-            className="text-xs font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 shrink-0"
+            className="text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 shrink-0"
           >
             تقویم هفتگی
           </Link>
@@ -358,18 +358,18 @@ export const SwimmerDashboardPage = () => {
       {/* 5. Swimmer Motivation & Performance Highlights */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* Module A: Swimming Skill Progress (Teal) */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between space-y-3 hover:border-teal-300 dark:hover:border-teal-800 transition-all">
-          <div className="space-y-3">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between space-y-4 hover:border-teal-300 dark:hover:border-teal-800 transition-all">
+          <div className="space-y-3.5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="p-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/70 text-teal-600 dark:text-teal-400 border border-teal-200/60 dark:border-teal-900/60">
-                  <Sparkles className="w-4 h-4" />
+                  <Sparkles className="w-4.5 h-4.5" />
                 </span>
-                <h3 className="text-xs font-bold text-slate-900 dark:text-white">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                   مسیر توسعه مهارت‌های شنا
                 </h3>
               </div>
-              <span className="text-[11px] font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-md border border-teal-200/60">
+              <span className="text-xs sm:text-sm font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-2.5 py-0.5 rounded-lg border border-teal-200/60">
                 {profile?.level_name || 'سطح پایه'}
               </span>
             </div>
@@ -385,91 +385,91 @@ export const SwimmerDashboardPage = () => {
 
           <Link
             to="/swimmer/progress"
-            className="inline-flex items-center justify-between text-xs font-bold text-teal-700 dark:text-teal-300 hover:text-teal-800 pt-1 group"
+            className="inline-flex items-center justify-between text-sm font-bold text-teal-700 dark:text-teal-300 hover:text-teal-800 pt-1 group"
           >
             <span>مشاهده ماتریس و زنجیره مهارت‌ها</span>
-            <ChevronLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" />
+            <ChevronLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
           </Link>
         </div>
 
         {/* Module B: League, Points & Rewards (Warm Amber) */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between space-y-3 hover:border-amber-300 dark:hover:border-amber-800 transition-all">
-          <div className="space-y-2.5">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between space-y-4 hover:border-amber-300 dark:hover:border-amber-800 transition-all">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="p-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-900/60">
-                  <Trophy className="w-4 h-4" />
+                  <Trophy className="w-4.5 h-4.5" />
                 </span>
-                <h3 className="text-xs font-bold text-slate-900 dark:text-white">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                   افتخارات، رتبه و امتیازات
                 </h3>
               </div>
-              <span className="text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-md border border-amber-200/60">
+              <span className="text-xs sm:text-sm font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-lg border border-amber-200/60">
                 نشان ورزشی
               </span>
             </div>
 
             <div className="flex flex-wrap gap-2 pt-1">
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200 border border-amber-200/80 dark:border-amber-900/60 text-[11px] font-semibold">
-                <Medal className="w-3.5 h-3.5 text-amber-600" />
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200 border border-amber-200/80 dark:border-amber-900/60 text-xs sm:text-sm font-semibold">
+                <Medal className="w-4 h-4 text-amber-600" />
                 <span>استمرار تمرین: {attendanceRate >= 80 ? 'نشان زرین حضور' : 'فعال در تمرینات'}</span>
               </div>
-              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-[11px] font-semibold">
-                <Award className="w-3.5 h-3.5 text-amber-500" />
+              <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm font-semibold">
+                <Award className="w-4 h-4 text-amber-500" />
                 <span>عضویت در فصول لیگ شنا</span>
               </div>
             </div>
-            <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
               با حضور مستمر و ثبت رکوردهای زمانی، امتیازات خود را در جدول لیگ باشگاه ارتقا دهید.
             </p>
           </div>
 
           <Link
             to="/swimmer/league"
-            className="inline-flex items-center justify-between text-xs font-bold text-amber-700 dark:text-amber-300 hover:text-amber-800 pt-1 group"
+            className="inline-flex items-center justify-between text-sm font-bold text-amber-700 dark:text-amber-300 hover:text-amber-800 pt-1 group"
           >
             <span>جدول لیگ و رده‌بندی فصلی</span>
-            <ChevronLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" />
+            <ChevronLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
           </Link>
         </div>
 
         {/* Module C: Best Time Records (PB - Primary Blue / Fresh Green) */}
-        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between space-y-3 hover:border-blue-300 dark:hover:border-blue-800 transition-all">
-          <div className="space-y-2.5">
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between space-y-4 hover:border-blue-300 dark:hover:border-blue-800 transition-all">
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="p-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/60">
-                  <Timer className="w-4 h-4" />
+                  <Timer className="w-4.5 h-4.5" />
                 </span>
-                <h3 className="text-xs font-bold text-slate-900 dark:text-white">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                   بهترین رکوردهای ثبت‌شده (PB)
                 </h3>
               </div>
-              <span className="text-[11px] font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2 py-0.5 rounded-md border border-blue-200/60 font-mono">
+              <span className="text-xs sm:text-sm font-bold text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-950/60 px-2.5 py-0.5 rounded-lg border border-blue-200/60 font-mono">
                 {records.length} رکورد
               </span>
             </div>
 
             {primaryRecord ? (
-              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1">
+              <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                  <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
                     {primaryRecord.distance_meters} متر {primaryRecord.stroke_display || 'کرال سینه'}
                   </span>
-                  <span className="text-xs font-black font-mono text-blue-700 dark:text-blue-300">
+                  <span className="text-sm sm:text-base font-black font-mono text-blue-700 dark:text-blue-300">
                     {primaryRecord.formatted_time || `${primaryRecord.duration_seconds}s`}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-[10px] text-slate-500">
+                <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
                   <span>تاریخ: {primaryRecord.recorded_at}</span>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-0.5">
-                    <Check className="w-3 h-3" />
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
+                    <Check className="w-3.5 h-3.5" />
                     تأیید رسمی کادر داوری
                   </span>
                 </div>
               </div>
             ) : (
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed py-1">
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed py-1">
                 هنوز رکورد زمانی رسمی ثبت نشده است؛ در جلسات آزمون تایم‌گیری، بهترین رکوردهای استخر در اینجا قرار می‌گیرد.
               </p>
             )}
@@ -477,10 +477,10 @@ export const SwimmerDashboardPage = () => {
 
           <Link
             to="/swimmer/progress"
-            className="inline-flex items-center justify-between text-xs font-bold text-blue-700 dark:text-blue-300 hover:text-blue-800 pt-1 group"
+            className="inline-flex items-center justify-between text-sm font-bold text-blue-700 dark:text-blue-300 hover:text-blue-800 pt-1 group"
           >
             <span>مشاهده نمودار و تاریخچه رکوردها</span>
-            <ChevronLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-1" />
+            <ChevronLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
           </Link>
         </div>
       </div>
@@ -490,18 +490,18 @@ export const SwimmerDashboardPage = () => {
         {/* Left: Latest Coach Assessment (Soft Violet Identity) */}
         <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <span className="p-1 rounded-lg bg-violet-50 dark:bg-violet-950/70 text-violet-600 dark:text-violet-400">
-                <Award className="w-4 h-4" />
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-violet-50 dark:bg-violet-950/70 text-violet-600 dark:text-violet-400">
+                <Award className="w-4.5 h-4.5" />
               </span>
               <span>آخرین ارزیابی‌های فنی و بازخورد مربی</span>
             </h2>
             <Link
               to="/swimmer/progress"
-              className="text-xs font-bold text-violet-700 dark:text-violet-300 hover:text-violet-800 flex items-center gap-1"
+              className="text-sm font-bold text-violet-700 dark:text-violet-300 hover:text-violet-800 flex items-center gap-1"
             >
               <span>مشاهده کارنامه کامل</span>
-              <ChevronLeft className="w-3.5 h-3.5" />
+              <ChevronLeft className="w-4 h-4" />
             </Link>
           </div>
 
@@ -510,11 +510,11 @@ export const SwimmerDashboardPage = () => {
               {assessments.slice(0, 3).map((ass) => (
                 <div
                   key={ass.id}
-                  className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/60 flex items-center justify-between gap-3"
+                  className="p-4 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-700/60 flex items-center justify-between gap-3"
                 >
                   <div className="flex items-center gap-3">
                     <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs border ${
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm border ${
                         ass.status === 'PASSED'
                           ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
                           : 'bg-violet-50 dark:bg-violet-950/60 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800'
@@ -523,10 +523,10 @@ export const SwimmerDashboardPage = () => {
                       {ass.score ? `${Math.round(ass.score)}` : '—'}
                     </div>
                     <div>
-                      <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                      <h4 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100">
                         {ass.skill_name || 'مهارت فنی شنا'}
                       </h4>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
                         مربی ارزیاب: {ass.assessed_by_name || 'کادر فنی'} · تاریخ: {ass.assessed_at || ass.assessment_date}
                       </p>
                     </div>
@@ -538,7 +538,7 @@ export const SwimmerDashboardPage = () => {
               ))}
             </div>
           ) : (
-            <div className="p-8 text-center text-xs text-slate-400">
+            <div className="p-8 text-center text-sm text-slate-400">
               هنوز ارزیابی مهارتی برای این شناگر ثبت نشده است.
             </div>
           )}
@@ -547,23 +547,23 @@ export const SwimmerDashboardPage = () => {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2">
             <Link
               to="/swimmer/league"
-              className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 hover:bg-amber-50/60 dark:hover:bg-amber-950/30 border border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-800 transition-colors flex items-center gap-2.5 text-xs font-bold text-slate-800 dark:text-slate-200"
+              className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 hover:bg-amber-50/60 dark:hover:bg-amber-950/30 border border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-800 transition-colors flex items-center gap-2.5 text-sm font-bold text-slate-800 dark:text-slate-200"
             >
-              <Trophy className="w-4 h-4 text-amber-500 shrink-0" />
+              <Trophy className="w-4.5 h-4.5 text-amber-500 shrink-0" />
               <span>جدول لیگ و رتبه</span>
             </Link>
             <Link
               to="/swimmer/attendance"
-              className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 hover:bg-teal-50/60 dark:hover:bg-teal-950/30 border border-slate-200 dark:border-slate-700 hover:border-teal-300 dark:hover:border-teal-800 transition-colors flex items-center gap-2.5 text-xs font-bold text-slate-800 dark:text-slate-200"
+              className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 hover:bg-teal-50/60 dark:hover:bg-teal-950/30 border border-slate-200 dark:border-slate-700 hover:border-teal-300 dark:hover:border-teal-800 transition-colors flex items-center gap-2.5 text-sm font-bold text-slate-800 dark:text-slate-200"
             >
-              <CheckCircle2 className="w-4 h-4 text-teal-500 shrink-0" />
+              <CheckCircle2 className="w-4.5 h-4.5 text-teal-500 shrink-0" />
               <span>دفترچه حضور و غیاب</span>
             </Link>
             <Link
               to="/swimmer/support"
-              className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-800 transition-colors flex items-center gap-2.5 text-xs font-bold text-slate-800 dark:text-slate-200"
+              className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-800 transition-colors flex items-center gap-2.5 text-sm font-bold text-slate-800 dark:text-slate-200"
             >
-              <HelpCircle className="w-4 h-4 text-blue-500 shrink-0" />
+              <HelpCircle className="w-4.5 h-4.5 text-blue-500 shrink-0" />
               <span>ارتباط و پشتیبانی</span>
             </Link>
           </div>
@@ -572,15 +572,15 @@ export const SwimmerDashboardPage = () => {
         {/* Right: Announcements & News (Coral / Warm Orange Accents for Urgency) */}
         <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-            <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <span className="p-1 rounded-lg bg-orange-50 dark:bg-orange-950/70 text-orange-600 dark:text-orange-400">
-                <Bell className="w-4 h-4" />
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-orange-50 dark:bg-orange-950/70 text-orange-600 dark:text-orange-400">
+                <Bell className="w-4.5 h-4.5" />
               </span>
               <span>اطلاعیه‌های آکادمی</span>
             </h2>
             <Link
               to="/swimmer/announcements"
-              className="text-xs font-bold text-orange-600 hover:text-orange-700 dark:text-orange-400"
+              className="text-sm font-bold text-orange-600 hover:text-orange-700 dark:text-orange-400"
             >
               آرشیو پیام‌ها
             </Link>
@@ -591,28 +591,28 @@ export const SwimmerDashboardPage = () => {
               announcements.slice(0, 3).map((ann) => (
                 <div
                   key={ann.id}
-                  className={`p-3 rounded-2xl border space-y-1 transition-all ${
+                  className={`p-3.5 rounded-2xl border space-y-1.5 transition-all ${
                     ann.is_pinned
-                      ? 'bg-orange-50/40 dark:bg-orange-950/20 border-orange-200/80 dark:border-orange-900/60 border-r-3 border-r-orange-500'
+                      ? 'bg-orange-50/40 dark:bg-orange-950/20 border-orange-200/80 dark:border-orange-900/60 border-r-4 border-r-orange-500'
                       : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/60 dark:border-slate-700/60'
                   }`}
                 >
-                  <div className="flex items-center justify-between gap-1 text-xs font-bold text-slate-800 dark:text-slate-100">
-                    <span className="truncate flex items-center gap-1">
-                      {ann.is_pinned && <Pin className="w-3 h-3 text-orange-500 rotate-45 shrink-0" />}
+                  <div className="flex items-center justify-between gap-1 text-sm font-bold text-slate-800 dark:text-slate-100">
+                    <span className="truncate flex items-center gap-1.5">
+                      {ann.is_pinned && <Pin className="w-3.5 h-3.5 text-orange-500 rotate-45 shrink-0" />}
                       <span>{ann.title}</span>
                     </span>
-                    <span className="text-[10px] text-slate-400 font-mono shrink-0">
+                    <span className="text-xs text-slate-400 font-mono shrink-0">
                       {new Date(ann.created_at).toLocaleDateString('fa-IR')}
                     </span>
                   </div>
-                  <p className="text-[11px] text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
                     {ann.message}
                   </p>
                 </div>
               ))
             ) : (
-              <div className="p-8 text-center text-xs text-slate-400">
+              <div className="p-8 text-center text-sm text-slate-400">
                 اطلاعیه جدیدی ثبت نشده است.
               </div>
             )}

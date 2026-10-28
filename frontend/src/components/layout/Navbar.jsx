@@ -72,7 +72,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               {user.role === 'SWIMMER' ? (
                 <ChildSwitcher />
               ) : (
-                <span className="hidden sm:inline-block px-2.5 py-1 rounded-lg text-xs font-bold bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200/70 dark:border-sky-800/80">
+                <span className="hidden sm:inline-block px-3 py-1 rounded-lg text-xs sm:text-sm font-bold bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200/70 dark:border-sky-800/80">
                   {roleTitles[user.role] || 'داشبورد کاربری'}
                 </span>
               )}
@@ -124,10 +124,10 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                     {user.full_name ? user.full_name.trim().charAt(0) : 'U'}
                   </div>
                   <div className="hidden sm:flex flex-col text-right leading-tight max-w-[130px] md:max-w-[160px]">
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
+                    <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate">
                       {user.full_name || 'داشبورد کاربر'}
                     </span>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500 truncate">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 truncate">
                       {roleTitles[user.role] || 'ورود به داشبورد'}
                     </span>
                   </div>

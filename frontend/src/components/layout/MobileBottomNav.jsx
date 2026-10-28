@@ -55,10 +55,10 @@ export const MobileBottomNav = () => {
                   <Icon className="w-5 h-5" />
                 </div>
                 <span
-                  className={`text-[11px] tracking-tight leading-tight mt-0.5 truncate max-w-full ${
+                  className={`text-xs tracking-tight leading-tight mt-0.5 truncate max-w-full ${
                     item.active
                       ? 'font-bold text-blue-600 dark:text-blue-400'
-                      : 'font-medium text-slate-500 dark:text-slate-400'
+                      : 'font-semibold text-slate-500 dark:text-slate-400'
                   }`}
                 >
                   {item.label}
@@ -103,10 +103,10 @@ export const MobileBottomNav = () => {
               <LayoutDashboard className="w-5 h-5" />
             </div>
             <span
-              className={`text-[11px] tracking-tight leading-tight mt-0.5 truncate max-w-full ${
+              className={`text-xs tracking-tight leading-tight mt-0.5 truncate max-w-full ${
                 isHomeActive
                   ? 'font-bold text-sky-600 dark:text-sky-400'
-                  : 'font-medium text-slate-500 dark:text-slate-400'
+                  : 'font-semibold text-slate-500 dark:text-slate-400'
               }`}
             >
               خانه
@@ -128,10 +128,10 @@ export const MobileBottomNav = () => {
               <Users className="w-5 h-5" />
             </div>
             <span
-              className={`text-[11px] tracking-tight leading-tight mt-0.5 truncate max-w-full ${
+              className={`text-xs tracking-tight leading-tight mt-0.5 truncate max-w-full ${
                 isSwimmersActive
                   ? 'font-bold text-sky-600 dark:text-sky-400'
-                  : 'font-medium text-slate-500 dark:text-slate-400'
+                  : 'font-semibold text-slate-500 dark:text-slate-400'
               }`}
             >
               شناگران
@@ -153,10 +153,10 @@ export const MobileBottomNav = () => {
               <Calendar className="w-5 h-5" />
             </div>
             <span
-              className={`text-[11px] tracking-tight leading-tight mt-0.5 truncate max-w-full ${
+              className={`text-xs tracking-tight leading-tight mt-0.5 truncate max-w-full ${
                 isScheduleActive
                   ? 'font-bold text-sky-600 dark:text-sky-400'
-                  : 'font-medium text-slate-500 dark:text-slate-400'
+                  : 'font-semibold text-slate-500 dark:text-slate-400'
               }`}
             >
               برنامه
@@ -178,10 +178,10 @@ export const MobileBottomNav = () => {
               <CreditCard className="w-5 h-5" />
             </div>
             <span
-              className={`text-[11px] tracking-tight leading-tight mt-0.5 truncate max-w-full ${
+              className={`text-xs tracking-tight leading-tight mt-0.5 truncate max-w-full ${
                 isFinanceActive
                   ? 'font-bold text-sky-600 dark:text-sky-400'
-                  : 'font-medium text-slate-500 dark:text-slate-400'
+                  : 'font-semibold text-slate-500 dark:text-slate-400'
               }`}
             >
               مالی

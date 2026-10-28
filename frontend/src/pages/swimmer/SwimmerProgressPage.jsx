@@ -73,21 +73,21 @@ export const SwimmerProgressPage = () => {
             <span className="p-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/70 text-teal-600 dark:text-teal-400 border border-teal-200/70 dark:border-teal-900/60">
               <TrendingUp className="w-5 h-5" />
             </span>
-            <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
               پیشرفت ورزشی و ماتریس مهارت‌ها
             </h1>
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             رصد سطح مهارت، مهارت‌های کسب‌شده، روند ارزیابی‌های دوره‌ای و بازخورد اختصاصی کادر مربیگری
           </p>
         </div>
 
         {/* Level badge */}
         <div className="flex items-center gap-3 bg-gradient-to-r from-blue-700 via-sky-600 to-teal-500 text-white px-4 py-2.5 rounded-2xl shadow-xs">
-          <Award className="w-6 h-6 shrink-0 text-white" />
+          <Award className="w-7 h-7 shrink-0 text-white" />
           <div>
-            <span className="text-[10px] text-cyan-100 font-semibold block leading-tight">سطح مهارت فعلی:</span>
-            <span className="text-sm font-bold tracking-tight">{profile?.level_name || 'سطح مقدماتی ۱'}</span>
+            <span className="text-xs text-cyan-100 font-bold block leading-tight">سطح مهارت فعلی:</span>
+            <span className="text-base sm:text-lg font-black tracking-tight">{profile?.level_name || 'سطح مقدماتی ۱'}</span>
           </div>
         </div>
       </div>
@@ -97,52 +97,52 @@ export const SwimmerProgressPage = () => {
         <button
           type="button"
           onClick={() => setActiveTab('CURRENT_LEVEL')}
-          className={`px-4 py-2.5 text-xs sm:text-sm font-bold rounded-2xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+          className={`px-4 py-2.5 text-sm sm:text-base font-bold rounded-2xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'CURRENT_LEVEL'
               ? 'bg-teal-50 dark:bg-teal-950/80 text-teal-800 dark:text-teal-200 border border-teal-200 dark:border-teal-800'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <Award className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+          <Award className="w-4.5 h-4.5 text-teal-600 dark:text-teal-400" />
           <span>سطح فعلی و ارتقا</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('SKILLS')}
-          className={`px-4 py-2.5 text-xs sm:text-sm font-bold rounded-2xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+          className={`px-4 py-2.5 text-sm sm:text-base font-bold rounded-2xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'SKILLS'
               ? 'bg-violet-50 dark:bg-violet-950/80 text-violet-800 dark:text-violet-200 border border-violet-200 dark:border-violet-800'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <CheckCircle2 className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+          <CheckCircle2 className="w-4.5 h-4.5 text-violet-600 dark:text-violet-400" />
           <span>ماتریس مهارت‌ها ({passedAssessments.length})</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('TRENDS')}
-          className={`px-4 py-2.5 text-xs sm:text-sm font-bold rounded-2xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+          className={`px-4 py-2.5 text-sm sm:text-base font-bold rounded-2xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'TRENDS'
               ? 'bg-blue-50 dark:bg-blue-950/80 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <TrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          <TrendingUp className="w-4.5 h-4.5 text-blue-600 dark:text-blue-400" />
           <span>روند پیشرفت و رشد</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('FEEDBACK')}
-          className={`px-4 py-2.5 text-xs sm:text-sm font-bold rounded-2xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+          className={`px-4 py-2.5 text-sm sm:text-base font-bold rounded-2xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'FEEDBACK'
               ? 'bg-violet-50 dark:bg-violet-950/80 text-violet-800 dark:text-violet-200 border border-violet-200 dark:border-violet-800'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <FileText className="w-4 h-4 text-violet-600 dark:text-violet-400" />
+          <FileText className="w-4.5 h-4.5 text-violet-600 dark:text-violet-400" />
           <span>بازخورد و نکات مربی</span>
         </button>
       </div>
@@ -153,32 +153,32 @@ export const SwimmerProgressPage = () => {
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-5">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <span className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider block mb-1">
+                <span className="text-xs sm:text-sm font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider block mb-1">
                   شناسنامه مهارتی شناگر
                 </span>
-                <h2 className="text-lg font-bold text-slate-900 dark:text-white">
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                   سطح: {profile?.level_name || 'سطح پایه / مقدماتی'}
                 </h2>
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs sm:text-sm text-slate-500 mt-1">
                   تاریخ آخرین ارزیابی جامع:{' '}
                   {assessments[0]?.assessment_date || assessments[0]?.assessed_at || 'در انتظار اولین جلسه سنجش'}
                 </p>
               </div>
 
               <div className="text-right sm:text-left">
-                <span className="text-xs text-slate-500 block mb-1">پیشرفت کلی به سمت سطح بعدی</span>
-                <span className="text-2xl font-black text-teal-600 dark:text-teal-400 font-mono">٪{progressPercent}</span>
+                <span className="text-xs sm:text-sm font-bold text-slate-500 block mb-1">پیشرفت کلی به سمت سطح بعدی</span>
+                <span className="text-3xl sm:text-4xl font-black text-teal-600 dark:text-teal-400 font-mono">٪{progressPercent}</span>
               </div>
             </div>
 
             <ProgressBar value={progressPercent} max={100} color="teal" />
 
-            <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 text-xs text-slate-700 dark:text-slate-300 space-y-2">
-              <h4 className="font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">
-                <Sparkles className="w-4 h-4 text-amber-500" />
+            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 text-sm text-slate-700 dark:text-slate-300 space-y-2.5">
+              <h4 className="font-bold flex items-center gap-2 text-base text-slate-900 dark:text-white">
+                <Sparkles className="w-4.5 h-4.5 text-amber-500" />
                 شرایط لازم جهت ارتقا به سطح بالاتر:
               </h4>
-              <ul className="list-disc list-inside space-y-1 text-slate-600 dark:text-slate-400 leading-relaxed pr-2">
+              <ul className="list-disc list-inside space-y-1.5 text-slate-600 dark:text-slate-300 leading-relaxed pr-2 font-medium">
                 <li>کسب نمره قبولی (Pass) در تمام مهارت‌های تنفس جانبی و پای کرال سینه</li>
                 <li>تکمیل حداقل ۱۰ جلسه تمرینی در دوره جاری با حضور فعال</li>
                 <li>تأییدیه نهایی سرمربی آکادمی و ثبت در سیستم ارزیابی</li>
@@ -192,27 +192,27 @@ export const SwimmerProgressPage = () => {
       {activeTab === 'SKILLS' && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60">
-              <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 block mb-1">
+            <div className="p-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/60">
+              <span className="text-sm font-bold text-emerald-800 dark:text-emerald-300 block mb-1.5">
                 🟢 مهارت‌های کسب‌شده
               </span>
-              <span className="text-2xl font-black text-emerald-700 font-mono">
+              <span className="text-3xl font-black text-emerald-700 font-mono">
                 {passedAssessments.length}
               </span>
             </div>
-            <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60">
-              <span className="text-xs font-bold text-amber-800 dark:text-amber-300 block mb-1">
+            <div className="p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/60">
+              <span className="text-sm font-bold text-amber-800 dark:text-amber-300 block mb-1.5">
                 🟡 در حال یادگیری / نیازمند تمرین
               </span>
-              <span className="text-2xl font-black text-amber-700 font-mono">
+              <span className="text-3xl font-black text-amber-700 font-mono">
                 {inProgressAssessments.length}
               </span>
             </div>
-            <div className="p-4 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-              <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1">
+            <div className="p-5 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <span className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                 ⚪ سرفصل‌های سطح بعدی
               </span>
-              <span className="text-2xl font-black text-slate-700 dark:text-slate-300 font-mono">
+              <span className="text-3xl font-black text-slate-700 dark:text-slate-300 font-mono">
                 {Math.max(0, totalSkillsCount - assessments.length)}
               </span>
             </div>
@@ -221,10 +221,10 @@ export const SwimmerProgressPage = () => {
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 divide-y divide-slate-100 dark:divide-slate-800">
             {assessments.length > 0 ? (
               assessments.map((ass) => (
-                <div key={ass.id} className="py-3.5 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
+                <div key={ass.id} className="py-4 flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-3.5">
                     <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+                      className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                         ass.status === 'PASSED'
                           ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700'
                           : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700'
@@ -237,17 +237,17 @@ export const SwimmerProgressPage = () => {
                       )}
                     </div>
                     <div>
-                      <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                      <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                         {ass.skill_name || 'سرفصل مهارت'}
                       </h4>
-                      <p className="text-[11px] text-slate-500">
+                      <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
                         مربی ارزیاب: {ass.assessed_by_name || 'مربی رسمی'} · تاریخ: {ass.assessment_date}
                       </p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2.5">
                     {ass.score && (
-                      <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800">
+                      <span className="text-xs sm:text-sm font-mono font-black px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800">
                         امتیاز: {ass.score}/۱۰
                       </span>
                     )}
@@ -258,7 +258,7 @@ export const SwimmerProgressPage = () => {
                 </div>
               ))
             ) : (
-              <div className="p-8 text-center text-xs text-slate-400">
+              <div className="p-8 text-center text-sm text-slate-400">
                 هنوز رکورد ارزیابی مهارتی برای این شناگر ثبت نشده است.
               </div>
             )}
@@ -271,10 +271,10 @@ export const SwimmerProgressPage = () => {
         <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-5">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                 روند امتیازدهی ارزیابی‌ها بر پایه داده‌های واقعی مربی
               </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
                 تغییرات نمرات کسب‌شده در آزمون‌های ادواری
               </p>
             </div>
@@ -287,7 +287,7 @@ export const SwimmerProgressPage = () => {
                 const percent = Math.min(100, Math.round((scoreVal / 10) * 100));
                 return (
                   <div key={ass.id} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center justify-between text-sm">
                       <span className="font-bold text-slate-800 dark:text-slate-200">
                         {ass.skill_name || 'مهارت فنی'} ({ass.assessment_date})
                       </span>
@@ -306,7 +306,7 @@ export const SwimmerProgressPage = () => {
               })}
             </div>
           ) : (
-            <div className="p-8 text-center text-xs text-slate-400">
+            <div className="p-8 text-center text-sm text-slate-400">
               داده‌های نموداری پس از ثبت اولین ارزیابی توسط مربی در دسترس خواهد بود.
             </div>
           )}
@@ -322,18 +322,18 @@ export const SwimmerProgressPage = () => {
               .map((ass) => (
                 <div
                   key={ass.id}
-                  className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-2.5"
+                  className="bg-white dark:bg-slate-900 rounded-2xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3"
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <div className="w-8 h-8 rounded-xl bg-sky-600 text-white flex items-center justify-center text-xs font-bold">
-                        <User className="w-4 h-4" />
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center text-sm font-bold">
+                        <User className="w-4.5 h-4.5" />
                       </div>
                       <div>
-                        <span className="text-xs font-bold text-slate-900 dark:text-white block">
+                        <span className="text-sm sm:text-base font-bold text-slate-900 dark:text-white block">
                           مربی: {ass.assessed_by_name || 'کادر فنی آکادمی'}
                         </span>
-                        <span className="text-[10px] text-slate-400">
+                        <span className="text-xs text-slate-500">
                           بابت مهارت: {ass.skill_name} · تاریخ: {ass.assessment_date}
                         </span>
                       </div>
@@ -342,7 +342,7 @@ export const SwimmerProgressPage = () => {
                       {ass.status_display}
                     </Badge>
                   </div>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/40 p-3.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800 font-normal">
                     «{ass.notes}»
                   </p>
                 </div>
@@ -350,10 +350,10 @@ export const SwimmerProgressPage = () => {
           ) : (
             <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
               <FileText className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
+              <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-200">
                 هنوز یادداشت یا بازخورد متنی از سوی مربی ثبت نشده است
               </h3>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
                 توصیه‌های تمرینی مربی پس از هر جلسه ارزیابی در این بخش درج خواهد شد.
               </p>
             </div>
