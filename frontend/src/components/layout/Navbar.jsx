@@ -61,7 +61,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             </div>
             <div>
               <span className="font-bold text-base sm:text-lg text-slate-900 dark:text-white tracking-tight block leading-tight">
-                آموزشگاه شنای ایران
+                آکادمی شنای ایران
               </span>
             </div>
           </Link>

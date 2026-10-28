@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import {
-  Waves, LogIn, KeyRound, Phone, ArrowRight, UserPlus,
+  Waves, LogIn, KeyRound, Phone, ArrowRight, ArrowLeft, UserPlus,
   CreditCard, Sparkles, MessageSquare, Timer, CheckCircle2,
   AlertCircle, Eye, EyeOff, ShieldCheck, Calendar, Award, Droplets
 } from 'lucide-react';

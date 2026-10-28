@@ -3,6 +3,17 @@
 @theme {
   --font-sans: "Vazirmatn", "Shabnam", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --default-font-family: var(--font-sans);
+
+  --color-aquatic-navy: #083b5c;
+  --color-ocean-primary: #087ea4;
+  --color-fresh-turquoise: #16b8b0;
+  --color-soft-aqua: #ddf7f3;
+  --color-warm-coral: #ff8066;
+  --color-light-sky: #eaf5fc;
+  --color-soft-lavender: #eeeafe;
+  --color-warm-offwhite: #f8fafc;
+  --color-text-main: #163247;
+  --color-text-secondary: #647789;
 }
 
 @custom-variant dark (&:where(.dark, .dark *));
@@ -230,6 +241,35 @@ html.dark body {
 }
 
 /* Custom scrollbar for modern light feel */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Aquatic editorial gradients and decorative surfaces */
+.bg-aquatic-hero {
+  background: radial-gradient(circle at 85% 20%, rgba(22, 184, 176, 0.18) 0%, transparent 45%),
+              radial-gradient(circle at 20% 80%, rgba(8, 126, 164, 0.22) 0%, transparent 50%),
+              linear-gradient(135deg, #052438 0%, #083b5c 55%, #072e48 100%);
+}
+
+.bg-aquatic-cta {
+  background: radial-gradient(circle at 15% 25%, rgba(22, 184, 176, 0.2) 0%, transparent 45%),
+              radial-gradient(circle at 85% 75%, rgba(8, 126, 164, 0.25) 0%, transparent 50%),
+              linear-gradient(135deg, #062a42 0%, #083b5c 50%, #052033 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;

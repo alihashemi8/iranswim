@@ -152,30 +152,34 @@ export const SwimmerDashboardPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* 1. Hero Banner: Deep Oceanic Navy Brand Identity with Aquatic Glow */}
-      <div className="bg-gradient-to-l from-slate-900 via-blue-950 to-cyan-950 rounded-3xl p-6 sm:p-8 text-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 relative overflow-hidden border border-blue-900/40">
+      {/* 1. Hero Banner: Vibrant Oceanic Blue Brand Identity with Aquatic Glow */}
+      <div className="bg-gradient-to-l from-blue-700 via-sky-600 to-cyan-600 rounded-3xl p-6 sm:p-8 text-white shadow-md shadow-blue-500/10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 relative overflow-hidden border border-blue-400/30">
+        {/* Subtle aquatic background glows */}
+        <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 rounded-full bg-cyan-300/20 blur-3xl pointer-events-none" />
+
         <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-white/10 backdrop-blur-md rounded-full text-sm font-bold mb-2.5 text-cyan-200 border border-white/10">
-            <Waves className="w-4 h-4 text-cyan-300" />
+          <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-white/15 backdrop-blur-md rounded-full text-sm font-bold mb-2.5 text-cyan-100 border border-white/20">
+            <Waves className="w-4 h-4 text-cyan-200" />
             <span>باشگاه شنا و آکادمی ورزش‌های آبی</span>
           </div>
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight">
             سلام، {swimmerName}! 👋
           </h1>
-          <div className="flex flex-wrap items-center gap-2.5 mt-2.5 text-sm sm:text-base font-normal text-slate-200">
+          <div className="flex flex-wrap items-center gap-2.5 mt-2.5 text-sm sm:text-base font-normal text-blue-100">
             <span>سطح ورزشی:</span>
-            <span className="font-extrabold text-white bg-white/15 px-2.5 py-0.5 rounded-lg">
+            <span className="font-extrabold text-white bg-white/20 px-2.5 py-0.5 rounded-lg">
               {profile?.level_name || 'سطح مقدماتی ۱'}
             </span>
-            <span className="text-slate-400">·</span>
+            <span className="text-blue-200">·</span>
             <span>وضعیت پرونده:</span>
             {profile?.is_profile_completed ? (
-              <span className="inline-flex items-center gap-1.5 font-bold text-teal-300 bg-teal-950/70 border border-teal-500/40 px-2.5 py-0.5 rounded-lg text-sm">
+              <span className="inline-flex items-center gap-1.5 font-bold text-teal-100 bg-teal-500/25 border border-teal-300/40 px-2.5 py-0.5 rounded-lg text-sm">
                 <CheckCircle2 className="w-4 h-4" />
                 تکمیل‌شده و فعال
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 font-bold text-orange-300 bg-orange-950/70 border border-orange-500/40 px-2.5 py-0.5 rounded-lg text-sm">
+              <span className="inline-flex items-center gap-1.5 font-bold text-amber-100 bg-amber-500/25 border border-amber-300/40 px-2.5 py-0.5 rounded-lg text-sm">
                 <AlertCircle className="w-4 h-4" />
                 در انتظار مدارک
               </span>
@@ -186,16 +190,16 @@ export const SwimmerDashboardPage = () => {
         <div className="flex flex-wrap items-center gap-3 relative z-10 self-stretch sm:self-auto">
           <Link
             to="/swimmer/schedule"
-            className="flex-1 sm:flex-none px-5 py-3 bg-white text-blue-950 hover:bg-cyan-50 rounded-2xl text-sm font-bold transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 sm:flex-none px-5 py-3 bg-white text-blue-700 hover:bg-blue-50 rounded-2xl text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
           >
-            <Calendar className="w-4.5 h-4.5 text-blue-700" />
+            <Calendar className="w-4.5 h-4.5 text-blue-600" />
             <span>برنامه کلاس‌ها</span>
           </Link>
           <Link
             to="/swimmer/documents"
-            className="flex-1 sm:flex-none px-5 py-3 bg-white/10 hover:bg-white/20 text-white backdrop-blur-md rounded-2xl text-sm font-bold transition-all border border-white/20 flex items-center justify-center gap-2 cursor-pointer"
+            className="flex-1 sm:flex-none px-5 py-3 bg-white/15 hover:bg-white/25 text-white backdrop-blur-md rounded-2xl text-sm font-bold transition-all border border-white/25 flex items-center justify-center gap-2 cursor-pointer"
           >
-            <FileText className="w-4.5 h-4.5 text-cyan-200" />
+            <FileText className="w-4.5 h-4.5 text-cyan-100" />
             <span>پرونده و مدارک</span>
           </Link>
         </div>
