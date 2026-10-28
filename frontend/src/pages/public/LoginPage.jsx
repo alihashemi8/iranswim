@@ -566,6 +566,24 @@ export const LoginPage = () => {
             {/* ========================================================== */}
             {mode === 'register' && (
               <form onSubmit={handleRegisterSubmit} className="space-y-3.5 pt-1">
+                {/* Stepper Progress Bar */}
+                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/60 dark:border-slate-800 space-y-2">
+                  <div className="flex items-center justify-between text-[11px] font-bold">
+                    <span className="text-slate-700 dark:text-slate-300">
+                      {!regOtpSent ? 'مرحله ۱ از ۲: تأیید شماره همراه' : 'مرحله ۲ از ۲: مشخصات فردی شناگر'}
+                    </span>
+                    <span className="font-mono text-sky-600 dark:text-sky-400">
+                      {!regOtpSent ? '۵۰٪' : '۱۰۰٪'}
+                    </span>
+                  </div>
+                  <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                    <div
+                      className="bg-gradient-to-r from-sky-500 to-indigo-500 h-full rounded-full transition-all duration-500"
+                      style={{ width: !regOtpSent ? '50%' : '100%' }}
+                    />
+                  </div>
+                </div>
+
                 {/* Step 1: Phone & OTP */}
                 <div>
                   <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5 text-right">
@@ -602,97 +620,111 @@ export const LoginPage = () => {
                   </div>
                 </div>
 
-                {/* OTP Code Input */}
-                <div>
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1 text-right">
-                    کد تأیید پیامکی (OTP) <span className="text-rose-500 font-bold">*</span>
-                  </label>
-                  <div className="relative">
-                    <KeyRound className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
-                    <input
-                      type="text"
-                      maxLength={6}
-                      required
-                      value={regOtpCode}
-                      onChange={(e) => setRegOtpCode(e.target.value)}
-                      placeholder={regOtpSent ? 'کد ۶ رقمی پیامک‌شده' : 'ابتدا شماره را وارد و دریافت کد را بزنید'}
-                      disabled={!regOtpSent}
-                      className="w-full text-sm font-mono bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all disabled:opacity-60 text-left"
-                    />
+                {!regOtpSent ? (
+                  <div className="pt-2">
+                    <Button
+                      type="button"
+                      onClick={handleSendRegisterOtp}
+                      disabled={sendingOtp || !regPhone.trim()}
+                      className="w-full py-3.5 text-sm font-bold gap-2 rounded-2xl shadow-md shadow-sky-500/20 cursor-pointer"
+                    >
+                      <span>ادامه و دریافت کد پیامکی (OTP)</span>
+                      <ArrowLeft className="w-4 h-4" />
+                    </Button>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-3.5 animate-in fade-in">
+                    {/* OTP Code Input */}
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1 text-right">
+                        کد تأیید ۶ رقمی پیامک‌شده <span className="text-rose-500 font-bold">*</span>
+                      </label>
+                      <div className="relative">
+                        <KeyRound className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                        <input
+                          type="text"
+                          maxLength={6}
+                          required
+                          value={regOtpCode}
+                          onChange={(e) => setRegOtpCode(e.target.value)}
+                          placeholder="کد ۶ رقمی پیامک‌شده"
+                          className="w-full text-center tracking-[0.5em] text-base font-mono font-bold bg-slate-50 dark:bg-slate-800/80 border border-sky-300 dark:border-sky-800 rounded-2xl py-2.5 px-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                        />
+                      </div>
+                    </div>
 
-                {/* Name & Family */}
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1 text-right">
-                      نام <span className="text-rose-500 font-bold">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={regFirstName}
-                      onChange={(e) => setRegFirstName(e.target.value)}
-                      placeholder="مثال: بردیا"
-                      className="w-full text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl py-2.5 px-3.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all text-right"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1 text-right">
-                      نام خانوادگی <span className="text-rose-500 font-bold">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      required
-                      value={regLastName}
-                      onChange={(e) => setRegLastName(e.target.value)}
-                      placeholder="مثال: حسینی"
-                      className="w-full text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl py-2.5 px-3.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all text-right"
-                    />
-                  </div>
-                </div>
+                    {/* Name & Family */}
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1 text-right">
+                          نام <span className="text-rose-500 font-bold">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={regFirstName}
+                          onChange={(e) => setRegFirstName(e.target.value)}
+                          placeholder="مثال: بردیا"
+                          className="w-full text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl py-2.5 px-3.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all text-right"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1 text-right">
+                          نام خانوادگی <span className="text-rose-500 font-bold">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={regLastName}
+                          onChange={(e) => setRegLastName(e.target.value)}
+                          placeholder="مثال: حسینی"
+                          className="w-full text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl py-2.5 px-3.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all text-right"
+                        />
+                      </div>
+                    </div>
 
-                {/* National ID */}
-                <div>
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                      کد ملی شناگر (۱۰ رقمی) <span className="text-rose-500 font-bold">*</span>
-                    </label>
-                    <span className="text-[10px] text-sky-600 dark:text-sky-400 font-semibold">
-                      رمز عبور = کد ملی
-                    </span>
-                  </div>
-                  <div className="relative">
-                    <CreditCard className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
-                    <input
-                      type="text"
-                      required
-                      maxLength={10}
-                      value={regNationalId}
-                      onChange={(e) => setRegNationalId(e.target.value)}
-                      placeholder="0012345678"
-                      className="w-full text-sm font-mono bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all text-left"
-                    />
-                  </div>
-                </div>
+                    {/* National ID */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1">
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                          کد ملی شناگر (۱۰ رقمی) <span className="text-rose-500 font-bold">*</span>
+                        </label>
+                        <span className="text-[10px] text-sky-600 dark:text-sky-400 font-semibold">
+                          رمز عبور = کد ملی
+                        </span>
+                      </div>
+                      <div className="relative">
+                        <CreditCard className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                        <input
+                          type="text"
+                          required
+                          maxLength={10}
+                          value={regNationalId}
+                          onChange={(e) => setRegNationalId(e.target.value)}
+                          placeholder="0012345678"
+                          className="w-full text-sm font-mono bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all text-left"
+                        />
+                      </div>
+                    </div>
 
-                {/* Onboarding hint */}
-                <div className="p-3 bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60 rounded-2xl text-[11px] text-sky-800 dark:text-sky-300 flex items-start gap-2">
-                  <Sparkles className="w-4 h-4 shrink-0 text-sky-600 mt-0.5" />
-                  <span className="leading-relaxed">
-                    پس از ثبت‌نام، مستقیماً وارد سامانه شده و به فرم <strong>تکمیل پرونده، مدارک شناسنامه، کارت ملی و نشانی روی نقشه</strong> هدایت خواهید شد.
-                  </span>
-                </div>
+                    {/* Onboarding hint */}
+                    <div className="p-3 bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60 rounded-2xl text-[11px] text-sky-800 dark:text-sky-300 flex items-start gap-2">
+                      <Sparkles className="w-4 h-4 shrink-0 text-sky-600 mt-0.5" />
+                      <span className="leading-relaxed">
+                        پس از ثبت‌نام، مستقیماً به گام‌های ۳ گانه <strong>تکمیل پرونده، مدارک شناسنامه، کارت ملی و نشانی روی نقشه</strong> هدایت خواهید شد.
+                      </span>
+                    </div>
 
-                <Button
-                  type="submit"
-                  loading={loading}
-                  disabled={!regOtpSent}
-                  className="w-full py-3.5 text-sm font-bold gap-2 mt-1 rounded-2xl shadow-md shadow-sky-500/20 cursor-pointer"
-                >
-                  <UserPlus className="w-4 h-4" />
-                  <span>ثبت‌نام و ورود به مرحله تکمیل پرونده</span>
-                </Button>
+                    <Button
+                      type="submit"
+                      loading={loading}
+                      className="w-full py-3.5 text-sm font-bold gap-2 mt-1 rounded-2xl shadow-md shadow-sky-500/20 cursor-pointer"
+                    >
+                      <UserPlus className="w-4 h-4" />
+                      <span>ثبت‌نام نهایی و ورود به آکادمی</span>
+                    </Button>
+                  </div>
+                )}
 
                 {/* Switch to Login link under the register form */}
                 <div className="pt-3 text-center border-t border-slate-100 dark:border-slate-800">
