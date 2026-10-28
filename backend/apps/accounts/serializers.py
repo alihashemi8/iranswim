@@ -9,20 +9,36 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User, OTPVerification
 
 
+def to_english_digits(text):
+    if not text:
+        return text
+    persian_digits = '۰۱۲۳۴۵۶۷۸۹'
+    arabic_digits = '٠١٢٣٤٥٦٧٨٩'
+    english_digits = '0123456789'
+    trans = str.maketrans(persian_digits + arabic_digits, english_digits + english_digits)
+    return str(text).translate(trans)
+
+
 class IranSwimTokenObtainPairSerializer(TokenObtainPairSerializer):
     username_field = 'phone'
 
     def validate(self, attrs):
-        phone = attrs.get('phone', '').strip()
-        password = attrs.get('password', '')
+        raw_phone = attrs.get('phone', '')
+        phone = to_english_digits(raw_phone).strip()
+        raw_password = attrs.get('password', '')
+        password = to_english_digits(raw_password).strip()
 
-        # Standard check
+        # Standard check with converted password and raw password
         user = authenticate(self.context.get('request'), phone=phone, password=password)
+        if not user and password != raw_password:
+            user = authenticate(self.context.get('request'), phone=phone, password=raw_password)
+
         if not user:
             # Fallback check: if user entered their national_id as password
             try:
                 candidate = User.objects.get(phone=phone)
-                if candidate.national_id and candidate.national_id.strip() == password.strip():
+                candidate_nid = to_english_digits(candidate.national_id or '').strip()
+                if candidate_nid and (candidate_nid == password or candidate_nid == raw_password):
                     user = candidate
             except User.DoesNotExist:
                 pass
@@ -92,7 +108,7 @@ class SendOTPSerializer(serializers.Serializer):
     purpose = serializers.ChoiceField(choices=['REGISTER', 'LOGIN'], default='LOGIN')
 
     def validate_phone(self, value):
-        val = value.strip()
+        val = to_english_digits(value).strip()
         if not (val.startswith('09') and len(val) == 11 and val.isdigit()):
             raise ValidationError('شماره موبایل وارد شده باید ۱۱ رقم بوده و با ۰۹ شروع شود.')
         return val
@@ -103,7 +119,10 @@ class VerifyOTPLoginSerializer(serializers.Serializer):
     code = serializers.CharField(max_length=6)
 
     def validate_phone(self, value):
-        return value.strip()
+        return to_english_digits(value).strip()
+
+    def validate_code(self, value):
+        return to_english_digits(value).strip()
 
 
 class RegisterWithOTPSerializer(serializers.Serializer):
@@ -114,15 +133,18 @@ class RegisterWithOTPSerializer(serializers.Serializer):
     national_id = serializers.CharField(max_length=10)
 
     def validate_phone(self, value):
-        val = value.strip()
+        val = to_english_digits(value).strip()
         if not (val.startswith('09') and len(val) == 11 and val.isdigit()):
             raise ValidationError('شماره موبایل باید ۱۱ رقم بوده و با ۰۹ آغاز شود.')
         if User.objects.filter(phone=val).exists():
             raise ValidationError('کاربری با این شماره همراه قبلاً در سامانه ثبت شده است. لطفاً وارد شوید.')
         return val
 
+    def validate_code(self, value):
+        return to_english_digits(value).strip()
+
     def validate_national_id(self, value):
-        val = value.strip()
+        val = to_english_digits(value).strip()
         if not (len(val) == 10 and val.isdigit()):
             raise ValidationError('کد ملی باید دقیقاً ۱۰ رقم عددی باشد.')
         if User.objects.filter(national_id=val).exists():

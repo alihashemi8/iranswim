@@ -3,11 +3,19 @@ import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import {
   Waves, LogIn, KeyRound, Phone, ArrowRight, UserPlus,
   CreditCard, Sparkles, MessageSquare, Timer, CheckCircle2,
-  AlertCircle, Eye, EyeOff, ShieldCheck, Trophy, Award, Droplets
+  AlertCircle, Eye, EyeOff, ShieldCheck, Calendar, Award, Droplets
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/common/Button';
 import { useToast } from '../../context/ToastContext';
+
+export const toEnglishDigits = (str) => {
+  if (!str) return '';
+  return str
+    .toString()
+    .replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+    .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+};
 
 export const LoginPage = () => {
   const [searchParams] = useSearchParams();
@@ -97,17 +105,19 @@ export const LoginPage = () => {
   const handlePasswordLoginSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    const cleanPhone = loginPhone.trim();
+    const cleanPhone = toEnglishDigits(loginPhone).trim();
+    const cleanPassword = toEnglishDigits(loginPassword).trim();
+
     if (!cleanPhone) {
       setError('شماره تلفن همراه را وارد نمایید.');
       return;
     }
-    if (!loginPassword) {
+    if (!cleanPassword) {
       setError('رمز عبور (کد ملی) را وارد نمایید.');
       return;
     }
 
-    const res = await login(cleanPhone, loginPassword);
+    const res = await login(cleanPhone, cleanPassword);
     if (res.success) {
       toast.success(`ورود با موفقیت انجام شد. خوش آمدید ${res.user.full_name}!`);
       redirectUser(res.user);
@@ -119,7 +129,7 @@ export const LoginPage = () => {
 
   // Send OTP for Login
   const handleSendLoginOtp = async () => {
-    const cleanPhone = otpLoginPhone.trim();
+    const cleanPhone = toEnglishDigits(otpLoginPhone).trim();
     if (!cleanPhone || cleanPhone.length !== 11 || !cleanPhone.startsWith('09')) {
       setError('شماره تلفن همراه باید ۱۱ رقم بوده و با ۰۹ آغاز شود.');
       toast.error('لطفاً شماره تلفن همراه معتبر وارد نمایید.');
@@ -150,12 +160,15 @@ export const LoginPage = () => {
   const handleOtpLoginSubmit = async (e) => {
     e.preventDefault();
     setError('');
-    if (!otpLoginCode.trim()) {
+    const cleanPhone = toEnglishDigits(otpLoginPhone).trim();
+    const cleanCode = toEnglishDigits(otpLoginCode).trim();
+
+    if (!cleanCode) {
       setError('لطفاً کد تایید پیامکی را وارد فرمایید.');
       return;
     }
 
-    const res = await loginWithOtp(otpLoginPhone.trim(), otpLoginCode.trim());
+    const res = await loginWithOtp(cleanPhone, cleanCode);
     if (res.success) {
       toast.success(`خوش آمدید ${res.user.full_name}! ورود با رمز یکبار مصرف انجام شد.`);
       redirectUser(res.user);
@@ -167,7 +180,7 @@ export const LoginPage = () => {
 
   // Send OTP for Register
   const handleSendRegisterOtp = async () => {
-    const cleanPhone = regPhone.trim();
+    const cleanPhone = toEnglishDigits(regPhone).trim();
     if (!cleanPhone || cleanPhone.length !== 11 || !cleanPhone.startsWith('09')) {
       setError('شماره تلفن همراه باید ۱۱ رقم بوده و با ۰۹ آغاز شود.');
       toast.error('شماره همراه نامعتبر است.');
@@ -199,12 +212,16 @@ export const LoginPage = () => {
     e.preventDefault();
     setError('');
 
+    const cleanPhone = toEnglishDigits(regPhone).trim();
+    const cleanCode = toEnglishDigits(regOtpCode).trim();
+    const cleanNationalId = toEnglishDigits(regNationalId).trim();
+
     if (!regOtpSent) {
       setError('لطفاً ابتدا روی دکمه دریافت کد تایید پیامکی کلیک کنید.');
       return;
     }
 
-    if (!regOtpCode.trim()) {
+    if (!cleanCode) {
       setError('کد تأیید پیامکی الزامی است.');
       return;
     }
@@ -214,15 +231,14 @@ export const LoginPage = () => {
       return;
     }
 
-    const cleanNationalId = regNationalId.trim();
     if (!cleanNationalId || cleanNationalId.length !== 10 || !/^\d+$/.test(cleanNationalId)) {
       setError('کد ملی باید ۱۰ رقم عددی معتبر باشد.');
       return;
     }
 
     const res = await registerWithOtp({
-      phone: regPhone.trim(),
-      code: regOtpCode.trim(),
+      phone: cleanPhone,
+      code: cleanCode,
       first_name: regFirstName.trim(),
       last_name: regLastName.trim(),
       national_id: cleanNationalId,
@@ -263,36 +279,57 @@ export const LoginPage = () => {
               </div>
               <div className="text-right">
                 <span className="font-extrabold text-base tracking-tight block">آکادمی شنای ایران</span>
-                <span className="text-[10px] text-cyan-200 font-light block">IranSwim Federation Platform</span>
+                <span className="text-[11px] text-cyan-200 font-light block">سامانه مدیریت آموزش و پرونده شناگران</span>
               </div>
             </Link>
 
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-[11px] font-semibold text-cyan-200 border border-white/15">
               <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
-              سامانه یکپارچه مربیان و شناگران
+              پرتال اختصاصی اعضای آموزشگاه
             </div>
           </div>
 
-          {/* Center Motivational & Feature highlight */}
-          <div className="relative z-10 my-8 space-y-4">
-            <h1 className="text-2xl xl:text-3xl font-extrabold tracking-tight leading-snug text-white">
-              پرواز در آب با استانداردهای فدراسیون جهانی
-            </h1>
-            <p className="text-xs xl:text-sm text-slate-300 leading-relaxed font-light">
-              پایش تکنیک‌های آب‌نوردی، رزرو هوشمند سانس‌های استخر، سوابق رکوردهای زمان‌گیری و صدور بیمه ورزشی شناگر در پرتال جامع اختصاصی.
-            </p>
+          {/* Center Content */}
+          <div className="relative z-10 my-8 space-y-5">
+            <div>
+              <h1 className="text-2xl xl:text-3xl font-extrabold tracking-tight leading-snug text-white">
+                مدیریت کلاس‌ها و پیشرفت مهارتی شناگر
+              </h1>
+              <p className="text-xs xl:text-sm text-slate-300 leading-relaxed font-light mt-2">
+                مشاهده آنلاین وضعیت ثبت‌نام، جلسات باقی‌مانده استخر، ارزیابی مربی و مدارک بیمه ورزشی در یک پرتال متمرکز.
+              </p>
+            </div>
 
-            {/* Feature Cards Floating */}
-            <div className="grid grid-cols-2 gap-2.5 pt-2">
-              <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 space-y-1">
-                <Trophy className="w-4 h-4 text-amber-300" />
-                <span className="text-xs font-bold text-white block">رکوردهای زمان‌گیری</span>
-                <span className="text-[10px] text-slate-300 block">ثبت میلی‌ثانیه‌ای تایم شنا</span>
+            {/* Feature Highlights */}
+            <div className="space-y-2.5 pt-1">
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10">
+                <div className="w-8 h-8 rounded-xl bg-sky-500/30 text-sky-300 flex items-center justify-center shrink-0">
+                  <Calendar className="w-4 h-4" />
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-bold text-white block">برنامه سانس‌ها و جلسات</span>
+                  <span className="text-[11px] text-slate-300 block">اطلاع از روزها، ساعت حضور و سهمیه باقیمانده</span>
+                </div>
               </div>
-              <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10 space-y-1">
-                <ShieldCheck className="w-4 h-4 text-emerald-300" />
-                <span className="text-xs font-bold text-white block">بیمه و مدارک رسمی</span>
-                <span className="text-[10px] text-slate-300 block">کارت سلامت و عضویت</span>
+
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10">
+                <div className="w-8 h-8 rounded-xl bg-emerald-500/30 text-emerald-300 flex items-center justify-center shrink-0">
+                  <Award className="w-4 h-4" />
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-bold text-white block">ارزیابی فنی و سطح‌بندی</span>
+                  <span className="text-[11px] text-slate-300 block">مشاهده بازخورد مربی و مهارت‌های پاس‌شده</span>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10">
+                <div className="w-8 h-8 rounded-xl bg-cyan-500/30 text-cyan-300 flex items-center justify-center shrink-0">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+                <div className="text-right">
+                  <span className="text-xs font-bold text-white block">پرونده آنلاین و بیمه ورزشی</span>
+                  <span className="text-[11px] text-slate-300 block">ثبت مدارک هویتی، آدرس و کارت سلامت</span>
+                </div>
               </div>
             </div>
           </div>
@@ -301,9 +338,9 @@ export const LoginPage = () => {
           <div className="relative z-10 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400">
             <span className="flex items-center gap-1.5 text-cyan-100 font-medium">
               <Droplets className="w-3.5 h-3.5 text-cyan-400" />
-              پرتال رسمی استخرهای کشور
+              آموزش شنا از مبتدی تا قهرمانی
             </span>
-            <span className="font-mono text-slate-400">نسخه ۲.۴</span>
+            <span className="text-slate-400">پشتیبانی آموزشگاه</span>
           </div>
         </div>
 
@@ -331,36 +368,8 @@ export const LoginPage = () => {
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {mode === 'login'
                   ? 'نام کاربری: شماره تلفن همراه | رمز عبور: کد ملی شناگر'
-                  : 'عضویت سریع با تأیید پیامکی (OTP) و صدور کارت شناگر'}
+                  : 'عضویت اولیه با تأیید پیامکی (OTP) و کد ملی شناگر'}
               </p>
-            </div>
-
-            {/* Primary Mode Tabs (ورود / ثبت‌نام) */}
-            <div className="p-1 bg-slate-100 dark:bg-slate-800/80 rounded-2xl flex text-xs font-bold gap-1 border border-slate-200/60 dark:border-slate-700/60">
-              <button
-                type="button"
-                onClick={() => { setMode('login'); setError(''); }}
-                className={`flex-1 py-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                  mode === 'login'
-                    ? 'bg-white dark:bg-slate-700 text-sky-700 dark:text-sky-300 shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                <LogIn className="w-4 h-4" />
-                <span>ورود به حساب</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => { setMode('register'); setError(''); }}
-                className={`flex-1 py-2.5 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
-                  mode === 'register'
-                    ? 'bg-white dark:bg-slate-700 text-sky-700 dark:text-sky-300 shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                }`}
-              >
-                <UserPlus className="w-4 h-4" />
-                <span>ثبت‌نام شناگر (با OTP)</span>
-              </button>
             </div>
 
             {/* Error Message Box */}
@@ -535,6 +544,20 @@ export const LoginPage = () => {
                     </Button>
                   </form>
                 )}
+
+                {/* Switch to Register link under the login form */}
+                <div className="pt-3 text-center border-t border-slate-100 dark:border-slate-800">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                    هنوز حساب کاربری ندارید؟{' '}
+                    <button
+                      type="button"
+                      onClick={() => { setMode('register'); setError(''); }}
+                      className="text-sky-600 dark:text-sky-400 font-bold hover:underline cursor-pointer transition-colors"
+                    >
+                      ثبت‌نام شناگر جدید
+                    </button>
+                  </p>
+                </div>
               </div>
             )}
 
@@ -670,6 +693,20 @@ export const LoginPage = () => {
                   <UserPlus className="w-4 h-4" />
                   <span>ثبت‌نام و ورود به مرحله تکمیل پرونده</span>
                 </Button>
+
+                {/* Switch to Login link under the register form */}
+                <div className="pt-3 text-center border-t border-slate-100 dark:border-slate-800">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
+                    قبلاً در سامانه عضو شده‌اید؟{' '}
+                    <button
+                      type="button"
+                      onClick={() => { setMode('login'); setError(''); }}
+                      className="text-sky-600 dark:text-sky-400 font-bold hover:underline cursor-pointer transition-colors"
+                    >
+                      ورود به حساب کاربری
+                    </button>
+                  </p>
+                </div>
               </form>
             )}
 
