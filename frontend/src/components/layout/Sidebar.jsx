@@ -73,7 +73,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     ADMIN: 'from-sky-600 to-cyan-500',
     COACH: 'from-emerald-600 to-teal-500',
     SUPERVISOR: 'from-amber-600 to-orange-500',
-    SWIMMER: 'from-cyan-600 to-blue-500',
+    SWIMMER: 'from-blue-600 via-sky-600 to-teal-500',
   };
 
   // Admin Grouped Navigation
@@ -232,20 +232,20 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
               className={({ isActive }) =>
                 `flex items-center gap-2.5 min-w-0 flex-1 p-1 -m-1 rounded-xl transition-all group ${
                   isActive
-                    ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold'
+                    ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-bold'
                     : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
                 }`
               }
               title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : 'مشاهده پروفایل'}
             >
-              <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}>
+              <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}>
                 {user.full_name ? user.full_name.charAt(0) : 'U'}
               </div>
               <div className="flex flex-col min-w-0 flex-1">
-                <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   {user.full_name}
                 </span>
-                <span className="text-[11px] text-sky-600 dark:text-sky-400 font-semibold truncate">
+                <span className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold truncate">
                   {roleTitles[user.role] || 'کاربر سیستم'}
                 </span>
               </div>
@@ -279,20 +279,20 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
             className={({ isActive }) =>
               `flex items-center gap-2.5 min-w-0 flex-1 p-1.5 -m-1.5 rounded-xl transition-all group ${
                 isActive
-                  ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-3 border-sky-600 shadow-2xs'
+                  ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-bold border-r-3 border-blue-600 shadow-2xs'
                   : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
               }`
             }
             title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : 'مشاهده پروفایل'}
           >
-            <div className={`w-9 h-9 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}>
+            <div className={`w-9 h-9 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}>
               {user.full_name ? user.full_name.charAt(0) : 'U'}
             </div>
             <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+              <span className="text-sm font-bold text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 {user.full_name}
               </span>
-              <span className="text-[11px] text-sky-600 dark:text-sky-400 font-semibold truncate">
+              <span className="text-[11px] text-blue-600 dark:text-blue-400 font-semibold truncate">
                 {roleTitles[user.role] || 'کاربر سیستم'}
               </span>
             </div>
@@ -396,7 +396,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                 className={({ isActive }) =>
                   `relative flex items-center rounded-xl text-sm font-semibold transition-all group ${
                     isActive
-                      ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border-r-3 border-sky-600 shadow-2xs'
+                      ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-bold border-r-3 border-blue-600 shadow-2xs'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
                   } ${
                     isMobile

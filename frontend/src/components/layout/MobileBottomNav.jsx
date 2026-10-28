@@ -48,7 +48,7 @@ export const MobileBottomNav = () => {
                 <div
                   className={`p-1.5 rounded-xl transition-all ${
                     item.active
-                      ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 scale-105'
+                      ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 scale-105'
                       : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200'
                   }`}
                 >
@@ -57,7 +57,7 @@ export const MobileBottomNav = () => {
                 <span
                   className={`text-[11px] tracking-tight leading-tight mt-0.5 truncate max-w-full ${
                     item.active
-                      ? 'font-bold text-sky-600 dark:text-sky-400'
+                      ? 'font-bold text-blue-600 dark:text-blue-400'
                       : 'font-medium text-slate-500 dark:text-slate-400'
                   }`}
                 >

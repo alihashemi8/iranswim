@@ -62,13 +62,13 @@ export const SwimmerSchedulePage = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case 'SCHEDULED':
-        return <Badge variant="info">برنامه‌ریزی‌شده</Badge>;
+        return <Badge variant="teal">برنامه‌ریزی‌شده</Badge>;
       case 'COMPLETED':
         return <Badge variant="success">برگزارشده</Badge>;
       case 'CANCELLED':
         return <Badge variant="danger">لغوشده توسط آموزشگاه</Badge>;
       case 'RESCHEDULED':
-        return <Badge variant="warning">جابه‌جاشده</Badge>;
+        return <Badge variant="coral">جابه‌جاشده</Badge>;
       default:
         return <Badge variant="neutral">{status}</Badge>;
     }
@@ -80,7 +80,7 @@ export const SwimmerSchedulePage = () => {
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="p-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400">
+            <span className="p-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/70 text-teal-600 dark:text-teal-400 border border-teal-200/60 dark:border-teal-900/60">
               <Calendar className="w-5 h-5" />
             </span>
             <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
@@ -93,9 +93,9 @@ export const SwimmerSchedulePage = () => {
         </div>
 
         {/* Quota status pill */}
-        <div className="flex items-center gap-3 bg-sky-50 dark:bg-sky-950/50 p-2.5 rounded-2xl border border-sky-200 dark:border-sky-800">
+        <div className="flex items-center gap-3 bg-teal-50/80 dark:bg-teal-950/50 p-2.5 rounded-2xl border border-teal-200 dark:border-teal-800">
           <div className="text-right">
-            <span className="text-[11px] text-sky-600 dark:text-sky-400 font-bold block">
+            <span className="text-[11px] text-teal-700 dark:text-teal-300 font-bold block">
               سهمیه باقیمانده دوره:
             </span>
             <span className="text-sm font-extrabold text-slate-900 dark:text-white font-mono">
@@ -104,7 +104,7 @@ export const SwimmerSchedulePage = () => {
           </div>
           <Link
             to="/swimmer/support"
-            className="px-3 py-1.5 text-xs font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl transition-colors shadow-2xs flex items-center gap-1 cursor-pointer"
+            className="px-3 py-1.5 text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 rounded-xl transition-colors shadow-2xs flex items-center gap-1 cursor-pointer"
           >
             <ArrowRightLeft className="w-3.5 h-3.5" />
             <span>درخواست جابه‌جایی یا غیبت</span>
@@ -114,9 +114,9 @@ export const SwimmerSchedulePage = () => {
 
       {/* Group Info Banner */}
       {activeEnrollment && (
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-sky-50 to-indigo-50 dark:from-slate-850 dark:to-slate-800 border border-sky-200/70 dark:border-sky-900/50 flex flex-wrap items-center justify-between gap-3">
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-teal-50/60 via-sky-50/40 to-blue-50/40 dark:from-teal-950/30 dark:to-slate-850 border border-teal-200/60 dark:border-teal-900/50 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
+            <div className="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold text-xs shadow-xs">
               {activeEnrollment.group_name?.charAt(0) || 'گ'}
             </div>
             <div>

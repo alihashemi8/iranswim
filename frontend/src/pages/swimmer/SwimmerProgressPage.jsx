@@ -70,7 +70,7 @@ export const SwimmerProgressPage = () => {
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="p-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400">
+            <span className="p-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/70 text-teal-600 dark:text-teal-400 border border-teal-200/70 dark:border-teal-900/60">
               <TrendingUp className="w-5 h-5" />
             </span>
             <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
@@ -83,10 +83,10 @@ export const SwimmerProgressPage = () => {
         </div>
 
         {/* Level badge */}
-        <div className="flex items-center gap-3 bg-gradient-to-r from-sky-500 to-indigo-600 text-white px-4 py-2.5 rounded-2xl shadow-xs">
-          <Award className="w-6 h-6 shrink-0" />
+        <div className="flex items-center gap-3 bg-gradient-to-r from-blue-700 via-sky-600 to-teal-500 text-white px-4 py-2.5 rounded-2xl shadow-xs">
+          <Award className="w-6 h-6 shrink-0 text-white" />
           <div>
-            <span className="text-[10px] text-sky-100 font-semibold block leading-tight">سطح مهارت فعلی:</span>
+            <span className="text-[10px] text-cyan-100 font-semibold block leading-tight">سطح مهارت فعلی:</span>
             <span className="text-sm font-bold tracking-tight">{profile?.level_name || 'سطح مقدماتی ۱'}</span>
           </div>
         </div>
@@ -99,11 +99,11 @@ export const SwimmerProgressPage = () => {
           onClick={() => setActiveTab('CURRENT_LEVEL')}
           className={`px-4 py-2.5 text-xs sm:text-sm font-bold rounded-2xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'CURRENT_LEVEL'
-              ? 'bg-sky-50 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800'
+              ? 'bg-teal-50 dark:bg-teal-950/80 text-teal-800 dark:text-teal-200 border border-teal-200 dark:border-teal-800'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <Award className="w-4 h-4" />
+          <Award className="w-4 h-4 text-teal-600 dark:text-teal-400" />
           <span>سطح فعلی و ارتقا</span>
         </button>
 
@@ -112,11 +112,11 @@ export const SwimmerProgressPage = () => {
           onClick={() => setActiveTab('SKILLS')}
           className={`px-4 py-2.5 text-xs sm:text-sm font-bold rounded-2xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'SKILLS'
-              ? 'bg-sky-50 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800'
+              ? 'bg-violet-50 dark:bg-violet-950/80 text-violet-800 dark:text-violet-200 border border-violet-200 dark:border-violet-800'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <CheckCircle2 className="w-4 h-4" />
+          <CheckCircle2 className="w-4 h-4 text-violet-600 dark:text-violet-400" />
           <span>ماتریس مهارت‌ها ({passedAssessments.length})</span>
         </button>
 
@@ -125,11 +125,11 @@ export const SwimmerProgressPage = () => {
           onClick={() => setActiveTab('TRENDS')}
           className={`px-4 py-2.5 text-xs sm:text-sm font-bold rounded-2xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'TRENDS'
-              ? 'bg-sky-50 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800'
+              ? 'bg-blue-50 dark:bg-blue-950/80 text-blue-800 dark:text-blue-200 border border-blue-200 dark:border-blue-800'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <TrendingUp className="w-4 h-4" />
+          <TrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           <span>روند پیشرفت و رشد</span>
         </button>
 
@@ -138,11 +138,11 @@ export const SwimmerProgressPage = () => {
           onClick={() => setActiveTab('FEEDBACK')}
           className={`px-4 py-2.5 text-xs sm:text-sm font-bold rounded-2xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
             activeTab === 'FEEDBACK'
-              ? 'bg-sky-50 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800'
+              ? 'bg-violet-50 dark:bg-violet-950/80 text-violet-800 dark:text-violet-200 border border-violet-200 dark:border-violet-800'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <FileText className="w-4 h-4" />
+          <FileText className="w-4 h-4 text-violet-600 dark:text-violet-400" />
           <span>بازخورد و نکات مربی</span>
         </button>
       </div>
@@ -153,7 +153,7 @@ export const SwimmerProgressPage = () => {
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-5">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <span className="text-xs font-bold text-sky-600 dark:text-sky-400 uppercase tracking-wider block mb-1">
+                <span className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wider block mb-1">
                   شناسنامه مهارتی شناگر
                 </span>
                 <h2 className="text-lg font-bold text-slate-900 dark:text-white">
@@ -161,17 +161,17 @@ export const SwimmerProgressPage = () => {
                 </h2>
                 <p className="text-xs text-slate-500 mt-1">
                   تاریخ آخرین ارزیابی جامع:{' '}
-                  {assessments[0]?.assessment_date || 'در انتظار اولین جلسه سنجش'}
+                  {assessments[0]?.assessment_date || assessments[0]?.assessed_at || 'در انتظار اولین جلسه سنجش'}
                 </p>
               </div>
 
               <div className="text-right sm:text-left">
                 <span className="text-xs text-slate-500 block mb-1">پیشرفت کلی به سمت سطح بعدی</span>
-                <span className="text-2xl font-black text-sky-600 font-mono">٪{progressPercent}</span>
+                <span className="text-2xl font-black text-teal-600 dark:text-teal-400 font-mono">٪{progressPercent}</span>
               </div>
             </div>
 
-            <ProgressBar progress={progressPercent} color="sky" />
+            <ProgressBar value={progressPercent} max={100} color="teal" />
 
             <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/60 text-xs text-slate-700 dark:text-slate-300 space-y-2">
               <h4 className="font-bold flex items-center gap-1.5 text-slate-900 dark:text-white">

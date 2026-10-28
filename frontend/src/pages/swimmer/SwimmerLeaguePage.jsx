@@ -104,8 +104,10 @@ export const SwimmerLeaguePage = () => {
       {/* Verified Official Records Cards */}
       <div className="space-y-3">
         <h2 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
-          <Timer className="w-4 h-4 text-sky-600" />
-          رکوردهای زمانی رسمی تأییدشده شناگر
+          <span className="p-1 rounded-lg bg-teal-50 dark:bg-teal-950/70 text-teal-600 dark:text-teal-400 border border-teal-200/60 dark:border-teal-900/60">
+            <Timer className="w-4 h-4" />
+          </span>
+          <span>رکوردهای زمانی رسمی تأییدشده شناگر</span>
         </h2>
 
         {records.length > 0 ? (
@@ -113,7 +115,7 @@ export const SwimmerLeaguePage = () => {
             {records.map((rec) => (
               <div
                 key={rec.id}
-                className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-2"
+                className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-2 hover:border-teal-300 dark:hover:border-teal-800 transition-colors"
               >
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
@@ -123,8 +125,8 @@ export const SwimmerLeaguePage = () => {
                     {rec.verification_status === 'VERIFIED' ? 'تأییدشده' : 'در انتظار'}
                   </Badge>
                 </div>
-                <div className="text-xl font-black text-sky-600 font-mono tracking-tight">
-                  {rec.time_seconds ? `${rec.time_seconds} ثانیه` : '—'}
+                <div className="text-xl font-black text-blue-600 dark:text-blue-400 font-mono tracking-tight">
+                  {rec.time_seconds ? `${rec.time_seconds} ثانیه` : rec.formatted_time || `${rec.duration_seconds}s`}
                 </div>
                 <div className="text-[10px] text-slate-400">
                   ثبت: {rec.recorded_at?.slice(0, 10)} · وضعیت استخر: ۵۰ متر

@@ -51,7 +51,7 @@ export const SwimmerAnnouncementsPage = () => {
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="p-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400">
+            <span className="p-1.5 rounded-xl bg-orange-50 dark:bg-orange-950/70 text-orange-600 dark:text-orange-400 border border-orange-200/60 dark:border-orange-900/60">
               <Bell className="w-5 h-5" />
             </span>
             <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
@@ -70,7 +70,7 @@ export const SwimmerAnnouncementsPage = () => {
             onClick={() => setActiveTab('ANNOUNCEMENTS')}
             className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'ANNOUNCEMENTS'
-                ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-xs'
+                ? 'bg-white dark:bg-slate-900 text-orange-600 dark:text-orange-400 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400'
             }`}
           >
@@ -82,7 +82,7 @@ export const SwimmerAnnouncementsPage = () => {
             onClick={() => setActiveTab('NEWS')}
             className={`px-3.5 py-1.5 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-1.5 ${
               activeTab === 'NEWS'
-                ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-xs'
+                ? 'bg-white dark:bg-slate-900 text-blue-600 dark:text-blue-400 shadow-xs'
                 : 'text-slate-600 dark:text-slate-400'
             }`}
           >

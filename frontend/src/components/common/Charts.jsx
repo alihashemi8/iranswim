@@ -281,14 +281,18 @@ export const ProgressBar = ({
   max = 100,
   label,
   subtitle,
-  color = 'sky',
+  color = 'teal',
 }) => {
   const percentage = Math.min(Math.round((value / (max || 1)) * 100), 100);
 
   const gradients = {
+    blue: 'from-blue-600 to-sky-500',
     sky: 'from-sky-500 to-cyan-500',
+    teal: 'from-teal-600 to-cyan-500',
     emerald: 'from-emerald-500 to-teal-500',
     amber: 'from-amber-500 to-yellow-500',
+    coral: 'from-orange-500 to-amber-500',
+    violet: 'from-violet-600 to-indigo-500',
     rose: 'from-rose-500 to-pink-500',
   };
 
@@ -296,15 +300,15 @@ export const ProgressBar = ({
     <div className="space-y-1.5 w-full">
       <div className="flex items-center justify-between text-xs">
         <span className="font-semibold text-slate-800 dark:text-slate-200">{label}</span>
-        <span className="font-mono font-bold text-slate-600 dark:text-slate-300">{percentage}%</span>
+        <span className="font-mono font-bold text-slate-700 dark:text-slate-300">{percentage}%</span>
       </div>
-      <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-200/50 dark:border-slate-700/60">
+      <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden p-0.5 border border-slate-200/60 dark:border-slate-700/60">
         <div
           style={{ width: `${percentage}%` }}
-          className={`h-full rounded-full bg-gradient-to-l ${gradients[color] || gradients.sky} transition-all duration-700 ease-out`}
+          className={`h-full rounded-full bg-gradient-to-l ${gradients[color] || gradients.teal} transition-all duration-700 ease-out`}
         />
       </div>
-      {subtitle && <p className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">{subtitle}</p>}
+      {subtitle && <p className="text-[11px] text-slate-500 dark:text-slate-400 font-normal">{subtitle}</p>}
     </div>
   );
 };

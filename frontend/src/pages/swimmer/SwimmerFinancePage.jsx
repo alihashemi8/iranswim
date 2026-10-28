@@ -100,7 +100,7 @@ export const SwimmerFinancePage = () => {
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1.5">
-            <span className="p-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400">
+            <span className="p-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/70 text-blue-600 dark:text-blue-400 border border-blue-200/60 dark:border-blue-900/60">
               <CreditCard className="w-5 h-5" />
             </span>
             <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
@@ -116,7 +116,7 @@ export const SwimmerFinancePage = () => {
           to="/swimmer/support"
           className="px-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 rounded-2xl transition-colors flex items-center gap-1.5 cursor-pointer"
         >
-          <HelpCircle className="w-4 h-4 text-sky-600" />
+          <HelpCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           <span>درخواست بررسی مغایرت مالی</span>
         </Link>
       </div>
@@ -136,8 +136,10 @@ export const SwimmerFinancePage = () => {
           </span>
         </div>
         <div className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
-          <span className="text-[11px] font-bold text-amber-600 block mb-1">مانده بدهی سررسیددار</span>
-          <span className="text-base sm:text-xl font-black text-amber-600 font-mono">
+          <span className={`text-[11px] font-bold block mb-1 ${totalDebt > 0 ? 'text-orange-600' : 'text-slate-500'}`}>
+            مانده بدهی سررسیددار
+          </span>
+          <span className={`text-base sm:text-xl font-black font-mono ${totalDebt > 0 ? 'text-orange-600' : 'text-slate-700 dark:text-slate-300'}`}>
             {formatPrice(totalDebt)} <span className="text-xs font-normal">تومان</span>
           </span>
         </div>
@@ -146,11 +148,11 @@ export const SwimmerFinancePage = () => {
           <span className="text-sm font-bold text-slate-800 dark:text-slate-100 block mt-1">
             {totalDebt === 0 ? (
               <span className="text-emerald-600 flex items-center gap-1 font-bold text-xs">
-                <CheckCircle2 className="w-4 h-4" /> تسویه کامل
+                <CheckCircle2 className="w-4 h-4" /> تسویه کامل دوره
               </span>
             ) : (
-              <span className="text-amber-600 flex items-center gap-1 font-bold text-xs">
-                <AlertTriangle className="w-4 h-4" /> دارای قسط فعال
+              <span className="text-orange-600 flex items-center gap-1 font-bold text-xs">
+                <AlertTriangle className="w-4 h-4" /> دارای قسط سررسیدشده
               </span>
             )}
           </span>

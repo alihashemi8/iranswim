@@ -76,18 +76,79 @@
 :root {
   --font-sans: "Vazirmatn", "Shabnam", system-ui, -apple-system, sans-serif;
   color-scheme: light;
+
+  /* IranSwim Semantic Color Tokens - Light */
+  --color-brand-blue: #1d4ed8;
+  --color-brand-blue-hover: #1e40af;
+  --color-brand-blue-bg: #eff6ff;
+
+  --color-teal-swim: #0d9488;
+  --color-teal-swim-hover: #0f766e;
+  --color-teal-swim-bg: #f0fdfa;
+
+  --color-coral-action: #ea580c;
+  --color-coral-action-hover: #c2410c;
+  --color-coral-action-bg: #fff7ed;
+
+  --color-violet-learn: #7c3aed;
+  --color-violet-learn-hover: #6d28d9;
+  --color-violet-learn-bg: #f5f3ff;
+
+  --color-emerald-success: #16a34a;
+  --color-emerald-success-hover: #15803d;
+  --color-emerald-success-bg: #f0fdf4;
+
+  --color-amber-reward: #d97706;
+  --color-amber-reward-hover: #b45309;
+  --color-amber-reward-bg: #fffbeb;
+
+  /* Refined neutral surfaces: gentle cool off-white with clear card distinction */
+  --surface-app-bg: #f6f8fb;
+  --surface-card: #ffffff;
+  --surface-card-subtle: #fbfcfe;
+  --border-card-subtle: #e5eaf2;
 }
 
 html {
   font-family: var(--font-sans);
   direction: rtl;
   text-align: right;
-  background-color: #f8fafc;
+  background-color: #f6f8fb;
   color: #0f172a;
   font-feature-settings: "ss01" 1, "cv01" 1;
 }
 
 html.dark {
+  /* IranSwim Semantic Color Tokens - Dark */
+  --color-brand-blue: #3b82f6;
+  --color-brand-blue-hover: #60a5fa;
+  --color-brand-blue-bg: rgba(59, 130, 246, 0.12);
+
+  --color-teal-swim: #14b8a6;
+  --color-teal-swim-hover: #2dd4bf;
+  --color-teal-swim-bg: rgba(20, 184, 166, 0.12);
+
+  --color-coral-action: #f97316;
+  --color-coral-action-hover: #fb923c;
+  --color-coral-action-bg: rgba(249, 115, 22, 0.12);
+
+  --color-violet-learn: #8b5cf6;
+  --color-violet-learn-hover: #a78bfa;
+  --color-violet-learn-bg: rgba(139, 92, 246, 0.12);
+
+  --color-emerald-success: #22c55e;
+  --color-emerald-success-hover: #4ade80;
+  --color-emerald-success-bg: rgba(34, 197, 94, 0.12);
+
+  --color-amber-reward: #f59e0b;
+  --color-amber-reward-hover: #fbbf24;
+  --color-amber-reward-bg: rgba(245, 158, 11, 0.12);
+
+  --surface-app-bg: #090e17;
+  --surface-card: #0f172a;
+  --surface-card-subtle: #131c2e;
+  --border-card-subtle: #1e293b;
+
   background-color: #090e17;
   color: #f8fafc;
   color-scheme: dark;
@@ -97,7 +158,7 @@ body {
   margin: 0;
   min-height: 100vh;
   font-family: var(--font-sans);
-  background-color: #f8fafc;
+  background-color: #f6f8fb;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "ss01" 1, "cv01" 1;
@@ -115,6 +176,57 @@ button, input, optgroup, select, textarea {
 html.dark body {
   background-color: #090e17;
   color: #f8fafc;
+}
+
+/* IranSwim Semantic Surface Helpers */
+.surface-card {
+  background-color: var(--surface-card);
+  border: 1px solid var(--border-card-subtle);
+}
+
+.surface-tinted-teal {
+  background-color: #f0fdfa;
+  border-color: #ccfbf1;
+}
+.dark .surface-tinted-teal {
+  background-color: rgba(20, 184, 166, 0.08);
+  border-color: rgba(20, 184, 166, 0.25);
+}
+
+.surface-tinted-coral {
+  background-color: #fff7ed;
+  border-color: #fed7aa;
+}
+.dark .surface-tinted-coral {
+  background-color: rgba(249, 115, 22, 0.08);
+  border-color: rgba(249, 115, 22, 0.25);
+}
+
+.surface-tinted-violet {
+  background-color: #f5f3ff;
+  border-color: #ddd6fe;
+}
+.dark .surface-tinted-violet {
+  background-color: rgba(139, 92, 246, 0.08);
+  border-color: rgba(139, 92, 246, 0.25);
+}
+
+.surface-tinted-amber {
+  background-color: #fffbeb;
+  border-color: #fde68a;
+}
+.dark .surface-tinted-amber {
+  background-color: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.25);
+}
+
+.surface-tinted-emerald {
+  background-color: #f0fdf4;
+  border-color: #bbf7d0;
+}
+.dark .surface-tinted-emerald {
+  background-color: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.25);
 }
 
 /* Custom scrollbar for modern light feel */
