@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  Waves, LogIn, Menu, X,
+  LogIn, Menu, X,
   Users2, Award, Building2, Newspaper, PhoneCall, ChevronLeft, BookOpen
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -134,11 +134,13 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             {/* Brand Logo - 1 single line on tablet & mobile */}
             <Link
               to="/"
-              className="flex items-center gap-2 md:gap-2 lg:gap-3 text-[#083B5C] hover:opacity-95 transition-opacity shrink-0 select-none"
+              className="flex items-center gap-2 md:gap-2.5 lg:gap-3 text-[#083B5C] hover:opacity-95 transition-opacity shrink-0 select-none py-1"
             >
-              <div className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-tr from-[#083B5C] via-[#087EA4] to-[#16B8B0] text-white flex items-center justify-center shadow-xs shrink-0 ring-2 ring-cyan-500/20">
-                <Waves className="w-4 h-4 sm:w-5 sm:h-5" />
-              </div>
+              <img
+                src="/images/logo.png"
+                alt="لوگوی مدرسه شنای ایران"
+                className="w-12 h-12 sm:w-14 sm:h-14 lg:w-[62px] lg:h-[62px] object-contain shrink-0 drop-shadow-sm select-none transition-transform hover:scale-105 duration-200"
+              />
               <div className="flex flex-col xl:flex-col shrink-0 text-right">
                 <span className="font-extrabold text-xs sm:text-sm md:text-[13px] lg:text-base text-[#083B5C] tracking-tight leading-tight whitespace-nowrap">
                   مدرسه شنای ایران
@@ -302,9 +304,11 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 text-[#083B5C] min-w-0"
               >
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#083B5C] via-[#087EA4] to-[#16B8B0] text-white flex items-center justify-center shadow-xs shrink-0 ring-2 ring-cyan-500/20">
-                  <Waves className="w-5 h-5" />
-                </div>
+                <img
+                  src="/images/logo.png"
+                  alt="لوگوی مدرسه شنای ایران"
+                  className="w-13 h-13 sm:w-14 sm:h-14 object-contain shrink-0 drop-shadow-sm"
+                />
                 <div className="flex flex-col min-w-0">
                   <span className="font-extrabold text-sm text-[#083B5C] truncate">
                     مدرسه شنای ایران
