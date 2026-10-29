@@ -196,7 +196,10 @@ class Command(BaseCommand):
                 'base_price': Decimal('2800000.00'),
                 'sessions_count': 12,
                 'status': Course.Status.ACTIVE,
-                'description': 'آموزش کامل حرکات هماهنگ دست و پا، ریتم صحیح تنفس و استقامت در آب'
+                'description': 'آموزش کامل حرکات هماهنگ دست و پا، ریتم صحیح تنفس و استقامت در آب',
+                'age_range': 'نونهالان و نوجوانان (۸ تا ۱۵ سال)',
+                'gender': Course.GenderTarget.ALL,
+                'what_you_learn': 'آموزش زاویه اصولی دست کرال، پای منظم با تخته شنا، تنفس منظم دوطرفه و رهاسازی عضلانی در آب',
             }
         )
         c2, _ = Course.objects.get_or_create(
@@ -207,7 +210,10 @@ class Command(BaseCommand):
                 'base_price': Decimal('3500000.00'),
                 'sessions_count': 12,
                 'status': Course.Status.ACTIVE,
-                'description': 'تقویت عضلات هسته بدن، موج دلفین و تکنیک پرتاب دست پروانه با تجهیزات پیشرفته'
+                'description': 'تقویت عضلات هسته بدن، موج دلفین و تکنیک پرتاب دست پروانه با تجهیزات پیشرفته',
+                'age_range': 'نوجوانان و جوانان (۱۲ سال به بالا)',
+                'gender': Course.GenderTarget.MALE,
+                'what_you_learn': 'تکنیک تخصصی موج دلفین، پرتاب دست و تنفس تک‌ضرب پروانه، استارت جهشی از سکو و چرخش‌های سالتو',
             }
         )
         c3, _ = Course.objects.get_or_create(
@@ -218,7 +224,10 @@ class Command(BaseCommand):
                 'base_price': Decimal('2400000.00'),
                 'sessions_count': 10,
                 'status': Course.Status.ACTIVE,
-                'description': 'محیط شاد و مفرح برای کودکان با متدهای بین‌المللی همراه با نجات‌غریق مقیم'
+                'description': 'محیط شاد و مفرح برای کودکان با متدهای بین‌المللی همراه با نجات‌غریق مقیم',
+                'age_range': 'کودکان و خردسالان (۴ تا ۹ سال)',
+                'gender': Course.GenderTarget.ALL,
+                'what_you_learn': 'غلبه بر ترس از آب، اصول تنفس و غوطه‌وری، بازی‌های تعادلی و شناوری، آموزش مقدماتی پا زدن',
             }
         )
 

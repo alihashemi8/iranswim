@@ -90,11 +90,11 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
           className={`${
             isFullWidth
               ? 'w-full px-3 sm:px-6'
-              : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'
-          } h-16 sm:h-[68px] flex items-center justify-between gap-3 sm:gap-4 flex-nowrap`}
+              : 'max-w-7xl mx-auto px-2.5 sm:px-4 lg:px-8'
+          } h-16 sm:h-[68px] flex items-center justify-between gap-2 md:gap-2.5 lg:gap-4 flex-nowrap`}
         >
           {/* Brand & Main Navigation (Right side in RTL) */}
-          <div className="flex items-center gap-2.5 sm:gap-4 lg:gap-6 xl:gap-8 shrink-0 flex-nowrap min-w-0">
+          <div className="flex items-center gap-1.5 md:gap-2 lg:gap-4 xl:gap-8 shrink-0 flex-nowrap min-w-0">
             {/* Dashboard Sidebar Hamburger Button */}
             {isFullWidth && onMenuClick && (
               <button
@@ -107,12 +107,12 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               </button>
             )}
 
-            {/* Public Mobile & Tablet Navigation Hamburger Button */}
+            {/* Public Mobile Navigation Hamburger Button (Mobile only, hidden on tablet md and desktop) */}
             {!isFullWidth && (
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(true)}
-                className="p-2 -mr-1.5 lg:hidden text-[#083B5C] hover:text-[#087EA4] hover:bg-sky-50 rounded-xl transition-colors shrink-0 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#087EA4]/40"
+                className="p-2 -mr-1.5 md:hidden text-[#083B5C] hover:text-[#087EA4] hover:bg-sky-50 rounded-xl transition-colors shrink-0 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#087EA4]/40"
                 aria-label="باز کردن منوی ناوبری"
                 aria-expanded={mobileMenuOpen}
               >
@@ -120,19 +120,19 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               </button>
             )}
 
-            {/* Brand Logo - shrink-0 & whitespace-nowrap prevent truncation on tablet and mobile */}
+            {/* Brand Logo - 1 single line on tablet & mobile */}
             <Link
               to="/"
-              className="flex items-center gap-2.5 sm:gap-3 text-[#083B5C] hover:opacity-95 transition-opacity shrink-0 select-none"
+              className="flex items-center gap-2 md:gap-2 lg:gap-3 text-[#083B5C] hover:opacity-95 transition-opacity shrink-0 select-none"
             >
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-[#083B5C] via-[#087EA4] to-[#16B8B0] text-white flex items-center justify-center shadow-xs shrink-0 ring-2 ring-cyan-500/20">
-                <Waves className="w-5 h-5" />
+              <div className="w-8 h-8 sm:w-9 sm:h-9 lg:w-10 lg:h-10 rounded-xl bg-gradient-to-tr from-[#083B5C] via-[#087EA4] to-[#16B8B0] text-white flex items-center justify-center shadow-xs shrink-0 ring-2 ring-cyan-500/20">
+                <Waves className="w-4 h-4 sm:w-5 sm:h-5" />
               </div>
-              <div className="flex flex-col shrink-0 text-right">
-                <span className="font-extrabold text-sm sm:text-base lg:text-lg text-[#083B5C] tracking-tight leading-tight whitespace-nowrap">
+              <div className="flex flex-col xl:flex-col shrink-0 text-right">
+                <span className="font-extrabold text-xs sm:text-sm md:text-[13px] lg:text-base text-[#083B5C] tracking-tight leading-tight whitespace-nowrap">
                   مدرسه شنای ایران
                 </span>
-                <span className="text-[10px] sm:text-[11px] text-[#087EA4] font-semibold tracking-normal hidden sm:inline whitespace-nowrap">
+                <span className="text-[10px] text-[#087EA4] font-semibold tracking-normal hidden xl:inline whitespace-nowrap">
                   آموزش تخصصی شنا در قزوین
                 </span>
               </div>
@@ -151,10 +151,10 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               </div>
             )}
 
-            {/* Public Nav Links (Rendered on desktop lg and above, never wrapping into 2 lines on tablet) */}
+            {/* Public Nav Links - Visible on tablet (md) and desktop in ONE SINGLE ROW */}
             {!isFullWidth && (
               <nav
-                className="hidden lg:flex items-center gap-1.5 xl:gap-5 text-[13px] xl:text-sm font-semibold text-[#163247] whitespace-nowrap shrink-0"
+                className="hidden md:flex items-center gap-0.5 md:gap-1 lg:gap-2.5 xl:gap-5 text-[11px] md:text-[11.5px] lg:text-[13px] xl:text-sm font-semibold text-[#163247] whitespace-nowrap shrink-0"
                 aria-label="ناوبری اصلی"
               >
                 {publicNavLinks.map((item) => {
@@ -165,7 +165,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                     <a
                       key={item.href}
                       href={item.href}
-                      className={`px-2.5 xl:px-3 py-1.5 rounded-xl transition-all duration-150 whitespace-nowrap shrink-0 ${
+                      className={`px-1.5 md:px-1.5 lg:px-2.5 xl:px-3 py-1 md:py-1.5 rounded-lg transition-all duration-150 whitespace-nowrap shrink-0 ${
                         isCurrent
                           ? 'text-[#087EA4] bg-sky-50 font-bold'
                           : 'text-[#163247] hover:text-[#087EA4] hover:bg-sky-50/80'
@@ -211,7 +211,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 ) : location.pathname === '/login' ? (
                   <Link
                     to="/"
-                    className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-[#083B5C] bg-sky-50 hover:bg-sky-100 hover:text-[#087EA4] border border-sky-200/90 rounded-xl shadow-2xs transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
+                    className="inline-flex items-center gap-1 md:gap-1.5 lg:gap-2 px-2.5 md:px-3 lg:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-bold text-[#083B5C] bg-sky-50 hover:bg-sky-100 hover:text-[#087EA4] border border-sky-200/90 rounded-xl shadow-2xs transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                   >
                     <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 rotate-180" />
                     <span className="hidden sm:inline">بازگشت به سایت</span>
@@ -220,7 +220,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 ) : (
                   <Link
                     to="/login"
-                    className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] rounded-xl shadow-xs hover:shadow-md hover:shadow-cyan-500/20 transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
+                    className="inline-flex items-center gap-1 md:gap-1.5 lg:gap-2 px-2.5 md:px-3 lg:px-4.5 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-bold text-white bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] rounded-xl shadow-xs hover:shadow-md hover:shadow-cyan-500/20 transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                   >
                     <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                     <span className="hidden sm:inline">ورود / ثبت‌نام</span>
@@ -233,9 +233,9 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
         </div>
       </header>
 
-      {/* Public Mobile & Tablet Responsive Sidebar Drawer (Opens from Right) */}
+      {/* Public Mobile Responsive Sidebar Drawer (Opens from Right on Mobile screens) */}
       {!isFullWidth && mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 lg:hidden flex justify-start" dir="rtl">
+        <div className="fixed inset-0 z-50 md:hidden flex justify-start" dir="rtl">
           {/* Backdrop Overlay */}
           <div
             className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs animate-fade-in cursor-pointer transition-opacity"

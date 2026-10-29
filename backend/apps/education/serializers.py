@@ -54,12 +54,15 @@ class SwimmerGroupSerializer(serializers.ModelSerializer):
 
 class CourseSerializer(serializers.ModelSerializer):
     groups = SwimmerGroupSerializer(many=True, read_only=True)
+    gender_display = serializers.CharField(source='get_gender_display', read_only=True)
 
     class Meta:
         model = Course
         fields = [
             'id', 'name', 'description', 'start_date', 'end_date',
-            'base_price', 'sessions_count', 'status', 'groups', 'created_at'
+            'base_price', 'sessions_count', 'status', 'groups',
+            'age_range', 'gender', 'gender_display', 'what_you_learn',
+            'created_at'
         ]
 
 

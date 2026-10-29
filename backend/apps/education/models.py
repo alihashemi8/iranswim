@@ -47,12 +47,26 @@ class Course(models.Model):
         COMPLETED = 'COMPLETED', _('خاتمه‌یافته')
         ARCHIVED = 'ARCHIVED', _('بایگانی‌شده')
 
+    class GenderTarget(models.TextChoices):
+        ALL = 'ALL', _('عمومی (دختران و پسران)')
+        MALE = 'MALE', _('پسران / آقایان')
+        FEMALE = 'FEMALE', _('دختران / بانوان')
+
     name = models.CharField(_('عنوان دوره'), max_length=200)
     description = models.TextField(_('توضیحات دوره'), blank=True)
     start_date = models.DateField(_('تاریخ شروع'))
     end_date = models.DateField(_('تاریخ پایان'))
     base_price = models.DecimalField(_('شهریه پایه (تومان)'), max_digits=12, decimal_places=2)
     sessions_count = models.PositiveIntegerField(_('تعداد جلسات کل دوره'), default=12)
+    age_range = models.CharField(_('رده سنی'), max_length=120, blank=True, default='')
+    gender = models.CharField(
+        _('جنسیت مجاز'),
+        max_length=20,
+        choices=GenderTarget.choices,
+        default=GenderTarget.ALL,
+        blank=True
+    )
+    what_you_learn = models.TextField(_('آنچه در این دوره یاد می‌گیرید'), blank=True, default='')
     status = models.CharField(
         _('وضعیت دوره'),
         max_length=20,

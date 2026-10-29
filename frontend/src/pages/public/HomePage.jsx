@@ -253,9 +253,9 @@ export const HomePage = () => {
 
                 {/* Main Headline */}
                 <div className="space-y-4">
-                  <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-[1.18] text-white">
-                    آموزش اصولی شنا 
-                    <br />
+                  <h1 className="text-3xl sm:text-4xl md:text-[1.85rem] lg:text-[2.6rem] xl:text-5xl font-black tracking-tight leading-[1.25] text-white">
+                    <span>آموزش اصولی شنا</span>{' '}
+                    <br className="block md:hidden" />
                     <span className="text-cyan-300 font-black">
                       از مبتدی تا پیشرفته
                     </span>
