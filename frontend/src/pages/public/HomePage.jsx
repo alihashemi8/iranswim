@@ -275,11 +275,17 @@ export const HomePage = () => {
       activeBenefitIndexRef.current = nextIndex;
       setActiveBenefitDot(nextIndex);
 
-      cards[nextIndex]?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
-      });
+      const targetCard = cards[nextIndex];
+      if (targetCard) {
+        const cardRect = targetCard.getBoundingClientRect();
+        const trackRect = track.getBoundingClientRect();
+        const diff = (cardRect.left + cardRect.width / 2) - (trackRect.left + trackRect.width / 2);
+
+        track.scrollBy({
+          left: diff,
+          behavior: 'smooth',
+        });
+      }
     }, 3600);
 
     return () => clearInterval(intervalId);
@@ -290,6 +296,10 @@ export const HomePage = () => {
     if (benefitTimeoutRef.current) {
       clearTimeout(benefitTimeoutRef.current);
     }
+    // Auto-resume after 3.5s in case touch doesn't fire mouseleave on tablet
+    benefitTimeoutRef.current = setTimeout(() => {
+      isBenefitInteractingRef.current = false;
+    }, 3500);
   };
 
   const handleBenefitInteractionEnd = () => {
@@ -298,7 +308,7 @@ export const HomePage = () => {
     }
     benefitTimeoutRef.current = setTimeout(() => {
       isBenefitInteractingRef.current = false;
-    }, 4000);
+    }, 3500);
   };
 
   const handleBenefitScroll = () => {
@@ -604,7 +614,7 @@ export const HomePage = () => {
             className="landing-benefits-track landing-scroll-track flex overflow-x-auto pt-6 pb-12 px-4 sm:pt-8 sm:pb-16 sm:px-6 gap-6 sm:gap-8 snap-x snap-mandatory lg:grid lg:grid-cols-3 lg:gap-8 lg:overflow-visible lg:pt-9 lg:pb-16 lg:px-7 items-stretch"
           >
             {/* Benefit Card 1 - فیروزه‌ای پودری */}
-            <div className="benefit-card benefit-card--turquoise card-hydrofoil group relative flex flex-col justify-between w-[84vw] sm:w-[340px] md:w-[360px] max-w-[380px] shrink-0 snap-center lg:w-auto lg:max-w-none lg:shrink h-full">
+            <div className="benefit-card benefit-card--turquoise card-hydrofoil group relative flex flex-col justify-between w-[84vw] sm:w-[350px] md:w-[350px] max-w-[360px] shrink-0 snap-center lg:w-auto lg:max-w-none lg:shrink h-full">
               <div className="flex items-center justify-between gap-3 mb-4 sm:mb-5">
                 <div className="benefit-card__icon w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                   <CardioAquaticIcon className="w-6 h-6 sm:w-7 sm:h-7" />
@@ -628,7 +638,7 @@ export const HomePage = () => {
             </div>
 
             {/* Benefit Card 2 - بنفش ملو پودری */}
-            <div className="benefit-card benefit-card--purple card-hydrofoil group relative flex flex-col justify-between w-[84vw] sm:w-[340px] md:w-[360px] max-w-[380px] shrink-0 snap-center lg:w-auto lg:max-w-none lg:shrink h-full">
+            <div className="benefit-card benefit-card--purple card-hydrofoil group relative flex flex-col justify-between w-[84vw] sm:w-[350px] md:w-[350px] max-w-[360px] shrink-0 snap-center lg:w-auto lg:max-w-none lg:shrink h-full">
               <div className="flex items-center justify-between gap-3 mb-4 sm:mb-5">
                 <div className="benefit-card__icon w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                   <HydroTherapySpineIcon className="w-6 h-6 sm:w-7 sm:h-7" />
@@ -652,7 +662,7 @@ export const HomePage = () => {
             </div>
 
             {/* Benefit Card 3 - سبز پودری */}
-            <div className="benefit-card benefit-card--green card-hydrofoil group relative flex flex-col justify-between w-[84vw] sm:w-[340px] md:w-[360px] max-w-[380px] shrink-0 snap-center lg:w-auto lg:max-w-none lg:shrink h-full">
+            <div className="benefit-card benefit-card--green card-hydrofoil group relative flex flex-col justify-between w-[84vw] sm:w-[350px] md:w-[350px] max-w-[360px] shrink-0 snap-center lg:w-auto lg:max-w-none lg:shrink h-full">
               <div className="flex items-center justify-between gap-3 mb-4 sm:mb-5">
                 <div className="benefit-card__icon w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
                   <RescueBuoyRingIcon className="w-6 h-6 sm:w-7 sm:h-7" />
