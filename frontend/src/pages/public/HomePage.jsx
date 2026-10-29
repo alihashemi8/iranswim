@@ -538,10 +538,18 @@ export const HomePage = () => {
       {/* Main Content Layers */}
       <div className="relative z-20 w-full">
         
+        {/* Organic Wave Transition: Navbar to Hero Arena */}
+        <AquaticWaveDivider
+          topColor="#f0f9ff"
+          bottomColor="#093444"
+          crestColor="rgba(255, 255, 255, 0.65)"
+          flip={true}
+        />
+
         {/* =========================================================================
             SECTION 1: CINEMATIC AQUATIC HERO & WATER ENTRY ARENA
             ========================================================================= */}
-        <section className="landing-hero relative w-full pt-8 sm:pt-14 lg:pt-18 pb-12 sm:pb-16 min-w-0">
+        <section className="landing-hero relative w-full pt-4 sm:pt-8 lg:pt-10 pb-12 sm:pb-16 min-w-0">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="landing-hero__panel relative w-full">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">

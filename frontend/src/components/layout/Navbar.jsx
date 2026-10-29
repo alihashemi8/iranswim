@@ -10,7 +10,17 @@ import { ChildSwitcher } from './ChildSwitcher';
 export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
   const { user } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 15);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const [prevLocationKey, setPrevLocationKey] = useState(location.key);
   if (location.key !== prevLocationKey) {
@@ -79,9 +89,11 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
   return (
     <>
       <header
-        className={`sticky top-0 z-40 transition-colors w-full overflow-x-clip ${
+        className={`sticky top-0 z-40 transition-all duration-300 w-full overflow-x-clip ${
           isPublicPage
-            ? 'pool-header bg-white/95 backdrop-blur-md border-b border-sky-100/90 shadow-[0_2px_16px_rgba(8,59,92,0.06)]'
+            ? isScrolled
+              ? 'pool-header bg-[#f0f9ff]/92 backdrop-blur-md shadow-[0_4px_24px_rgba(8,59,92,0.08)] border-b border-cyan-200/50'
+              : 'pool-header bg-[#f0f9ff] border-b-0 shadow-none'
             : 'bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs'
         }`}
       >
