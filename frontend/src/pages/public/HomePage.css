@@ -57,24 +57,18 @@
 
 .landing-hero__panel {
   width: 100%;
-  padding: clamp(1.25rem, 4vw, 3.5rem);
-  border-radius: 2rem 2rem 2rem 0.65rem;
-  border: 1px solid rgb(255 255 255 / 88%);
-  background: rgb(249 253 251 / 84%);
-  box-shadow: 0 28px 72px rgb(25 72 83 / 24%), inset 0 1px #fff;
+  padding: 0;
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
   backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .landing-hero__panel::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border-radius: inherit;
-  background:
-    linear-gradient(270deg, rgb(244 252 248 / 94%) 2%, rgb(244 252 248 / 86%) 46%, rgb(244 252 248 / 28%) 100%),
-    linear-gradient(0deg, rgb(244 252 248 / 35%), transparent 60%),
-    url("/images/olympic-pool-aerial.webp") center 18% / cover;
+  display: none;
+  content: none;
 }
 
 .landing-hero__panel > .grid {
@@ -85,54 +79,6 @@
 .landing-experience :is(h1, h2, h3, h4) {
   color: var(--pool-ink);
   text-wrap: pretty;
-}
-
-.landing-hero__panel :is(p, .text-cyan-200, .text-cyan-300\/90, .text-slate-200\/90) {
-  color: #355965;
-}
-
-.landing-hero__panel h1 span {
-  color: transparent;
-}
-
-.landing-hero__panel .bg-cyan-950\/70 {
-  color: #176a70;
-  background: rgb(224 245 239 / 92%);
-  border-color: #c7e8df;
-}
-
-.landing-hero__panel .bg-slate-900\/60 {
-  background: rgb(249 253 250 / 92%);
-  border-color: rgb(255 255 255 / 92%);
-  box-shadow: 0 12px 28px rgb(25 72 83 / 10%);
-}
-
-.landing-hero__panel .bg-slate-900\/90 {
-  color: #173b4b;
-  background: rgb(249 253 250 / 94%);
-  border-color: #d7eae4;
-  backdrop-filter: none;
-}
-
-.landing-hero__panel .text-slate-300\/80,
-.landing-hero__panel .text-cyan-100 {
-  color: #355965;
-}
-
-.landing-hero__panel .bg-gradient-to-t {
-  background-image: linear-gradient(to top, rgb(238 249 245 / 95%), transparent 68%);
-}
-
-.landing-hero__panel .bg-slate-900\/80 {
-  color: #173b4b;
-  background: rgb(249 253 250 / 94%);
-  border-color: #d7eae4;
-  backdrop-filter: none;
-}
-
-.landing-hero__panel .bg-teal-500 {
-  color: #fff;
-  background: #0b8e87;
 }
 
 .landing-experience :is(a, button):focus-visible {
@@ -477,35 +423,13 @@
   padding-block: clamp(3rem, 7vw, 6rem);
 }
 
-.landing-cta > div {
-  background: rgb(250 254 251 / 94%);
-  border-color: rgb(255 255 255 / 92%);
-  box-shadow: 0 28px 64px rgb(25 72 83 / 22%);
-}
-
-.landing-cta > div :is(h2, p) {
-  color: #173b4b;
-}
-
-.landing-cta > div .text-cyan-200 {
-  color: #176f75;
-}
-
-.landing-cta > div a[href^="tel:"] {
-  color: #176f75;
-  background: #e7f5f1;
-  border-color: #c7e8df;
-  backdrop-filter: none;
-}
-
-.landing-cta > div > div:first-child {
-  opacity: .16;
-}
-
-.landing-cta > div .bg-cyan-950\/80 {
-  color: #126f73;
-  background: #e5f5f0;
-  border-color: #c8e9e1;
+.landing-cta > div,
+.landing-cta__panel {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
 }
 
 .landing-experience footer {
@@ -676,5 +600,319 @@ html.dark .auth-page > .auth-panel {
   .landing-experience *::before,
   .landing-experience *::after {
     scroll-behavior: auto !important;
+  }
+}
+
+/* Iran Swim aquatic scene: the canvas supplies moving refraction; CSS supplies
+   the pool depth, the quiet editorial surfaces, and readable transitions. */
+.landing-experience {
+  --pool-ink: #153847;
+  --pool-paper: #f1f7f4;
+  --pool-water: #0b797c;
+  --pool-mint: #8fe0d0;
+  --pool-yellow: #ffd18b;
+  position: relative;
+  isolation: isolate;
+  color: var(--pool-ink);
+  background-color: #eaf3f0;
+  background-image:
+    radial-gradient(ellipse 82% 18rem at 50% 0, rgb(20 111 125 / 15%), transparent 100%),
+    linear-gradient(
+      180deg,
+      #031722 0,
+      #061f2c 31rem,
+      #0a3b47 43rem,
+      #edf5f1 56rem,
+      #edf5f1 82%,
+      #0b3541 93%,
+      #03151f 100%
+    );
+}
+
+.landing-water {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100svh;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 70% 62% at 18% 8%, rgb(13 125 136 / 20%), transparent 74%),
+    radial-gradient(ellipse 60% 52% at 84% 54%, rgb(4 80 105 / 15%), transparent 76%);
+}
+
+.landing-water__caustics {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  opacity: 0.48;
+  mix-blend-mode: screen;
+  image-rendering: auto;
+}
+
+.landing-water__light {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 62% 44% at 50% -4%, rgb(186 249 226 / 10%), transparent 82%),
+    linear-gradient(180deg, rgb(1 16 26 / 8%), transparent 35%, rgb(3 26 37 / 5%));
+}
+
+/* The image is confined to the opening scene and fades into the brighter page. */
+.landing-hero {
+  min-height: min(760px, calc(100svh - 4.25rem));
+  isolation: isolate;
+}
+
+.landing-hero::before {
+  position: absolute;
+  z-index: -1;
+  top: -4.5rem;
+  bottom: -10rem;
+  left: 50%;
+  width: 100vw;
+  content: "";
+  transform: translateX(-50%);
+  background:
+    linear-gradient(180deg, rgb(2 17 27 / 42%) 0%, rgb(3 22 31 / 57%) 52%, rgb(6 43 51 / 12%) 100%),
+    radial-gradient(ellipse 52% 62% at 78% 27%, rgb(30 199 179 / 15%), transparent 82%),
+    url("/images/olympic-pool-aerial.webp") center 28% / cover no-repeat;
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 70%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 70%, transparent 100%);
+}
+
+.landing-hero__panel {
+  border: none !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.landing-hero__panel::before {
+  display: none !important;
+  content: none !important;
+}
+
+@keyframes swimmerBoyBob {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(0.8deg);
+  }
+}
+
+.hero-swimmer-boy {
+  animation: swimmerBoyBob 4.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-swimmer-boy {
+    animation: none;
+  }
+}
+
+.landing-experience .landing-hero__panel h1 {
+  color: #ffffff !important;
+  font-size: clamp(2.35rem, 5.2vw, 4.25rem) !important;
+  font-weight: 900 !important;
+  line-height: 1.18 !important;
+  letter-spacing: -0.02em !important;
+  text-shadow: 0 4px 18px rgba(1, 15, 24, 0.95), 0 2px 5px rgba(0, 0, 0, 0.95) !important;
+}
+
+.landing-experience .landing-hero__panel h1 span {
+  color: #38bdf8 !important;
+  background: none !important;
+  -webkit-text-fill-color: #38bdf8 !important;
+  text-shadow: 0 4px 18px rgba(1, 15, 24, 0.95), 0 2px 5px rgba(0, 0, 0, 0.95) !important;
+}
+
+.landing-experience .landing-hero__panel p {
+  color: #f8fafc !important;
+  text-shadow: 0 2px 10px rgba(1, 15, 24, 0.9), 0 1px 3px rgba(0, 0, 0, 0.9) !important;
+}
+
+.landing-hero__panel .bg-cyan-950\/70 {
+  color: #c8f6ec;
+  background: rgb(2 27 37 / 82%);
+  border-color: rgb(120 216 203 / 34%);
+}
+
+.landing-hero__panel .bg-slate-900\/60 {
+  color: #dff4ef;
+  background: rgb(2 20 30 / 62%);
+  border-color: rgb(137 216 206 / 20%);
+  box-shadow: inset 0 1px rgb(227 255 248 / 5%);
+}
+
+.landing-hero__panel .bg-slate-900\/90,
+.landing-hero__panel .bg-slate-900\/80 {
+  color: #eefbf7;
+  background: rgb(3 23 33 / 86%);
+  border-color: rgb(126 216 205 / 23%);
+  backdrop-filter: none;
+}
+
+.landing-hero__panel .text-slate-300\/80,
+.landing-hero__panel .text-cyan-100 {
+  color: #cde4df;
+}
+
+.landing-hero__panel .bg-gradient-to-t {
+  background-image: linear-gradient(to top, rgb(2 17 25 / 94%), transparent 72%);
+}
+
+.landing-hero__panel .bg-teal-500 {
+  color: #072a31;
+  background: #8adcca;
+}
+
+.pool-header {
+  color: #e5f5f1;
+  background: rgb(3 23 34 / 88%) !important;
+  border-color: rgb(145 211 203 / 18%) !important;
+  box-shadow: 0 8px 28px rgb(0 13 22 / 22%) !important;
+  backdrop-filter: blur(10px);
+}
+
+.pool-header > div:first-child :is(nav, nav a, a, button) {
+  color: #e2f3ef;
+}
+
+.pool-header > div:first-child > div > a > div > span:first-child {
+  color: #e6f4f0;
+}
+
+.pool-header > div:first-child > div > a > div > span:nth-child(2) {
+  color: #b5d0cc;
+}
+
+.pool-header nav a:hover,
+.pool-header > div:first-child a:hover {
+  color: #91e3d0;
+}
+
+/* Section bands use different water tones and dissolve at their edges. */
+#about,
+#courses,
+#facilities {
+  position: relative;
+  isolation: isolate;
+}
+
+#about::before,
+#courses::before,
+#facilities::before {
+  position: absolute;
+  z-index: -1;
+  left: 50%;
+  width: 100vw;
+  content: "";
+  transform: translateX(-50%);
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 3rem, #000 calc(100% - 3rem), transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 3rem, #000 calc(100% - 3rem), transparent 100%);
+}
+
+#about::before {
+  top: -2rem;
+  bottom: -2rem;
+  background:
+    radial-gradient(ellipse 74% 46% at 12% 20%, rgb(102 190 179 / 12%), transparent 84%),
+    linear-gradient(145deg, #eff8f3, #e7f1ed 60%, #eaf4f0);
+  box-shadow: inset 0 1px rgb(255 255 255 / 78%);
+}
+
+#courses::before {
+  top: -2rem;
+  bottom: -2rem;
+  background:
+    radial-gradient(ellipse 48% 48% at 82% 15%, rgb(118 194 190 / 12%), transparent 78%),
+    linear-gradient(180deg, rgb(226 240 237 / 80%), rgb(238 246 242 / 92%));
+}
+
+#facilities::before {
+  top: -1.75rem;
+  bottom: -1.75rem;
+  background:
+    linear-gradient(180deg, rgb(211 235 230 / 68%), rgb(222 240 235 / 78%));
+}
+
+/* The closing registration moment */
+.landing-cta > div,
+.landing-cta__panel {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.landing-cta h2 {
+  color: #ffffff !important;
+  font-size: clamp(2rem, 4.5vw, 3.75rem) !important;
+  font-weight: 900 !important;
+  line-height: 1.2 !important;
+  text-shadow: 0 4px 18px rgba(1, 15, 24, 0.95), 0 2px 5px rgba(0, 0, 0, 0.95) !important;
+}
+
+.landing-cta p {
+  color: #f8fafc !important;
+  text-shadow: 0 2px 10px rgba(1, 15, 24, 0.9), 0 1px 3px rgba(0, 0, 0, 0.9) !important;
+}
+
+.landing-experience footer {
+  color: #d5e9e5;
+  background: linear-gradient(180deg, rgb(5 30 41 / 90%), #03151f);
+  border-color: rgb(120 207 198 / 20%);
+  backdrop-filter: none;
+}
+
+.landing-experience footer a:hover {
+  color: #8ee0ce;
+}
+
+.landing-experience footer :is(h4, .text-white, .text-slate-300, .text-slate-400) {
+  color: #d5e9e5;
+}
+
+.landing-experience footer .bg-emerald-950\/60 {
+  color: #a2e9c7;
+  background: rgb(9 54 50 / 66%);
+  border-color: rgb(113 212 170 / 24%);
+}
+
+@media (max-width: 767px) {
+  .landing-hero {
+    min-height: 0;
+  }
+
+  .landing-hero::before {
+    top: -2rem;
+    bottom: -5rem;
+    background-position: center 22%;
+  }
+
+  .landing-hero__panel {
+    background: transparent !important;
+  }
+
+  #about::before,
+  #courses::before,
+  #facilities::before {
+    left: 50%;
+    width: 100vw;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-water__caustics {
+    animation: none;
   }
 }

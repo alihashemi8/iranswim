@@ -39,3 +39,55 @@ class CoachProfile(models.Model):
     @property
     def full_name(self):
         return self.user.get_full_name() or self.user.phone
+
+
+class WorkoutPlan(models.Model):
+    coach = models.ForeignKey(
+        CoachProfile,
+        on_delete=models.CASCADE,
+        related_name='workout_plans',
+        verbose_name=_('مربی طراح')
+    )
+    title = models.CharField(_('عنوان برنامه تمرینی'), max_length=150)
+    group = models.ForeignKey(
+        'education.SwimmerGroup',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='workout_plans',
+        verbose_name=_('گروه هدف (اختیاری)')
+    )
+    session = models.ForeignKey(
+        'scheduling.ClassSession',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='workout_plans',
+        verbose_name=_('جلسه مرتبط (اختیاری)')
+    )
+    target_level = models.ForeignKey(
+        'education.SkillLevel',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='workout_plans',
+        verbose_name=_('سطح مهارت هدف')
+    )
+    duration_minutes = models.PositiveIntegerField(_('مدت زمان تمرین (دقیقه)'), default=60)
+    focus_skills = models.CharField(_('تمرکز آموزشی اصلی'), max_length=255, blank=True)
+    warmup_section = models.TextField(_('بخش گرم‌کردن و تمرینات کششی'), blank=True)
+    main_section = models.TextField(_('بخش تمرینات اصلی و ست‌های شنا'))
+    cooldown_section = models.TextField(_('بخش سردکردن و ریکاوری'), blank=True)
+    notes = models.TextField(_('توضیحات و نکات تکنیکی برای مربی'), blank=True)
+    is_template = models.BooleanField(_('آیا به عنوان الگو ذخیره شود؟'), default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _('برنامه تمرین')
+        verbose_name_plural = _('برنامه‌های تمرین')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.coach.full_name})"
+

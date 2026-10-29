@@ -1,9 +1,9 @@
-import React, { Suspense, lazy, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ShieldCheck, ArrowLeft, PhoneCall,
   CheckCircle2, Clock, MapPin, Check,
-  Sparkles, Droplet, ArrowDown, Waves
+  Sparkles, Droplet, ArrowDown, Waves, Users2
 } from 'lucide-react';
 import {
   SwimmerCrawlIcon,
@@ -31,42 +31,41 @@ import { useAuth } from '../../context/AuthContext';
 import { AquaticPoolBackground } from '../../components/landing/AquaticPoolBackground';
 import './HomePage.css';
 
-const RubberDuckExperience = lazy(() => import('../../components/landing/RubberDuckExperience').then((module) => ({ default: module.RubberDuckExperience })));
-
 // Verified real database records for coaches and news
+// Verified real database records for coaches and news in Qazvin
 const INITIAL_COACHES = [
   {
     id: 1,
     full_name: 'محمد رضایی',
     specialties: 'کرال سینه، شنای پروانه، نجات غریق درجه ۱',
-    bio: 'مربی رسمی فدراسیون شنا با ۱۰ سال سابقه آموزش تیم‌های پایه',
+    bio: 'مربی رسمی فدراسیون شنا با ۱۰ سال سابقه آموزش تیم‌های پایه و استعدادیابی در استخرهای قزوین',
     icon: SwimmerCrawlIcon,
   },
   {
     id: 4,
     full_name: 'نیما سعادتی',
-    specialties: 'شنای قورباغه، استارت و برگشت‌های سرعتی المپیک',
-    bio: 'عضو اسبق تیم ملی شنا و مربی تخصصی اصلاح تکنیک و استقامت بدنی شناگران نخبه',
+    specialties: 'شنای قورباغه، اصلاح تکنیک و استارت',
+    bio: 'مربی تخصصی اصلاح حرکت، استارت و استقامت بدنی شناگران در رده‌های نوجوانان و جوانان قزوین',
     icon: PoolStartingBlockIcon,
   },
   {
     id: 2,
     full_name: 'علیرضا مرادی (مربی)',
-    specialties: 'کرال سینه، شنای پروانه، نجات غریق بین‌المللی',
-    bio: 'مربی رسمی فدراسیون شنا با ۱۲ سال سابقه تدریس و قهرمانی رده‌های پایه کشور',
+    specialties: 'کرال سینه، شنای پروانه، نجات غریق',
+    bio: 'مربی رسمی فدراسیون شنا با ۱۲ سال سابقه تدریس شنای مبتدی و پیشرفته برای کودکان و بزرگسالان در قزوین',
     icon: RescueBuoyRingIcon,
   },
   {
     id: 3,
     full_name: 'سارا کاظمی',
-    specialties: 'شنای موزون (سینکرونایز)، آب‌درمانی و کرال پشت',
-    bio: 'مدرس رسمی فدراسیون و کارشناس ارشد فیزیولوژی ورزش با سابقه ۱۰ سال هدایت تیم‌های استانی',
+    specialties: 'آموزش بانوان و کودکان، آب‌درمانی و کرال پشت',
+    bio: 'مدرس رسمی فدراسیون و کارشناس تربیت بدنی با سابقه ۱۰ سال برگزاری کلاس‌های آموزش شنای بانوان در قزوین',
     icon: SynchroSwimIcon,
   },
   {
     id: 5,
     full_name: 'مهدی یزدانی',
-    specialties: 'استعدادیابی نونهالان و آموزش آب‌بازی و مبتدی',
+    specialties: 'استعدادیابی نونهالان، آب‌بازی و رفع ترس از آب',
     bio: 'مربی باحوصله و مجرب در حوزه آموزش اصولی شنا از پایه برای رده‌های سنی ۵ تا ۱۲ سال',
     icon: WaterMedalTrophyIcon,
   },
@@ -74,58 +73,40 @@ const INITIAL_COACHES = [
 
 const INITIAL_NEWS = [
   {
-    id: 2,
-    title: 'برگزاری مسابقات استانی شنای سرعت «جام آزادی ۱۴۰۵»',
-    category: 'COMPETITIONS',
-    category_display: 'مسابقات و رویدادها',
-    summary: 'رقابت‌های استانی شنا با حضور بیش از ۳۰۰ شناگر برتر و اهدای مدال‌های قهرمانی به میزبانی آموزشگاه شنای ایران برگزار شد.',
-    body: 'مسابقات استانی شنای سرعت با حضور تیم‌های منتخب از سراسر استان با شور و هیجان بی‌نظیر برگزار شد. شناگران آکادمی موفق به کسب مقام اول تیمی شدند.',
-    publish_at: '2026-10-25T16:35:12.990003+00:00',
-  },
-  {
     id: 1,
-    title: 'آغاز دوره‌های تخصصی شنای پاییز ۱۴۰۵ در آکادمی ایران سوییم',
+    title: 'آغاز ثبت‌نام دوره‌های جدید آموزش شنا در استخرهای قزوین',
     category: 'CLASSES',
     category_display: 'دوره‌ها و کلاس‌ها',
-    summary: 'ثبت‌نام دوره‌های پاییز ۱۴۰۵ با حضور مربیان مجرب فدراسیون آغاز شد.',
-    body: 'با افتخار به اطلاع اعضای محترم می‌رساند ثبت‌نام دوره‌های تخصصی شنا از امروز آغاز گردید...',
+    summary: 'ثبت‌نام ترم جدید کلاس‌های آموزش ۴ شنا ویژه کودکان، نوجوانان و بزرگسالان آغاز شد.',
+    body: 'علاقه‌مندان می‌توانند برای انتخاب تایم کلاس‌ها و تعیین سطح اولیه، از طریق سامانه یا با هماهنگی تلفنی اقدام نمایند.',
     publish_at: '2026-10-25T12:49:27.601522+00:00',
   },
   {
+    id: 2,
+    title: 'برگزاری برنامه استعدادیابی شنای نونهالان استان قزوین',
+    category: 'COMPETITIONS',
+    category_display: 'استعدادیابی',
+    summary: 'طرح شناسایی استعدادهای برتر شنا در رده‌های سنی ۶ تا ۱۲ سال با حضور مربیان رسمی فدراسیون برگزار گردید.',
+    body: 'این ارزیابی با هدف جذب نونهالان مستعد جهت آموزش اصولی تکنیک‌های پایه و آماده‌سازی برای مسابقات استانی انجام شد.',
+    publish_at: '2026-10-22T16:35:12.990003+00:00',
+  },
+  {
     id: 3,
-    title: 'افتتاح پیشرفته‌ترین سیستم تصفیه آب اوزون و تصفیه بدون کلر',
+    title: 'راهنمای والدین: راهکارهای رفع ترس از آب در کودکان خردسال',
     category: 'HEALTH',
-    category_display: 'آموزش و بهداشت استخر',
-    summary: 'به جهت حفظ سلامت پوست، چشم و ریه شناگران، موتورخانه و تصفیه‌خانه مرکزی آکادمی به تکنولوژی روز اوزوناسیون مجهز شد.',
-    body: 'این سیستم نوین با از بین بردن ۹۹.۹ درصد باکتری‌ها و کاهش بوی تند کلر، تجربه‌ای دلنشین و استاندارد برای ورزشکاران حرفه‌ای و کودکان فراهم می‌آورد.',
-    publish_at: '2026-10-22T16:35:12.997702+00:00',
+    category_display: 'آموزش و مشاوره',
+    summary: 'چگونه می‌توان با آب‌بازی و محیط آرام، تجربه اولین جلسات شنا را برای کودک لذت‌بخش و خاطره‌انگیز کرد.',
+    body: 'روانشناسی آموزش شنا به کودکان نشان می‌دهد همراهی صبورانه مربی و پرهیز از اجبار، مهم‌ترین عامل در علاقه پایدار کودک به شنا است.',
+    publish_at: '2026-10-18T16:35:12.997702+00:00',
   },
   {
     id: 4,
-    title: 'آغاز پیش‌ثبت‌نام دوره‌های تخصصی شنای زمستانه با تخفیف ویژه',
-    category: 'CLASSES',
-    category_display: 'دوره‌ها و کلاس‌ها',
-    summary: 'ثبت‌نام ترم جدید آموزش چهار شنا، واترپلو و نجات‌غریق برای تمامی رده‌های سنی آغاز شد.',
-    body: 'علاقه‌مندان می‌توانند با مراجعه به سایت و مشاهده جدول زمان‌بندی گروه‌ها، اقدام به ثبت‌نام در ساعات دلخواه نمایند.',
-    publish_at: '2026-10-19T16:35:13.005472+00:00',
-  },
-  {
-    id: 5,
-    title: 'کارگاه تغذیه ورزشی، ریکاوری و تنفس عمیق ویژه ورزشکاران شنا',
-    category: 'GENERAL',
-    category_display: 'عمومی و اطلاعیه‌ها',
-    summary: 'سمینار کاربردی با حضور متخصصین تغذیه فدراسیون پزشکی ورزشی روز پنج‌شنبه در سالن همایش آکادمی برگزار می‌شود.',
-    body: 'در این دوره به مباحث برنامه غذایی در روزهای مسابقه، جبران الکترولیت‌ها و تکنیک‌های افزایش حجم ریه پرداخته خواهد شد.',
-    publish_at: '2026-10-16T16:35:13.011508+00:00',
-  },
-  {
-    id: 6,
-    title: 'درخشش شناگران آموزشگاه شنای ایران در لیگ برتر باشگاه‌های کشور',
-    category: 'COMPETITIONS',
-    category_display: 'مسابقات و رویدادها',
-    summary: 'تیم شنای نوجوانان آکادمی با شکستن دو رکورد ملی موفق به کسب کاپ اخلاق و جایگاه نخست ماده ۲۰۰ متر امدادی شدند.',
-    body: 'این موفقیت ارزشمند حاصل برنامه‌ریزی علمی، تمرینات منظم هفتگی و پایش مداوم شاخص‌های آمادگی جسمانی توسط مربیان مجرب است.',
-    publish_at: '2026-10-13T16:35:13.018034+00:00',
+    title: 'نکات بهداشتی استخرها و مراقبت از چشم و پوست کودکان',
+    category: 'HEALTH',
+    category_display: 'بهداشت و سلامت',
+    summary: 'توصیه‌های مهم مربیان درباره استفاده از عینک و کلاه شنای استاندارد و دوش گرفتن قبل و بعد از تمرین.',
+    body: 'رعایت اصول بهداشت فردی و شستشوی مناسب بعد از استخر، از خشکی پوست و خستگی جلوگیری می‌کند.',
+    publish_at: '2026-10-15T16:35:13.005472+00:00',
   },
 ];
 
@@ -249,12 +230,7 @@ export const HomePage = () => {
   return (
     <div className="landing-experience relative min-h-screen selection:bg-cyan-200 selection:text-slate-900 overflow-x-hidden text-right font-sans">
       {/* Dynamic Aquatic Water Caustic Canvas */}
-      <AquaticPoolBackground scrolling />
-
-      {/* 3D Realistic Rubber Duck Experience (R3F/Three.js + Scroll Journey) */}
-      <Suspense fallback={null}>
-        <RubberDuckExperience />
-      </Suspense>
+      <AquaticPoolBackground />
 
       {/* Main Content Layers */}
       <div className="relative z-20 space-y-20 sm:space-y-28 lg:space-y-36 pb-20 pt-4">
@@ -263,150 +239,123 @@ export const HomePage = () => {
             SECTION 1: CINEMATIC AQUATIC HERO & WATER ENTRY ARENA
             ========================================================================= */}
         <section className="landing-hero relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-14 lg:pt-18 min-w-0">
-          <div className="landing-hero__panel relative rounded-3xl sm:rounded-4xl p-6 sm:p-12 lg:p-16 border border-cyan-500/20 bg-radial-[circle_at_top_right,rgba(8,59,92,0.85)_0%,rgba(3,17,30,0.92)_100%] shadow-[0_25px_60px_-15px_rgba(2,12,22,0.8)] backdrop-blur-md overflow-hidden">
-            
-            {/* Ambient Water Lights */}
-            <div className="absolute -top-32 right-1/4 w-96 h-96 rounded-full bg-cyan-400/15 blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-32 left-10 w-96 h-96 rounded-full bg-[#16b8b0]/20 blur-3xl pointer-events-none" />
-
+          <div className="landing-hero__panel relative w-full">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
               {/* Text & Primary Actions */}
               <div className="lg:col-span-7 space-y-6 sm:space-y-8 text-right">
                 
                 {/* Floating Aquatic Pill */}
-                <div className="inline-flex items-center gap-2.5 px-4 py-2 bg-cyan-950/70 border border-cyan-400/30 rounded-full text-xs font-semibold text-cyan-200 shadow-inner">
-                  <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
-                  <span className="truncate">آکادمی بین‌المللی و مرکز تخصصی استعدادیابی شنا</span>
-                  <Droplet className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                <div className="inline-flex items-center gap-2.5 px-4 py-2 bg-slate-900/80 border border-cyan-400/40 rounded-full text-xs sm:text-sm font-bold text-cyan-200 shadow-md">
+                  <MapPin className="w-4 h-4 text-cyan-400 shrink-0" />
+                  <span>مدرسه شنای ایران • استان قزوین</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-1" />
+                  <span className="text-[11px] sm:text-xs text-emerald-300 font-semibold">پذیرش ترم جدید</span>
                 </div>
 
                 {/* Main Headline */}
-                <div className="space-y-3">
-                  <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight leading-[1.25] text-white">
-                    غوطه‌وری در آب،
+                <div className="space-y-4">
+                  <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-[1.18] text-white">
+                    آموزش اصولی شنا در قزوین؛
                     <br />
-                    <span className="text-transparent bg-clip-text bg-gradient-to-l from-cyan-400 via-teal-300 to-white">
-                      از اولین شیرجه تا سکوی قهرمانی
+                    <span className="text-cyan-300 font-black">
+                      از مبتدی تا پیشرفته
                     </span>
                   </h1>
-                  <p className="text-sm sm:text-base text-cyan-200/80 font-medium">
-                    آموزشگاه شنای ایران • تحت نظارت مربیان رسمی فدراسیون با استخر ۵۰ متری المپیک
+                  <p className="text-base sm:text-xl font-bold text-sky-100 leading-snug">
+                    دوره‌های آموزش شنا ویژه کودکان، نوجوانان و بزرگسالان زیر نظر مربیان رسمی فدراسیون شنا
                   </p>
                 </div>
 
                 {/* Editorial Description */}
-                <p className="text-xs sm:text-base text-slate-200/90 leading-relaxed font-normal max-w-2xl text-justify">
-                  شنا مهارتی فراتر از یک ورزش معمولی است؛ پیوندی میان آرامش، سلامت قلبی-تنفسی و نجات‌زندگی.
-                  در استخرهای مجهز آکادمی شنای ایران، با بهره‌گیری از سامانه تصفیه اوزون بدون کلر سوزاننده،
-                  فضایی ایمن و شاداب برای تمامی رده‌های سنی از نونهالان تا قهرمانان بزرگسال فراهم کرده‌ایم.
+                <p className="text-sm sm:text-base lg:text-lg text-slate-100/90 leading-relaxed font-normal max-w-2xl text-justify">
+                  اگر به دنبال یادگیری اصولی شنا، رفع ترس از آب در کودکان یا آموزش چهار شنا (کرال سینه، کرال پشت، قورباغه و پروانه) هستید؛ کلاس‌های ما در استخرهای منتخب قزوین در محیطی بهداشتی، خلوت و با برنامه‌ریزی منظم برگزار می‌شود.
                 </p>
 
                 {/* Primary Conversion & Navigation Buttons */}
-                <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-2">
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-3">
                   {user ? (
                     <Link
                       to={getDashboardDestination()}
-                      className="px-6 py-3.5 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-400 hover:to-cyan-500 text-white font-bold rounded-2xl shadow-[0_10px_25px_-5px_rgba(20,184,166,0.5)] transition-all text-xs sm:text-sm inline-flex items-center gap-2 cursor-pointer active:scale-95 border border-cyan-300/30"
+                      className="px-6 sm:px-7 py-3.5 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black rounded-2xl shadow-lg transition-all text-sm sm:text-base inline-flex items-center gap-2 cursor-pointer active:scale-95"
                     >
-                      <span>ورود به پیشخوان کاربری</span>
-                      <ArrowLeft className="w-4 h-4" />
+                      <span>ورود به پنل کاربری</span>
+                      <ArrowLeft className="w-5 h-5" />
                     </Link>
                   ) : (
                     <Link
                       to="/login"
-                      className="px-6 py-3.5 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-400 hover:to-cyan-500 text-white font-bold rounded-2xl shadow-[0_10px_25px_-5px_rgba(20,184,166,0.5)] transition-all text-xs sm:text-sm inline-flex items-center gap-2 cursor-pointer active:scale-95 border border-cyan-300/30"
+                      className="px-6 sm:px-7 py-3.5 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black rounded-2xl shadow-lg transition-all text-sm sm:text-base inline-flex items-center gap-2 cursor-pointer active:scale-95"
                     >
-                      <span>ورود و ثبت‌نام در سامانه</span>
-                      <ArrowLeft className="w-4 h-4" />
+                      <span>مشاهده و ثبت‌نام در کلاس‌ها</span>
+                      <ArrowLeft className="w-5 h-5" />
                     </Link>
                   )}
 
                   <a
                     href="#courses"
-                    className="px-5 sm:px-6 py-3.5 bg-slate-800/80 hover:bg-slate-700/80 text-cyan-100 font-medium rounded-2xl border border-cyan-500/25 backdrop-blur-sm transition-all text-xs sm:text-sm inline-flex items-center gap-2 cursor-pointer"
+                    className="px-5 sm:px-6 py-3.5 bg-slate-900/80 hover:bg-slate-800 text-white font-bold rounded-2xl border-2 border-cyan-400/40 hover:border-cyan-300 transition-all text-sm sm:text-base inline-flex items-center gap-2 cursor-pointer shadow-md"
                   >
-                    <span>مشاهده دوره‌ها</span>
+                    <span>لیست دوره‌ها و شهریه</span>
                   </a>
 
                   <a
                     href="#coaches"
-                    className="px-4 py-3.5 text-xs sm:text-sm text-cyan-300/90 hover:text-white transition-colors flex items-center gap-1.5"
+                    className="px-4 sm:px-5 py-3.5 bg-slate-900/60 hover:bg-slate-800/80 text-cyan-200 hover:text-white font-bold rounded-2xl border border-cyan-500/30 transition-all text-sm sm:text-base inline-flex items-center gap-1.5"
                   >
-                    <span>آشنایی با مربیان</span>
-                    <ArrowDown className="w-3.5 h-3.5 animate-bounce" />
+                    <Users2 className="w-4 h-4 text-teal-400" />
+                    <span>کادر مربیان قزوین</span>
                   </a>
                 </div>
 
                 {/* Key Metric Features */}
-                <div className="pt-6 border-t border-cyan-500/20 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                  <div className="p-3 rounded-2xl bg-slate-900/60 border border-cyan-500/20 space-y-1">
-                    <div className="flex items-center gap-1.5 text-cyan-300 text-xs font-bold">
+                <div className="pt-6 border-t border-cyan-500/30 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                  <div className="p-3.5 rounded-2xl bg-slate-900/75 border border-cyan-400/25 space-y-1">
+                    <div className="flex items-center gap-1.5 text-cyan-300 text-xs sm:text-sm font-bold">
                       <OlympicPoolLaneIcon className="w-4 h-4 text-teal-400 shrink-0" />
-                      <span>۵۰ متری المپیک</span>
+                      <span>آموزش ۴ شنا</span>
                     </div>
-                    <p className="text-[11px] text-slate-300/80">استاندارد بین‌المللی FINA</p>
+                    <p className="text-[11px] sm:text-xs text-slate-200">کرال سینه، پشت، قورباغه و پروانه</p>
                   </div>
 
-                  <div className="p-3 rounded-2xl bg-slate-900/60 border border-cyan-500/20 space-y-1">
-                    <div className="flex items-center gap-1.5 text-cyan-300 text-xs font-bold">
+                  <div className="p-3.5 rounded-2xl bg-slate-900/75 border border-cyan-400/25 space-y-1">
+                    <div className="flex items-center gap-1.5 text-cyan-300 text-xs sm:text-sm font-bold">
                       <RescueBuoyRingIcon className="w-4 h-4 text-teal-400 shrink-0" />
-                      <span>کارت فدراسیون</span>
+                      <span>مربیان رسمی</span>
                     </div>
-                    <p className="text-[11px] text-slate-300/80">مربیان رسمی درجه ۱ و ۲</p>
+                    <p className="text-[11px] sm:text-xs text-slate-200">دارای کارت مربیگری و نجات‌غریق</p>
                   </div>
 
-                  <div className="p-3 rounded-2xl bg-slate-900/60 border border-cyan-500/20 space-y-1">
-                    <div className="flex items-center gap-1.5 text-cyan-300 text-xs font-bold">
-                      <OzonePurificationIcon className="w-4 h-4 text-teal-400 shrink-0" />
-                      <span>تصفیه با گاز اوزون</span>
+                  <div className="p-3.5 rounded-2xl bg-slate-900/75 border border-cyan-400/25 space-y-1">
+                    <div className="flex items-center gap-1.5 text-cyan-300 text-xs sm:text-sm font-bold">
+                      <Sparkles className="w-4 h-4 text-teal-400 shrink-0" />
+                      <span>کودکان و بزرگسالان</span>
                     </div>
-                    <p className="text-[11px] text-slate-300/80">بدون کلر سنگین و سوزش</p>
+                    <p className="text-[11px] sm:text-xs text-slate-200">از ۵ سال تا رده‌های بزرگسال</p>
                   </div>
 
-                  <div className="p-3 rounded-2xl bg-slate-900/60 border border-cyan-500/20 space-y-1">
-                    <div className="flex items-center gap-1.5 text-cyan-300 text-xs font-bold">
-                      <OlympicStopwatchIcon className="w-4 h-4 text-teal-400 shrink-0" />
-                      <span>پایش رکوردها</span>
+                  <div className="p-3.5 rounded-2xl bg-slate-900/75 border border-cyan-400/25 space-y-1">
+                    <div className="flex items-center gap-1.5 text-cyan-300 text-xs sm:text-sm font-bold">
+                      <MapPin className="w-4 h-4 text-teal-400 shrink-0" />
+                      <span>استخرهای قزوین</span>
                     </div>
-                    <p className="text-[11px] text-slate-300/80">تحلیل زمانی و بیومکانیک</p>
+                    <p className="text-[11px] sm:text-xs text-slate-200">محیط تمیز، بهداشتی و ایمن</p>
                   </div>
                 </div>
 
               </div>
 
-              {/* Hydrofoil Visual Showcase Card */}
-              <div className="lg:col-span-5 relative">
-                <div className="relative mx-auto max-w-md lg:max-w-none">
-                  <div className="absolute -inset-1 rounded-3xl bg-gradient-to-r from-teal-500/30 to-cyan-500/30 blur-xl opacity-60" />
-                  
-                  <div className="relative card-hydrofoil overflow-hidden border-2 border-cyan-400/30 shadow-2xl bg-slate-950 aspect-4/3 sm:aspect-5/4">
-                    <img
-                      src="/images/olympic-pool-aerial.webp"
-                      alt="نمای هوایی استخر المپیک با لاین‌های مسابقاتی"
-                      className="w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-700 relative z-10"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent pointer-events-none z-15" />
+              {/* Swimmer Boy Hero Mascot */}
+              <div className="lg:col-span-5 relative flex items-center justify-center">
+                <div className="relative w-full max-w-sm sm:max-w-md flex items-center justify-center py-4">
+                  {/* Subtle aquatic glow behind the swimmer */}
+                  <div className="absolute w-64 h-64 sm:w-80 sm:h-80 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
 
-                    <div className="absolute top-4 right-4 z-20 bg-slate-900/90 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-cyan-400/30 text-cyan-200 flex items-center gap-2 shadow-md">
-                      <CheckCircle2 className="w-4 h-4 text-teal-400" />
-                      <span className="text-xs font-bold">تأییدیه رسمی فدراسیون</span>
-                    </div>
-
-                    <div className="absolute top-4 left-4 z-20 hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-lg bg-black/50 backdrop-blur-md text-[11px] text-cyan-300 border border-cyan-500/20 font-mono">
-                      <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-                      <span>دمای آب: ۲۸° C</span>
-                    </div>
-
-                    <div className="absolute bottom-4 inset-x-4 z-20 p-4 rounded-2xl bg-slate-900/80 backdrop-blur-md border border-cyan-400/20 text-white flex items-center justify-between">
-                      <div>
-                        <span className="text-xs font-bold block text-cyan-100">مجموعه استخرهای بین‌المللی آزادی</span>
-                        <span className="text-[10px] text-cyan-300/80">سالن مسابقاتی ۵۰ متری، آب‌درمانی و سونا</span>
-                      </div>
-                      <span className="px-3 py-1 bg-teal-500 text-slate-950 font-extrabold text-[10px] rounded-lg shadow-sm">
-                        FINA Standard
-                      </span>
-                    </div>
-                  </div>
+                  <img
+                    src="/images/swimmer-boy.png"
+                    alt="آموزشگاه شنای ایران - آموزش و استعدادیابی شنا"
+                    className="hero-swimmer-boy relative z-10 w-full max-w-[300px] sm:max-w-[360px] lg:max-w-[420px] h-auto object-contain select-none drop-shadow-[0_20px_35px_rgba(2,22,35,0.65)] hover:scale-105 transition-transform duration-500"
+                    loading="eager"
+                  />
                 </div>
               </div>
 
@@ -415,16 +364,16 @@ export const HomePage = () => {
         </section>
 
         {/* =========================================================================
-            SECTION 2: HEALTH, REHABILITATION & CORE BENEFITS (Water Scooped Indents)
+            SECTION 2: REAL CORE BENEFITS
             ========================================================================= */}
         <section id="about" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 min-w-0">
           <div className="text-center max-w-2xl mx-auto space-y-3">
-            <Badge variant="info">فلسفه و مزایای فیزیولوژیک</Badge>
+            <Badge variant="info">ویژگی‌های کلاس‌های ما</Badge>
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-              چرا یادگیری اصولی شنا در آکادمی ما؟
+              چرا مدرسه شنای ایران در قزوین؟
             </h2>
-            <p className="text-xs sm:text-sm text-cyan-200/80 leading-relaxed">
-              آب محیطی بی‌بدیل است که در آن وزن بدن کاهش یافته و عضلات بدون فشار ضربه‌ای تقویت می‌شوند.
+            <p className="text-xs sm:text-sm text-cyan-200/90 leading-relaxed">
+              آموزش شنا با صبر و حوصله، متناسب با روحیات نوآموزان و با بالاترین استانداردهای ایمنی
             </p>
           </div>
 
@@ -436,17 +385,17 @@ export const HomePage = () => {
               </div>
               <div className="space-y-3">
                 <span className="inline-block px-3 py-1 rounded-lg bg-cyan-950 text-cyan-300 text-[11px] font-bold border border-cyan-500/25">
-                  تقویت زنجیره هوازی و تنفس
+                  کودکان و نوجوانان
                 </span>
                 <h3 className="font-bold text-lg text-white group-hover:text-cyan-300 transition-colors">
-                  سلامت قلبی، تنفسی و آرامش ذهن
+                  آموزش بدون ترس و روان‌شناختی
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed text-justify">
-                  افزایش ظرفیت حیاتی ریه‌ها، تنظیم ریتم منظم تنفس و کاهش استرس‌های عصبی ناشی از فشار کاری روزمره به یمن شناوری مطبوع در آب.
+                  شروع از بازی‌های شاداب در آب کم‌عمق تا کودک احساس امنیت کامل کند و با انگیزه و علاقه واقعی مراحل یادگیری شنا را پشت سر بگذارد.
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-cyan-500/15 flex items-center justify-between text-xs font-semibold text-teal-300">
-                <span>بهبود راندمان قلب و عروق</span>
+                <span>محیط شاداب و امن برای کودک</span>
                 <Check className="w-4 h-4" />
               </div>
             </div>
@@ -458,17 +407,17 @@ export const HomePage = () => {
               </div>
               <div className="space-y-3">
                 <span className="inline-block px-3 py-1 rounded-lg bg-purple-950 text-purple-300 text-[11px] font-bold border border-purple-500/25">
-                  حرکات اصلاحی هیدروتراپی
+                  اصلاح ساختار قامت و تنفس
                 </span>
                 <h3 className="font-bold text-lg text-white group-hover:text-purple-300 transition-colors">
-                  اصلاح ناهنجاری‌های اسکلتی و ستون فقرات
+                  تقویت ستون فقرات و سلامت جسمانی
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed text-justify">
-                  رفع گودی کمر، ناهنجاری افتادگی شانه و تسکین دردهای عضلانی با بهره‌گیری از تکنیک‌های تخصصی آب‌درمانی و کرال پشت اصلاحی.
+                  شنا بهترین ورزش برای جلوگیری از افتادگی شانه و گودی کمر در کودکان محصل است و در بزرگسالان به بهبود تنفس و کاهش دردهای عضلانی کمک می‌کند.
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-purple-500/15 flex items-center justify-between text-xs font-semibold text-purple-300">
-                <span>تسکین فشارهای دیسک کمر</span>
+                <span>بهبود استقامت و سلامت بدنی</span>
                 <Check className="w-4 h-4" />
               </div>
             </div>
@@ -480,17 +429,17 @@ export const HomePage = () => {
               </div>
               <div className="space-y-3">
                 <span className="inline-block px-3 py-1 rounded-lg bg-teal-950 text-teal-300 text-[11px] font-bold border border-teal-500/25">
-                  استاندارد جهانی فدراسیون
+                  نظارت و ایمنی کامل
                 </span>
                 <h3 className="font-bold text-lg text-white group-hover:text-teal-300 transition-colors">
-                  متد آموزشی FINA و ایمنی کامل
+                  مربیان رسمی و کلاس‌های کم‌جمعیت
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed text-justify">
-                  آموزش مهندسی‌شده چهار شنا، استارت و چرخش‌ها با حضور پیوسته غریق‌نجات‌های دارای گواهی درجه یک کشوری در محیطی کاملاً تحت کنترل.
+                  آموزش توسط مربیان دارای کارت رسمی فدراسیون در گروه‌های خلوت و با حضور پیوسته نجات‌غریق برگزار می‌شود تا پیشرفت هر شناگر به طور اختصاصی پایش شود.
                 </p>
               </div>
               <div className="mt-6 pt-4 border-t border-teal-500/15 flex items-center justify-between text-xs font-semibold text-teal-300">
-                <span>نظارت مستمر منجیان غریق</span>
+                <span>توجه اختصاصی به تک‌تک شناگران</span>
                 <Check className="w-4 h-4" />
               </div>
             </div>
@@ -550,17 +499,17 @@ export const HomePage = () => {
         </section>
 
         {/* =========================================================================
-            SECTION 4: CERTIFIED FEDERATION COACHES
+            SECTION 3: CERTIFIED FEDERATION COACHES
             ========================================================================= */}
         <section id="coaches" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-500/20 pb-5">
             <div className="space-y-1.5">
-              <Badge variant="success">کادر مربیگری برگزیده</Badge>
+              <Badge variant="success">کادر مربیان قزوین</Badge>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                مربیان رسمی و قهرمانان آکادمی شنای ایران
+                مربیان باسابقه و رسمی مدرسه شنای ایران
               </h2>
               <p className="text-xs sm:text-sm text-cyan-200/80">
-                دارای مدارک مربیگری رسمی فدراسیون شنا، شیرجه و واترپلو جمهوری اسلامی ایران
+                دارای مدارک مربیگری رسمی و نجات‌غریق از فدراسیون شنا، شیرجه و واترپلو جمهوری اسلامی ایران
               </p>
             </div>
             <span className="text-xs font-mono font-bold text-cyan-300 bg-cyan-950/80 px-3.5 py-1.5 rounded-xl border border-cyan-500/30 shrink-0 self-start sm:self-auto shadow-sm">
@@ -632,12 +581,12 @@ export const HomePage = () => {
             ========================================================================= */}
         <section id="facilities" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 min-w-0">
           <div className="text-center max-w-2xl mx-auto space-y-2.5">
-            <Badge variant="info">استانداردهای بهداشتی و مهندسی استخر</Badge>
+            <Badge variant="info">محیط استخر و بهداشت آب</Badge>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              امکانات و تجهیزات پیشرفته استخرهای آکادمی
+              امکانات و شرایط بهداشتی استخرها در قزوین
             </h2>
             <p className="text-xs sm:text-sm text-cyan-200/80 leading-relaxed">
-              تصفیه‌خانه اوزوناسیون، استخر مسابقاتی ۵۰ متری، حوضچه آب سرد و سالن تخصصی خشکی
+              برگزاری کلاس‌ها در استخرهای تمیز و استاندارد شهر قزوین با آب گرم، تصفیه بهداشتی و وسایل کمک‌آموزشی
             </p>
           </div>
 
@@ -650,18 +599,18 @@ export const HomePage = () => {
                     <OzonePurificationIcon className="w-6 h-6" />
                   </div>
                   <span className="px-2.5 py-1 text-[10px] font-bold text-teal-300 bg-teal-950 rounded-lg border border-teal-500/30">
-                    بدون کلر سنگین
+                    کنترل بهداشت
                   </span>
                 </div>
                 <div className="space-y-1.5">
-                  <h4 className="font-bold text-base text-white">تصفیه گاز اوزون</h4>
+                  <h4 className="font-bold text-base text-white">آب زلال و تصفیه مداوم</h4>
                   <p className="text-xs text-slate-300 leading-relaxed text-justify">
-                    گندزدایی مدرن بر پایه گاز اوزون؛ بدون ایجاد سوزش چشم، خشکی پوست و حساسیت‌های ریوی در کودکان.
+                    تنظیم دمای آب متناسب با فصل و نظارت پیوسته بر زلالی آب استخر جهت راحتی نوآموزان و پیشگیری از سوزش چشم.
                   </p>
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t border-teal-500/20 text-[11px] font-bold text-teal-400 flex items-center justify-between">
-                <span>تضمین سلامت پوست و ریه</span>
+                <span>تضمین سلامت پوست و چشم</span>
                 <Check className="w-3.5 h-3.5" />
               </div>
             </div>
@@ -674,18 +623,18 @@ export const HomePage = () => {
                     <OlympicPoolLaneIcon className="w-6 h-6" />
                   </div>
                   <span className="px-2.5 py-1 text-[10px] font-bold text-amber-300 bg-amber-950 rounded-lg border border-amber-500/30">
-                    ۸ لاین مسابقاتی
+                    تجهیزات کامل
                   </span>
                 </div>
                 <div className="space-y-1.5">
-                  <h4 className="font-bold text-base text-white">استخر ۵۰ متری المپیک</h4>
+                  <h4 className="font-bold text-base text-white">وسایل کمک‌آموزشی استاندارد</h4>
                   <p className="text-xs text-slate-300 leading-relaxed text-justify">
-                    ابعاد ۵۰ × ۲۵ متر استاندارد جهانی با عمق یکنواخت مسابقاتی و خطوط موج‌گیر ضدتلاطم فدراسیونی.
+                    استفاده از تخته شنا، نودل فومی، فین و جلیقه‌های استاندارد برای یادگیری ایمن‌تر و سریع‌تر دست و پا زدن.
                   </p>
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t border-amber-500/20 text-[11px] font-bold text-amber-400 flex items-center justify-between">
-                <span>استاندارد جهانی FINA</span>
+                <span>تسهیل یادگیری نوآموزان</span>
                 <Check className="w-3.5 h-3.5" />
               </div>
             </div>
@@ -698,18 +647,18 @@ export const HomePage = () => {
                     <SaunaThermalSpaIcon className="w-6 h-6" />
                   </div>
                   <span className="px-2.5 py-1 text-[10px] font-bold text-orange-300 bg-orange-950 rounded-lg border border-orange-500/30">
-                    ریکاوری و آب‌درمانی
+                    امکانات رفاهی
                   </span>
                 </div>
                 <div className="space-y-1.5">
-                  <h4 className="font-bold text-base text-white">جکوزی و سونای خشک</h4>
+                  <h4 className="font-bold text-base text-white">سونا، جکوزی و دوش تمیز</h4>
                   <p className="text-xs text-slate-300 leading-relaxed text-justify">
-                    حوضچه آب سرد استاندارد، سونای خشک فنلاندی، بخار اکالیپتوس و جت‌های ماساژ جهت تسکین اسید لاکتیک عضلات.
+                    رختکن‌های تمیز، آب گرم مناسب و دسترسی به جکوزی جهت رفع خستگی و ریکاوری بعد از تمرین.
                   </p>
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t border-orange-500/20 text-[11px] font-bold text-orange-400 flex items-center justify-between">
-                <span>ریکاوری عضلانی فوری</span>
+                <span>ریکاوری و آرامش پس از کلاس</span>
                 <Check className="w-3.5 h-3.5" />
               </div>
             </div>
@@ -719,21 +668,21 @@ export const HomePage = () => {
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="w-12 h-12 rounded-xl bg-indigo-950 text-indigo-300 flex items-center justify-center border border-indigo-500/30">
-                    <DryLandSwimGymIcon className="w-6 h-6" />
+                    <Clock className="w-6 h-6" />
                   </div>
                   <span className="px-2.5 py-1 text-[10px] font-bold text-indigo-300 bg-indigo-950 rounded-lg border border-indigo-500/30">
-                    تمرینات کششی خشکی
+                    سانس‌های مجزا
                   </span>
                 </div>
                 <div className="space-y-1.5">
-                  <h4 className="font-bold text-base text-white">سالن بدنسازی تخصصی</h4>
+                  <h4 className="font-bold text-base text-white">تایم‌های تفکیک‌شده و منظم</h4>
                   <p className="text-xs text-slate-300 leading-relaxed text-justify">
-                    کش‌های ایزوکینتیک و سیم‌کش‌های شبیه‌ساز استارت و پول‌داون دست‌ها برای ارتقای توان عضلانی در آب.
+                    برنامه‌ریزی دقیق سانس‌های ویژه بانوان، آقایان و نونهالان در ساعت‌های عصر و روزهای تعطیل برای رفاه خانواده‌ها.
                   </p>
                 </div>
               </div>
               <div className="mt-4 pt-3 border-t border-indigo-500/20 text-[11px] font-bold text-indigo-400 flex items-center justify-between">
-                <span>افزایش شتاب شناگر</span>
+                <span>تایم‌بندی منعطف با برنامه شما</span>
                 <Check className="w-3.5 h-3.5" />
               </div>
             </div>
@@ -746,12 +695,12 @@ export const HomePage = () => {
         <section id="news" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-500/20 pb-5">
             <div className="space-y-1.5">
-              <Badge variant="warning">تازه ترین رویدادها</Badge>
+              <Badge variant="warning">اخبار و اطلاعیه‌ها</Badge>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-                اخبار، مقالات آموزشی و رویدادهای آکادمی
+                تازه‌ترین رویدادها و اطلاعیه‌های مدرسه شنای ایران
               </h2>
               <p className="text-xs sm:text-sm text-cyan-200/80">
-                گزارش مسابقات، ارتقای رکوردها و تازه‌ترین اطلاعیه‌های رسمی آکادمی شنای ایران
+                زمان‌بندی ترم‌های آموزشی، استعدادیابی و نکات مهم یادگیری شنا در قزوین
               </p>
             </div>
           </div>
@@ -759,7 +708,7 @@ export const HomePage = () => {
           <Carousel
             items={news}
             className="landing-carousel"
-            ariaLabel="اسلایدر اخبار و رویدادهای آکادمی"
+            ariaLabel="اسلایدر اخبار و رویدادهای آموزشگاه"
             visibleItems={{ mobile: 1, tablet: 2, desktop: 3 }}
             interval={5500}
             renderItem={(item, index) => {
@@ -778,7 +727,7 @@ export const HomePage = () => {
                       <div className="absolute top-3.5 right-3.5 z-20">
                         <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900/90 backdrop-blur-md text-cyan-300 text-[11px] font-bold rounded-lg border border-cyan-400/30">
                           <CategoryIcon className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
-                          <span>{item.category_display || 'اطلاعیه آکادمی'}</span>
+                          <span>{item.category_display || 'اطلاعیه'}</span>
                         </span>
                       </div>
                     </div>
@@ -819,41 +768,36 @@ export const HomePage = () => {
             SECTION 6: FINAL REGISTRATION CALL TO ACTION
             ========================================================================= */}
         <section className="landing-cta w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-w-0">
-          <div className="relative overflow-hidden bg-radial-[circle_at_center,rgba(8,59,92,0.95)_0%,rgba(3,17,30,0.98)_100%] rounded-3xl lg:rounded-4xl p-8 sm:p-14 lg:p-16 border-2 border-cyan-400/30 shadow-[0_25px_60px_-15px_rgba(2,12,22,0.9)] text-center space-y-6">
-            
-            <div className="absolute top-0 right-1/3 w-80 h-80 rounded-full bg-cyan-400/15 blur-3xl pointer-events-none" />
-            <div className="absolute bottom-0 left-1/3 w-80 h-80 rounded-full bg-teal-400/15 blur-3xl pointer-events-none" />
-
-            <div className="relative max-w-2xl mx-auto space-y-4">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-950/80 rounded-full text-xs font-semibold text-cyan-200 border border-cyan-400/30">
-                <Sparkles className="w-3.5 h-3.5 text-teal-400" />
-                <span>پذیرش شناگر در تمامی رده‌های سنی و سطوح مهارتی</span>
+          <div className="landing-cta__panel relative w-full text-center space-y-6 py-10 sm:py-16">
+            <div className="relative max-w-3xl mx-auto space-y-5">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900/80 rounded-full text-xs sm:text-sm font-bold text-cyan-200 border border-cyan-400/40 shadow-md">
+                <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
+                <span>پذیرش شناگر در تمامی رده‌های سنی در استان قزوین</span>
               </div>
 
-              <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
-                آماده‌اید شنا را اصولی و استاندارد بیاموزید؟
+              <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.2]">
+                آماده‌اید شنا را اصولی و استاندارد شروع کنید؟
               </h2>
 
-              <p className="text-xs sm:text-sm text-cyan-200/90 leading-relaxed font-light">
-                از آموزش‌های پایه‌ای و استعدادیابی نونهالان تا شرکت در لیگ‌های مسابقاتی و رکوردهای کشوری،
-                مربیان رسمی آکادمی شنای ایران در تمامی گام‌ها همراه شما هستند.
+              <p className="text-base sm:text-xl lg:text-2xl font-bold text-slate-100 leading-relaxed max-w-2xl mx-auto">
+                برای مشاوره، اطلاع از سانس‌ها یا ثبت‌نام در کلاس‌های آموزش شنای کودکان و بزرگسالان در قزوین، از طریق سامانه اقدام کنید یا با پذیرش تماس بگیرید.
               </p>
 
-              <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4 pt-3">
+              <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
                 <Link
                   to="/login"
-                  className="px-8 py-3.5 bg-gradient-to-r from-teal-500 to-cyan-600 hover:from-teal-400 hover:to-cyan-500 text-white font-bold rounded-2xl shadow-lg transition-all text-sm inline-flex items-center gap-2 cursor-pointer active:scale-95 border border-cyan-300/30"
+                  className="px-8 sm:px-10 py-4 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black rounded-2xl shadow-xl hover:shadow-cyan-400/30 transition-all text-base sm:text-lg inline-flex items-center gap-2.5 cursor-pointer active:scale-95"
                 >
-                  <span>ورود به پرتال و ثبت‌نام در سامانه</span>
-                  <ArrowLeft className="w-4 h-4" />
+                  <span>ورود و ثبت‌نام در دوره‌ها</span>
+                  <ArrowLeft className="w-5 h-5" />
                 </Link>
 
                 <a
-                  href="tel:02188888888"
-                  className="px-6 py-3.5 bg-slate-900/80 hover:bg-slate-800 text-cyan-200 font-semibold rounded-2xl border border-cyan-500/30 backdrop-blur-sm transition-all text-sm inline-flex items-center gap-2 cursor-pointer"
+                  href="tel:02833650000"
+                  className="px-7 sm:px-9 py-4 bg-slate-900/90 hover:bg-slate-800 text-white font-bold rounded-2xl border-2 border-cyan-400/40 hover:border-cyan-300 transition-all text-base sm:text-lg inline-flex items-center gap-2.5 shadow-md"
                 >
-                  <PhoneCall className="w-4 h-4 text-teal-400" />
-                  <span>تماس با پذیرش: ۰۲۱-۸۸۸۸۸۸۸۸</span>
+                  <PhoneCall className="w-5 h-5 text-cyan-400" />
+                  <span>تماس با پذیرش: ۰۲۸-۳۳۶۵۰۰۰۰</span>
                 </a>
               </div>
             </div>
@@ -873,39 +817,39 @@ export const HomePage = () => {
                   <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-600 to-teal-400 text-white flex items-center justify-center shadow-md">
                     <SwimmerCrawlIcon className="w-5 h-5" />
                   </div>
-                  <span>آموزشگاه شنای ایران</span>
+                  <span>مدرسه شنای ایران - قزوین</span>
                 </div>
                 <p className="text-xs text-slate-300 leading-relaxed text-justify">
-                  سامانه جامع و یکپارچه مدیریت آموزشی، رکوردهای زمانی، ارزیابی مستمر مهارت‌ها و پایش استانداردهای ایمنی استخرهای شنای کشور.
+                  مرکز تخصصی آموزش و استعدادیابی شنا در استان قزوین؛ برگزارکننده دوره‌های عمومی، نیمه‌خصوصی و خصوصی ۴ شنا ویژه کودکان، نوجوانان و بزرگسالان.
                 </p>
                 <div className="pt-2 flex items-center gap-2 text-[11px] text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-500/30 w-fit">
                   <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>عضو رسمی فدراسیون شنای جمهوری اسلامی ایران</span>
+                  <span>زیر نظر مربیان رسمی فدراسیون شنا</span>
                 </div>
               </div>
 
               {/* Quick Links */}
               <div className="space-y-3">
-                <h4 className="font-bold text-sm text-white">بخش‌های آکادمی</h4>
+                <h4 className="font-bold text-sm text-white">بخش‌های وبسایت</h4>
                 <ul className="space-y-2 text-xs text-slate-300">
                   <li>
                     <a href="#about" className="hover:text-cyan-300 transition-colors">
-                      اصول و فلسفه آموزشگاه
+                      ویژگی‌ها و مزایای کلاس‌ها
+                    </a>
+                  </li>
+                  <li>
+                    <a href="#courses" className="hover:text-cyan-300 transition-colors">
+                      برنامه دوره‌ها و ثبت‌نام
                     </a>
                   </li>
                   <li>
                     <a href="#coaches" className="hover:text-cyan-300 transition-colors">
-                      کادر مربیان رسمی فدراسیون
+                      کادر مربیان قزوین
                     </a>
                   </li>
                   <li>
                     <a href="#facilities" className="hover:text-cyan-300 transition-colors">
-                      امکانات استخر ۵۰ متری و سونا
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#news" className="hover:text-cyan-300 transition-colors">
-                      تازه‌ترین اخبار و اطلاعیه‌ها
+                      امکانات و شرایط استخرها
                     </a>
                   </li>
                 </ul>
@@ -913,29 +857,23 @@ export const HomePage = () => {
 
               {/* Portal Access */}
               <div className="space-y-3">
-                <h4 className="font-bold text-sm text-white">دسترسی سریع به پرتال‌ها</h4>
+                <h4 className="font-bold text-sm text-white">ورود به سامانه‌ها</h4>
                 <ul className="space-y-2 text-xs text-cyan-300">
                   <li>
                     <Link to="/login" className="hover:underline flex items-center gap-1.5">
-                      <span>ورود شناگران و اعضا</span>
+                      <span>ورود شناگران و والدین</span>
                       <ArrowLeft className="w-3 h-3" />
                     </Link>
                   </li>
                   <li>
                     <Link to="/login" className="hover:underline flex items-center gap-1.5">
-                      <span>ورود مربیان کادر فنی</span>
+                      <span>میز کار مربیان</span>
                       <ArrowLeft className="w-3 h-3" />
                     </Link>
                   </li>
                   <li>
                     <Link to="/login" className="hover:underline flex items-center gap-1.5">
-                      <span>ورود مدیریت آموزشگاه</span>
-                      <ArrowLeft className="w-3 h-3" />
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/login" className="hover:underline flex items-center gap-1.5">
-                      <span>ورود ناظر فنی سامانه</span>
+                      <span>مدیریت آموزشگاه</span>
                       <ArrowLeft className="w-3 h-3" />
                     </Link>
                   </li>
@@ -944,19 +882,19 @@ export const HomePage = () => {
 
               {/* Contact */}
               <div className="space-y-3">
-                <h4 className="font-bold text-sm text-white">آدرس و پذیرش</h4>
+                <h4 className="font-bold text-sm text-white">اطلاعات تماس و استخرها</h4>
                 <div className="space-y-2 text-xs text-slate-300 leading-relaxed">
                   <p className="flex items-start gap-2">
                     <MapPin className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
-                    <span>تهران، مجموعه ورزشی استخر بین‌المللی آزادی، سالن شماره ۲</span>
+                    <span>قزوین، استخرها و مجموعه‌های ورزشی طرف قرارداد مدرسه شنای ایران</span>
                   </p>
                   <p className="flex items-center gap-2">
                     <PhoneCall className="w-4 h-4 text-teal-400 shrink-0" />
-                    <span>تلفن هماهنگی: ۰۲۱-۸۸۸۸۸۸۸۸</span>
+                    <span>تلفن هماهنگی: ۰۲۸-۳۳۶۵۰۰۰۰</span>
                   </p>
                   <p className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-teal-400 shrink-0" />
-                    <span>ساعات کاری: همه‌روزه از ساعت ۰۶:۰۰ الی ۲۲:۰۰</span>
+                    <span>پاسخگویی و هماهنگی: شنبه تا پنج‌شنبه ۹ الی ۲۰</span>
                   </p>
                 </div>
               </div>
@@ -964,11 +902,11 @@ export const HomePage = () => {
 
             <div className="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
               <p>
-                کلیه حقوق مادی و معنوی متعلق به سامانه جامع آموزشگاه شنای ایران می‌باشد © ۱۴۰۵
+                کلیه حقوق مادی و معنوی متعلق به مدرسه شنای ایران در استان قزوین می‌باشد © ۱۴۰۵
               </p>
               <div className="flex items-center gap-2 text-[11px] text-cyan-300">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>سامانه آنلاین و کلیه خدمات استخر فعال است</span>
+                <span>سامانه ثبت‌نام آنلاین فعال است</span>
               </div>
             </div>
           </div>

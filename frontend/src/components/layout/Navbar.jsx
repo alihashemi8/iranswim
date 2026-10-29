@@ -111,10 +111,10 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             </div>
             <div className="flex flex-col min-w-0">
               <span className="font-extrabold text-sm sm:text-lg text-[#083B5C] dark:text-white tracking-tight leading-tight truncate">
-                آکادمی شنای ایران
+                مدرسه شنای ایران
               </span>
               <span className="text-[10px] text-[#647789] dark:text-slate-400 font-medium hidden sm:inline-block">
-                مرکز تخصصی آموزش و قهرمانی
+                آموزش تخصصی شنا در قزوین
               </span>
             </div>
           </Link>
@@ -255,10 +255,10 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             <div className="p-3 bg-[#F8FAFC] dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/60 text-xs space-y-1.5">
               <div className="flex items-center gap-2 text-[#083B5C] dark:text-sky-300 font-bold">
                 <PhoneCall className="w-3.5 h-3.5" />
-                <span>پشتیبانی و پذیرش: ۰۲۱-۸۸۸۸۸۸۸۸</span>
+                <span>پشتیبانی و پذیرش: ۰۲۸-۳۳۶۵۰۰۰۰</span>
               </div>
               <p className="text-[11px] text-[#647789] dark:text-slate-400">
-                مجموعه استخر بین‌المللی آزادی • سالن شماره ۲
+                مدرسه شنای ایران • استان قزوین
               </p>
             </div>
 

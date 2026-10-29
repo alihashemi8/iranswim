@@ -5,8 +5,10 @@ import {
   LayoutDashboard, BookOpen, Users, CreditCard, Calendar,
   ClipboardCheck, Award, Trophy, Newspaper, Bell, BarChart3,
   UserCheck, X, LogOut, ChevronLeft, ChevronRight,
-  TrendingUp, MessageSquareQuote, FileText, Settings
+  TrendingUp, MessageSquareQuote, FileText, Settings,
+  Sparkles, MessageSquare
 } from 'lucide-react';
+
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import api from '../../api/client';
@@ -151,17 +153,39 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     },
   ];
 
-  // Coach Navigation
+  // Coach Navigation (9 modules in 4 logical workflow groups)
   const coachGroups = [
     {
-      groupTitle: 'میز کار مربی',
+      groupTitle: 'مدیریت و کلاس‌های روزانه',
       items: [
-        { to: '/coach', label: 'کلاس‌های امروز و هفته', icon: Calendar, end: true },
+        { to: '/coach', label: 'پیشخوان مربی', icon: LayoutDashboard, end: true },
+        { to: '/coach/classes', label: 'کلاس‌های من', icon: BookOpen },
         { to: '/coach/attendance', label: 'ثبت حضور و غیاب', icon: ClipboardCheck },
-        { to: '/coach/assessments', label: 'ارزیابی مهارت و رکورد', icon: Award },
+      ],
+    },
+    {
+      groupTitle: 'سنجش و پیشرفت ورزشی',
+      items: [
+        { to: '/coach/progress', label: 'ارزیابی و مهارت‌ها', icon: TrendingUp },
+        { to: '/coach/exams', label: 'آزمون‌ها و سطح‌بندی', icon: Award },
+      ],
+    },
+    {
+      groupTitle: 'آموزش و هوش مصنوعی',
+      items: [
+        { to: '/coach/workouts', label: 'برنامه‌های تمرین', icon: Calendar },
+        { to: '/coach/ai-assistant', label: 'دستیار هوشمند مربی', icon: Sparkles, badge: 'AI', badgeColor: 'bg-emerald-500 text-white' },
+      ],
+    },
+    {
+      groupTitle: 'ارتباطات و حساب فردی',
+      items: [
+        { to: '/coach/messages', label: 'پیام‌ها و اطلاعیه‌ها', icon: MessageSquare },
+        { to: '/coach/profile', label: 'پروفایل و تنظیمات', icon: Settings },
       ],
     },
   ];
+
 
   // Swimmer & Parent Navigation (4 visual groups, 10 modules)
   const swimmerGroups = [

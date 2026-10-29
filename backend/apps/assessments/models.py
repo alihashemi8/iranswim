@@ -125,3 +125,63 @@ class SwimmingRecord(models.Model):
         if mins > 0:
             return f"{mins}:{secs:05.2f}"
         return f"{secs:.2f}s"
+
+
+class LevelPromotionProposal(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'PENDING', _('در انتظار بررسی مدیر')
+        APPROVED = 'APPROVED', _('تأیید و ارتقا یافته')
+        REJECTED = 'REJECTED', _('رد شده')
+
+    swimmer = models.ForeignKey(
+        'swimmers.SwimmerProfile',
+        on_delete=models.CASCADE,
+        related_name='promotion_proposals',
+        verbose_name=_('شناگر')
+    )
+    coach = models.ForeignKey(
+        'coaches.CoachProfile',
+        on_delete=models.CASCADE,
+        related_name='promotion_proposals',
+        verbose_name=_('مربی پیشنهاددهنده')
+    )
+    current_level = models.ForeignKey(
+        'education.SkillLevel',
+        on_delete=models.PROTECT,
+        related_name='current_level_proposals',
+        verbose_name=_('سطح فعلی')
+    )
+    proposed_level = models.ForeignKey(
+        'education.SkillLevel',
+        on_delete=models.PROTECT,
+        related_name='proposed_level_proposals',
+        verbose_name=_('سطح پیشنهادی جدید')
+    )
+    status = models.CharField(
+        _('وضعیت بررسی'),
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True
+    )
+    coach_notes = models.TextField(_('دلیل و شواهد مربی برای ارتقا'))
+    reviewer_notes = models.TextField(_('نظر مدیر آموزشگاه'), blank=True)
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name=_('بررسی‌کننده')
+    )
+    reviewed_at = models.DateTimeField(_('زمان بررسی'), null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _('پیشنهاد ارتقای سطح')
+        verbose_name_plural = _('پیشنهادهای ارتقای سطح')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"پیشنهاد ارتقای {self.swimmer} به {self.proposed_level.name} توسط {self.coach.full_name}"
+

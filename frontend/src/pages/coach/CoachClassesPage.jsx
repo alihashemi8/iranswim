@@ -1,0 +1,204 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import {
+  BookOpen, Users, Calendar, MapPin, Search,
+  ChevronLeft, ClipboardCheck, ArrowUpDown, Filter, Sparkles
+} from 'lucide-react';
+import api from '../../api/client';
+import { LoadingState } from '../../components/common/LoadingState';
+import { useToast } from '../../context/ToastContext';
+
+export const CoachClassesPage = () => {
+  const [classes, setClasses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const toast = useToast();
+
+  useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get('/coaches/my-classes/');
+        setClasses(Array.isArray(res.data) ? res.data : res.data.results || []);
+      } catch (err) {
+        console.error('Error fetching coach classes:', err);
+        toast.error('خطا در دریافت فهرست کلاس‌های مربی');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchClasses();
+  }, []);
+
+  const filteredClasses = classes.filter((cls) => {
+    const matchesSearch =
+      cls.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cls.course_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cls.skill_level_name.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesStatus =
+      statusFilter === 'ALL' ||
+      (statusFilter === 'ACTIVE' && cls.status === 'OPEN') ||
+      (statusFilter === 'COMPLETED' && cls.status === 'CLOSED');
+
+    return matchesSearch && matchesStatus;
+  });
+
+  if (loading) {
+    return <LoadingState type="table" message="در حال دریافت کلاس‌های تخصیص‌یافته به مربی..." />;
+  }
+
+  return (
+    <div className="space-y-6 pb-12">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+            <BookOpen className="w-6 h-6 text-emerald-600" />
+            کلاس‌های من
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            گروه‌های آموزشی، سانس‌های استخر و شناگران تحت آموزش شما
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Link
+            to="/coach/workouts"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold shadow-xs transition-all"
+          >
+            <Calendar className="w-4 h-4" />
+            برنامه تمرینات
+          </Link>
+        </div>
+      </div>
+
+      {/* Filter and Search Bar */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+        <div className="relative w-full sm:w-80">
+          <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+          <input
+            type="text"
+            placeholder="جست‌وجو با نام کلاس، دوره یا سطح..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pr-9 pl-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          />
+        </div>
+
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <span className="text-xs text-slate-400 font-semibold whitespace-nowrap">وضعیت:</span>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            <option value="ALL">همه کلاس‌ها ({classes.length})</option>
+            <option value="ACTIVE">کلاس‌های جاری</option>
+            <option value="COMPLETED">کلاس‌های خاتمه‌یافته</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Classes Grid */}
+      {filteredClasses.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredClasses.map((cls) => (
+            <div
+              key={cls.id}
+              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:border-emerald-300 dark:hover:border-emerald-700 transition-all flex flex-col justify-between"
+            >
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <span
+                      className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg text-white mb-1.5 inline-block"
+                      style={{ backgroundColor: cls.skill_level_color || '#0284c7' }}
+                    >
+                      {cls.skill_level_name}
+                    </span>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                      {cls.name}
+                    </h3>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      {cls.course_name}
+                    </p>
+                  </div>
+
+                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${cls.status === 'OPEN' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300' : 'bg-slate-100 text-slate-600'}`}>
+                    {cls.status === 'OPEN' ? 'فعال' : 'بسته‌شده'}
+                  </span>
+                </div>
+
+                <div className="space-y-1.5 text-xs text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-slate-500">
+                      <Users className="w-3.5 h-3.5 text-emerald-600" />
+                      تعداد شناگران:
+                    </span>
+                    <span className="font-bold font-mono">
+                      {cls.enrolled_count} از {cls.capacity} نفر
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <span className="flex items-center gap-1.5 text-slate-500">
+                      <MapPin className="w-3.5 h-3.5 text-emerald-600" />
+                      محل استخر:
+                    </span>
+                    <span className="font-medium truncate max-w-[150px]">
+                      {cls.pool_location}
+                    </span>
+                  </div>
+
+                  {cls.schedules && cls.schedules.length > 0 && (
+                    <div className="pt-2">
+                      <span className="text-[11px] font-semibold text-slate-400 block mb-1">برنامه هفتگی:</span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {cls.schedules.map((sch, idx) => (
+                          <span
+                            key={idx}
+                            className="text-[11px] px-2 py-0.5 rounded-md bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 font-medium"
+                          >
+                            {sch.weekday_display} {sch.start_time.slice(0, 5)}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Actions Footer */}
+              <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                <Link
+                  to={`/coach/classes/${cls.id}`}
+                  className="w-full inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-200 text-xs font-bold transition-all"
+                >
+                  مشاهده پرونده و جلسات
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                </Link>
+                <Link
+                  to={`/coach/attendance?group_id=${cls.id}`}
+                  className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-colors"
+                  title="ثبت سریع حضور و غیاب"
+                >
+                  <ClipboardCheck className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 space-y-2">
+          <BookOpen className="w-10 h-10 text-slate-300 mx-auto" />
+          <h3 className="text-sm font-bold text-slate-800 dark:text-white">کلاسی یافت نشد</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400">
+            {searchTerm ? 'هیچ کلاسی با عبارت جست‌وجو شده مطابقت ندارد.' : 'در حال حاضر کلاسی به شما تخصیص داده نشده است.'}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+};
