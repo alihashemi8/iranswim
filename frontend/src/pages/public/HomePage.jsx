@@ -29,6 +29,7 @@ import { Carousel } from '../../components/common/Carousel';
 import { LoadingState } from '../../components/common/LoadingState';
 import { useAuth } from '../../context/AuthContext';
 import { AquaticPoolBackground } from '../../components/landing/AquaticPoolBackground';
+import { CoachProfileCard } from '../../components/common/CoachProfileCard';
 import './HomePage.css';
 
 // Verified real database records for coaches and news in Qazvin
@@ -104,6 +105,7 @@ const INITIAL_COACHES = [
   {
     id: 1,
     full_name: 'محمد رضایی',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=500&q=80',
     specialties: 'کرال سینه، شنای پروانه، نجات غریق درجه ۱',
     bio: 'مربی رسمی فدراسیون شنا با ۱۰ سال سابقه آموزش تیم‌های پایه و استعدادیابی در استخرهای قزوین',
     icon: SwimmerCrawlIcon,
@@ -111,6 +113,7 @@ const INITIAL_COACHES = [
   {
     id: 4,
     full_name: 'نیما سعادتی',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=80',
     specialties: 'شنای قورباغه، اصلاح تکنیک و استارت',
     bio: 'مربی تخصصی اصلاح حرکت، استارت و استقامت بدنی شناگران در رده‌های نوجوانان و جوانان قزوین',
     icon: PoolStartingBlockIcon,
@@ -118,6 +121,7 @@ const INITIAL_COACHES = [
   {
     id: 2,
     full_name: 'علیرضا مرادی (مربی)',
+    avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=500&q=80',
     specialties: 'کرال سینه، شنای پروانه، نجات غریق',
     bio: 'مربی رسمی فدراسیون شنا با ۱۲ سال سابقه تدریس شنای مبتدی و پیشرفته برای کودکان و بزرگسالان در قزوین',
     icon: RescueBuoyRingIcon,
@@ -125,6 +129,7 @@ const INITIAL_COACHES = [
   {
     id: 3,
     full_name: 'سارا کاظمی',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=500&q=80',
     specialties: 'آموزش بانوان و کودکان، آب‌درمانی و کرال پشت',
     bio: 'مدرس رسمی فدراسیون و کارشناس تربیت بدنی با سابقه ۱۰ سال برگزاری کلاس‌های آموزش شنای بانوان در قزوین',
     icon: SynchroSwimIcon,
@@ -132,6 +137,7 @@ const INITIAL_COACHES = [
   {
     id: 5,
     full_name: 'مهدی یزدانی',
+    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=500&q=80',
     specialties: 'استعدادیابی نونهالان، آب‌بازی و رفع ترس از آب',
     bio: 'مربی باحوصله و مجرب در حوزه آموزش اصولی شنا از پایه برای رده‌های سنی ۵ تا ۱۲ سال',
     icon: WaterMedalTrophyIcon,
@@ -350,6 +356,10 @@ export const HomePage = () => {
 
   // Professional portraits curated for each coach
   const getCoachAvatar = (coach) => {
+    if (coach?.avatar) return coach.avatar;
+    if (coach?.profile_image) return coach.profile_image;
+    if (coach?.image) return coach.image;
+    if (coach?.photo) return coach.photo;
     const name = coach?.full_name || '';
     if (name.includes('سارا')) {
       return 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=500&q=80';
@@ -363,7 +373,10 @@ export const HomePage = () => {
     if (name.includes('مهدی')) {
       return 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=500&q=80';
     }
-    return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=500&q=80';
+    if (name.includes('رضایی') || name.includes('محمد')) {
+      return 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=500&q=80';
+    }
+    return null;
   };
 
   const getCoachSpecialtyIcon = (coach) => {
@@ -779,58 +792,14 @@ export const HomePage = () => {
             items={coaches}
             className="landing-carousel"
             ariaLabel="اسلایدر کادر مربیان آموزشگاه"
-            visibleItems={{ mobile: 1, tablet: 2, desktop: 3 }}
+            visibleItems={{ mobile: 1, tablet: 1, desktop: 2 }}
             interval={6000}
-            renderItem={(coach) => {
-              const avatar = getCoachAvatar(coach);
-              const SpecialtyIcon = getCoachSpecialtyIcon(coach);
-              return (
-                <div className="landing-coach-card relative bg-slate-900/90 backdrop-blur-md card-hydrofoil p-6 text-center border-2 border-cyan-500/20 hover:border-cyan-400/60 shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 flex flex-col justify-between h-full">
-                  <div>
-                    {/* Portrait */}
-                    <div className="relative w-24 h-24 mx-auto mb-4 rounded-full overflow-hidden border-2 border-cyan-400/40 p-1 bg-gradient-to-tr from-cyan-950 to-teal-900 shadow-md">
-                      <img
-                        src={avatar}
-                        alt={coach.full_name}
-                        className="w-full h-full object-cover rounded-full"
-                        loading="lazy"
-                      />
-                      <div className="absolute bottom-1 right-1 w-5 h-5 bg-emerald-500 text-white rounded-full flex items-center justify-center border border-slate-900 text-[10px]">
-                        ✓
-                      </div>
-                    </div>
-
-                    <h3 className="text-lg font-bold text-white">
-                      {coach.full_name}
-                    </h3>
-                    <div className="mt-1">
-                      <span className="inline-block px-3 py-0.5 bg-cyan-950/70 text-cyan-300 text-[11px] font-bold rounded-lg border border-cyan-500/30">
-                        مربی رسمی فدراسیون شنا
-                      </span>
-                    </div>
-
-                    <div className="mt-3 py-2 px-3 bg-slate-800/80 rounded-xl border border-cyan-500/20 flex items-center justify-center gap-2">
-                      <SpecialtyIcon className="w-4 h-4 text-teal-400 shrink-0" />
-                      <p className="text-xs font-semibold text-cyan-200 truncate">
-                        {coach.specialties || 'تخصص در تکنیک‌های چهارگانه و استقامت'}
-                      </p>
-                    </div>
-
-                    <p className="text-xs text-slate-300 mt-3 leading-relaxed line-clamp-3 text-justify">
-                      {coach.bio || 'مدرس باسابقه دوره‌های تخصصی شنای پایه و قهرمانی با پرورش قهرمانان استانی و کشوری'}
-                    </p>
-                  </div>
-
-                  <div className="mt-5 pt-3.5 border-t border-cyan-500/20 flex items-center justify-between text-[11px] text-slate-400">
-                    <span className="flex items-center gap-1.5 text-emerald-400 font-semibold">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      وضعیت: فعال و مجاز
-                    </span>
-                    <span className="font-mono text-cyan-300/80">کارت فدراسیون ✓</span>
-                  </div>
-                </div>
-              );
-            }}
+            renderItem={(coach) => (
+              <CoachProfileCard
+                coach={coach}
+                avatarUrl={getCoachAvatar(coach)}
+              />
+            )}
           />
         </section>
 

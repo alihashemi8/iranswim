@@ -67,7 +67,6 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
   };
 
   const publicNavLinks = [
-    { label: 'صفحه اصلی', href: '/', icon: Waves },
     { label: 'اصول و مزایا', href: '/#about', icon: Award },
     { label: 'دوره‌ها و کلاس‌ها', href: '/#courses', icon: BookOpen },
     { label: 'کادر مربیان', href: '/#coaches', icon: Users2 },
@@ -132,9 +131,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 <span className="font-extrabold text-xs sm:text-sm md:text-[13px] lg:text-base text-[#083B5C] tracking-tight leading-tight whitespace-nowrap">
                   مدرسه شنای ایران
                 </span>
-                <span className="text-[10px] text-[#087EA4] font-semibold tracking-normal hidden xl:inline whitespace-nowrap">
-                  آموزش تخصصی شنا در قزوین
-                </span>
+
               </div>
             </Link>
 
@@ -261,9 +258,6 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 <div className="flex flex-col min-w-0">
                   <span className="font-extrabold text-sm text-[#083B5C] truncate">
                     مدرسه شنای ایران
-                  </span>
-                  <span className="text-[10px] text-[#087EA4] font-medium truncate">
-                    آموزش تخصصی شنا در قزوین
                   </span>
                 </div>
               </Link>

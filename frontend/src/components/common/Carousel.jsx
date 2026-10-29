@@ -20,9 +20,9 @@ export const Carousel = ({
   itemClassName = '',
   ariaLabel = 'گردونه اسلایدر',
   visibleItems = { mobile: 1, tablet: 2, desktop: 3 },
-  showPlayPause = true,
+  showPlayPause = false,
   showNavigation = true,
-  showProgress = true,
+  showProgress = false,
   showDots = true,
   pauseOnHover = true,
 }) => {
@@ -190,7 +190,7 @@ export const Carousel = ({
   return (
     <div
       ref={containerRef}
-      className={`relative select-none w-full max-w-full min-w-0 overflow-hidden ${className}`}
+      className={`relative select-none w-full max-w-full min-w-0 ${className}`}
       aria-roledescription="carousel"
       aria-label={ariaLabel}
       onMouseEnter={() => setIsHovered(true)}
@@ -204,8 +204,8 @@ export const Carousel = ({
       tabIndex={0}
       role="region"
     >
-      {/* Top Header Actions (Arrows + Play status) */}
-      {canSlide && (showProgress || (showPlayPause && !isReducedMotion) || showNavigation) && (
+      {/* Top Header Actions (Progress / Play status if enabled) */}
+      {canSlide && (showProgress || (showPlayPause && !isReducedMotion)) && (
         <div className="flex items-center justify-between mb-4 gap-3">
           <div className="flex items-center gap-2">
             {showProgress && (
@@ -229,57 +229,60 @@ export const Carousel = ({
               </button>
             )}
           </div>
-
-          {/* Previous and Next Navigation Buttons (RTL aligned) */}
-          {showNavigation && (
-            <div className="flex items-center gap-2">
-              {/* Previous Button in RTL: points Right (ChevronRight) */}
-              <button
-                type="button"
-                onClick={() => handleManualAction(prevSlide)}
-                className="p-2 sm:p-2.5 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/50"
-                aria-label="کارت قبلی"
-                title="کارت قبلی"
-              >
-                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-
-              {/* Next Button in RTL: points Left (ChevronLeft) */}
-              <button
-                type="button"
-                onClick={() => handleManualAction(nextSlide)}
-                className="p-2 sm:p-2.5 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/50"
-                aria-label="کارت بعدی"
-                title="کارت بعدی"
-              >
-                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-              </button>
-            </div>
-          )}
         </div>
       )}
 
-      {/* Overflow Track Viewport */}
-      <div className="w-full max-w-full min-w-0 overflow-hidden rounded-2xl sm:rounded-3xl p-1 -m-1">
-        <div
-          className={`flex min-w-0 ${isReducedMotion ? '' : 'transition-transform duration-500 ease-out'}`}
-          style={{
-            transform: `translateX(${translatePercent}%)`,
-          }}
-        >
-          {items.map((item, index) => (
-            <div
-              key={item.id || index}
-              className={`shrink-0 px-2 sm:px-3 min-w-0 ${itemClassName}`}
-              style={{ width: `${itemWidthPercent}%` }}
-              role="group"
-              aria-roledescription="slide"
-              aria-label={`${index + 1} از ${totalItems}`}
-            >
-              {renderItem(item, index)}
-            </div>
-          ))}
+      {/* Cards Viewport & Side Navigation Box */}
+      <div className="relative group/carousel">
+        {/* Overflow Track Viewport */}
+        <div className="carousel-viewport w-full max-w-full min-w-0 overflow-hidden rounded-2xl sm:rounded-3xl p-1 -m-1">
+          <div
+            className={`flex min-w-0 ${isReducedMotion ? '' : 'transition-transform duration-500 ease-out'}`}
+            style={{
+              transform: `translateX(${translatePercent}%)`,
+            }}
+          >
+            {items.map((item, index) => (
+              <div
+                key={item.id || index}
+                className={`shrink-0 px-2 sm:px-3 min-w-0 ${itemClassName}`}
+                style={{ width: `${itemWidthPercent}%` }}
+                role="group"
+                aria-roledescription="slide"
+                aria-label={`${index + 1} از ${totalItems}`}
+              >
+                {renderItem(item, index)}
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* Side Navigation Buttons (Round, positioned on sides of the cards box, hidden on mobile) */}
+        {showNavigation && canSlide && (
+          <>
+            {/* Right Button (Previous in RTL: advances right) */}
+            <button
+              type="button"
+              onClick={() => handleManualAction(prevSlide)}
+              className="hidden md:flex absolute -right-3 md:-right-4 lg:-right-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 lg:w-12 lg:h-12 rounded-full items-center justify-center bg-white/95 dark:bg-slate-800/95 text-slate-700 dark:text-slate-100 border border-slate-200/90 dark:border-slate-700 shadow-md hover:shadow-xl hover:bg-white dark:hover:bg-slate-800 hover:text-sky-600 dark:hover:text-sky-400 hover:border-sky-300 dark:hover:border-sky-500 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/50 backdrop-blur-xs"
+              aria-label="کارت قبلی"
+              title="کارت قبلی"
+            >
+              <ChevronRight className="w-5 h-5 lg:w-6 lg:h-6" />
+            </button>
+
+            {/* Left Button (Next in RTL: advances left) */}
+            <button
+              type="button"
+              onClick={() => handleManualAction(nextSlide)}
+              className="hidden md:flex absolute -left-3 md:-left-4 lg:-left-5 top-1/2 -translate-y-1/2 z-20 w-11 h-11 lg:w-12 lg:h-12 rounded-full items-center justify-center bg-white/95 dark:bg-slate-800/95 text-slate-700 dark:text-slate-100 border border-slate-200/90 dark:border-slate-700 shadow-md hover:shadow-xl hover:bg-white dark:hover:bg-slate-800 hover:text-sky-600 dark:hover:text-sky-400 hover:border-sky-300 dark:hover:border-sky-500 hover:scale-110 active:scale-95 transition-all duration-200 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/50 backdrop-blur-xs"
+              aria-label="کارت بعدی"
+              title="کارت بعدی"
+            >
+              <ChevronLeft className="w-5 h-5 lg:w-6 lg:h-6" />
+            </button>
+          </>
+        )}
       </div>
 
       {/* Dot Indicators */}

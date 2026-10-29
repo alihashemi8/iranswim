@@ -460,37 +460,26 @@
   box-shadow: 0 18px 35px rgb(25 72 83 / 20%);
 }
 
-.landing-coach-card,
+.coach-profile-card-wrapper {
+  overflow: visible;
+}
+
+.coach-card-body-shell {
+  filter: drop-shadow(0 20px 32px rgba(14, 48, 66, 0.08)) drop-shadow(0 4px 10px rgba(14, 48, 66, 0.03));
+  transition: filter 300ms ease, transform 300ms ease;
+}
+
+.coach-profile-card-wrapper:hover .coach-card-body-shell {
+  filter: drop-shadow(0 26px 42px rgba(14, 48, 66, 0.12)) drop-shadow(0 6px 14px rgba(14, 48, 66, 0.05));
+}
+
 .landing-news-card {
   box-shadow: 0 24px 50px rgb(25 72 83 / 22%), inset 0 1px #fff;
   transition: transform 240ms ease, box-shadow 240ms ease;
 }
 
-.landing-coach-card:hover,
 .landing-news-card:hover {
   box-shadow: 0 34px 60px rgb(25 72 83 / 30%), inset 0 1px #fff;
-}
-
-.landing-coach-card {
-  color: #173b4b;
-  background: rgb(250 254 251 / 95%) !important;
-  border-color: rgb(255 255 255 / 94%) !important;
-}
-
-.landing-coach-card > div:first-child > div:first-child {
-  border-color: #b7ded6;
-  background: #e9f6f1;
-  box-shadow: none;
-}
-
-.landing-coach-card :is(h3, p) {
-  color: #173b4b;
-}
-
-.landing-coach-card .bg-cyan-950 {
-  color: #087e91;
-  background: #e3f4f0;
-  border-color: #c1e6df;
 }
 
 .landing-news-card {
@@ -512,7 +501,8 @@
   overflow: visible;
 }
 
-.landing-carousel > div:nth-of-type(2) {
+.landing-carousel > div:nth-of-type(2),
+.landing-carousel .carousel-viewport {
   padding-block: .75rem;
   margin-block: -.5rem;
 }
