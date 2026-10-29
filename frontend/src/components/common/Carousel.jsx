@@ -30,11 +30,28 @@ export const Carousel = ({
   const [isHovered, setIsHovered] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const [isManuallyPaused, setIsManuallyPaused] = useState(false);
+  const [isInView, setIsInView] = useState(false);
 
   const containerRef = useRef(null);
   const touchStartX = useRef(0);
   const touchEndX = useRef(0);
   const userInteractionTimeout = useRef(null);
+
+  // Pause carousel when not in active viewport to prevent background scroll interference
+  useEffect(() => {
+    if (!containerRef.current || typeof IntersectionObserver === 'undefined') {
+      setIsInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.15 }
+    );
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   // Check prefers-reduced-motion with lazy initializer
   const [isReducedMotion, setIsReducedMotion] = useState(() => {
@@ -106,7 +123,7 @@ export const Carousel = ({
   // Auto-play interval
   useEffect(() => {
     const shouldPause = (pauseOnHover && isHovered) || (showPlayPause && isManuallyPaused);
-    if (!autoPlay || !canSlide || isReducedMotion || shouldPause || isFocused) {
+    if (!autoPlay || !canSlide || isReducedMotion || shouldPause || isFocused || !isInView) {
       return;
     }
 
@@ -126,7 +143,7 @@ export const Carousel = ({
       clearInterval(timer);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [autoPlay, canSlide, isReducedMotion, pauseOnHover, isHovered, isFocused, showPlayPause, isManuallyPaused, interval, nextSlide]);
+  }, [autoPlay, canSlide, isReducedMotion, pauseOnHover, isHovered, isFocused, showPlayPause, isManuallyPaused, interval, nextSlide, isInView]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -201,7 +218,6 @@ export const Carousel = ({
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onKeyDown={handleKeyDown}
-      tabIndex={0}
       role="region"
     >
       {/* Top Header Actions (Progress / Play status if enabled) */}

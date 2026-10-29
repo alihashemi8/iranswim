@@ -255,17 +255,40 @@ export const HomePage = () => {
   const activeBenefitIndexRef = useRef(0);
   const [activeBenefitDot, setActiveBenefitDot] = useState(0);
   const isBenefitInteractingRef = useRef(false);
+  const isBenefitVisibleRef = useRef(false);
   const benefitTimeoutRef = useRef(null);
+
+  // Only auto-scroll when the cards section is visible on screen
+  useEffect(() => {
+    const track = benefitsTrackRef.current;
+    if (!track || typeof IntersectionObserver === 'undefined') {
+      isBenefitVisibleRef.current = true;
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isBenefitVisibleRef.current = entry.isIntersecting;
+      },
+      { threshold: 0.15 }
+    );
+
+    observer.observe(track);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const track = benefitsTrackRef.current;
     if (!track) return;
 
     const intervalId = setInterval(() => {
-      // Don't auto-scroll if user is currently interacting
+      // 1. NEVER scroll if user is elsewhere on the page (cards not in viewport)
+      if (!isBenefitVisibleRef.current) return;
+
+      // 2. Don't auto-scroll if user is currently interacting
       if (isBenefitInteractingRef.current) return;
 
-      // On desktop (grid layout where all cards fit), do not scroll
+      // 3. On desktop (grid layout where all cards fit), do not scroll
       if (track.scrollWidth <= track.clientWidth + 20) return;
 
       const cards = Array.from(track.children);
@@ -277,12 +300,9 @@ export const HomePage = () => {
 
       const targetCard = cards[nextIndex];
       if (targetCard) {
-        const cardRect = targetCard.getBoundingClientRect();
-        const trackRect = track.getBoundingClientRect();
-        const diff = (cardRect.left + cardRect.width / 2) - (trackRect.left + trackRect.width / 2);
-
-        track.scrollBy({
-          left: diff,
+        const targetOffset = targetCard.offsetLeft - (track.clientWidth - targetCard.clientWidth) / 2;
+        track.scrollTo({
+          left: targetOffset,
           behavior: 'smooth',
         });
       }
