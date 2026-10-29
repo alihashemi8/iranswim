@@ -29,6 +29,7 @@ import { Carousel } from '../../components/common/Carousel';
 import { LoadingState } from '../../components/common/LoadingState';
 import { useAuth } from '../../context/AuthContext';
 import { AquaticPoolBackground } from '../../components/landing/AquaticPoolBackground';
+import { AquaticWaveDivider } from '../../components/landing/AquaticWaveDivider';
 import { CoachProfileCard } from '../../components/common/CoachProfileCard';
 import './HomePage.css';
 
@@ -634,6 +635,9 @@ export const HomePage = () => {
         </div>
       </section>
 
+      {/* Organic Wave Transition: Hero to Benefits */}
+      <AquaticWaveDivider topColor="#cbeff5" bottomColor="#d4f4eb" flip={false} />
+
       {/* =========================================================================
           SECTION 2: REAL CORE BENEFITS
           ========================================================================= */}
@@ -746,6 +750,9 @@ export const HomePage = () => {
           </div>
         </div>
       </section>
+
+      {/* Organic Wave Transition: Benefits to Courses */}
+      <AquaticWaveDivider topColor="#ccebf5" bottomColor="#c5e3f5" flip={true} />
 
       {/* =========================================================================
           SECTION 3: LIVE COURSES
@@ -860,6 +867,9 @@ export const HomePage = () => {
           )}
         </div>
       </section>
+
+      {/* Organic Wave Transition: Courses to Facilities */}
+      <AquaticWaveDivider topColor="#c4ecf2" bottomColor="#c2ecf1" flip={false} />
 
       {/* =========================================================================
           SECTION 4: ACADEMY FACILITIES & INFRASTRUCTURE
@@ -981,6 +991,9 @@ export const HomePage = () => {
         </div>
       </section>
 
+      {/* Organic Wave Transition: Facilities to Coaches */}
+      <AquaticWaveDivider topColor="#c9efe5" bottomColor="#cef0e6" flip={true} />
+
       {/* =========================================================================
           SECTION 5: CERTIFIED FEDERATION COACHES
           ========================================================================= */}
@@ -1016,6 +1029,9 @@ export const HomePage = () => {
           />
         </div>
       </section>
+
+      {/* Organic Wave Transition: Coaches to News */}
+      <AquaticWaveDivider topColor="#cbe6f6" bottomColor="#cee5f5" flip={false} />
 
       {/* =========================================================================
           SECTION 6: NEWS, ARTICLES & EVENTS
@@ -1094,6 +1110,9 @@ export const HomePage = () => {
         </div>
       </section>
 
+      {/* Organic Wave Transition: News to Call to Action */}
+      <AquaticWaveDivider topColor="#9cdfee" bottomColor="#8ad4e8" flip={true} />
+
       {/* =========================================================================
           SECTION 7: FINAL REGISTRATION CALL TO ACTION
           ========================================================================= */}
@@ -1136,10 +1155,13 @@ export const HomePage = () => {
         </div>
       </section>
 
+      {/* Organic Deep-Dive Wave Transition: CTA to Footer */}
+      <AquaticWaveDivider topColor="#58bfd9" bottomColor="#0d3849" crestColor="rgba(255, 255, 255, 0.75)" flip={false} />
+
       {/* =========================================================================
           SECTION 8: ACCESSIBLE FOOTER
           ========================================================================= */}
-      <footer className="w-full border-t-2 border-cyan-400/40 bg-gradient-to-b from-[#0d3849] to-[#061e29] pt-12 sm:pt-14 pb-8 min-w-0">
+      <footer className="w-full bg-gradient-to-b from-[#0d3849] to-[#061e29] pt-12 sm:pt-14 pb-8 min-w-0">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
               
