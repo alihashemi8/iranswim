@@ -66,10 +66,10 @@ html.dark .auth-panel {
   box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
-/* Desktop Intro Side Panel - Bright Luminous Aquatic Styling */
+/* Desktop Intro Side Panel - Clean Luminous Frosted Surface (No duplicate photo) */
 .auth-panel__intro {
   position: relative;
-  background: linear-gradient(155deg, #eefbf9 0%, #e2f7f4 45%, #daf3ef 100%);
+  background: linear-gradient(155deg, #f0fbf9 0%, #e6f6f3 45%, #daf1ed 100%);
   color: #083b5c;
   border-left: 1px solid rgba(13, 148, 136, 0.16);
 }
@@ -78,20 +78,15 @@ html.dark .auth-panel {
   content: "";
   position: absolute;
   inset: 0;
-  background-image:
-    linear-gradient(180deg, rgba(238, 251, 249, 0.78) 0%, rgba(226, 247, 244, 0.85) 100%),
-    url("/images/olympic-pool-aerial.webp");
-  background-size: cover;
-  background-position: center 25%;
-  opacity: 0.55;
+  background:
+    radial-gradient(ellipse 90% 80% at 85% 15%, rgba(20, 184, 166, 0.14) 0%, transparent 60%),
+    radial-gradient(ellipse 80% 70% at 15% 85%, rgba(8, 126, 164, 0.10) 0%, transparent 65%);
   pointer-events: none;
 }
 
 .auth-panel__veil {
   position: absolute;
   inset: 0;
-  background:
-    radial-gradient(120% 90% at 85% 15%, rgba(255, 255, 255, 0.65) 0%, transparent 60%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, rgba(218, 243, 239, 0.3) 100%);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.45) 0%, rgba(255, 255, 255, 0) 100%);
   pointer-events: none;
 }

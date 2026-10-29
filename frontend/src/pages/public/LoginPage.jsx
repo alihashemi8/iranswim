@@ -279,13 +279,6 @@ export const LoginPage = ({ defaultMode }) => {
         {/* RIGHT COLUMN (DESKTOP HERO / BRANDING PANEL)                   */}
         {/* ============================================================== */}
         <div className="auth-panel__intro hidden lg:flex lg:col-span-5 relative flex-col justify-between p-10 overflow-hidden">
-          {/* Background swimming imagery with bright overlay */}
-          <div
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-700 hover:scale-105 opacity-40 pointer-events-none"
-            style={{
-              backgroundImage: 'url("/images/olympic-pool-aerial.webp")',
-            }}
-          />
           <div className="auth-panel__veil" />
 
           {/* Top Brand Tag */}
