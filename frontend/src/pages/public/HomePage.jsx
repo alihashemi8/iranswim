@@ -242,6 +242,28 @@ const getCourseDetails = (course) => {
   return { ageRange, gender, whatYouLearn };
 };
 
+const getCourseScheduleAndCapacity = (course) => {
+  const group = course.groups?.[0];
+  if (!group) return { schedule: null, capacity: null };
+
+  let schedule = null;
+  if (Array.isArray(group.schedules) && group.schedules.length > 0) {
+    schedule = group.schedules
+      .map((s) => `${s.weekday_display || ''} ${s.start_time ? s.start_time.slice(0, 5) : ''}`.trim())
+      .filter(Boolean)
+      .join('، ');
+  } else if (group.name && group.name.includes('(') && group.name.includes(')')) {
+    const match = group.name.match(/\(([^)]+)\)/);
+    if (match) schedule = match[1];
+  }
+
+  const capacity = typeof group.remaining_capacity === 'number'
+    ? group.remaining_capacity
+    : null;
+
+  return { schedule, capacity };
+};
+
 export const HomePage = () => {
   const { user } = useAuth();
   const [courses, setCourses] = useState(INITIAL_COURSES);
@@ -513,14 +535,15 @@ export const HomePage = () => {
       <AquaticPoolBackground />
 
       {/* Main Content Layers */}
-      <div className="relative z-20 space-y-10 sm:space-y-14 lg:space-y-16 pb-14 pt-2">
+      <div className="relative z-20 w-full">
         
         {/* =========================================================================
             SECTION 1: CINEMATIC AQUATIC HERO & WATER ENTRY ARENA
             ========================================================================= */}
-        <section className="landing-hero relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-14 lg:pt-18 min-w-0">
-          <div className="landing-hero__panel relative w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
+        <section className="landing-hero relative w-full pt-8 sm:pt-14 lg:pt-18 pb-12 sm:pb-16 min-w-0">
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="landing-hero__panel relative w-full">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
               {/* Text & Primary Actions */}
               <div className="lg:col-span-7 space-y-6 sm:space-y-8 text-right">
                 
@@ -562,7 +585,7 @@ export const HomePage = () => {
                     </Link>
                   ) : (
                     <Link
-                      to="/login"
+                      to="/login?mode=register"
                       className="flex-1 sm:flex-initial justify-center px-4 sm:px-7 py-3.5 sm:py-4 bg-cyan-300 hover:bg-cyan-200 text-slate-950 font-black rounded-2xl shadow-[0_8px_20px_-4px_rgba(34,211,238,0.5)] hover:shadow-cyan-400/60 transition-all text-xs sm:text-base inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95 text-center whitespace-nowrap"
                     >
                       <span>ثبت‌نام در کلاس‌ها</span>
@@ -571,11 +594,11 @@ export const HomePage = () => {
                   )}
 
                   <a
-                    href="#coaches"
+                    href="#courses"
                     className="flex-1 sm:flex-initial justify-center px-4 sm:px-6 py-3.5 sm:py-4 bg-white hover:bg-cyan-50 text-slate-950 font-black rounded-2xl border-2 border-cyan-200/80 shadow-[0_8px_20px_-4px_rgba(255,255,255,0.4)] hover:shadow-white/60 transition-all text-xs sm:text-base inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95 text-center whitespace-nowrap"
                   >
-                    <Users2 className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600 shrink-0" />
-                    <span>کادر مربیان قزوین</span>
+                    <Waves className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600 shrink-0" />
+                    <span>مشاهده دوره‌ها و کلاس‌ها</span>
                   </a>
                 </div>
 
@@ -608,12 +631,14 @@ export const HomePage = () => {
 
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* =========================================================================
-            SECTION 2: REAL CORE BENEFITS
-            ========================================================================= */}
-        <section id="about" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-6 min-w-0">
+      {/* =========================================================================
+          SECTION 2: REAL CORE BENEFITS
+          ========================================================================= */}
+      <section id="about" className="w-full py-12 sm:py-16 lg:py-20 min-w-0">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-6">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <Badge variant="info">ویژگی‌های کلاس‌های ما</Badge>
             <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
@@ -719,12 +744,14 @@ export const HomePage = () => {
               />
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* =========================================================================
-            SECTION 3: LIVE COURSES
-            ========================================================================= */}
-        <section id="courses" className="landing-section w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 min-w-0">
+      {/* =========================================================================
+          SECTION 3: LIVE COURSES
+          ========================================================================= */}
+      <section id="courses" className="landing-section w-full py-12 sm:py-16 lg:py-20 min-w-0">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7">
           <div className="landing-section__heading flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
             <div className="space-y-1.5">
               <Badge variant="info">برنامه آموزشی ترم جاری</Badge>
@@ -748,6 +775,7 @@ export const HomePage = () => {
               pauseOnHover={true}
               renderItem={(course, index) => {
                 const details = getCourseDetails(course);
+                const { schedule, capacity } = getCourseScheduleAndCapacity(course);
                 return (
                   <article
                     key={course.id}
@@ -756,9 +784,16 @@ export const HomePage = () => {
                     <div>
                       <div className="flex items-start justify-between gap-3">
                         <div>
-                          <span className="landing-course__eyebrow">
-                            {course.status === 'ACTIVE' ? 'ثبت‌نام فعال' : 'پیش‌ثبت‌نام'}
-                          </span>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="landing-course__eyebrow">
+                              {course.status === 'ACTIVE' ? 'ثبت‌نام فعال' : 'پیش‌ثبت‌نام'}
+                            </span>
+                            {capacity !== null && (
+                              <span className="text-[10px] font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-md border border-teal-200/70 dark:border-teal-800/50">
+                                {capacity} نفر ظرفیت
+                              </span>
+                            )}
+                          </div>
                           <h3 className="mt-2 text-lg font-bold text-slate-900 dark:text-slate-100">
                             {course.name}
                           </h3>
@@ -791,8 +826,17 @@ export const HomePage = () => {
                         </p>
                       </div>
 
+                      {/* اطلاعات زمان‌بندی در صورت وجود */}
+                      {schedule && (
+                        <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
+                          <Clock className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                          <span className="text-slate-500 dark:text-slate-400">برنامه کلاسی:</span>
+                          <span className="font-semibold text-slate-800 dark:text-slate-200">{schedule}</span>
+                        </div>
+                      )}
+
                       {/* اطلاعات جلسات و استخر بدون قیمت */}
-                      <div className="mt-4 pt-3 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 border-t border-cyan-500/20">
+                      <div className="mt-3.5 pt-3 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 border-t border-cyan-500/20">
                         <span>{course.sessions_count} جلسه آموزشی</span>
                         <span className="font-medium text-cyan-800 dark:text-cyan-300">
                           {course.groups?.[0]?.pool_location || 'استخر اختصاصی آکادمی'}
@@ -801,10 +845,10 @@ export const HomePage = () => {
                     </div>
 
                     <Link
-                      to="/login"
+                      to={user ? getDashboardDestination() : '/login?mode=register'}
                       className="landing-course__link mt-5 inline-flex items-center justify-between gap-2 pt-3 border-t border-cyan-500/20 font-bold"
                     >
-                      <span>مشاهده و پیگیری ثبت‌نام</span>
+                      <span>مشاهده جزئیات و ثبت‌نام</span>
                       <ArrowLeft className="w-4 h-4" aria-hidden="true" />
                     </Link>
                   </article>
@@ -814,12 +858,134 @@ export const HomePage = () => {
           ) : (
             <p className="landing-empty-state">در حال حاضر دوره‌ای برای نمایش ثبت نشده است. برای اطلاع از ثبت‌نام با پذیرش تماس بگیرید.</p>
           )}
-        </section>
+        </div>
+      </section>
 
-        {/* =========================================================================
-            SECTION 3: CERTIFIED FEDERATION COACHES
-            ========================================================================= */}
-        <section id="coaches" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 min-w-0">
+      {/* =========================================================================
+          SECTION 4: ACADEMY FACILITIES & INFRASTRUCTURE
+          ========================================================================= */}
+      <section id="facilities" className="w-full py-12 sm:py-16 lg:py-20 min-w-0">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7">
+          <div className="text-center max-w-2xl mx-auto space-y-2.5">
+            <Badge variant="info">محیط استخر و بهداشت آب</Badge>
+            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              امکانات و شرایط بهداشتی استخرها در قزوین
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
+              برگزاری کلاس‌ها در استخرهای تمیز و استاندارد شهر قزوین با آب گرم، تصفیه بهداشتی و وسایل کمک‌آموزشی
+            </p>
+            {/* Swipe hint on mobile & tablet */}
+            <div className="flex lg:hidden items-center justify-center gap-1.5 text-[11px] sm:text-xs text-slate-600 pt-1 font-medium">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-600 animate-pulse" />
+              <span>برای مشاهده سایر امکانات به صورت افقی بکشید</span>
+            </div>
+          </div>
+
+          <div className="landing-facilities-track landing-scroll-track flex overflow-x-auto pt-4 pb-4 px-3 sm:pt-4 sm:pb-5 sm:px-5 gap-5 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pt-4 lg:pb-5 lg:px-5 items-stretch">
+            {/* Feature 1 */}
+            <div className="bg-white/95 p-6 rounded-3xl border-2 border-teal-200/80 shadow-[0_8px_24px_rgba(13,148,136,0.08)] hover:shadow-lg hover:border-teal-400 transition-all flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-200 shadow-xs">
+                    <OzonePurificationIcon className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 text-[10px] font-bold text-teal-800 bg-teal-50 rounded-lg border border-teal-200">
+                    کنترل بهداشت
+                  </span>
+                </div>
+                <div className="space-y-1.5">
+                  <h4 className="font-bold text-base text-slate-900">آب زلال و تصفیه مداوم</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed text-justify font-medium">
+                    تنظیم دمای آب متناسب با فصل و نظارت پیوسته بر زلالی آب استخر جهت راحتی نوآموزان و پیشگیری از سوزش چشم.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 pt-3 border-t border-teal-100 text-[11px] font-bold text-teal-700 flex items-center justify-between">
+                <span>رعایت بهداشت و سلامت شناگران</span>
+                <Check className="w-3.5 h-3.5 text-teal-600" />
+              </div>
+            </div>
+
+            {/* Feature 2 */}
+            <div className="bg-white/95 p-6 rounded-3xl border-2 border-amber-200/80 shadow-[0_8px_24px_rgba(217,119,6,0.08)] hover:shadow-lg hover:border-amber-400 transition-all flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200 shadow-xs">
+                    <OlympicPoolLaneIcon className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 text-[10px] font-bold text-amber-800 bg-amber-50 rounded-lg border border-amber-200">
+                    تجهیزات کامل
+                  </span>
+                </div>
+                <div className="space-y-1.5">
+                  <h4 className="font-bold text-base text-slate-900">وسایل کمک‌آموزشی استاندارد</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed text-justify font-medium">
+                    استفاده از تخته شنا، نودل فومی، فین و جلیقه‌های استاندارد برای یادگیری ایمن‌تر و سریع‌تر دست و پا زدن.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 pt-3 border-t border-amber-100 text-[11px] font-bold text-amber-700 flex items-center justify-between">
+                <span>تسهیل یادگیری نوآموزان</span>
+                <Check className="w-3.5 h-3.5 text-amber-600" />
+              </div>
+            </div>
+
+            {/* Feature 3 */}
+            <div className="bg-white/95 p-6 rounded-3xl border-2 border-orange-200/80 shadow-[0_8px_24px_rgba(234,88,12,0.08)] hover:shadow-lg hover:border-orange-400 transition-all flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-xl bg-orange-50 text-orange-700 flex items-center justify-center border border-orange-200 shadow-xs">
+                    <SaunaThermalSpaIcon className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 text-[10px] font-bold text-orange-800 bg-orange-50 rounded-lg border border-orange-200">
+                    امکانات رفاهی
+                  </span>
+                </div>
+                <div className="space-y-1.5">
+                  <h4 className="font-bold text-base text-slate-900">سونا، جکوزی و دوش تمیز</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed text-justify font-medium">
+                    رختکن‌های تمیز، آب گرم مناسب و دسترسی به جکوزی جهت رفع خستگی و ریکاوری بعد از تمرین.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 pt-3 border-t border-orange-100 text-[11px] font-bold text-orange-700 flex items-center justify-between">
+                <span>ریکاوری و آرامش پس از کلاس</span>
+                <Check className="w-3.5 h-3.5 text-orange-600" />
+              </div>
+            </div>
+
+            {/* Feature 4 */}
+            <div className="bg-white/95 p-6 rounded-3xl border-2 border-indigo-200/80 shadow-[0_8px_24px_rgba(79,70,229,0.08)] hover:shadow-lg hover:border-indigo-400 transition-all flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center border border-indigo-200 shadow-xs">
+                    <Clock className="w-6 h-6" />
+                  </div>
+                  <span className="px-2.5 py-1 text-[10px] font-bold text-indigo-800 bg-indigo-50 rounded-lg border border-indigo-200">
+                    سانس‌های مجزا
+                  </span>
+                </div>
+                <div className="space-y-1.5">
+                  <h4 className="font-bold text-base text-slate-900">تایم‌های تفکیک‌شده و منظم</h4>
+                  <p className="text-xs text-slate-600 leading-relaxed text-justify font-medium">
+                    برنامه‌ریزی دقیق سانس‌های ویژه بانوان، آقایان و نونهالان در ساعت‌های عصر و روزهای تعطیل برای رفاه خانواده‌ها.
+                  </p>
+                </div>
+              </div>
+              <div className="mt-4 pt-3 border-t border-indigo-100 text-[11px] font-bold text-indigo-700 flex items-center justify-between">
+                <span>تایم‌بندی منعطف با برنامه شما</span>
+                <Check className="w-3.5 h-3.5 text-indigo-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* =========================================================================
+          SECTION 5: CERTIFIED FEDERATION COACHES
+          ========================================================================= */}
+      <section id="coaches" className="w-full py-12 sm:py-16 lg:py-20 min-w-0">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
             <div className="space-y-1.5">
               <Badge variant="success">کادر مربیان قزوین</Badge>
@@ -848,137 +1014,21 @@ export const HomePage = () => {
               />
             )}
           />
-        </section>
+        </div>
+      </section>
 
-        {/* =========================================================================
-            SECTION 4: ACADEMY FACILITIES & INFRASTRUCTURE
-            ========================================================================= */}
-        <section id="facilities" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 min-w-0">
-          <div className="text-center max-w-2xl mx-auto space-y-2.5">
-            <Badge variant="info">محیط استخر و بهداشت آب</Badge>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-              امکانات و شرایط بهداشتی استخرها در قزوین
-            </h2>
-            <p className="text-xs sm:text-sm text-cyan-200/80 leading-relaxed">
-              برگزاری کلاس‌ها در استخرهای تمیز و استاندارد شهر قزوین با آب گرم، تصفیه بهداشتی و وسایل کمک‌آموزشی
-            </p>
-            {/* Swipe hint on mobile & tablet */}
-            <div className="flex lg:hidden items-center justify-center gap-1.5 text-[11px] sm:text-xs text-cyan-200/80 pt-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              <span>برای مشاهده سایر امکانات به صورت افقی بکشید</span>
-            </div>
-          </div>
-
-          <div className="landing-facilities-track landing-scroll-track flex overflow-x-auto pt-4 pb-4 px-3 sm:pt-4 sm:pb-5 sm:px-5 gap-5 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pt-4 lg:pb-5 lg:px-5 items-stretch">
-            {/* Feature 1 */}
-            <div className="bg-slate-900/80 p-6 card-hydrofoil border-2 border-teal-500/20 hover:border-teal-400/60 transition-all duration-300 flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-teal-950 text-teal-300 flex items-center justify-center border border-teal-500/30">
-                    <OzonePurificationIcon className="w-6 h-6" />
-                  </div>
-                  <span className="px-2.5 py-1 text-[10px] font-bold text-teal-300 bg-teal-950 rounded-lg border border-teal-500/30">
-                    کنترل بهداشت
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  <h4 className="font-bold text-base text-white">آب زلال و تصفیه مداوم</h4>
-                  <p className="text-xs text-slate-300 leading-relaxed text-justify">
-                    تنظیم دمای آب متناسب با فصل و نظارت پیوسته بر زلالی آب استخر جهت راحتی نوآموزان و پیشگیری از سوزش چشم.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 pt-3 border-t border-teal-500/20 text-[11px] font-bold text-teal-400 flex items-center justify-between">
-                <span>تضمین سلامت پوست و چشم</span>
-                <Check className="w-3.5 h-3.5" />
-              </div>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="bg-slate-900/80 p-6 card-hydrofoil-alt border-2 border-amber-500/20 hover:border-amber-400/60 transition-all duration-300 flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-amber-950 text-amber-300 flex items-center justify-center border border-amber-500/30">
-                    <OlympicPoolLaneIcon className="w-6 h-6" />
-                  </div>
-                  <span className="px-2.5 py-1 text-[10px] font-bold text-amber-300 bg-amber-950 rounded-lg border border-amber-500/30">
-                    تجهیزات کامل
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  <h4 className="font-bold text-base text-white">وسایل کمک‌آموزشی استاندارد</h4>
-                  <p className="text-xs text-slate-300 leading-relaxed text-justify">
-                    استفاده از تخته شنا، نودل فومی، فین و جلیقه‌های استاندارد برای یادگیری ایمن‌تر و سریع‌تر دست و پا زدن.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 pt-3 border-t border-amber-500/20 text-[11px] font-bold text-amber-400 flex items-center justify-between">
-                <span>تسهیل یادگیری نوآموزان</span>
-                <Check className="w-3.5 h-3.5" />
-              </div>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="bg-slate-900/80 p-6 card-hydrofoil border-2 border-orange-500/20 hover:border-orange-400/60 transition-all duration-300 flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-orange-950 text-orange-300 flex items-center justify-center border border-orange-500/30">
-                    <SaunaThermalSpaIcon className="w-6 h-6" />
-                  </div>
-                  <span className="px-2.5 py-1 text-[10px] font-bold text-orange-300 bg-orange-950 rounded-lg border border-orange-500/30">
-                    امکانات رفاهی
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  <h4 className="font-bold text-base text-white">سونا، جکوزی و دوش تمیز</h4>
-                  <p className="text-xs text-slate-300 leading-relaxed text-justify">
-                    رختکن‌های تمیز، آب گرم مناسب و دسترسی به جکوزی جهت رفع خستگی و ریکاوری بعد از تمرین.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 pt-3 border-t border-orange-500/20 text-[11px] font-bold text-orange-400 flex items-center justify-between">
-                <span>ریکاوری و آرامش پس از کلاس</span>
-                <Check className="w-3.5 h-3.5" />
-              </div>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="bg-slate-900/80 p-6 card-hydrofoil-alt border-2 border-indigo-500/20 hover:border-indigo-400/60 transition-all duration-300 flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-indigo-950 text-indigo-300 flex items-center justify-center border border-indigo-500/30">
-                    <Clock className="w-6 h-6" />
-                  </div>
-                  <span className="px-2.5 py-1 text-[10px] font-bold text-indigo-300 bg-indigo-950 rounded-lg border border-indigo-500/30">
-                    سانس‌های مجزا
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  <h4 className="font-bold text-base text-white">تایم‌های تفکیک‌شده و منظم</h4>
-                  <p className="text-xs text-slate-300 leading-relaxed text-justify">
-                    برنامه‌ریزی دقیق سانس‌های ویژه بانوان، آقایان و نونهالان در ساعت‌های عصر و روزهای تعطیل برای رفاه خانواده‌ها.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 pt-3 border-t border-indigo-500/20 text-[11px] font-bold text-indigo-400 flex items-center justify-between">
-                <span>تایم‌بندی منعطف با برنامه شما</span>
-                <Check className="w-3.5 h-3.5" />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* =========================================================================
-            SECTION 5: NEWS, ARTICLES & EVENTS
-            ========================================================================= */}
-        <section id="news" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 min-w-0">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-500/20 pb-5">
+      {/* =========================================================================
+          SECTION 6: NEWS, ARTICLES & EVENTS
+          ========================================================================= */}
+      <section id="news" className="w-full py-12 sm:py-16 lg:py-20 min-w-0">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
             <div className="space-y-1.5">
               <Badge variant="warning">اخبار و اطلاعیه‌ها</Badge>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                 تازه‌ترین رویدادها و اطلاعیه‌های مدرسه شنای ایران
               </h2>
-              <p className="text-xs sm:text-sm text-cyan-200/80">
+              <p className="text-xs sm:text-sm text-slate-700 font-medium">
                 زمان‌بندی ترم‌های آموزشی، استعدادیابی و نکات مهم یادگیری شنا در قزوین
               </p>
             </div>
@@ -994,9 +1044,9 @@ export const HomePage = () => {
               const imgUrl = getNewsImage(item, index);
               const CategoryIcon = getNewsCategoryIcon(item.category);
               return (
-                <article className="landing-news-card group bg-slate-900/90 rounded-3xl border-2 border-cyan-500/20 overflow-hidden shadow-lg hover:shadow-cyan-500/10 hover:border-cyan-400/50 transition-all duration-300 flex flex-col justify-between h-full">
+                <article className="landing-news-card group bg-white/95 rounded-3xl border-2 border-cyan-100 overflow-hidden shadow-sm hover:shadow-cyan-500/10 hover:border-cyan-400/50 transition-all duration-300 flex flex-col justify-between h-full">
                   <div>
-                    <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-slate-950">
+                    <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-slate-900">
                       <img
                         src={imgUrl}
                         alt={item.title}
@@ -1004,24 +1054,24 @@ export const HomePage = () => {
                         loading="lazy"
                       />
                       <div className="absolute top-3.5 right-3.5 z-20">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-900/90 backdrop-blur-md text-cyan-300 text-[11px] font-bold rounded-lg border border-cyan-400/30">
-                          <CategoryIcon className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/90 backdrop-blur-md text-cyan-900 text-[11px] font-bold rounded-lg border border-cyan-200 shadow-xs">
+                          <CategoryIcon className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
                           <span>{item.category_display || 'اطلاعیه'}</span>
                         </span>
                       </div>
                     </div>
 
                     <div className="p-5 sm:p-6 space-y-2.5">
-                      <div className="flex items-center gap-1.5 text-[11px] text-cyan-300/80 font-mono">
-                        <Clock className="w-3.5 h-3.5 text-teal-400" />
+                      <div className="flex items-center gap-1.5 text-[11px] text-cyan-800 font-mono font-bold">
+                        <Clock className="w-3.5 h-3.5 text-teal-600" />
                         <span>{formatPersianDateString(item.publish_at)}</span>
                       </div>
 
-                      <h3 className="text-base font-bold text-white leading-snug line-clamp-2 group-hover:text-cyan-300 transition-colors">
+                      <h3 className="text-base font-bold text-slate-900 leading-snug line-clamp-2 group-hover:text-cyan-700 transition-colors">
                         {item.title}
                       </h3>
 
-                      <p className="text-xs text-slate-300 leading-relaxed line-clamp-3 text-justify">
+                      <p className="text-xs text-slate-600 leading-relaxed line-clamp-3 text-justify font-medium">
                         {item.summary || item.body}
                       </p>
                     </div>
@@ -1031,7 +1081,7 @@ export const HomePage = () => {
                     <button
                       type="button"
                       onClick={() => setSelectedNews(item)}
-                      className="w-full text-center py-2.5 px-4 text-xs font-bold text-cyan-200 hover:text-white bg-cyan-950/70 hover:bg-cyan-900/70 rounded-xl border border-cyan-500/30 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="w-full text-center py-2.5 px-4 text-xs font-bold text-cyan-900 hover:text-white bg-cyan-50/90 hover:bg-cyan-600 rounded-xl border border-cyan-200/90 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <span>مطالعه متن کامل خبر</span>
                       <ArrowLeft className="w-3.5 h-3.5" />
@@ -1041,31 +1091,33 @@ export const HomePage = () => {
               );
             }}
           />
-        </section>
+        </div>
+      </section>
 
-        {/* =========================================================================
-            SECTION 6: FINAL REGISTRATION CALL TO ACTION
-            ========================================================================= */}
-        <section className="landing-cta w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-w-0">
-          <div className="landing-cta__panel relative w-full text-center space-y-6 py-8 sm:py-12">
+      {/* =========================================================================
+          SECTION 7: FINAL REGISTRATION CALL TO ACTION
+          ========================================================================= */}
+      <section className="landing-cta w-full py-14 sm:py-20 lg:py-24 min-w-0">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="landing-cta__panel relative w-full text-center space-y-6 py-8 sm:py-12 px-4 sm:px-8">
             <div className="relative max-w-3xl mx-auto space-y-5">
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900/80 rounded-full text-xs sm:text-sm font-bold text-cyan-200 border border-cyan-400/40 shadow-md">
-                <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full text-xs sm:text-sm font-bold text-cyan-900 border border-cyan-300/60 shadow-xs">
+                <Sparkles className="w-4 h-4 text-cyan-600 shrink-0" />
                 <span>پذیرش شناگر در تمامی رده‌های سنی در استان قزوین</span>
               </div>
 
-              <h2 className="text-3xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.2]">
+              <h2 className="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 tracking-tight leading-[1.25]">
                 آماده‌اید شنا را اصولی و استاندارد شروع کنید؟
               </h2>
 
-              <p className="text-base sm:text-xl lg:text-2xl font-bold text-slate-100 leading-relaxed max-w-2xl mx-auto">
+              <p className="text-sm sm:text-lg lg:text-xl font-bold text-slate-700 leading-relaxed max-w-2xl mx-auto">
                 برای مشاوره، اطلاع از سانس‌ها یا ثبت‌نام در کلاس‌های آموزش شنای کودکان و بزرگسالان در قزوین، از طریق سامانه اقدام کنید یا با پذیرش تماس بگیرید.
               </p>
 
               <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
                 <Link
-                  to="/login"
-                  className="px-8 sm:px-10 py-4 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black rounded-2xl shadow-xl hover:shadow-cyan-400/30 transition-all text-base sm:text-lg inline-flex items-center gap-2.5 cursor-pointer active:scale-95"
+                  to={user ? getDashboardDestination() : '/login?mode=register'}
+                  className="px-8 sm:px-10 py-3.5 sm:py-4 bg-gradient-to-r from-cyan-600 to-teal-500 hover:from-cyan-700 hover:to-teal-600 text-white font-black rounded-2xl shadow-lg shadow-cyan-500/25 transition-all text-base sm:text-lg inline-flex items-center gap-2.5 cursor-pointer active:scale-95"
                 >
                   <span>ورود و ثبت‌نام در دوره‌ها</span>
                   <ArrowLeft className="w-5 h-5" />
@@ -1073,7 +1125,7 @@ export const HomePage = () => {
 
                 <a
                   href="tel:02833650000"
-                  className="px-7 sm:px-9 py-4 bg-white hover:bg-cyan-50 text-slate-950 font-black rounded-2xl border-2 border-cyan-200/90 transition-all text-base sm:text-lg inline-flex items-center gap-2.5 shadow-md"
+                  className="px-7 sm:px-9 py-3.5 sm:py-4 bg-white hover:bg-cyan-50 text-slate-950 font-black rounded-2xl border-2 border-cyan-200/90 transition-all text-base sm:text-lg inline-flex items-center gap-2.5 shadow-md active:scale-95"
                 >
                   <PhoneCall className="w-5 h-5 text-cyan-600" />
                   <span>تماس با پذیرش: ۰۲۸-۳۳۶۵۰۰۰۰</span>
@@ -1081,12 +1133,13 @@ export const HomePage = () => {
               </div>
             </div>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* =========================================================================
-            SECTION 7: ACCESSIBLE FOOTER
-            ========================================================================= */}
-        <footer className="w-full border-t border-cyan-500/20 bg-slate-950/95 backdrop-blur-md pt-10 sm:pt-12 pb-8 min-w-0">
+      {/* =========================================================================
+          SECTION 8: ACCESSIBLE FOOTER
+          ========================================================================= */}
+      <footer className="w-full border-t-2 border-cyan-400/40 bg-gradient-to-b from-[#0d3849] to-[#061e29] pt-12 sm:pt-14 pb-8 min-w-0">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
               
@@ -1122,13 +1175,18 @@ export const HomePage = () => {
                     </a>
                   </li>
                   <li>
+                    <a href="#facilities" className="hover:text-cyan-300 transition-colors">
+                      امکانات و شرایط استخرها
+                    </a>
+                  </li>
+                  <li>
                     <a href="#coaches" className="hover:text-cyan-300 transition-colors">
                       کادر مربیان قزوین
                     </a>
                   </li>
                   <li>
-                    <a href="#facilities" className="hover:text-cyan-300 transition-colors">
-                      امکانات و شرایط استخرها
+                    <a href="#news" className="hover:text-cyan-300 transition-colors">
+                      اخبار و اطلاعیه‌ها
                     </a>
                   </li>
                 </ul>

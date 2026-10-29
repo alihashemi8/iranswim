@@ -69,8 +69,8 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
   const publicNavLinks = [
     { label: 'اصول و مزایا', href: '/#about', icon: Award },
     { label: 'دوره‌ها و کلاس‌ها', href: '/#courses', icon: BookOpen },
-    { label: 'کادر مربیان', href: '/#coaches', icon: Users2 },
     { label: 'امکانات استخر', href: '/#facilities', icon: Building2 },
+    { label: 'کادر مربیان', href: '/#coaches', icon: Users2 },
     { label: 'اخبار و رویدادها', href: '/#news', icon: Newspaper },
   ];
 

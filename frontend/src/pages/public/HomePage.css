@@ -126,10 +126,7 @@
 }
 
 #about {
-  max-width: 100%;
-  padding: clamp(1.25rem, 2.5vw, 2rem) max(1rem, calc((100vw - 80rem) / 2));
   color: #173b4b;
-  background: transparent;
 }
 
 #about > div:first-child {
@@ -400,10 +397,7 @@
 }
 
 #courses {
-  max-width: 100%;
-  padding: clamp(1.25rem, 2.5vw, 2rem) max(1rem, calc((100vw - 80rem) / 2));
   color: #173b4b;
-  background: transparent;
 }
 
 #courses .landing-section__heading {
@@ -556,10 +550,6 @@
   margin-inline: -1.25rem;
 }
 
-#coaches {
-  padding-block: clamp(0.5rem, 1.5vw, 1rem);
-}
-
 #coaches > div:first-child p,
 #news > div:first-child p {
   color: #486875;
@@ -595,10 +585,7 @@
 }
 
 #facilities {
-  max-width: 100%;
-  padding: clamp(1.25rem, 2.5vw, 2rem) max(1rem, calc((100vw - 80rem) / 2));
   color: #173b4b;
-  background: transparent;
 }
 
 #facilities > div {
@@ -680,9 +667,6 @@
   }
 }
 
-#news {
-  padding-block: clamp(0.5rem, 1.5vw, 1rem);
-}
 
 .landing-cta > div,
 .landing-cta__panel {
@@ -1188,15 +1172,64 @@ html.dark .auth-page > .auth-panel {
   background: #8adcca;
 }
 
-/* Unified section surfaces allowing seamless aquatic gradient flow */
-#about,
-#courses,
-#coaches,
-#facilities,
+/* =========================================================================
+   DISTINCT AQUATIC SECTION GRADIENTS WITH ORGANIC WAVE TRANSITIONS
+   Each section has its own unique, visible light pool identity,
+   seamlessly connected by organic aquatic wave contours.
+   ========================================================================= */
+
+/* Hero: deep aerial pool water into shallow cyan edge */
+.landing-hero {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(180deg, #093444 0%, #0d4659 40%, #157388 70%, #cbeff5 100%) !important;
+}
+
+/* Section 2: Soft Fresh Spa-Mint Water (ویژگی‌های کلاس‌ها) */
+#about {
+  position: relative;
+  isolation: isolate;
+  background-color: #d3f4eb !important;
+  background-image: radial-gradient(ellipse 70% 50% at 50% 20%, rgba(255, 255, 255, 0.45), transparent 75%) !important;
+}
+
+/* Section 3: Fresh Olympic Pool-Lane Sky Blue (دوره‌های آموزشی) */
+#courses {
+  position: relative;
+  isolation: isolate;
+  background-color: #c5e3f5 !important;
+  background-image: radial-gradient(ellipse 70% 50% at 50% 20%, rgba(255, 255, 255, 0.45), transparent 75%) !important;
+}
+
+/* Section 4: Powdery Turquoise Jade Wellness Pool (کادر مربیان) */
+#coaches {
+  position: relative;
+  isolation: isolate;
+  background-color: #cef0e6 !important;
+  background-image: radial-gradient(ellipse 70% 50% at 50% 20%, rgba(255, 255, 255, 0.45), transparent 75%) !important;
+}
+
+/* Section 5: Crystal Ozone & Sanitized Pure Hydro Water (امکانات استخر) */
+#facilities {
+  position: relative;
+  isolation: isolate;
+  background-color: #c4ecf2 !important;
+  background-image: radial-gradient(ellipse 70% 50% at 50% 20%, rgba(255, 255, 255, 0.45), transparent 75%) !important;
+}
+
+/* Section 6: Sport Gazette Clean Sky Water (اخبار و رویدادها) */
 #news {
   position: relative;
   isolation: isolate;
-  background: transparent;
+  background-color: #cee5f5 !important;
+  background-image: radial-gradient(ellipse 70% 50% at 50% 20%, rgba(255, 255, 255, 0.45), transparent 75%) !important;
+}
+
+/* Section 7: Radiant Sunlit Pool Basin (ثبت‌نام و مشاوره) */
+.landing-cta {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(180deg, #8ad4e8 0%, #6ecae2 100%) !important;
 }
 
 #about::before,
