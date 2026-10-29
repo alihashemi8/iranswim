@@ -148,11 +148,19 @@
   padding-inline: 1rem;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 640px) and (max-width: 1023px) {
   .landing-benefits-track {
     padding-top: 2rem;
     padding-bottom: 3.5rem;
     padding-inline: 1.5rem;
+  }
+  .landing-benefits-track .benefit-card {
+    width: 350px !important;
+    min-width: 350px !important;
+    max-width: 350px !important;
+    height: 385px !important;
+    min-height: 385px !important;
+    max-height: 385px !important;
   }
 }
 
@@ -657,7 +665,10 @@
 }
 
 @media (max-width: 639px) {
-  .benefit-card {
+  .landing-benefits-track .benefit-card {
+    height: 395px !important;
+    min-height: 395px !important;
+    max-height: 395px !important;
     padding: 1.5rem 1.25rem 1.25rem;
   }
 }
