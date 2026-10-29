@@ -249,7 +249,6 @@ export const HomePage = () => {
                   <MapPin className="w-4 h-4 text-cyan-600 shrink-0" />
                   <span>مدرسه شنای ایران • استان قزوین</span>
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-1" />
-                  <span className="text-[11px] sm:text-xs text-emerald-800 font-extrabold bg-emerald-100/80 px-2.5 py-0.5 rounded-full border border-emerald-300/80">پذیرش ترم جدید</span>
                 </div>
 
                 {/* Main Headline */}
@@ -370,68 +369,68 @@ export const HomePage = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-8 pt-4">
-            {/* Benefit Card 1 */}
-            <div className="group relative bg-slate-900/85 backdrop-blur-md card-hydrofoil pt-12 pb-7 px-7 border-2 border-cyan-500/20 hover:border-cyan-400/60 shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 flex flex-col justify-between">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-cyan-900 to-teal-800 text-cyan-300 flex items-center justify-center border border-cyan-400/30 mb-5 shadow-sm group-hover:scale-110 transition-transform">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-8 pt-4 items-stretch">
+            {/* Benefit Card 1 - فیروزه‌ای پودری */}
+            <div className="benefit-card benefit-card--turquoise card-hydrofoil group relative flex flex-col justify-between h-full">
+              <div className="benefit-card__icon w-14 h-14 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
                 <CardioAquaticIcon className="w-7 h-7" />
               </div>
-              <div className="space-y-3">
-                <span className="inline-block px-3 py-1 rounded-lg bg-cyan-950 text-cyan-300 text-[11px] font-bold border border-cyan-500/25">
+              <div className="space-y-3 flex-1 flex flex-col">
+                <span className="benefit-card__badge inline-block self-start px-3 py-1 rounded-lg text-[11px] font-bold">
                   کودکان و نوجوانان
                 </span>
-                <h3 className="font-bold text-lg text-white group-hover:text-cyan-300 transition-colors">
+                <h3 className="benefit-card__title font-bold text-lg">
                   آموزش بدون ترس و روان‌شناختی
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed text-justify">
+                <p className="benefit-card__desc text-xs sm:text-sm leading-relaxed text-justify flex-1">
                   شروع از بازی‌های شاداب در آب کم‌عمق تا کودک احساس امنیت کامل کند و با انگیزه و علاقه واقعی مراحل یادگیری شنا را پشت سر بگذارد.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-cyan-500/15 flex items-center justify-between text-xs font-semibold text-teal-300">
+              <div className="benefit-card__footer mt-6 pt-4 flex items-center justify-between text-xs font-semibold">
                 <span>محیط شاداب و امن برای کودک</span>
                 <Check className="w-4 h-4" />
               </div>
             </div>
 
-            {/* Benefit Card 2 */}
-            <div className="group relative bg-slate-900/85 backdrop-blur-md card-hydrofoil-alt pt-12 pb-7 px-7 border-2 border-purple-500/20 hover:border-purple-400/60 shadow-lg hover:shadow-purple-500/10 transition-all duration-300 flex flex-col justify-between">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-950 to-indigo-900 text-purple-300 flex items-center justify-center border border-purple-400/30 mb-5 shadow-sm group-hover:scale-110 transition-transform">
+            {/* Benefit Card 2 - بنفش ملو پودری */}
+            <div className="benefit-card benefit-card--purple card-hydrofoil group relative flex flex-col justify-between h-full">
+              <div className="benefit-card__icon w-14 h-14 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
                 <HydroTherapySpineIcon className="w-7 h-7" />
               </div>
-              <div className="space-y-3">
-                <span className="inline-block px-3 py-1 rounded-lg bg-purple-950 text-purple-300 text-[11px] font-bold border border-purple-500/25">
+              <div className="space-y-3 flex-1 flex flex-col">
+                <span className="benefit-card__badge inline-block self-start px-3 py-1 rounded-lg text-[11px] font-bold">
                   اصلاح ساختار قامت و تنفس
                 </span>
-                <h3 className="font-bold text-lg text-white group-hover:text-purple-300 transition-colors">
+                <h3 className="benefit-card__title font-bold text-lg">
                   تقویت ستون فقرات و سلامت جسمانی
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed text-justify">
+                <p className="benefit-card__desc text-xs sm:text-sm leading-relaxed text-justify flex-1">
                   شنا بهترین ورزش برای جلوگیری از افتادگی شانه و گودی کمر در کودکان محصل است و در بزرگسالان به بهبود تنفس و کاهش دردهای عضلانی کمک می‌کند.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-purple-500/15 flex items-center justify-between text-xs font-semibold text-purple-300">
+              <div className="benefit-card__footer mt-6 pt-4 flex items-center justify-between text-xs font-semibold">
                 <span>بهبود استقامت و سلامت بدنی</span>
                 <Check className="w-4 h-4" />
               </div>
             </div>
 
-            {/* Benefit Card 3 */}
-            <div className="group relative bg-slate-900/85 backdrop-blur-md card-hydrofoil pt-12 pb-7 px-7 border-2 border-teal-500/20 hover:border-teal-400/60 shadow-lg hover:shadow-teal-500/10 transition-all duration-300 flex flex-col justify-between">
-              <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-teal-950 to-cyan-900 text-teal-300 flex items-center justify-center border border-teal-400/30 mb-5 shadow-sm group-hover:scale-110 transition-transform">
+            {/* Benefit Card 3 - سبز پودری */}
+            <div className="benefit-card benefit-card--green card-hydrofoil group relative flex flex-col justify-between h-full">
+              <div className="benefit-card__icon w-14 h-14 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
                 <RescueBuoyRingIcon className="w-7 h-7" />
               </div>
-              <div className="space-y-3">
-                <span className="inline-block px-3 py-1 rounded-lg bg-teal-950 text-teal-300 text-[11px] font-bold border border-teal-500/25">
+              <div className="space-y-3 flex-1 flex flex-col">
+                <span className="benefit-card__badge inline-block self-start px-3 py-1 rounded-lg text-[11px] font-bold">
                   نظارت و ایمنی کامل
                 </span>
-                <h3 className="font-bold text-lg text-white group-hover:text-teal-300 transition-colors">
+                <h3 className="benefit-card__title font-bold text-lg">
                   مربیان رسمی و کلاس‌های کم‌جمعیت
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-300 leading-relaxed text-justify">
+                <p className="benefit-card__desc text-xs sm:text-sm leading-relaxed text-justify flex-1">
                   آموزش توسط مربیان دارای کارت رسمی فدراسیون در گروه‌های خلوت و با حضور پیوسته نجات‌غریق برگزار می‌شود تا پیشرفت هر شناگر به طور اختصاصی پایش شود.
                 </p>
               </div>
-              <div className="mt-6 pt-4 border-t border-teal-500/15 flex items-center justify-between text-xs font-semibold text-teal-300">
+              <div className="benefit-card__footer mt-6 pt-4 flex items-center justify-between text-xs font-semibold">
                 <span>توجه اختصاصی به تک‌تک شناگران</span>
                 <Check className="w-4 h-4" />
               </div>

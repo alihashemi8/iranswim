@@ -75,12 +75,26 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
     { label: 'اخبار و رویدادها', href: '/#news', icon: Newspaper },
   ];
 
+  const isPublicPage = !isFullWidth && (location.pathname === '/' || location.pathname === '/login');
+
   return (
     <>
-      <header className={`sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs transition-colors w-full overflow-x-clip ${!isFullWidth && (location.pathname === '/' || location.pathname === '/login') ? 'pool-header' : ''}`}>
-        <div className={`${isFullWidth ? 'w-full px-3 sm:px-6' : 'max-w-7xl mx-auto px-3 sm:px-6 lg:px-8'} h-16 sm:h-[68px] flex items-center justify-between gap-2`}>
+      <header
+        className={`sticky top-0 z-40 transition-colors w-full overflow-x-clip ${
+          isPublicPage
+            ? 'pool-header bg-white/95 backdrop-blur-md border-b border-sky-100/90 shadow-[0_2px_16px_rgba(8,59,92,0.06)]'
+            : 'bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs'
+        }`}
+      >
+        <div
+          className={`${
+            isFullWidth
+              ? 'w-full px-3 sm:px-6'
+              : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'
+          } h-16 sm:h-[68px] flex items-center justify-between gap-3 sm:gap-4 flex-nowrap`}
+        >
           {/* Brand & Main Navigation (Right side in RTL) */}
-          <div className="flex items-center gap-2 sm:gap-4 md:gap-8 min-w-0 shrink">
+          <div className="flex items-center gap-2.5 sm:gap-4 lg:gap-6 xl:gap-8 shrink-0 flex-nowrap min-w-0">
             {/* Dashboard Sidebar Hamburger Button */}
             {isFullWidth && onMenuClick && (
               <button
@@ -93,27 +107,33 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               </button>
             )}
 
-            {/* Public Mobile Navigation Hamburger Button */}
+            {/* Public Mobile & Tablet Navigation Hamburger Button */}
             {!isFullWidth && (
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(true)}
-                className="p-1.5 sm:p-2 -mr-1 md:hidden text-slate-700 dark:text-slate-200 hover:text-[#087EA4] hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors shrink-0 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40"
-                aria-label="باز کردن منوی سایدبار"
+                className="p-2 -mr-1.5 lg:hidden text-[#083B5C] hover:text-[#087EA4] hover:bg-sky-50 rounded-xl transition-colors shrink-0 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#087EA4]/40"
+                aria-label="باز کردن منوی ناوبری"
                 aria-expanded={mobileMenuOpen}
               >
-                <Menu className="w-5 h-5" />
+                <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             )}
 
-            {/* Brand Logo */}
-            <Link to="/" className="flex items-center gap-2 sm:gap-3 text-[#083B5C] dark:text-sky-400 hover:opacity-90 transition-opacity min-w-0 shrink">
-              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-[#083B5C] via-[#087EA4] to-[#16B8B0] text-white flex items-center justify-center shadow-xs shrink-0">
+            {/* Brand Logo - shrink-0 & whitespace-nowrap prevent truncation on tablet and mobile */}
+            <Link
+              to="/"
+              className="flex items-center gap-2.5 sm:gap-3 text-[#083B5C] hover:opacity-95 transition-opacity shrink-0 select-none"
+            >
+              <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-[#083B5C] via-[#087EA4] to-[#16B8B0] text-white flex items-center justify-center shadow-xs shrink-0 ring-2 ring-cyan-500/20">
                 <Waves className="w-5 h-5" />
               </div>
-              <div className="flex flex-col min-w-0">
-                <span className="font-extrabold text-sm sm:text-lg text-[#083B5C] dark:text-white tracking-tight leading-tight truncate">
+              <div className="flex flex-col shrink-0 text-right">
+                <span className="font-extrabold text-sm sm:text-base lg:text-lg text-[#083B5C] tracking-tight leading-tight whitespace-nowrap">
                   مدرسه شنای ایران
+                </span>
+                <span className="text-[10px] sm:text-[11px] text-[#087EA4] font-semibold tracking-normal hidden sm:inline whitespace-nowrap">
+                  آموزش تخصصی شنا در قزوین
                 </span>
               </div>
             </Link>
@@ -131,79 +151,76 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               </div>
             )}
 
-            {/* Public Nav Links (ONLY rendered on marketing pages, NOT in dashboard) */}
+            {/* Public Nav Links (Rendered on desktop lg and above, never wrapping into 2 lines on tablet) */}
             {!isFullWidth && (
-              <nav className="hidden md:flex items-center gap-6 lg:gap-7 text-sm font-medium text-[#163247] dark:text-slate-200" aria-label="ناوبری اصلی">
-                <Link
-                  to="/"
-                  className="hover:text-[#087EA4] dark:hover:text-cyan-400 transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:right-0 after:w-0 hover:after:w-full after:h-0.5 after:bg-[#087EA4] after:transition-all"
-                >
-                  صفحه اصلی
-                </Link>
-                <a
-                  href="/#about"
-                  className="hover:text-[#087EA4] dark:hover:text-cyan-400 transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:right-0 after:w-0 hover:after:w-full after:h-0.5 after:bg-[#087EA4] after:transition-all"
-                >
-                  اصول و مزایا
-                </a>
-                <a
-                  href="/#courses"
-                  className="hover:text-[#087EA4] dark:hover:text-cyan-400 transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:right-0 after:w-0 hover:after:w-full after:h-0.5 after:bg-[#087EA4] after:transition-all"
-                >
-                  دوره‌ها و کلاس‌ها
-                </a>
-                <a
-                  href="/#coaches"
-                  className="hover:text-[#087EA4] dark:hover:text-cyan-400 transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:right-0 after:w-0 hover:after:w-full after:h-0.5 after:bg-[#087EA4] after:transition-all"
-                >
-                  کادر مربیان
-                </a>
-                <a
-                  href="/#facilities"
-                  className="hover:text-[#087EA4] dark:hover:text-cyan-400 transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:right-0 after:w-0 hover:after:w-full after:h-0.5 after:bg-[#087EA4] after:transition-all"
-                >
-                  امکانات استخر
-                </a>
-                <a
-                  href="/#news"
-                  className="hover:text-[#087EA4] dark:hover:text-cyan-400 transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:right-0 after:w-0 hover:after:w-full after:h-0.5 after:bg-[#087EA4] after:transition-all"
-                >
-                  اخبار و رویدادها
-                </a>
+              <nav
+                className="hidden lg:flex items-center gap-1.5 xl:gap-5 text-[13px] xl:text-sm font-semibold text-[#163247] whitespace-nowrap shrink-0"
+                aria-label="ناوبری اصلی"
+              >
+                {publicNavLinks.map((item) => {
+                  const isCurrent =
+                    location.pathname === '/' &&
+                    location.hash === item.href.replace('/', '');
+                  return (
+                    <a
+                      key={item.href}
+                      href={item.href}
+                      className={`px-2.5 xl:px-3 py-1.5 rounded-xl transition-all duration-150 whitespace-nowrap shrink-0 ${
+                        isCurrent
+                          ? 'text-[#087EA4] bg-sky-50 font-bold'
+                          : 'text-[#163247] hover:text-[#087EA4] hover:bg-sky-50/80'
+                      }`}
+                    >
+                      {item.label}
+                    </a>
+                  );
+                })}
               </nav>
             )}
           </div>
 
           {/* User Account Controls (Left side in RTL) */}
-          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
-            {/* On Public Website (!isFullWidth): Show Profile (if logged in) or "ورود / ثبت نام" (if not) */}
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-nowrap">
             {!isFullWidth && (
               <>
                 {/* Divider */}
-                <div className="h-5 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block" />
+                <div className="h-5 w-px bg-slate-200 hidden sm:block shrink-0" />
 
                 {user ? (
                   <Link
                     to={getDashboardPath(user.role)}
-                    className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/80 transition-colors cursor-pointer group"
+                    className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl hover:bg-sky-50/80 border border-slate-200/90 transition-colors cursor-pointer group shrink-0"
                     title="ورود به داشبورد"
                   >
-                    <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-bold text-xs shadow-2xs shrink-0`}>
+                    <div
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr ${
+                        roleGradients[user.role] || 'from-sky-600 to-cyan-500'
+                      } text-white flex items-center justify-center font-bold text-xs shadow-2xs shrink-0`}
+                    >
                       {user.full_name ? user.full_name.trim().charAt(0) : 'U'}
                     </div>
-                    <div className="hidden sm:flex flex-col text-right leading-tight max-w-[130px] md:max-w-[160px]">
-                      <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-[#087EA4] dark:group-hover:text-sky-400 transition-colors truncate">
+                    <div className="hidden sm:flex flex-col text-right leading-tight max-w-[130px] md:max-w-[160px] shrink-0">
+                      <span className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-[#087EA4] transition-colors truncate">
                         {user.full_name || 'داشبورد کاربر'}
                       </span>
-                      <span className="text-xs text-[#647789] dark:text-slate-400 truncate">
+                      <span className="text-xs text-[#647789] truncate">
                         {roleTitles[user.role] || 'ورود به داشبورد'}
                       </span>
                     </div>
                   </Link>
+                ) : location.pathname === '/login' ? (
+                  <Link
+                    to="/"
+                    className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-[#083B5C] bg-sky-50 hover:bg-sky-100 hover:text-[#087EA4] border border-sky-200/90 rounded-xl shadow-2xs transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
+                  >
+                    <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 rotate-180" />
+                    <span className="hidden sm:inline">بازگشت به سایت</span>
+                    <span className="inline sm:hidden">صفحه اصلی</span>
+                  </Link>
                 ) : (
                   <Link
                     to="/login"
-                    className="inline-flex items-center gap-1 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] rounded-xl shadow-xs hover:shadow-md transition-all duration-200 cursor-pointer active:scale-95 shrink-0"
+                    className="inline-flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] rounded-xl shadow-xs hover:shadow-md hover:shadow-cyan-500/20 transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                   >
                     <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
                     <span className="hidden sm:inline">ورود / ثبت‌نام</span>
@@ -216,36 +233,36 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
         </div>
       </header>
 
-      {/* Public Mobile Responsive Sidebar Drawer (Opens from Right) */}
+      {/* Public Mobile & Tablet Responsive Sidebar Drawer (Opens from Right) */}
       {!isFullWidth && mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden flex justify-start" dir="rtl">
+        <div className="fixed inset-0 z-50 lg:hidden flex justify-start" dir="rtl">
           {/* Backdrop Overlay */}
           <div
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs animate-fade-in cursor-pointer"
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs animate-fade-in cursor-pointer transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
             aria-hidden="true"
           />
 
           {/* Sidebar Drawer Container (Sliding in from Right) */}
           <aside
-            className="relative w-72 sm:w-80 max-w-[85vw] bg-white dark:bg-slate-900 h-full flex flex-col justify-between shadow-2xl z-10 overflow-hidden animate-slide-in-right border-l border-slate-200/80 dark:border-slate-800"
+            className="relative w-72 sm:w-80 max-w-[85vw] bg-white h-full flex flex-col justify-between shadow-2xl z-10 overflow-hidden animate-slide-in-right border-l border-slate-200/80"
             aria-label="منوی کناری ناوبری"
           >
             {/* Header: Logo, Title & Close Button */}
-            <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-slate-50/50 dark:bg-slate-900/50">
+            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-sky-50/50">
               <Link
                 to="/"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 text-[#083B5C] dark:text-sky-400 min-w-0"
+                className="flex items-center gap-2.5 text-[#083B5C] min-w-0"
               >
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#083B5C] via-[#087EA4] to-[#16B8B0] text-white flex items-center justify-center shadow-xs shrink-0">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-[#083B5C] via-[#087EA4] to-[#16B8B0] text-white flex items-center justify-center shadow-xs shrink-0 ring-2 ring-cyan-500/20">
                   <Waves className="w-5 h-5" />
                 </div>
                 <div className="flex flex-col min-w-0">
-                  <span className="font-extrabold text-sm text-[#083B5C] dark:text-white truncate">
+                  <span className="font-extrabold text-sm text-[#083B5C] truncate">
                     مدرسه شنای ایران
                   </span>
-                  <span className="text-[10px] text-[#647789] dark:text-slate-400 font-medium truncate">
+                  <span className="text-[10px] text-[#087EA4] font-medium truncate">
                     آموزش تخصصی شنا در قزوین
                   </span>
                 </div>
@@ -254,7 +271,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
                 aria-label="بستن منوی سایدبار"
                 title="بستن منو"
               >
@@ -265,7 +282,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             {/* Scrollable Nav Area */}
             <div className="flex-1 overflow-y-auto p-4 space-y-4">
               <div>
-                <span className="text-[11px] font-bold text-[#647789] dark:text-slate-400 px-2 block mb-2">
+                <span className="text-[11px] font-bold text-[#647789] px-2 block mb-2">
                   فهرست و دسترسی سریع
                 </span>
                 <nav className="flex flex-col space-y-1">
@@ -276,15 +293,15 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                         key={item.href}
                         href={item.href}
                         onClick={() => setMobileMenuOpen(false)}
-                        className="flex items-center justify-between p-3 rounded-xl hover:bg-sky-50/70 dark:hover:bg-slate-800/80 text-[#163247] dark:text-slate-200 text-sm font-semibold transition-colors group"
+                        className="flex items-center justify-between p-3 rounded-xl hover:bg-sky-50 text-[#163247] text-sm font-semibold transition-colors group"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-lg bg-[#EAF5FC] dark:bg-slate-800 text-[#087EA4] dark:text-cyan-400 flex items-center justify-center group-hover:bg-[#087EA4] group-hover:text-white transition-colors shrink-0">
+                          <div className="w-8 h-8 rounded-lg bg-[#EAF5FC] text-[#087EA4] flex items-center justify-center group-hover:bg-[#087EA4] group-hover:text-white transition-colors shrink-0">
                             <Icon className="w-4 h-4" />
                           </div>
                           <span className="truncate">{item.label}</span>
                         </div>
-                        <ChevronLeft className="w-4 h-4 text-slate-400 group-hover:text-[#087EA4] dark:group-hover:text-cyan-400 group-hover:-translate-x-0.5 transition-all shrink-0" />
+                        <ChevronLeft className="w-4 h-4 text-slate-400 group-hover:text-[#087EA4] group-hover:-translate-x-0.5 transition-all shrink-0" />
                       </a>
                     );
                   })}
@@ -292,12 +309,12 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               </div>
 
               {/* Quick Contact & Info Card */}
-              <div className="p-3.5 bg-[#F8FAFC] dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/60 text-xs space-y-2">
-                <div className="flex items-center gap-2 text-[#083B5C] dark:text-sky-300 font-bold">
-                  <PhoneCall className="w-4 h-4 text-[#087EA4] dark:text-cyan-400 shrink-0" />
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 text-xs space-y-2">
+                <div className="flex items-center gap-2 text-[#083B5C] font-bold">
+                  <PhoneCall className="w-4 h-4 text-[#087EA4] shrink-0" />
                   <span>پشتیبانی و پذیرش: ۰۲۸-۳۳۶۵۰۰۰۰</span>
                 </div>
-                <p className="text-[11px] text-[#647789] dark:text-slate-400 leading-relaxed">
+                <p className="text-[11px] text-[#647789] leading-relaxed">
                   مدرسه شنای ایران • استان قزوین
                   <br />
                   برگزاری کلاس‌ها در استخرهای منتخب قزوین
@@ -306,29 +323,44 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             </div>
 
             {/* Bottom Actions Footer */}
-            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
+            <div className="p-4 border-t border-slate-100 bg-white shrink-0">
               {!user ? (
-                <Link
-                  to="/login"
-                  onClick={() => setMobileMenuOpen(false)}
-                  className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] text-white font-bold text-sm rounded-xl shadow-xs transition-all"
-                >
-                  <LogIn className="w-4 h-4 shrink-0" />
-                  <span>ورود / ثبت‌نام اعضا و شناگران</span>
-                </Link>
+                location.pathname === '/login' ? (
+                  <Link
+                    to="/"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center gap-2 py-3 bg-sky-50 hover:bg-sky-100 text-[#083B5C] border border-sky-200 font-bold text-sm rounded-xl shadow-2xs transition-all"
+                  >
+                    <ChevronLeft className="w-4 h-4 shrink-0 rotate-180" />
+                    <span>بازگشت به صفحه اصلی</span>
+                  </Link>
+                ) : (
+                  <Link
+                    to="/login"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] text-white font-bold text-sm rounded-xl shadow-xs transition-all"
+                  >
+                    <LogIn className="w-4 h-4 shrink-0" />
+                    <span>ورود / ثبت‌نام اعضا و شناگران</span>
+                  </Link>
+                )
               ) : (
                 <Link
                   to={getDashboardPath(user.role)}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full flex items-center justify-between p-3 bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 text-sky-800 dark:text-sky-200 rounded-xl font-bold text-sm hover:bg-sky-100 dark:hover:bg-sky-900/60 transition-colors"
+                  className="w-full flex items-center justify-between p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-xl font-bold text-sm hover:bg-sky-100 transition-colors"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <div className={`w-8 h-8 rounded-lg bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center text-xs font-bold shrink-0`}>
+                    <div
+                      className={`w-8 h-8 rounded-lg bg-gradient-to-tr ${
+                        roleGradients[user.role] || 'from-sky-600 to-cyan-500'
+                      } text-white flex items-center justify-center text-xs font-bold shrink-0`}
+                    >
                       {user.full_name ? user.full_name.trim().charAt(0) : 'U'}
                     </div>
                     <div className="flex flex-col text-right min-w-0">
                       <span className="truncate">{user.full_name || 'کاربر'}</span>
-                      <span className="text-[11px] text-sky-600 dark:text-sky-400 font-normal truncate">
+                      <span className="text-[11px] text-sky-600 font-normal truncate">
                         {roleTitles[user.role] || 'پیشخوان کاربری'}
                       </span>
                     </div>

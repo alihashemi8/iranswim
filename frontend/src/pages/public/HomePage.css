@@ -87,20 +87,29 @@
 }
 
 .pool-header {
-  color: #173b4b;
-  background: rgb(249 253 251 / 88%) !important;
-  border-color: rgb(255 255 255 / 86%) !important;
-  box-shadow: 0 8px 28px rgb(29 79 89 / 14%) !important;
-  backdrop-filter: blur(10px);
+  color: #083b5c;
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-bottom: 1px solid rgba(8, 126, 164, 0.14) !important;
+  box-shadow: 0 4px 20px -2px rgba(8, 59, 92, 0.07), 0 2px 6px -1px rgba(8, 59, 92, 0.04) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
 }
 
 .pool-header > div:first-child :is(nav, nav a, a, button) {
-  color: #173b4b;
+  color: #163247;
+}
+
+.pool-header > div:first-child > div > a > div > span:first-child {
+  color: #083b5c !important;
+}
+
+.pool-header > div:first-child > div > a > div > span:nth-child(2) {
+  color: #087ea4 !important;
 }
 
 .pool-header nav a:hover,
 .pool-header > div:first-child a:hover {
-  color: #087e91;
+  color: #087ea4;
 }
 
 .landing-section {
@@ -127,47 +136,219 @@
 #about > div:last-child {
   max-width: 80rem;
   margin-inline: auto;
-  gap: 1rem;
+  gap: 1.5rem;
 }
 
-#about > div:last-child > div {
-  min-height: 17rem;
-  padding: 2rem;
-  border: 0;
-  border-top: 2px solid #5eb9b5;
-  border-radius: 0 1.75rem 0.5rem 1.75rem;
-  background: rgb(247 252 249 / 94%);
-  box-shadow: 0 22px 44px rgb(2 24 39 / 26%), inset 0 1px rgb(255 255 255 / 90%);
-  backdrop-filter: none;
-  transition: transform 220ms ease, box-shadow 220ms ease;
+/* =========================================================================
+   POWDERY BENEFIT CARDS (کارت‌های با بافت و رنگ پودری مخملی)
+   ========================================================================= */
+.benefit-card {
+  position: relative;
+  isolation: isolate;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 2.25rem 2rem 1.75rem;
+  border-radius: 0 1.85rem 0.65rem 1.85rem;
+  overflow: hidden;
+  transition: transform 250ms ease, box-shadow 250ms ease, border-color 250ms ease;
 }
 
-#about > div:last-child > div:hover {
-  transform: translateY(-7px);
-  box-shadow: 0 30px 55px rgb(2 24 39 / 34%), inset 0 1px rgb(255 255 255 / 95%);
+/* Powder micro-grain texture overlay (بافت دانه ریز پودری مات) */
+.benefit-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='powderNoise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.055 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23powderNoise)'/%3E%3C/svg%3E");
+  mix-blend-mode: multiply;
+  z-index: 1;
 }
 
-#about > div:last-child > div:nth-child(2) {
-  margin-top: 2rem;
-  border-color: #df9b66;
+/* Powdery diffuse chalk bloom (هاله نرم نور پودری) */
+.benefit-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(110% 85% at 85% 15%, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0.2) 48%, transparent 78%);
+  mix-blend-mode: overlay;
+  z-index: 2;
 }
 
-#about > div:last-child > div:nth-child(3) {
-  border-color: #8ab59d;
+.benefit-card > * {
+  position: relative;
+  z-index: 3;
 }
 
-#about > div:last-child > div > div:first-child {
-  color: #087e91;
-  background: #e3f4f0;
-  border-color: #c5e8df;
-  box-shadow: none;
+.benefit-card:hover {
+  transform: translateY(-8px);
 }
 
-#about :is(h2, h3) {
+/* -------------------------------------------------------------------------
+   ۱. فیروزه‌ای پودری (Powder Turquoise / Aqua)
+   ------------------------------------------------------------------------- */
+.benefit-card--turquoise {
+  background:
+    radial-gradient(130% 90% at 85% 15%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.15) 50%, transparent 80%),
+    linear-gradient(150deg, #e4f8f6 0%, #caeff0 45%, #dcf7f5 100%);
+  border: 1.5px solid #7de0d6;
+  border-top: 3.5px solid #20b8a8;
+  box-shadow:
+    0 20px 44px -12px rgba(13, 148, 136, 0.22),
+    inset 0 2px 4px rgba(255, 255, 255, 0.95),
+    inset 0 -5px 14px rgba(15, 118, 110, 0.09),
+    inset 0 0 28px rgba(255, 255, 255, 0.55);
+}
+
+.benefit-card--turquoise:hover {
+  border-color: #4ed3c5;
+  border-top-color: #14b8a6;
+  box-shadow:
+    0 28px 56px -12px rgba(13, 148, 136, 0.32),
+    inset 0 2px 6px #ffffff,
+    inset 0 -5px 16px rgba(15, 118, 110, 0.12),
+    inset 0 0 36px rgba(255, 255, 255, 0.7);
+}
+
+.benefit-card--turquoise .benefit-card__icon {
+  background: #bbf0eb;
+  color: #0b6863;
+  border: 1.5px solid #6edcd1;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.16), inset 0 1px 2px #ffffff;
+}
+
+.benefit-card--turquoise .benefit-card__badge {
+  background: #baf0ea;
+  color: #06544f;
+  border: 1px solid #6cd9cc;
+}
+
+.benefit-card--turquoise .benefit-card__title {
+  color: #093734;
+}
+
+.benefit-card--turquoise .benefit-card__desc {
+  color: #215450;
+}
+
+.benefit-card--turquoise .benefit-card__footer {
+  border-top: 1px solid rgba(13, 148, 136, 0.25);
+  color: #0a6f68;
+}
+
+/* -------------------------------------------------------------------------
+   ۲. بنفش ملو پودری (Powder Mellow Purple / Lilac)
+   ------------------------------------------------------------------------- */
+.benefit-card--purple {
+  background:
+    radial-gradient(130% 90% at 85% 15%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.15) 50%, transparent 80%),
+    linear-gradient(150deg, #f7efff 0%, #eeddfc 45%, #f4e8fd 100%);
+  border: 1.5px solid #cfaaee;
+  border-top: 3.5px solid #9c5ff0;
+  box-shadow:
+    0 20px 44px -12px rgba(126, 34, 206, 0.2),
+    inset 0 2px 4px rgba(255, 255, 255, 0.95),
+    inset 0 -5px 14px rgba(126, 34, 206, 0.08),
+    inset 0 0 28px rgba(255, 255, 255, 0.55);
+}
+
+.benefit-card--purple:hover {
+  border-color: #be8bf2;
+  border-top-color: #8b5cf6;
+  box-shadow:
+    0 28px 56px -12px rgba(126, 34, 206, 0.3),
+    inset 0 2px 6px #ffffff,
+    inset 0 -5px 16px rgba(126, 34, 206, 0.11),
+    inset 0 0 36px rgba(255, 255, 255, 0.7);
+}
+
+.benefit-card--purple .benefit-card__icon {
+  background: #e6d3fa;
+  color: #6d28d9;
+  border: 1.5px solid #caa4f7;
+  box-shadow: 0 4px 14px rgba(126, 34, 206, 0.16), inset 0 1px 2px #ffffff;
+}
+
+.benefit-card--purple .benefit-card__badge {
+  background: #e4d0f9;
+  color: #551989;
+  border: 1px solid #c499f5;
+}
+
+.benefit-card--purple .benefit-card__title {
+  color: #270f44;
+}
+
+.benefit-card--purple .benefit-card__desc {
+  color: #4a2d6d;
+}
+
+.benefit-card--purple .benefit-card__footer {
+  border-top: 1px solid rgba(126, 34, 206, 0.22);
+  color: #6d28d9;
+}
+
+/* -------------------------------------------------------------------------
+   ۳. سبز پودری (Powder Sage Green / Mint)
+   ------------------------------------------------------------------------- */
+.benefit-card--green {
+  background:
+    radial-gradient(130% 90% at 85% 15%, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.15) 50%, transparent 80%),
+    linear-gradient(150deg, #ebf8f0 0%, #d6f3e2 45%, #e4f6ec 100%);
+  border: 1.5px solid #94ddae;
+  border-top: 3.5px solid #36b767;
+  box-shadow:
+    0 20px 44px -12px rgba(22, 101, 52, 0.2),
+    inset 0 2px 4px rgba(255, 255, 255, 0.95),
+    inset 0 -5px 14px rgba(22, 101, 52, 0.08),
+    inset 0 0 28px rgba(255, 255, 255, 0.55);
+}
+
+.benefit-card--green:hover {
+  border-color: #6ed392;
+  border-top-color: #22c55e;
+  box-shadow:
+    0 28px 56px -12px rgba(22, 101, 52, 0.3),
+    inset 0 2px 6px #ffffff,
+    inset 0 -5px 16px rgba(22, 101, 52, 0.11),
+    inset 0 0 36px rgba(255, 255, 255, 0.7);
+}
+
+.benefit-card--green .benefit-card__icon {
+  background: #c8f0d7;
+  color: #147a3a;
+  border: 1.5px solid #84dba2;
+  box-shadow: 0 4px 14px rgba(22, 101, 52, 0.16), inset 0 1px 2px #ffffff;
+}
+
+.benefit-card--green .benefit-card__badge {
+  background: #c5edd3;
+  color: #135e2d;
+  border: 1px solid #7cd69b;
+}
+
+.benefit-card--green .benefit-card__title {
+  color: #0e341b;
+}
+
+.benefit-card--green .benefit-card__desc {
+  color: #235133;
+}
+
+.benefit-card--green .benefit-card__footer {
+  border-top: 1px solid rgba(22, 101, 52, 0.22);
+  color: #15803d;
+}
+
+#about > div:first-child h2 {
   color: var(--pool-ink);
 }
 
-#about p {
+#about > div:first-child p {
   color: #4c626d;
 }
 
@@ -800,31 +981,6 @@ html.dark .auth-page > .auth-panel {
 .landing-hero__panel .bg-teal-500 {
   color: #072a31;
   background: #8adcca;
-}
-
-.pool-header {
-  color: #e5f5f1;
-  background: rgb(3 23 34 / 88%) !important;
-  border-color: rgb(145 211 203 / 18%) !important;
-  box-shadow: 0 8px 28px rgb(0 13 22 / 22%) !important;
-  backdrop-filter: blur(10px);
-}
-
-.pool-header > div:first-child :is(nav, nav a, a, button) {
-  color: #e2f3ef;
-}
-
-.pool-header > div:first-child > div > a > div > span:first-child {
-  color: #e6f4f0;
-}
-
-.pool-header > div:first-child > div > a > div > span:nth-child(2) {
-  color: #b5d0cc;
-}
-
-.pool-header nav a:hover,
-.pool-header > div:first-child a:hover {
-  color: #91e3d0;
 }
 
 /* Section bands use different water tones and dissolve at their edges. */
