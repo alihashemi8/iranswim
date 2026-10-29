@@ -89,10 +89,10 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
   return (
     <>
       <header
-        className={`sticky top-0 z-40 transition-all duration-300 w-full overflow-x-clip ${
+        className={`sticky top-0 z-40 transition-all duration-300 w-full ${
           isPublicPage
             ? isScrolled
-              ? 'pool-header bg-[#f0f9ff]/92 backdrop-blur-md shadow-[0_4px_24px_rgba(8,59,92,0.08)] border-b border-cyan-200/50'
+              ? 'pool-header bg-[#f0f9ff]/95 backdrop-blur-md border-b-0 shadow-[0_4px_20px_rgba(8,59,92,0.06)]'
               : 'pool-header bg-[#f0f9ff] border-b-0 shadow-none'
             : 'bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs'
         }`}
@@ -240,6 +240,44 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             )}
           </div>
         </div>
+
+        {/* Wavy Organic Bottom Rim for Swimming Pool Navbar */}
+        {isPublicPage && (
+          <div
+            className={`absolute top-full left-0 right-0 w-full overflow-hidden leading-none pointer-events-none select-none -mt-px z-20 transition-colors duration-300 ${
+              isScrolled ? 'text-[#f0f9ff]/95' : 'text-[#f0f9ff]'
+            }`}
+            aria-hidden="true"
+          >
+            <svg
+              viewBox="0 0 1440 28"
+              className="w-full h-3 sm:h-4.5 lg:h-5.5 block drop-shadow-[0_4px_6px_rgba(8,59,92,0.06)]"
+              preserveAspectRatio="none"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Layer 1: Subtle translucent secondary ripple */}
+              <path
+                d="M0,0 L0,8 C220,20 440,2 660,12 C880,22 1100,4 1320,14 C1380,16 1410,12 1440,10 L1440,0 Z"
+                fill="currentColor"
+                fillOpacity="0.45"
+              />
+              {/* Layer 2: Main organic navbar bottom wave contour */}
+              <path
+                d="M0,0 L0,14 C260,3 520,22 780,10 C1040,1 1280,18 1440,6 L1440,0 Z"
+                fill="currentColor"
+              />
+              {/* Layer 3: Sunlit pool surface ripple highlight on the wave rim */}
+              <path
+                d="M0,14 C260,3 520,22 780,10 C1040,1 1280,18 1440,6"
+                stroke="rgba(8, 126, 164, 0.32)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                fill="none"
+              />
+            </svg>
+          </div>
+        )}
       </header>
 
       {/* Public Mobile Responsive Sidebar Drawer (Opens from Right on Mobile screens) */}
