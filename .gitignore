@@ -49,6 +49,14 @@ dist-ssr/
 # IDE
 .idea/
 .vscode/
+
+# Temporary / Scratch assets
+*.old.*
+enhanced_*.png
+swimmer_boy_transparent.png
+upscaled_ai_render.jpg
+shoulder_to_inspect.png
+
 *.swp
 *.swo
 

@@ -84,7 +84,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
     { label: 'اخبار و رویدادها', href: '/#news', icon: Newspaper },
   ];
 
-  const isPublicPage = !isFullWidth && (location.pathname === '/' || location.pathname === '/login');
+  const isPublicPage = !isFullWidth && (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register');
 
   return (
     <>
@@ -217,7 +217,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                       </span>
                     </div>
                   </Link>
-                ) : location.pathname === '/login' ? (
+                ) : (location.pathname === '/login' || location.pathname === '/register') ? (
                   <Link
                     to="/"
                     className="inline-flex items-center gap-1 md:gap-1.5 lg:gap-2 px-2.5 md:px-3 lg:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-bold text-[#083B5C] bg-sky-50 hover:bg-sky-100 hover:text-[#087EA4] border border-sky-200/90 rounded-xl shadow-2xs transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
@@ -369,7 +369,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             {/* Bottom Actions Footer */}
             <div className="p-4 border-t border-slate-100 bg-white shrink-0">
               {!user ? (
-                location.pathname === '/login' ? (
+                (location.pathname === '/login' || location.pathname === '/register') ? (
                   <Link
                     to="/"
                     onClick={() => setMobileMenuOpen(false)}

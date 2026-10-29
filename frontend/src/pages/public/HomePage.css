@@ -724,42 +724,7 @@
   border-color: #d9e9e4;
 }
 
-.auth-page > .auth-panel {
-  color: #173b4b;
-  background: rgb(250 254 251 / 96%);
-  border-color: rgb(255 255 255 / 94%);
-  box-shadow: 0 30px 80px rgb(25 72 83 / 24%), inset 0 1px #fff;
-}
 
-.auth-panel__intro {
-  color: #173b4b;
-  background-color: #d8efec !important;
-}
-
-.auth-panel__intro > div:first-child {
-  filter: saturate(.75);
-}
-
-.auth-panel__veil {
-  background: linear-gradient(180deg, rgb(238 250 247 / 46%), rgb(232 247 243 / 78%));
-  backdrop-filter: none;
-}
-
-.auth-panel__intro :is(h1, h2, h3, p, span, a) {
-  color: #173b4b;
-}
-
-.auth-panel__intro .text-cyan-200,
-.auth-panel__intro .text-sky-100 {
-  color: #355965;
-}
-
-.auth-panel__intro [class*="bg-white/10"] {
-  color: #173b4b;
-  background: rgb(255 255 255 / 64%);
-  border-color: rgb(255 255 255 / 85%);
-  backdrop-filter: none;
-}
 
 @media (max-width: 767px) {
   .landing-hero {
@@ -804,31 +769,7 @@
   }
 }
 
-.auth-page {
-  position: relative;
-  min-height: calc(100svh - 5rem);
-  isolation: isolate;
-}
 
-.auth-page > .auth-panel {
-  position: relative;
-  z-index: 20;
-  background: rgb(250 252 250 / 96%);
-  border: 1px solid rgb(225 249 244 / 78%);
-  border-radius: 1.5rem 1.5rem 1.5rem .45rem;
-  box-shadow: 0 30px 80px rgb(1 20 32 / 40%), inset 0 1px #fff;
-}
-
-@media (max-width: 1023px) {
-  .auth-page > .auth-panel {
-    background: rgb(250 252 250 / 97%);
-  }
-}
-
-html.dark .auth-page > .auth-panel {
-  background: rgb(250 254 251 / 96%);
-  border-color: rgb(255 255 255 / 94%);
-}
 
 @media (prefers-reduced-motion: reduce) {
   #about > div:last-child > div,

@@ -9,6 +9,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/common/Button';
 import { useToast } from '../../context/ToastContext';
 import { AquaticPoolBackground } from '../../components/landing/AquaticPoolBackground';
+import './LoginPage.css';
 
 export const toEnglishDigits = (str) => {
   if (!str) return '';
@@ -18,10 +19,21 @@ export const toEnglishDigits = (str) => {
     .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
 };
 
-export const LoginPage = () => {
+export const LoginPage = ({ defaultMode }) => {
   const [searchParams] = useSearchParams();
-  const initialMode = searchParams.get('mode') === 'register' ? 'register' : 'login';
+  const initialMode = defaultMode || (searchParams.get('mode') === 'register' ? 'register' : 'login');
   const [mode, setMode] = useState(initialMode); // 'login' | 'register'
+
+  useEffect(() => {
+    if (defaultMode) {
+      setMode(defaultMode);
+    } else {
+      const qMode = searchParams.get('mode');
+      if (qMode === 'register' || qMode === 'login') {
+        setMode(qMode);
+      }
+    }
+  }, [defaultMode, searchParams]);
 
   // Login Method: 'password' (phone + national_id / password) vs 'otp' (phone + sms code)
   const [loginMethod, setLoginMethod] = useState('password');
@@ -255,15 +267,18 @@ export const LoginPage = () => {
   };
 
   return (
-    <div className="auth-page min-h-[calc(100vh-5rem)] flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div className="auth-page-wrapper">
+      {/* Fullscreen Pool Background from Landing Hero (without the swimmer child) */}
+      <div className="auth-pool-background" aria-hidden="true" />
       <AquaticPoolBackground />
+
       {/* Main Container Card */}
-      <div className="auth-panel w-full max-w-5xl bg-white dark:bg-slate-900 rounded-[2.25rem] border border-slate-200/80 dark:border-slate-800 shadow-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 transition-all">
+      <div className="auth-panel grid grid-cols-1 lg:grid-cols-12 transition-all">
         
         {/* ============================================================== */}
         {/* RIGHT COLUMN (DESKTOP HERO / BRANDING PANEL)                   */}
         {/* ============================================================== */}
-        <div className="auth-panel__intro hidden lg:flex lg:col-span-5 relative flex-col justify-between p-10 text-white overflow-hidden bg-slate-950">
+        <div className="auth-panel__intro hidden lg:flex lg:col-span-5 relative flex-col justify-between p-10 text-white overflow-hidden">
           {/* Background swimming imagery with rich gradient overlay */}
           <div
             className="absolute inset-0 bg-cover bg-center transition-transform duration-700 hover:scale-105"

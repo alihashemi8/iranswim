@@ -1,0 +1,87 @@
+/* =========================================================================
+   AUTHENTICATION PAGE (LOGIN & REGISTER) - POOL BACKGROUND STYLING
+   Authentic Olympic pool backdrop matching the landing page hero,
+   without any character/mascot imagery.
+   ========================================================================= */
+
+.auth-page-wrapper {
+  position: relative;
+  width: 100%;
+  min-height: calc(100vh - 4.25rem);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  isolation: isolate;
+  padding: 1.5rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .auth-page-wrapper {
+    padding: 2.5rem 1.5rem;
+  }
+}
+
+/* Fullscreen Pool Background matching Landing Page Hero */
+.auth-pool-background {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image:
+    linear-gradient(180deg, rgba(2, 21, 31, 0.45) 0%, rgba(4, 33, 44, 0.52) 48%, rgba(13, 90, 107, 0.42) 78%, rgba(2, 21, 31, 0.78) 100%),
+    radial-gradient(ellipse 65% 60% at 75% 25%, rgba(30, 199, 179, 0.22), transparent 75%),
+    url("/images/olympic-pool-aerial.webp");
+  background-position: center 28%;
+  background-size: cover;
+  background-repeat: no-repeat;
+}
+
+html.dark .auth-pool-background {
+  background-image:
+    linear-gradient(180deg, rgba(2, 16, 25, 0.68) 0%, rgba(4, 25, 36, 0.74) 48%, rgba(8, 48, 62, 0.62) 78%, rgba(2, 16, 25, 0.9) 100%),
+    radial-gradient(ellipse 65% 60% at 75% 25%, rgba(20, 160, 145, 0.16), transparent 75%),
+    url("/images/olympic-pool-aerial.webp");
+}
+
+/* Auth Card Glassmorphic Styling */
+.auth-panel {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 64rem;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 2rem;
+  box-shadow: 0 25px 60px -15px rgba(2, 22, 35, 0.45), 0 0 0 1px rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+}
+
+html.dark .auth-panel {
+  background: rgba(15, 23, 42, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: rgba(51, 65, 85, 0.65);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.75), 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* Desktop Intro Side Panel */
+.auth-panel__intro {
+  position: relative;
+  background: linear-gradient(145deg, #072a3b 0%, #0d4659 50%, #051e2b 100%);
+  color: #ffffff;
+}
+
+.auth-panel__intro::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(180deg, rgba(7, 42, 59, 0.65) 0%, rgba(5, 30, 43, 0.82) 100%),
+    url("/images/olympic-pool-aerial.webp");
+  background-size: cover;
+  background-position: center;
+  opacity: 0.35;
+  pointer-events: none;
+}

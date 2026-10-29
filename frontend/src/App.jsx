@@ -96,10 +96,21 @@ export default function App() {
               <Route
                 path="/login"
                 element={
-                  <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col transition-colors">
+                  <div className="min-h-screen text-[#163247] dark:text-slate-100 flex flex-col transition-colors selection:bg-cyan-100 selection:text-cyan-900 w-full overflow-x-clip relative">
                     <Navbar />
-                    <main className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
+                    <main className="flex-1 w-full flex items-center justify-center relative z-10">
                       <LoginPage />
+                    </main>
+                  </div>
+                }
+              />
+              <Route
+                path="/register"
+                element={
+                  <div className="min-h-screen text-[#163247] dark:text-slate-100 flex flex-col transition-colors selection:bg-cyan-100 selection:text-cyan-900 w-full overflow-x-clip relative">
+                    <Navbar />
+                    <main className="flex-1 w-full flex items-center justify-center relative z-10">
+                      <LoginPage defaultMode="register" />
                     </main>
                   </div>
                 }
