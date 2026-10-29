@@ -245,33 +245,33 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
         {isPublicPage && (
           <div
             className={`absolute top-full left-0 right-0 w-full overflow-hidden leading-none pointer-events-none select-none -mt-px z-20 transition-colors duration-300 ${
-              isScrolled ? 'text-[#f0f9ff]/98' : 'text-[#f0f9ff]'
+              isScrolled ? 'text-[#f0f9ff]/95' : 'text-[#f0f9ff]'
             }`}
             aria-hidden="true"
           >
             <svg
-              viewBox="0 0 1440 48"
-              className="w-full h-5 sm:h-7 lg:h-9 block drop-shadow-[0_8px_16px_rgba(8,59,92,0.12)]"
+              viewBox="0 0 1440 28"
+              className="w-full h-3 sm:h-4.5 lg:h-5.5 block drop-shadow-[0_4px_6px_rgba(8,59,92,0.06)]"
               preserveAspectRatio="none"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
             >
-              {/* Layer 1: Noticeable translucent secondary water wave */}
+              {/* Layer 1: Subtle translucent secondary ripple */}
               <path
-                d="M0,0 L0,16 C180,38 360,6 540,24 C720,44 900,10 1080,28 C1260,46 1380,16 1440,22 L1440,0 Z"
+                d="M0,0 L0,8 C220,20 440,2 660,12 C880,22 1100,4 1320,14 C1380,16 1410,12 1440,10 L1440,0 Z"
                 fill="currentColor"
-                fillOpacity="0.4"
+                fillOpacity="0.45"
               />
-              {/* Layer 2: Main organic navbar bottom wave contour (noticeable amplitude) */}
+              {/* Layer 2: Main organic navbar bottom wave contour */}
               <path
-                d="M0,0 L0,26 C160,8 320,42 500,20 C680,4 860,40 1040,16 C1220,38 1360,10 1440,24 L1440,0 Z"
+                d="M0,0 L0,14 C260,3 520,22 780,10 C1040,1 1280,18 1440,6 L1440,0 Z"
                 fill="currentColor"
               />
               {/* Layer 3: Sunlit pool surface ripple highlight on the wave rim */}
               <path
-                d="M0,26 C160,8 320,42 500,20 C680,4 860,40 1040,16 C1220,38 1360,10 1440,24"
-                stroke="rgba(8, 126, 164, 0.45)"
-                strokeWidth="2"
+                d="M0,14 C260,3 520,22 780,10 C1040,1 1280,18 1440,6"
+                stroke="rgba(8, 126, 164, 0.32)"
+                strokeWidth="1.5"
                 strokeLinecap="round"
                 fill="none"
               />
