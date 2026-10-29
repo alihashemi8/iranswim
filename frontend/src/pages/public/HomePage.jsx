@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   ShieldCheck, ArrowLeft, PhoneCall,
   CheckCircle2, Clock, MapPin, Check,
-  Sparkles, Droplet, ArrowDown, Waves, Users2
+  Sparkles, Droplet, ArrowDown, Waves, Users2, Award
 } from 'lucide-react';
 import {
   SwimmerCrawlIcon,
@@ -301,37 +301,37 @@ export const HomePage = () => {
                 </div>
 
                 {/* Key Metric Features */}
-                <div className="pt-6 border-t border-cyan-300/40 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                  <div className="hero-feature-card p-3.5 sm:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] space-y-1.5 hover:shadow-lg transition-all">
-                    <div className="flex items-center gap-1.5 text-slate-900 text-xs sm:text-sm font-black">
-                      <OlympicPoolLaneIcon className="w-4 h-4 text-cyan-600 shrink-0" />
-                      <span>آموزش ۴ شنا</span>
+                <div className="pt-6 border-t border-cyan-300/40 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
+                  <div className="hero-feature-card p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all">
+                    <div className="flex items-center gap-1.5 text-slate-950 text-xs sm:text-[13px] lg:text-sm font-black whitespace-nowrap">
+                      <Waves className="w-4 h-4 text-cyan-600 shrink-0" />
+                      <span className="font-black whitespace-nowrap">آموزش ۴ شنا</span>
                     </div>
-                    <p className="text-[11px] sm:text-xs text-slate-700 font-bold leading-relaxed">کرال سینه، پشت، قورباغه و پروانه</p>
+                    <p className="text-xs sm:text-sm text-slate-800 font-bold leading-snug sm:leading-relaxed">کرال سینه، پشت، قورباغه و پروانه</p>
                   </div>
 
-                  <div className="hero-feature-card p-3.5 sm:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] space-y-1.5 hover:shadow-lg transition-all">
-                    <div className="flex items-center gap-1.5 text-slate-900 text-xs sm:text-sm font-black">
-                      <RescueBuoyRingIcon className="w-4 h-4 text-cyan-600 shrink-0" />
-                      <span>مربیان رسمی</span>
+                  <div className="hero-feature-card p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all">
+                    <div className="flex items-center gap-1.5 text-slate-950 text-xs sm:text-[13px] lg:text-sm font-black whitespace-nowrap">
+                      <Award className="w-4 h-4 text-cyan-600 shrink-0" />
+                      <span className="font-black whitespace-nowrap">مربیان رسمی</span>
                     </div>
-                    <p className="text-[11px] sm:text-xs text-slate-700 font-bold leading-relaxed">دارای کارت مربیگری و نجات‌غریق</p>
+                    <p className="text-xs sm:text-sm text-slate-800 font-bold leading-snug sm:leading-relaxed">دارای کارت مربیگری و نجات‌غریق</p>
                   </div>
 
-                  <div className="hero-feature-card p-3.5 sm:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] space-y-1.5 hover:shadow-lg transition-all">
-                    <div className="flex items-center gap-1.5 text-slate-900 text-xs sm:text-sm font-black">
-                      <Sparkles className="w-4 h-4 text-cyan-600 shrink-0" />
-                      <span>کودکان و بزرگسالان</span>
+                  <div className="hero-feature-card p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all">
+                    <div className="flex items-center gap-1.5 text-slate-950 text-xs sm:text-[13px] lg:text-sm font-black whitespace-nowrap">
+                      <Users2 className="w-4 h-4 text-cyan-600 shrink-0" />
+                      <span className="font-black whitespace-nowrap">کودکان و بزرگسالان</span>
                     </div>
-                    <p className="text-[11px] sm:text-xs text-slate-700 font-bold leading-relaxed">از ۵ سال تا رده‌های بزرگسال</p>
+                    <p className="text-xs sm:text-sm text-slate-800 font-bold leading-snug sm:leading-relaxed">از ۵ سال تا رده‌های بزرگسال</p>
                   </div>
 
-                  <div className="hero-feature-card p-3.5 sm:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] space-y-1.5 hover:shadow-lg transition-all">
-                    <div className="flex items-center gap-1.5 text-slate-900 text-xs sm:text-sm font-black">
+                  <div className="hero-feature-card p-3.5 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all">
+                    <div className="flex items-center gap-1.5 text-slate-950 text-xs sm:text-[13px] lg:text-sm font-black whitespace-nowrap">
                       <MapPin className="w-4 h-4 text-cyan-600 shrink-0" />
-                      <span>استخرهای قزوین</span>
+                      <span className="font-black whitespace-nowrap">استخرهای قزوین</span>
                     </div>
-                    <p className="text-[11px] sm:text-xs text-slate-700 font-bold leading-relaxed">محیط تمیز، بهداشتی و ایمن</p>
+                    <p className="text-xs sm:text-sm text-slate-800 font-bold leading-snug sm:leading-relaxed">محیط تمیز، بهداشتی و ایمن</p>
                   </div>
                 </div>
 
@@ -363,7 +363,7 @@ export const HomePage = () => {
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <Badge variant="info">ویژگی‌های کلاس‌های ما</Badge>
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
-              چرا مدرسه شنای ایران در قزوین؟
+              چرا مدرسه شنای ایران؟
             </h2>
             <p className="text-xs sm:text-sm text-cyan-200/90 leading-relaxed">
               آموزش شنا با صبر و حوصله، متناسب با روحیات نوآموزان و با بالاترین استانداردهای ایمنی

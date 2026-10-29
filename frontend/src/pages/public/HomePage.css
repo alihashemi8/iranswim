@@ -748,12 +748,23 @@ html.dark .auth-page > .auth-panel {
 .landing-experience .landing-hero__panel .hero-feature-card :is(div, span, strong) {
   color: #0f172a !important;
   text-shadow: none !important;
+  font-weight: 900 !important;
+  white-space: nowrap !important;
 }
 
 .landing-experience .landing-hero__panel .hero-feature-card p {
-  color: #334155 !important;
+  color: #1e293b !important;
   text-shadow: none !important;
-  font-weight: 600 !important;
+  font-weight: 700 !important;
+  font-size: 0.85rem !important;
+  line-height: 1.45 !important;
+}
+
+@media (max-width: 640px) {
+  .landing-experience .landing-hero__panel .hero-feature-card p {
+    font-size: 0.775rem !important;
+    line-height: 1.35 !important;
+  }
 }
 
 .landing-hero__panel .bg-cyan-950\/70 {
