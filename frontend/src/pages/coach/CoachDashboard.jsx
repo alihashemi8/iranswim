@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Calendar, Users, ClipboardCheck, Award, Sparkles,
+  Calendar, Users, ClipboardCheck, Award, TrendingUp,
   Clock, MapPin, AlertCircle, CheckCircle2, ArrowLeft,
   ChevronLeft, Bell, BookOpen, MessageSquare, PlusCircle
 } from 'lucide-react';
@@ -343,15 +343,15 @@ export const CoachDashboard = () => {
         </Link>
 
         <Link
-          to="/coach/ai-assistant"
-          className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-purple-300 dark:hover:border-purple-700 transition-all flex items-center gap-4 group"
+          to="/coach/progress"
+          className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-blue-300 dark:hover:border-blue-700 transition-all flex items-center gap-4 group"
         >
-          <div className="p-3 rounded-2xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-6 h-6" />
+          <div className="p-3 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 group-hover:scale-105 transition-transform">
+            <TrendingUp className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-white">دستیار هوشمند مربی</h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">پیشنهاد دریل تکنیکی و گزارش اولیا</p>
+            <h3 className="text-sm font-bold text-slate-900 dark:text-white">ارزیابی و مهارت‌ها</h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">ثبت مهارت و بررسی پیشرفت شناگران</p>
           </div>
         </Link>
 

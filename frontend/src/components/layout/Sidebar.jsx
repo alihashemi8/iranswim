@@ -6,7 +6,7 @@ import {
   ClipboardCheck, Award, Trophy, Newspaper, Bell, BarChart3,
   UserCheck, X, LogOut, ChevronLeft, ChevronRight,
   TrendingUp, MessageSquareQuote, FileText, Settings,
-  Sparkles, MessageSquare
+  MessageSquare
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -171,10 +171,9 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       ],
     },
     {
-      groupTitle: 'آموزش و هوش مصنوعی',
+      groupTitle: 'آموزش و تمرین',
       items: [
         { to: '/coach/workouts', label: 'برنامه‌های تمرین', icon: Calendar },
-        { to: '/coach/ai-assistant', label: 'دستیار هوشمند مربی', icon: Sparkles, badge: 'AI', badgeColor: 'bg-emerald-500 text-white' },
       ],
     },
     {

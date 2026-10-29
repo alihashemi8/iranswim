@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  Calendar, PlusCircle, Sparkles, Clock, Target,
+  Calendar, PlusCircle, Clock, Target,
   CheckCircle2, Copy, FileText, ChevronLeft, ChevronDown,
   Trash2, Edit, Save, X
 } from 'lucide-react';
@@ -30,7 +30,6 @@ export const CoachWorkoutsPage = () => {
   const [notes, setNotes] = useState('');
   const [isTemplate, setIsTemplate] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [aiLoading, setAiLoading] = useState(false);
 
   const toast = useToast();
 
@@ -86,32 +85,6 @@ export const CoachWorkoutsPage = () => {
     setIsTemplate(w.is_template || false);
     setShowEditor(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  const handleGenerateWithAI = async () => {
-    try {
-      setAiLoading(true);
-      const res = await api.post('/coaches/ai/assist/', {
-        mode: 'PRACTICE_PLAN',
-        level_name: levels.find(l => l.id === Number(levelId))?.name || 'متوسط',
-        stroke: 'کرال سینه و استقامت',
-        duration_minutes: duration,
-        target_focus: focusSkills || 'بهبود ریتم تنفس و پای قدرتی',
-      });
-      const generated = res.data.data;
-      if (!title) setTitle(generated.title);
-      if (!focusSkills) setFocusSkills(generated.focus_skills);
-      setWarmup(generated.warmup_section);
-      setMainSet(generated.main_section);
-      setCooldown(generated.cooldown_section);
-      setNotes(generated.notes);
-      toast.success('طرح تمرین پیشنهادی هوش مصنوعی در فرم بارگذاری شد.');
-    } catch (err) {
-      console.error(err);
-      toast.error('خطا در ارتباط با دستیار هوشمند');
-    } finally {
-      setAiLoading(false);
-    }
   };
 
   const handleSave = async (e) => {
@@ -194,15 +167,6 @@ export const CoachWorkoutsPage = () => {
               {editingId ? 'ویرایش برنامه تمرین' : 'طراحی برنامه تمرینی جدید'}
             </h2>
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={handleGenerateWithAI}
-                disabled={aiLoading}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 hover:bg-purple-100 text-xs font-bold border border-purple-200 dark:border-purple-800 transition-all"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-purple-600" />
-                {aiLoading ? 'درحال تولید ایده...' : 'پیشنهاد با هوش مصنوعی'}
-              </button>
               <button
                 type="button"
                 onClick={resetForm}
@@ -467,7 +431,7 @@ export const CoachWorkoutsPage = () => {
             <Calendar className="w-10 h-10 text-slate-300 mx-auto" />
             <h3 className="text-sm font-bold text-slate-800 dark:text-white">هنوز برنامه‌ای ذخیره نشده است</h3>
             <p className="text-xs text-slate-500">
-              با استفاده از دکمه «طراحی برنامه تمرین جدید» یا دستیار هوشمند، نخستین جلسه تمرینی خود را تدوین فرمایید.
+              با استفاده از دکمه «طراحی برنامه تمرین جدید»، نخستین جلسه تمرینی خود را تدوین فرمایید.
             </p>
           </div>
         )}

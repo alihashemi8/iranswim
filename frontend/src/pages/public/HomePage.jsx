@@ -513,7 +513,7 @@ export const HomePage = () => {
       <AquaticPoolBackground />
 
       {/* Main Content Layers */}
-      <div className="relative z-20 space-y-20 sm:space-y-28 lg:space-y-36 pb-20 pt-4">
+      <div className="relative z-20 space-y-10 sm:space-y-14 lg:space-y-16 pb-14 pt-2">
         
         {/* =========================================================================
             SECTION 1: CINEMATIC AQUATIC HERO & WATER ENTRY ARENA
@@ -613,7 +613,7 @@ export const HomePage = () => {
         {/* =========================================================================
             SECTION 2: REAL CORE BENEFITS
             ========================================================================= */}
-        <section id="about" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8 min-w-0">
+        <section id="about" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-6 min-w-0">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <Badge variant="info">ویژگی‌های کلاس‌های ما</Badge>
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
@@ -631,7 +631,7 @@ export const HomePage = () => {
             onTouchStart={handleBenefitInteractionStart}
             onTouchEnd={handleBenefitInteractionEnd}
             onScroll={handleBenefitScroll}
-            className="landing-benefits-track landing-scroll-track flex overflow-x-auto pt-6 pb-12 px-4 sm:pt-8 sm:pb-16 sm:px-6 gap-6 sm:gap-8 snap-x snap-mandatory lg:grid lg:grid-cols-3 lg:gap-8 lg:overflow-visible lg:pt-9 lg:pb-16 lg:px-7 items-stretch"
+            className="landing-benefits-track landing-scroll-track flex overflow-x-auto pt-4 pb-4 px-4 sm:pt-5 sm:pb-6 sm:px-6 gap-6 sm:gap-8 snap-x snap-mandatory lg:grid lg:grid-cols-3 lg:gap-8 lg:overflow-visible lg:pt-5 lg:pb-6 lg:px-7 items-stretch"
           >
             {/* Benefit Card 1 - فیروزه‌ای پودری */}
             <div className="benefit-card benefit-card--turquoise card-hydrofoil group relative flex flex-col justify-between w-[84vw] sm:w-[350px] md:w-[350px] max-w-[360px] shrink-0 snap-center lg:w-auto lg:max-w-none lg:shrink h-full">
@@ -724,7 +724,7 @@ export const HomePage = () => {
         {/* =========================================================================
             SECTION 3: LIVE COURSES
             ========================================================================= */}
-        <section id="courses" className="landing-section w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 min-w-0">
+        <section id="courses" className="landing-section w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 min-w-0">
           <div className="landing-section__heading flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-500/20 pb-5">
             <div className="space-y-1.5">
               <Badge variant="info">برنامه آموزشی ترم جاری</Badge>
@@ -819,7 +819,7 @@ export const HomePage = () => {
         {/* =========================================================================
             SECTION 3: CERTIFIED FEDERATION COACHES
             ========================================================================= */}
-        <section id="coaches" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 min-w-0">
+        <section id="coaches" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-500/20 pb-5">
             <div className="space-y-1.5">
               <Badge variant="success">کادر مربیان قزوین</Badge>
@@ -853,7 +853,7 @@ export const HomePage = () => {
         {/* =========================================================================
             SECTION 4: ACADEMY FACILITIES & INFRASTRUCTURE
             ========================================================================= */}
-        <section id="facilities" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10 min-w-0">
+        <section id="facilities" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 min-w-0">
           <div className="text-center max-w-2xl mx-auto space-y-2.5">
             <Badge variant="info">محیط استخر و بهداشت آب</Badge>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -869,7 +869,7 @@ export const HomePage = () => {
             </div>
           </div>
 
-          <div className="landing-facilities-track landing-scroll-track flex overflow-x-auto pt-5 pb-10 px-3 sm:pt-7 sm:pb-12 sm:px-5 gap-5 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pt-7 lg:pb-12 lg:px-5 items-stretch">
+          <div className="landing-facilities-track landing-scroll-track flex overflow-x-auto pt-4 pb-4 px-3 sm:pt-4 sm:pb-5 sm:px-5 gap-5 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pt-4 lg:pb-5 lg:px-5 items-stretch">
             {/* Feature 1 */}
             <div className="bg-slate-900/80 p-6 card-hydrofoil border-2 border-teal-500/20 hover:border-teal-400/60 transition-all duration-300 flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
               <div className="space-y-4">
@@ -971,7 +971,7 @@ export const HomePage = () => {
         {/* =========================================================================
             SECTION 5: NEWS, ARTICLES & EVENTS
             ========================================================================= */}
-        <section id="news" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 min-w-0">
+        <section id="news" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 min-w-0">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-500/20 pb-5">
             <div className="space-y-1.5">
               <Badge variant="warning">اخبار و اطلاعیه‌ها</Badge>
@@ -1047,7 +1047,7 @@ export const HomePage = () => {
             SECTION 6: FINAL REGISTRATION CALL TO ACTION
             ========================================================================= */}
         <section className="landing-cta w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-w-0">
-          <div className="landing-cta__panel relative w-full text-center space-y-6 py-10 sm:py-16">
+          <div className="landing-cta__panel relative w-full text-center space-y-6 py-8 sm:py-12">
             <div className="relative max-w-3xl mx-auto space-y-5">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900/80 rounded-full text-xs sm:text-sm font-bold text-cyan-200 border border-cyan-400/40 shadow-md">
                 <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
@@ -1086,7 +1086,7 @@ export const HomePage = () => {
         {/* =========================================================================
             SECTION 7: ACCESSIBLE FOOTER
             ========================================================================= */}
-        <footer className="w-full border-t border-cyan-500/20 bg-slate-950/95 backdrop-blur-md pt-14 pb-8 min-w-0">
+        <footer className="w-full border-t border-cyan-500/20 bg-slate-950/95 backdrop-blur-md pt-10 sm:pt-12 pb-8 min-w-0">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
               

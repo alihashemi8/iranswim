@@ -44,7 +44,6 @@ import { CoachSwimmerDossierPage } from './pages/coach/CoachSwimmerDossierPage';
 import { CoachAssessmentsPage } from './pages/coach/CoachAssessmentsPage';
 import { CoachExamsPage } from './pages/coach/CoachExamsPage';
 import { CoachWorkoutsPage } from './pages/coach/CoachWorkoutsPage';
-import { CoachAIAssistantPage } from './pages/coach/CoachAIAssistantPage';
 import { CoachMessagesPage } from './pages/coach/CoachMessagesPage';
 import { CoachProfilePage } from './pages/coach/CoachProfilePage';
 
@@ -194,10 +193,10 @@ export default function App() {
                 {/* 6. Workouts */}
                 <Route path="workouts" element={<CoachWorkoutsPage />} />
 
-                {/* 7. AI Assistant */}
-                <Route path="ai-assistant" element={<CoachAIAssistantPage />} />
+                {/* Redirect legacy AI assistant */}
+                <Route path="ai-assistant" element={<Navigate to="/coach" replace />} />
 
-                {/* 8. Messages & Communications */}
+                {/* 7. Messages & Communications */}
                 <Route path="messages" element={<CoachMessagesPage />} />
 
                 {/* 9. Profile & Settings */}

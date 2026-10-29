@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BookOpen, Users, Calendar, MapPin, Search,
-  ChevronLeft, ClipboardCheck, ArrowUpDown, Filter, Sparkles
+  ChevronLeft, ClipboardCheck, ArrowUpDown, Filter
 } from 'lucide-react';
 import api from '../../api/client';
 import { LoadingState } from '../../components/common/LoadingState';

@@ -112,8 +112,13 @@
   color: #087ea4;
 }
 
-.landing-section {
-  scroll-margin-top: 6rem;
+.landing-section,
+#about,
+#courses,
+#coaches,
+#facilities,
+#news {
+  scroll-margin-top: 5rem;
 }
 
 .landing-section__heading h2 {
@@ -122,7 +127,7 @@
 
 #about {
   max-width: 100%;
-  padding: clamp(3rem, 7vw, 6.5rem) max(1rem, calc((100vw - 80rem) / 2));
+  padding: clamp(1.25rem, 2.5vw, 2rem) max(1rem, calc((100vw - 80rem) / 2));
   color: #173b4b;
   background: transparent;
 }
@@ -143,15 +148,15 @@
    POWDERY BENEFIT CARDS (کارت‌های با بافت و رنگ پودری مخملی)
    ========================================================================= */
 .landing-benefits-track {
-  padding-top: 1.5rem;
-  padding-bottom: 3rem;
+  padding-top: 1rem;
+  padding-bottom: 1.25rem;
   padding-inline: 1rem;
 }
 
 @media (min-width: 640px) and (max-width: 1023px) {
   .landing-benefits-track {
-    padding-top: 2rem;
-    padding-bottom: 3.5rem;
+    padding-top: 1.25rem;
+    padding-bottom: 1.5rem;
     padding-inline: 1.5rem;
   }
   .landing-benefits-track .benefit-card {
@@ -169,8 +174,8 @@
     display: grid !important;
     grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
     gap: 2rem !important;
-    padding-top: 2rem;
-    padding-bottom: 3.5rem;
+    padding-top: 1.25rem;
+    padding-bottom: 1.5rem;
     padding-inline: 1.5rem;
     overflow: visible !important;
   }
@@ -396,14 +401,14 @@
 
 #courses {
   max-width: 100%;
-  padding: clamp(3rem, 7vw, 6rem) max(1rem, calc((100vw - 80rem) / 2));
+  padding: clamp(1.25rem, 2.5vw, 2rem) max(1rem, calc((100vw - 80rem) / 2));
   color: #173b4b;
   background: transparent;
 }
 
 #courses .landing-section__heading {
   max-width: 80rem;
-  margin: 0 auto 2rem;
+  margin: 0 auto 1.5rem;
   border-color: rgb(9 39 58 / 18%);
 }
 
@@ -550,7 +555,7 @@
 }
 
 #coaches {
-  padding-block: clamp(3rem, 7vw, 6rem);
+  padding-block: clamp(0.5rem, 1.5vw, 1rem);
 }
 
 #coaches > div:first-child p,
@@ -589,7 +594,7 @@
 
 #facilities {
   max-width: 100%;
-  padding: clamp(3rem, 7vw, 6rem) max(1rem, calc((100vw - 80rem) / 2));
+  padding: clamp(1.25rem, 2.5vw, 2rem) max(1rem, calc((100vw - 80rem) / 2));
   color: #173b4b;
   background: transparent;
 }
@@ -674,7 +679,7 @@
 }
 
 #news {
-  padding-block: clamp(3rem, 7vw, 6rem);
+  padding-block: clamp(0.5rem, 1.5vw, 1rem);
 }
 
 .landing-cta > div,
@@ -1197,13 +1202,13 @@ html.dark .auth-page > .auth-panel {
   content: "";
   transform: translateX(-50%);
   pointer-events: none;
-  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 3rem, #000 calc(100% - 3rem), transparent 100%);
-  mask-image: linear-gradient(180deg, transparent 0, #000 3rem, #000 calc(100% - 3rem), transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 1.5rem, #000 calc(100% - 1.5rem), transparent 100%);
+  mask-image: linear-gradient(180deg, transparent 0, #000 1.5rem, #000 calc(100% - 1.5rem), transparent 100%);
 }
 
 #about::before {
-  top: -2rem;
-  bottom: -2rem;
+  top: -1rem;
+  bottom: -1rem;
   background:
     radial-gradient(ellipse 74% 46% at 12% 20%, rgb(102 190 179 / 12%), transparent 84%),
     linear-gradient(145deg, #eff8f3, #e7f1ed 60%, #eaf4f0);
@@ -1211,16 +1216,16 @@ html.dark .auth-page > .auth-panel {
 }
 
 #courses::before {
-  top: -2rem;
-  bottom: -2rem;
+  top: -1rem;
+  bottom: -1rem;
   background:
     radial-gradient(ellipse 48% 48% at 82% 15%, rgb(118 194 190 / 12%), transparent 78%),
     linear-gradient(180deg, rgb(226 240 237 / 80%), rgb(238 246 242 / 92%));
 }
 
 #facilities::before {
-  top: -1.75rem;
-  bottom: -1.75rem;
+  top: -1rem;
+  bottom: -1rem;
   background:
     linear-gradient(180deg, rgb(211 235 230 / 68%), rgb(222 240 235 / 78%));
 }

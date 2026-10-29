@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
   TrendingUp, Award, Calendar, ChevronRight, CheckCircle2,
-  Clock, AlertCircle, Sparkles, PlusCircle, MessageSquare,
-  ShieldCheck, ArrowLeft, Copy, Check
+  Clock, AlertCircle, PlusCircle, MessageSquare,
+  ShieldCheck, ArrowLeft
 } from 'lucide-react';
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
@@ -29,12 +29,6 @@ export const CoachSwimmerDossierPage = () => {
   const [targetLevelId, setTargetLevelId] = useState('');
   const [coachNotes, setCoachNotes] = useState('');
   const [submittingPromotion, setSubmittingPromotion] = useState(false);
-
-  // AI Report modal state
-  const [showAIModal, setShowAIModal] = useState(false);
-  const [aiReportText, setAiReportText] = useState('');
-  const [generatingAI, setGeneratingAI] = useState(false);
-  const [copied, setCopied] = useState(false);
 
   const toast = useToast();
 
@@ -128,33 +122,6 @@ export const CoachSwimmerDossierPage = () => {
     }
   };
 
-  // Generate Parent Report with AI
-  const handleGenerateAIReport = async () => {
-    try {
-      setGeneratingAI(true);
-      setShowAIModal(true);
-      const res = await api.post('/coaches/ai/assist/', {
-        mode: 'SWIMMER_REPORT',
-        swimmer_name: data?.swimmer?.full_name,
-        stroke: 'کرال سینه و مهارت‌های عمومی',
-        target_focus: 'هماهنگی دست، پا و استقامت تنفسی',
-      });
-      setAiReportText(res.data.report_text);
-    } catch (err) {
-      console.error(err);
-      toast.error('خطا در تولید گزارش هوشمند');
-    } finally {
-      setGeneratingAI(false);
-    }
-  };
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(aiReportText);
-    setCopied(true);
-    toast.success('متن گزارش در کلیپ‌بورد کپی شد.');
-    setTimeout(() => setCopied(false), 3000);
-  };
-
   if (loading) {
     return <LoadingState type="dashboard" message="در حال دریافت پرونده مهارتی و عملکرد شناگر..." />;
   }
@@ -205,14 +172,6 @@ export const CoachSwimmerDossierPage = () => {
 
         {/* Action Buttons */}
         <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={handleGenerateAIReport}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-purple-50 dark:bg-purple-950/50 text-purple-700 dark:text-purple-300 hover:bg-purple-100 border border-purple-200 dark:border-purple-800 text-xs font-bold transition-all"
-          >
-            <Sparkles className="w-4 h-4 text-purple-600" />
-            گزارش پیشرفت با AI
-          </button>
           <button
             type="button"
             onClick={() => setShowPromotionModal(true)}
@@ -512,61 +471,6 @@ export const CoachSwimmerDossierPage = () => {
                 </Button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {/* AI Report Modal */}
-      {showAIModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-lg w-full p-6 space-y-4 shadow-xl">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-purple-600" />
-                پیش‌نویس گزارش پیشرفت برای والدین (هوش مصنوعی)
-              </h3>
-            </div>
-
-            {generatingAI ? (
-              <div className="py-12 text-center text-xs text-slate-500 space-y-2">
-                <Sparkles className="w-8 h-8 text-purple-600 animate-spin mx-auto" />
-                <p>در حال تنظیم متن استاندارد گزارش بر اساس پیشرفت‌های شناگر...</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <textarea
-                  rows="9"
-                  value={aiReportText}
-                  onChange={(e) => setAiReportText(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 text-xs text-slate-800 dark:text-slate-200 leading-relaxed font-sans"
-                />
-                <div className="flex justify-between items-center pt-2">
-                  <span className="text-[11px] text-slate-400">
-                    می‌توانید متن فوق را ویرایش و سپس کپی فرمایید.
-                  </span>
-                  <div className="flex gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowAIModal(false)}
-                    >
-                      بستن
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="primary"
-                      size="sm"
-                      onClick={copyToClipboard}
-                      className="bg-purple-600 hover:bg-purple-700 text-white gap-1.5"
-                    >
-                      {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                      {copied ? 'کپی شد' : 'کپی متن گزارش'}
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       )}
