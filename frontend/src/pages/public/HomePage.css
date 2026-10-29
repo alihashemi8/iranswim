@@ -512,12 +512,12 @@
 }
 
 .coach-card-body-shell {
-  filter: drop-shadow(0 20px 40px rgba(13, 148, 136, 0.16)) drop-shadow(0 4px 12px rgba(13, 148, 136, 0.06));
+  filter: drop-shadow(0 12px 24px rgba(13, 148, 136, 0.09)) drop-shadow(0 3px 8px rgba(13, 148, 136, 0.04));
   transition: filter 300ms ease, transform 300ms ease;
 }
 
 .coach-profile-card-wrapper:hover .coach-card-body-shell {
-  filter: drop-shadow(0 28px 52px rgba(13, 148, 136, 0.24)) drop-shadow(0 6px 16px rgba(13, 148, 136, 0.1));
+  filter: drop-shadow(0 18px 32px rgba(13, 148, 136, 0.15)) drop-shadow(0 4px 12px rgba(13, 148, 136, 0.06));
 }
 
 .landing-news-card {
@@ -550,8 +550,10 @@
 
 .landing-carousel > div:nth-of-type(2),
 .landing-carousel .carousel-viewport {
-  padding-block: .75rem;
-  margin-block: -.5rem;
+  padding-block: 2rem;
+  margin-block: -1.75rem;
+  padding-inline: 1.25rem;
+  margin-inline: -1.25rem;
 }
 
 #coaches {
@@ -865,7 +867,7 @@ html.dark .auth-page > .auth-panel {
 /* Iran Swim aquatic scene: the canvas supplies moving refraction; CSS supplies
    the pool depth, the quiet editorial surfaces, and readable transitions. */
 .landing-experience {
-  --pool-ink: #153847;
+  --pool-ink: #0d3446;
   --pool-paper: #f1f7f4;
   --pool-water: #0b797c;
   --pool-mint: #8fe0d0;
@@ -873,18 +875,19 @@ html.dark .auth-page > .auth-panel {
   position: relative;
   isolation: isolate;
   color: var(--pool-ink);
-  background-color: #eaf3f0;
+  background-color: #d6f2f6;
   background-image:
-    radial-gradient(ellipse 82% 18rem at 50% 0, rgb(20 111 125 / 15%), transparent 100%),
+    radial-gradient(ellipse 85% 24rem at 50% 0, rgba(14, 165, 233, 0.12), transparent 100%),
     linear-gradient(
       180deg,
-      #031722 0,
-      #061f2c 31rem,
-      #0a3b47 43rem,
-      #edf5f1 56rem,
-      #edf5f1 82%,
-      #0b3541 93%,
-      #03151f 100%
+      #d4f2f6 0%,     /* Hero area / Section 1 */
+      #daf4f1 18%,    /* #about / Section 2 */
+      #d8f0f6 36%,    /* #courses / Section 3 */
+      #def4f2 54%,    /* #coaches / Section 4 */
+      #d6f1f5 72%,    /* #facilities / Section 5 */
+      #daf2f7 86%,    /* #news / Section 6 */
+      #c6eef7 97%,    /* CTA / Section 7 */
+      #aee3f2 100%    /* CTA bottom bridge */
     );
 }
 
@@ -893,13 +896,14 @@ html.dark .auth-page > .auth-panel {
   top: 0;
   left: 0;
   right: 0;
-  height: 100svh;
+  height: 100%;
+  min-height: 100svh;
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
   background:
-    radial-gradient(ellipse 70% 62% at 18% 8%, rgb(13 125 136 / 20%), transparent 74%),
-    radial-gradient(ellipse 60% 52% at 84% 54%, rgb(4 80 105 / 15%), transparent 76%);
+    radial-gradient(ellipse 70% 62% at 18% 8%, rgba(13, 148, 136, 0.12), transparent 74%),
+    radial-gradient(ellipse 60% 52% at 84% 54%, rgba(8, 126, 164, 0.08), transparent 76%);
 }
 
 .landing-water__caustics {
@@ -908,8 +912,8 @@ html.dark .auth-page > .auth-panel {
   display: block;
   width: 100%;
   height: 100%;
-  opacity: 0.48;
-  mix-blend-mode: screen;
+  opacity: 0.35;
+  mix-blend-mode: soft-light;
   image-rendering: auto;
 }
 
@@ -917,11 +921,11 @@ html.dark .auth-page > .auth-panel {
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(ellipse 62% 44% at 50% -4%, rgb(186 249 226 / 10%), transparent 82%),
-    linear-gradient(180deg, rgb(1 16 26 / 8%), transparent 35%, rgb(3 26 37 / 5%));
+    radial-gradient(ellipse 62% 44% at 50% -4%, rgba(186, 249, 226, 0.14), transparent 82%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.3) 0%, transparent 35%, rgba(255, 255, 255, 0.15) 100%);
 }
 
-/* The image is confined to the opening scene and fades into the brighter page. */
+/* The hero scene dissolves smoothly at its bottom into the bright pool water. */
 .landing-hero {
   min-height: min(760px, calc(100svh - 4.25rem));
   isolation: isolate;
@@ -931,17 +935,17 @@ html.dark .auth-page > .auth-panel {
   position: absolute;
   z-index: -1;
   top: -4.5rem;
-  bottom: -10rem;
+  bottom: -4rem;
   left: 50%;
   width: 100vw;
   content: "";
   transform: translateX(-50%);
   background:
-    linear-gradient(180deg, rgb(2 17 27 / 42%) 0%, rgb(3 22 31 / 57%) 52%, rgb(6 43 51 / 12%) 100%),
-    radial-gradient(ellipse 52% 62% at 78% 27%, rgb(30 199 179 / 15%), transparent 82%),
+    linear-gradient(180deg, rgba(2, 21, 31, 0.38) 0%, rgba(4, 33, 44, 0.46) 52%, rgba(13, 90, 107, 0.28) 80%, #d4f2f6 100%),
+    radial-gradient(ellipse 52% 62% at 78% 27%, rgba(30, 199, 179, 0.18), transparent 82%),
     url("/images/olympic-pool-aerial.webp") center 28% / cover no-repeat;
-  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 70%, transparent 100%);
-  mask-image: linear-gradient(180deg, #000 0%, #000 70%, transparent 100%);
+  -webkit-mask-image: linear-gradient(180deg, #000 0%, #000 75%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 0%, #000 75%, transparent 100%);
 }
 
 .landing-hero__panel {
@@ -1184,79 +1188,80 @@ html.dark .auth-page > .auth-panel {
   background: #8adcca;
 }
 
-/* Section bands use different water tones and dissolve at their edges. */
+/* Unified section surfaces allowing seamless aquatic gradient flow */
 #about,
 #courses,
-#facilities {
+#coaches,
+#facilities,
+#news {
   position: relative;
   isolation: isolate;
+  background: transparent;
 }
 
 #about::before,
 #courses::before,
 #facilities::before {
-  position: absolute;
-  z-index: -1;
-  left: 50%;
-  width: 100vw;
-  content: "";
-  transform: translateX(-50%);
-  pointer-events: none;
-  -webkit-mask-image: linear-gradient(180deg, transparent 0, #000 1.5rem, #000 calc(100% - 1.5rem), transparent 100%);
-  mask-image: linear-gradient(180deg, transparent 0, #000 1.5rem, #000 calc(100% - 1.5rem), transparent 100%);
+  display: none !important;
+  content: none !important;
 }
 
-#about::before {
-  top: -1rem;
-  bottom: -1rem;
-  background:
-    radial-gradient(ellipse 74% 46% at 12% 20%, rgb(102 190 179 / 12%), transparent 84%),
-    linear-gradient(145deg, #eff8f3, #e7f1ed 60%, #eaf4f0);
-  box-shadow: inset 0 1px rgb(255 255 255 / 78%);
+#about h2,
+#courses h2,
+#coaches h2,
+#facilities h2,
+#news h2 {
+  color: #0b3446 !important;
 }
 
-#courses::before {
-  top: -1rem;
-  bottom: -1rem;
-  background:
-    radial-gradient(ellipse 48% 48% at 82% 15%, rgb(118 194 190 / 12%), transparent 78%),
-    linear-gradient(180deg, rgb(226 240 237 / 80%), rgb(238 246 242 / 92%));
-}
-
-#facilities::before {
-  top: -1rem;
-  bottom: -1rem;
-  background:
-    linear-gradient(180deg, rgb(211 235 230 / 68%), rgb(222 240 235 / 78%));
+#about p,
+#courses p,
+#coaches > div:first-child p,
+#facilities > div:first-child p,
+#news > div:first-child p {
+  color: #335565 !important;
 }
 
 /* The closing registration moment */
-.landing-cta > div,
+.landing-cta {
+  position: relative;
+  isolation: isolate;
+}
+
 .landing-cta__panel {
-  background: transparent !important;
-  border: none !important;
-  box-shadow: none !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  position: relative;
+  border-radius: 2.25rem !important;
+  border: 2px solid #82e2d8 !important;
+  background:
+    radial-gradient(120% 90% at 85% 15%, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.45) 50%, transparent 80%),
+    linear-gradient(150deg, #ecfaf8 0%, #d4f3ef 45%, #def7f4 100%) !important;
+  box-shadow:
+    0 24px 54px -12px rgba(13, 148, 136, 0.22),
+    inset 0 2px 4px rgba(255, 255, 255, 0.95),
+    inset 0 -4px 12px rgba(15, 118, 110, 0.08),
+    inset 0 0 32px rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
 }
 
 .landing-cta h2 {
-  color: #ffffff !important;
-  font-size: clamp(2rem, 4.5vw, 3.75rem) !important;
+  color: #0b3446 !important;
+  font-size: clamp(1.85rem, 4vw, 3.25rem) !important;
   font-weight: 900 !important;
-  line-height: 1.2 !important;
-  text-shadow: 0 4px 18px rgba(1, 15, 24, 0.95), 0 2px 5px rgba(0, 0, 0, 0.95) !important;
+  line-height: 1.25 !important;
+  text-shadow: none !important;
 }
 
 .landing-cta p {
-  color: #f8fafc !important;
-  text-shadow: 0 2px 10px rgba(1, 15, 24, 0.9), 0 1px 3px rgba(0, 0, 0, 0.9) !important;
+  color: #2b5363 !important;
+  font-weight: 600 !important;
+  text-shadow: none !important;
 }
 
 .landing-experience footer {
   color: #d5e9e5;
-  background: linear-gradient(180deg, rgb(5 30 41 / 90%), #03151f);
-  border-color: rgb(120 207 198 / 20%);
+  background: linear-gradient(180deg, #0d3545 0%, #061d28 100%);
+  border-color: rgba(130, 226, 216, 0.3);
   backdrop-filter: none;
 }
 

@@ -616,10 +616,10 @@ export const HomePage = () => {
         <section id="about" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-6 min-w-0">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <Badge variant="info">ویژگی‌های کلاس‌های ما</Badge>
-            <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+            <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
               چرا مدرسه شنای ایران؟
             </h2>
-            <p className="text-sm sm:text-base text-cyan-200/90 leading-relaxed font-medium">
+            <p className="text-sm sm:text-base text-slate-700 leading-relaxed font-medium">
               آموزش شنا با صبر و حوصله، متناسب با روحیات نوآموزان و با بالاترین استانداردهای ایمنی
             </p>
           </div>
@@ -725,11 +725,11 @@ export const HomePage = () => {
             SECTION 3: LIVE COURSES
             ========================================================================= */}
         <section id="courses" className="landing-section w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 min-w-0">
-          <div className="landing-section__heading flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-500/20 pb-5">
+          <div className="landing-section__heading flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
             <div className="space-y-1.5">
               <Badge variant="info">برنامه آموزشی ترم جاری</Badge>
-              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">دوره‌ها و کلاس‌های آموزشی</h2>
-              <p className="text-xs sm:text-sm">کلاس‌های ثبت‌شده در سامانه، همراه با رده سنی، جنسیت و سرفصل‌های آموزشی</p>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">دوره‌ها و کلاس‌های آموزشی</h2>
+              <p className="text-xs sm:text-sm text-slate-700 font-medium">کلاس‌های ثبت‌شده در سامانه، همراه با رده سنی، جنسیت و سرفصل‌های آموزشی</p>
             </div>
           </div>
 
@@ -820,17 +820,17 @@ export const HomePage = () => {
             SECTION 3: CERTIFIED FEDERATION COACHES
             ========================================================================= */}
         <section id="coaches" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 min-w-0">
-          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-500/20 pb-5">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
             <div className="space-y-1.5">
               <Badge variant="success">کادر مربیان قزوین</Badge>
-              <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                 مربیان باسابقه و رسمی مدرسه شنای ایران
               </h2>
-              <p className="text-xs sm:text-sm text-cyan-200/80">
+              <p className="text-xs sm:text-sm text-slate-700 font-medium">
                 دارای مدارک مربیگری رسمی و نجات‌غریق از فدراسیون شنا، شیرجه و واترپلو جمهوری اسلامی ایران
               </p>
             </div>
-            <span className="text-xs font-mono font-bold text-cyan-300 bg-cyan-950/80 px-3.5 py-1.5 rounded-xl border border-cyan-500/30 shrink-0 self-start sm:self-auto shadow-sm">
+            <span className="text-xs font-mono font-bold text-cyan-900 bg-white/90 px-3.5 py-1.5 rounded-xl border border-cyan-300/60 shrink-0 self-start sm:self-auto shadow-xs">
               {coaches.length} مربی فعال و مجاز
             </span>
           </div>
