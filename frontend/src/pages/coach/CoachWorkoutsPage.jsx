@@ -134,11 +134,11 @@ export const CoachWorkoutsPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <Calendar className="w-6 h-6 text-emerald-600" />
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+            <Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600" />
             طراحی و بانک برنامه‌های تمرین
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
             طراحی جلسات آموزشی، تمرینات گرم‌کردن، ست‌های اصلی شنا و سردکردن
           </p>
         </div>
@@ -149,9 +149,9 @@ export const CoachWorkoutsPage = () => {
               variant="primary"
               size="sm"
               onClick={() => setShowEditor(true)}
-              className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold"
+              className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base px-4 py-2.5"
             >
-              <PlusCircle className="w-4 h-4" />
+              <PlusCircle className="w-4.5 h-4.5" />
               طراحی برنامه تمرین جدید
             </Button>
           )}
@@ -161,8 +161,8 @@ export const CoachWorkoutsPage = () => {
       {/* Workout Editor Form */}
       {showEditor && (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-emerald-500/50 p-6 shadow-md space-y-5 animate-in fade-in duration-200">
-          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3.5">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <FileText className="w-5 h-5 text-emerald-600" />
               {editingId ? 'ویرایش برنامه تمرین' : 'طراحی برنامه تمرینی جدید'}
             </h2>
@@ -170,17 +170,17 @@ export const CoachWorkoutsPage = () => {
               <button
                 type="button"
                 onClick={resetForm}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600"
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
           </div>
 
-          <form onSubmit={handleSave} className="space-y-4 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <form onSubmit={handleSave} className="space-y-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
               <div className="sm:col-span-2">
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5">
                   عنوان برنامه تمرینی: *
                 </label>
                 <input
@@ -188,13 +188,13 @@ export const CoachWorkoutsPage = () => {
                   placeholder="مثال: تمرین استقامتی کرال سینه و دریل‌های Catch-up"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white font-medium"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white font-medium text-sm"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5">
                   مدت زمان جلسه (دقیقه):
                 </label>
                 <input
@@ -204,20 +204,20 @@ export const CoachWorkoutsPage = () => {
                   step="15"
                   value={duration}
                   onChange={(e) => setDuration(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white font-mono"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white font-mono text-sm"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5">
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5">
                   کلاس هدف (اختیاری):
                 </label>
                 <select
                   value={groupId}
                   onChange={(e) => setGroupId(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm font-medium"
                 >
                   <option value="">-- برنامه عمومی برای همه کلاس‌ها --</option>
                   {classes.map((cls) => (
@@ -229,13 +229,13 @@ export const CoachWorkoutsPage = () => {
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5">
                   سطح مهارت هدف:
                 </label>
                 <select
                   value={levelId}
                   onChange={(e) => setLevelId(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm font-medium"
                 >
                   <option value="">-- همه سطوح --</option>
                   {levels.map((lvl) => (
@@ -247,7 +247,7 @@ export const CoachWorkoutsPage = () => {
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5">
                   تمرکز آموزشی اصلی:
                 </label>
                 <input
@@ -255,15 +255,15 @@ export const CoachWorkoutsPage = () => {
                   placeholder="مثال: تنفس جانبی، پای قورباغه، استارت"
                   value={focusSkills}
                   onChange={(e) => setFocusSkills(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white text-sm"
                 />
               </div>
             </div>
 
             {/* Three Phase Training Sections */}
-            <div className="space-y-3 pt-2">
+            <div className="space-y-3.5 pt-2">
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1 flex items-center gap-1.5">
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5 flex items-center gap-2 text-sm">
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
                   ۱. بخش گرم‌کردن و حرکات کششی در آب (Warm-up):
                 </label>
@@ -272,12 +272,12 @@ export const CoachWorkoutsPage = () => {
                   placeholder="مثال: ۲۰۰ متر شنای آرام و کشیده + ۲۰۰ متر کیک با تخته شنا..."
                   value={warmup}
                   onChange={(e) => setWarmup(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white leading-relaxed"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white leading-relaxed text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1 flex items-center gap-1.5">
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5 flex items-center gap-2 text-sm">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
                   ۲. بخش اصلی و ست‌های تمرین (Main Set): *
                 </label>
@@ -286,13 +286,13 @@ export const CoachWorkoutsPage = () => {
                   placeholder="مثال: ۸ ست ۵۰ متر دریل با فواصل استراحت ۲۰ ثانیه..."
                   value={mainSet}
                   onChange={(e) => setMainSet(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white leading-relaxed font-mono text-[12px]"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white leading-relaxed font-mono text-sm"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1 flex items-center gap-1.5">
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5 flex items-center gap-2 text-sm">
                   <span className="w-2.5 h-2.5 rounded-full bg-sky-400" />
                   ۳. بخش سردکردن و ریکاوری (Cool-down):
                 </label>
@@ -301,12 +301,12 @@ export const CoachWorkoutsPage = () => {
                   placeholder="مثال: ۱۰۰ متر کرال پشت آرام و تمرینات تنفس عمیق..."
                   value={cooldown}
                   onChange={(e) => setCooldown(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white leading-relaxed"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white leading-relaxed text-sm"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">
+                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5 text-sm">
                   نکات تکنیکی و یادداشت مربی:
                 </label>
                 <textarea
@@ -314,26 +314,26 @@ export const CoachWorkoutsPage = () => {
                   placeholder="نکات ایمنی، تجهیزات مورد نیاز استخر..."
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white text-sm"
                 />
               </div>
             </div>
 
-            <div className="flex items-center justify-between pt-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={isTemplate}
                   onChange={(e) => setIsTemplate(e.target.checked)}
-                  className="rounded text-emerald-600 focus:ring-emerald-500 w-4 h-4"
+                  className="rounded text-emerald-600 focus:ring-emerald-500 w-4.5 h-4.5"
                 />
-                <span className="text-slate-700 dark:text-slate-300 font-semibold">
+                <span className="text-slate-700 dark:text-slate-300 font-bold text-sm">
                   ذخیره به عنوان الگوی قابل استفاده مجدد (Template)
                 </span>
               </label>
 
-              <div className="flex gap-2">
-                <Button type="button" variant="outline" size="sm" onClick={resetForm}>
+              <div className="flex gap-2.5">
+                <Button type="button" variant="outline" size="sm" onClick={resetForm} className="text-sm font-medium">
                   انصراف
                 </Button>
                 <Button
@@ -341,7 +341,7 @@ export const CoachWorkoutsPage = () => {
                   variant="primary"
                   size="sm"
                   loading={saving}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-bold text-sm px-4"
                 >
                   <Save className="w-4 h-4" />
                   ذخیره برنامه تمرین
@@ -353,49 +353,49 @@ export const CoachWorkoutsPage = () => {
       )}
 
       {/* Workouts List */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
         {workouts.length > 0 ? (
           workouts.map((w) => (
             <div
               key={w.id}
-              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:border-emerald-300 dark:hover:border-emerald-700 transition-all flex flex-col justify-between"
+              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs hover:border-emerald-300 dark:hover:border-emerald-700 transition-all flex flex-col justify-between"
             >
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     {w.is_template && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 mb-1 inline-block">
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-md bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 mb-1.5 inline-block">
                         الگوی تمرینی
                       </span>
                     )}
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                    <h3 className="text-lg font-bold text-slate-900 dark:text-white">
                       {w.title}
                     </h3>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">
                       {w.target_level_name ? `سطح: ${w.target_level_name}` : 'عمومی'} · {w.duration_minutes} دقیقه
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleEdit(w)}
-                    className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-emerald-600 transition-colors"
+                    className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-500 hover:text-emerald-600 transition-colors cursor-pointer"
                     title="ویرایش برنامه"
                   >
-                    <Edit className="w-3.5 h-3.5" />
+                    <Edit className="w-4 h-4" />
                   </button>
                 </div>
 
                 {w.focus_skills && (
-                  <div className="text-xs text-slate-600 dark:text-slate-300 bg-emerald-50/50 dark:bg-emerald-950/20 p-2.5 rounded-xl border border-emerald-100 dark:border-emerald-900/40">
+                  <div className="text-sm text-slate-700 dark:text-slate-200 bg-emerald-50/50 dark:bg-emerald-950/20 p-3 rounded-xl border border-emerald-100 dark:border-emerald-900/40">
                     <span className="font-bold text-emerald-800 dark:text-emerald-300">تمرکز: </span>
                     {w.focus_skills}
                   </div>
                 )}
 
-                <div className="space-y-2 text-xs">
+                <div className="space-y-2.5 text-sm">
                   {w.warmup_section && (
-                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-                      <span className="font-bold text-slate-700 dark:text-slate-300 block mb-1">گرم‌کردن:</span>
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                      <span className="font-bold text-slate-800 dark:text-slate-200 block mb-1">گرم‌کردن:</span>
                       <p className="text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed">
                         {w.warmup_section}
                       </p>
@@ -403,9 +403,9 @@ export const CoachWorkoutsPage = () => {
                   )}
 
                   {w.main_section && (
-                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-                      <span className="font-bold text-slate-700 dark:text-slate-300 block mb-1">بخش اصلی تمرین:</span>
-                      <p className="text-slate-600 dark:text-slate-400 line-clamp-3 leading-relaxed font-mono text-[11px]">
+                    <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                      <span className="font-bold text-slate-800 dark:text-slate-200 block mb-1">بخش اصلی تمرین:</span>
+                      <p className="text-slate-600 dark:text-slate-400 line-clamp-3 leading-relaxed font-mono text-xs sm:text-sm">
                         {w.main_section}
                       </p>
                     </div>
@@ -413,15 +413,15 @@ export const CoachWorkoutsPage = () => {
                 </div>
               </div>
 
-              <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+              <div className="pt-3.5 mt-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs sm:text-sm text-slate-400">
                 <span>تاریخ ثبت: {new Date(w.created_at).toLocaleDateString('fa-IR')}</span>
                 <button
                   type="button"
                   onClick={() => handleEdit(w)}
-                  className="font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1"
+                  className="font-bold text-emerald-600 hover:text-emerald-700 flex items-center gap-1 cursor-pointer"
                 >
                   مشاهده ست‌های کامل
-                  <ChevronLeft className="w-3.5 h-3.5" />
+                  <ChevronLeft className="w-4 h-4" />
                 </button>
               </div>
             </div>
@@ -429,8 +429,8 @@ export const CoachWorkoutsPage = () => {
         ) : (
           <div className="col-span-full text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 space-y-2">
             <Calendar className="w-10 h-10 text-slate-300 mx-auto" />
-            <h3 className="text-sm font-bold text-slate-800 dark:text-white">هنوز برنامه‌ای ذخیره نشده است</h3>
-            <p className="text-xs text-slate-500">
+            <h3 className="text-base font-bold text-slate-800 dark:text-white">هنوز برنامه‌ای ذخیره نشده است</h3>
+            <p className="text-sm text-slate-500">
               با استفاده از دکمه «طراحی برنامه تمرین جدید»، نخستین جلسه تمرینی خود را تدوین فرمایید.
             </p>
           </div>

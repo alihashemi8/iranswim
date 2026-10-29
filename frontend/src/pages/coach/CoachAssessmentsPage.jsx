@@ -108,21 +108,21 @@ export const CoachAssessmentsPage = () => {
     <div className="space-y-6">
       <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Award className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+            <Award className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600 dark:text-emerald-400" />
             ارزیابی مهارت‌های آموزشی و رکوردهای زمانی شنا
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
             سنجش سرفصل‌های آموزشی شناگران و ثبت رکوردهای رسمی آزمون و مسابقات
           </p>
         </div>
-        <div className="flex items-center gap-2">
-          <Button size="sm" onClick={() => setIsAssModalOpen(true)} className="gap-1.5">
-            <Plus className="w-4 h-4" />
+        <div className="flex items-center gap-2.5">
+          <Button size="sm" onClick={() => setIsAssModalOpen(true)} className="gap-2 text-sm sm:text-base font-bold px-4 py-2.5">
+            <Plus className="w-4.5 h-4.5" />
             <span>ثبت ارزیابی مهارت</span>
           </Button>
-          <Button size="sm" variant="outline" onClick={() => setIsRecModalOpen(true)} className="gap-1.5">
-            <Timer className="w-4 h-4" />
+          <Button size="sm" variant="outline" onClick={() => setIsRecModalOpen(true)} className="gap-2 text-sm sm:text-base font-bold px-4 py-2.5">
+            <Timer className="w-4.5 h-4.5" />
             <span>ثبت رکورد زمانی</span>
           </Button>
         </div>
@@ -134,25 +134,25 @@ export const CoachAssessmentsPage = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Skill Assessments Table */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs transition-colors">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white pb-3 mb-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white pb-3 mb-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <span>ارزیابی‌های مهارتی اخیر</span>
-              <span className="text-xs font-mono text-slate-400">{assessments.length} مورد</span>
+              <span className="text-sm font-mono text-slate-500 font-semibold">{assessments.length} مورد</span>
             </h2>
             {assessments.length === 0 ? (
-              <p className="text-xs text-slate-400 py-6 text-center">ارزیابی ثبت نشده است.</p>
+              <p className="text-sm text-slate-400 py-6 text-center">ارزیابی ثبت نشده است.</p>
             ) : (
               <div className="space-y-3">
                 {assessments.map((ass) => (
-                  <div key={ass.id} className="p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-xs">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-bold text-slate-800 dark:text-slate-200">{ass.swimmer_name}</span>
+                  <div key={ass.id} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-sm">
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="font-bold text-base text-slate-900 dark:text-slate-100">{ass.swimmer_name}</span>
                       <Badge variant={ass.status === 'PASSED' ? 'success' : 'warning'}>
                         {ass.status_display} ({ass.score})
                       </Badge>
                     </div>
-                    <div className="text-slate-600 dark:text-slate-300 font-medium mb-1">{ass.skill_name}</div>
-                    {ass.feedback && <div className="text-slate-500 dark:text-slate-400 italic mt-1 bg-white dark:bg-slate-800 p-2 rounded-lg border border-slate-100 dark:border-slate-700">{ass.feedback}</div>}
-                    <div className="text-slate-400 text-[10px] mt-2 font-mono">{ass.assessed_at}</div>
+                    <div className="text-slate-700 dark:text-slate-300 font-medium mb-1.5">{ass.skill_name}</div>
+                    {ass.feedback && <div className="text-slate-600 dark:text-slate-400 italic mt-1.5 bg-white dark:bg-slate-800 p-2.5 rounded-lg border border-slate-100 dark:border-slate-700 leading-relaxed">{ass.feedback}</div>}
+                    <div className="text-slate-400 text-xs mt-2 font-mono font-medium">{ass.assessed_at}</div>
                   </div>
                 ))}
               </div>
@@ -161,24 +161,24 @@ export const CoachAssessmentsPage = () => {
 
           {/* Swimming Records Table */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs transition-colors">
-            <h2 className="text-base font-bold text-slate-900 dark:text-white pb-3 mb-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white pb-3 mb-3.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
               <span>رکوردهای زمانی ثبت‌شده</span>
-              <span className="text-xs font-mono text-slate-400">{records.length} رکورد</span>
+              <span className="text-sm font-mono text-slate-500 font-semibold">{records.length} رکورد</span>
             </h2>
             {records.length === 0 ? (
-              <p className="text-xs text-slate-400 py-6 text-center">رکوردی ثبت نشده است.</p>
+              <p className="text-sm text-slate-400 py-6 text-center">رکوردی ثبت نشده است.</p>
             ) : (
               <div className="space-y-3">
                 {records.map((rec) => (
-                  <div key={rec.id} className="p-3.5 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-xs flex items-center justify-between">
+                  <div key={rec.id} className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/60 dark:border-slate-700/60 text-sm flex items-center justify-between gap-3">
                     <div>
-                      <span className="font-bold text-slate-800 dark:text-slate-200 block">{rec.swimmer_name}</span>
-                      <span className="text-slate-600 dark:text-slate-300">
+                      <span className="font-bold text-base text-slate-900 dark:text-slate-100 block">{rec.swimmer_name}</span>
+                      <span className="text-slate-600 dark:text-slate-300 font-medium mt-0.5 block">
                         {rec.distance_meters} متر {rec.stroke_display}
                       </span>
                     </div>
                     <div className="text-left">
-                      <span className="font-mono font-bold text-sm text-sky-700 dark:text-sky-400 block">{rec.formatted_time}</span>
+                      <span className="font-mono font-black text-base sm:text-lg text-sky-700 dark:text-sky-400 block">{rec.formatted_time}</span>
                       <Badge variant={rec.verification_status === 'VERIFIED' ? 'success' : 'warning'}>
                         {rec.verification_status_display}
                       </Badge>
@@ -193,14 +193,14 @@ export const CoachAssessmentsPage = () => {
 
       {/* Modal 1: Skill Assessment */}
       <Modal isOpen={isAssModalOpen} onClose={() => setIsAssModalOpen(false)} title="ثبت ارزیابی مهارت آموزشی">
-        <form onSubmit={handleCreateAssessment} className="space-y-4">
+        <form onSubmit={handleCreateAssessment} className="space-y-4 text-sm">
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">شناگر مورد سنجش:</label>
+            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">شناگر مورد سنجش:</label>
             <select
               required
               value={assForm.swimmer}
               onChange={(e) => setAssForm({ ...assForm, swimmer: e.target.value })}
-              className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800"
+              className="w-full text-sm font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800"
             >
               <option value="">انتخاب شناگر...</option>
               {swimmers.map((s) => (
@@ -210,12 +210,12 @@ export const CoachAssessmentsPage = () => {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">سرفصل مهارتی:</label>
+            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">سرفصل مهارتی:</label>
             <select
               required
               value={assForm.skill}
               onChange={(e) => setAssForm({ ...assForm, skill: e.target.value })}
-              className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800"
+              className="w-full text-sm font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800"
             >
               <option value="">انتخاب مهارت...</option>
               {skills.map((sk) => (
@@ -226,22 +226,22 @@ export const CoachAssessmentsPage = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">نمره (از ۱۰۰):</label>
+              <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">نمره (از ۱۰۰):</label>
               <input
                 type="number"
                 step="0.5"
                 required
                 value={assForm.score}
                 onChange={(e) => setAssForm({ ...assForm, score: e.target.value })}
-                className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 font-mono"
+                className="w-full text-sm font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 font-mono"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">نتیجه نهایی:</label>
+              <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">نتیجه نهایی:</label>
               <select
                 value={assForm.status}
                 onChange={(e) => setAssForm({ ...assForm, status: e.target.value })}
-                className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100"
+                className="w-full text-sm font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100"
               >
                 <option value="PASSED">قبول / کسب مهارت</option>
                 <option value="IN_PROGRESS">در حال تمرین</option>
@@ -251,21 +251,21 @@ export const CoachAssessmentsPage = () => {
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">بازخورد و نکات فنی مربی:</label>
+            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">بازخورد و نکات فنی مربی:</label>
             <textarea
               rows={2}
               value={assForm.feedback}
               onChange={(e) => setAssForm({ ...assForm, feedback: e.target.value })}
               placeholder="مثال: تکنیک تنفس صحیح است اما زاویه ورود دست به آب باید اصلاح گردد..."
-              className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800"
+              className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 leading-relaxed"
             />
           </div>
 
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
-            <Button variant="secondary" type="button" onClick={() => setIsAssModalOpen(false)}>
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2.5">
+            <Button variant="secondary" type="button" onClick={() => setIsAssModalOpen(false)} className="text-sm font-medium">
               انصراف
             </Button>
-            <Button type="submit" loading={saving}>
+            <Button type="submit" loading={saving} className="text-sm font-bold">
               ثبت ارزیابی
             </Button>
           </div>
@@ -274,14 +274,14 @@ export const CoachAssessmentsPage = () => {
 
       {/* Modal 2: Swimming Record */}
       <Modal isOpen={isRecModalOpen} onClose={() => setIsRecModalOpen(false)} title="ثبت رکورد زمانی شناگر">
-        <form onSubmit={handleCreateRecord} className="space-y-4">
+        <form onSubmit={handleCreateRecord} className="space-y-4 text-sm">
           <div>
-            <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">شناگر صاحب رکورد:</label>
+            <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">شناگر صاحب رکورد:</label>
             <select
               required
               value={recForm.swimmer}
               onChange={(e) => setRecForm({ ...recForm, swimmer: e.target.value })}
-              className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800"
+              className="w-full text-sm font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800"
             >
               <option value="">انتخاب شناگر...</option>
               {swimmers.map((s) => (
@@ -292,11 +292,11 @@ export const CoachAssessmentsPage = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">سبک شنا:</label>
+              <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">سبک شنا:</label>
               <select
                 value={recForm.stroke}
                 onChange={(e) => setRecForm({ ...recForm, stroke: e.target.value })}
-                className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100"
+                className="w-full text-sm font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100"
               >
                 <option value="FREESTYLE">شنای آزاد (کرال سینه)</option>
                 <option value="BREASTSTROKE">قورباغه</option>
@@ -306,20 +306,20 @@ export const CoachAssessmentsPage = () => {
               </select>
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">مسافت (متر):</label>
+              <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">مسافت (متر):</label>
               <input
                 type="number"
                 required
                 value={recForm.distance_meters}
                 onChange={(e) => setRecForm({ ...recForm, distance_meters: e.target.value })}
-                className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 font-mono"
+                className="w-full text-sm font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 font-mono"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">زمان ثبت‌شده (ثانیه دقیق):</label>
+              <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">زمان ثبت‌شده (ثانیه دقیق):</label>
               <input
                 type="number"
                 step="0.01"
@@ -327,15 +327,15 @@ export const CoachAssessmentsPage = () => {
                 placeholder="مثال: 28.45"
                 value={recForm.duration_seconds}
                 onChange={(e) => setRecForm({ ...recForm, duration_seconds: e.target.value })}
-                className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 font-mono"
+                className="w-full text-sm font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 font-mono"
               />
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">ابعاد استخر (کورس):</label>
+              <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">ابعاد استخر (کورس):</label>
               <select
                 value={recForm.pool_course}
                 onChange={(e) => setRecForm({ ...recForm, pool_course: e.target.value })}
-                className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100"
+                className="w-full text-sm font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100"
               >
                 <option value="SHORT_25M">مسافت کوتاه (۲۵ متر)</option>
                 <option value="LONG_50M">مسافت استاندارد المپیک (۵۰ متر)</option>
@@ -343,11 +343,11 @@ export const CoachAssessmentsPage = () => {
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
-            <Button variant="secondary" type="button" onClick={() => setIsRecModalOpen(false)}>
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2.5">
+            <Button variant="secondary" type="button" onClick={() => setIsRecModalOpen(false)} className="text-sm font-medium">
               انصراف
             </Button>
-            <Button type="submit" loading={saving}>
+            <Button type="submit" loading={saving} className="text-sm font-bold">
               ثبت رکورد زمانی
             </Button>
           </div>

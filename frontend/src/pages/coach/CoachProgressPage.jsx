@@ -69,11 +69,11 @@ export const CoachProgressPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <TrendingUp className="w-6 h-6 text-emerald-600" />
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+            <TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600" />
             ارزیابی و پیشرفت شناگران
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
             سنجش مهارت‌های تخصصی شنا، ثبت ارزیابی دوره‌ای و کارنامه انفرادی شاگردان
           </p>
         </div>
@@ -81,33 +81,33 @@ export const CoachProgressPage = () => {
         <div className="flex items-center gap-2">
           <Link
             to="/coach/exams"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm font-bold shadow-xs transition-all"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-sm sm:text-base font-bold shadow-xs transition-all active:scale-95"
           >
-            <Award className="w-4 h-4" />
+            <Award className="w-4.5 h-4.5" />
             آزمون‌ها و پیشنهاد ارتقا
           </Link>
         </div>
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
         <div className="relative w-full sm:w-80">
-          <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+          <Search className="w-4.5 h-4.5 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             placeholder="جست‌وجوی نام شناگر..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pr-9 pl-3 py-2 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="w-full pr-10 pl-3.5 py-2.5 text-sm rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          <span className="text-xs text-slate-400 font-semibold whitespace-nowrap">کلاس:</span>
+        <div className="flex items-center gap-2.5 w-full sm:w-auto">
+          <span className="text-sm font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">کلاس:</span>
           <select
             value={selectedClass}
             onChange={(e) => setSelectedClass(e.target.value)}
-            className="text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-2 px-3 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="text-sm font-semibold rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-2.5 px-3.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
           >
             <option value="ALL">همه کلاس‌های من ({classes.length})</option>
             {classes.map((cls) => (
@@ -123,8 +123,8 @@ export const CoachProgressPage = () => {
       {filteredSwimmers.length > 0 ? (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs">
           <div className="overflow-x-auto">
-            <table className="w-full text-right text-xs">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700/60 font-semibold">
+            <table className="w-full text-right text-sm">
+              <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700/60 font-bold text-sm">
                 <tr>
                   <th className="py-3.5 px-4">نام شناگر</th>
                   <th className="py-3.5 px-4">کلاس آموزشی</th>
@@ -136,27 +136,27 @@ export const CoachProgressPage = () => {
                 {filteredSwimmers.map((sw) => (
                   <tr key={sw.swimmer_id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                     <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 flex items-center justify-center font-bold text-sm">
                           {sw.full_name?.charAt(0) || 'ش'}
                         </div>
-                        <span>{sw.full_name}</span>
+                        <span className="text-sm sm:text-base">{sw.full_name}</span>
                       </div>
                     </td>
-                    <td className="py-3.5 px-4 text-slate-600 dark:text-slate-300">
+                    <td className="py-3.5 px-4 text-slate-700 dark:text-slate-300 text-sm">
                       {sw.group_name || 'کلاس من'}
                     </td>
-                    <td className="py-3.5 px-4 font-mono font-semibold">
+                    <td className="py-3.5 px-4 font-mono font-bold text-sm">
                       {sw.sessions_attended} از {sw.sessions_purchased} جلسه
                     </td>
                     <td className="py-3.5 px-4 text-center">
                       <Link
                         to={`/coach/progress/${sw.swimmer_id}`}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white font-bold transition-all text-xs"
+                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white font-bold transition-all text-xs sm:text-sm"
                       >
-                        <TrendingUp className="w-3.5 h-3.5" />
+                        <TrendingUp className="w-4 h-4" />
                         مشاهده پرونده و ثبت ارزیابی
-                        <ChevronLeft className="w-3.5 h-3.5" />
+                        <ChevronLeft className="w-4 h-4" />
                       </Link>
                     </td>
                   </tr>
@@ -168,8 +168,8 @@ export const CoachProgressPage = () => {
       ) : (
         <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 space-y-2">
           <Users className="w-10 h-10 text-slate-300 mx-auto" />
-          <h3 className="text-sm font-bold text-slate-800 dark:text-white">شناگری یافت نشد</h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
+          <h3 className="text-base font-bold text-slate-800 dark:text-white">شناگری یافت نشد</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             شناگری مطابق فیلترهای انتخابی در کلاس‌های شما وجود ندارد.
           </p>
         </div>

@@ -106,11 +106,11 @@ export const CoachExamsPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <Award className="w-6 h-6 text-purple-600" />
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+            <Award className="w-6 h-6 sm:w-7 sm:h-7 text-purple-600" />
             آزمون‌ها و سطح‌بندی شناگران
           </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
             سنجش رسمی پایان دوره، ارزیابی سرفصل‌های مصوب و ارائه پیشنهاد ارتقای سطح
           </p>
         </div>
@@ -119,25 +119,25 @@ export const CoachExamsPage = () => {
           variant="primary"
           size="sm"
           onClick={() => setShowModal(true)}
-          className="gap-2 bg-purple-600 hover:bg-purple-700 text-white font-bold"
+          className="gap-2 bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm sm:text-base px-4 py-2.5"
         >
-          <PlusCircle className="w-4 h-4" />
+          <PlusCircle className="w-4.5 h-4.5" />
           ثبت پیشنهاد ارتقای سطح
         </Button>
       </div>
 
       {/* Access Boundary Alert */}
-      <div className="bg-purple-50/70 dark:bg-purple-950/20 rounded-2xl border border-purple-200 dark:border-purple-900/60 p-4.5 flex items-start gap-3">
+      <div className="bg-purple-50/70 dark:bg-purple-950/20 rounded-2xl border border-purple-200 dark:border-purple-900/60 p-4.5 flex items-start gap-3.5">
         <ShieldCheck className="w-5 h-5 text-purple-600 shrink-0 mt-0.5" />
-        <div className="text-xs text-purple-900 dark:text-purple-200 leading-relaxed">
+        <div className="text-sm text-purple-900 dark:text-purple-200 leading-relaxed">
           <span className="font-bold">مرز دسترسی و گردش کار آموزشی:</span> مربی می‌تواند آزمون عملی را برگزار نموده، شواهد تسلط را ثبت و پیشنهاد ارتقای سطح دهد. با این حال، تغییر نهایی سطح و صدور گواهی رسمی آموزشگاه مطابق خط‌مشی‌ها پس از بررسی مدیر یا مسئول آموزش نهایی می‌شود.
         </div>
       </div>
 
       {/* Proposals List */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs">
-        <div className="p-4 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
-          <h2 className="text-sm font-bold text-slate-900 dark:text-white">
+        <div className="p-4 sm:p-5 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+          <h2 className="text-base font-bold text-slate-900 dark:text-white">
             تاریخچه پیشنهادهای ارتقای سطح ارسالی ({proposals.length} مورد)
           </h2>
         </div>
@@ -149,35 +149,35 @@ export const CoachExamsPage = () => {
                 key={prop.id}
                 className="p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors"
               >
-                <div className="space-y-1.5 max-w-xl">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-sm text-slate-900 dark:text-white">
+                <div className="space-y-2 max-w-xl">
+                  <div className="flex items-center gap-2.5">
+                    <span className="font-bold text-base text-slate-900 dark:text-white">
                       {prop.swimmer_name}
                     </span>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-xs sm:text-sm text-slate-500">
                       از <span className="font-semibold text-slate-700 dark:text-slate-300">{prop.current_level_name}</span> به{' '}
                       <span className="font-bold text-purple-600">{prop.proposed_level_name}</span>
                     </span>
                   </div>
 
-                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                    <span className="font-semibold text-slate-500">شرح شواهد مربی:</span> {prop.coach_notes}
+                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                    <span className="font-bold text-slate-500">شرح شواهد مربی:</span> {prop.coach_notes}
                   </p>
 
                   {prop.reviewer_notes && (
-                    <p className="text-xs text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 p-2 rounded-lg">
-                      <span className="font-semibold">نظر مدیر آموزشگاه:</span> {prop.reviewer_notes}
+                    <p className="text-sm text-purple-700 dark:text-purple-300 bg-purple-50 dark:bg-purple-950/40 p-2.5 rounded-lg leading-relaxed">
+                      <span className="font-bold">نظر مدیر آموزشگاه:</span> {prop.reviewer_notes}
                     </p>
                   )}
 
-                  <span className="text-[11px] text-slate-400 block font-mono">
+                  <span className="text-xs text-slate-400 block font-mono font-medium">
                     تاریخ ثبت: {new Date(prop.created_at).toLocaleDateString('fa-IR')}
                   </span>
                 </div>
 
-                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2">
+                <div className="flex sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-2.5">
                   <span
-                    className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold ${
+                    className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-bold ${
                       prop.status === 'APPROVED'
                         ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300'
                         : prop.status === 'REJECTED'
@@ -185,24 +185,24 @@ export const CoachExamsPage = () => {
                         : 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300'
                     }`}
                   >
-                    {prop.status === 'APPROVED' && <CheckCircle2 className="w-3.5 h-3.5" />}
-                    {prop.status === 'REJECTED' && <XCircle className="w-3.5 h-3.5" />}
-                    {prop.status === 'PENDING' && <Clock className="w-3.5 h-3.5" />}
+                    {prop.status === 'APPROVED' && <CheckCircle2 className="w-4 h-4" />}
+                    {prop.status === 'REJECTED' && <XCircle className="w-4 h-4" />}
+                    {prop.status === 'PENDING' && <Clock className="w-4 h-4" />}
                     {prop.status_display}
                   </span>
 
                   <Link
                     to={`/coach/progress/${prop.swimmer}`}
-                    className="text-xs text-slate-500 hover:text-purple-600 flex items-center gap-1"
+                    className="text-xs sm:text-sm font-semibold text-slate-500 hover:text-purple-600 flex items-center gap-1 transition-colors"
                   >
                     پرونده شناگر
-                    <ChevronLeft className="w-3 h-3" />
+                    <ChevronLeft className="w-3.5 h-3.5" />
                   </Link>
                 </div>
               </div>
             ))
           ) : (
-            <div className="text-center py-12 text-slate-400 text-xs">
+            <div className="text-center py-12 text-slate-400 text-sm">
               تاکنون هیچ پیشنهاد ارتقایی ثبت نکرده‌اید. با کلیک روی دکمه بالا می‌توانید شاگردان آماده را برای ارتقا معرفی کنید.
             </div>
           )}
@@ -213,18 +213,18 @@ export const CoachExamsPage = () => {
       {showModal && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 space-y-4 shadow-xl">
-            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Award className="w-5 h-5 text-purple-600" />
               ثبت پیشنهاد ارتقای سطح شناگر
             </h3>
 
-            <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+            <form onSubmit={handleSubmit} className="space-y-4 text-sm">
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">انتخاب شناگر:</label>
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">انتخاب شناگر:</label>
                 <select
                   value={selectedSwimmerId}
                   onChange={(e) => setSelectedSwimmerId(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm font-medium"
                 >
                   {swimmers.map((sw) => (
                     <option key={sw.id} value={sw.id}>
@@ -236,11 +236,11 @@ export const CoachExamsPage = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">سطح فعلی:</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">سطح فعلی:</label>
                   <select
                     value={currentLevelId}
                     onChange={(e) => setCurrentLevelId(e.target.value)}
-                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200"
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm font-medium"
                   >
                     {levels.map((lvl) => (
                       <option key={lvl.id} value={lvl.id}>
@@ -251,11 +251,11 @@ export const CoachExamsPage = () => {
                 </div>
 
                 <div>
-                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">سطح پیشنهادی جدید:</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">سطح پیشنهادی جدید:</label>
                   <select
                     value={proposedLevelId}
                     onChange={(e) => setProposedLevelId(e.target.value)}
-                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200"
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm font-medium"
                   >
                     {levels.map((lvl) => (
                       <option key={lvl.id} value={lvl.id}>
@@ -267,22 +267,23 @@ export const CoachExamsPage = () => {
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1">شرح عملکرد و شواهد قبولی در آزمون:</label>
+                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">شرح عملکرد و شواهد قبولی در آزمون:</label>
                 <textarea
                   rows="4"
                   placeholder="ذکر مهارت‌های کسب‌شده، رکوردهای زمانی یا تسلط بر تکنیک‌های لازم..."
                   value={coachNotes}
                   onChange={(e) => setCoachNotes(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm leading-relaxed"
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-2">
+              <div className="flex justify-end gap-2.5 pt-2">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setShowModal(false)}
+                  className="text-sm font-medium"
                 >
                   انصراف
                 </Button>
@@ -291,7 +292,7 @@ export const CoachExamsPage = () => {
                   variant="primary"
                   size="sm"
                   loading={submitting}
-                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                  className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm"
                 >
                   ارسال پیشنهاد
                 </Button>
