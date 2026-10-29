@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Award, ShieldCheck, MapPin, CheckCircle2, User, Sparkles } from 'lucide-react';
+import { Award, ShieldCheck, MapPin, CheckCircle2, User } from 'lucide-react';
 
 /**
  * Redesigned Swimming Coach Profile Card
- * - Wide horizontal card layout with generous spacing
- * - Large circular profile avatar overlapping top edge
- * - Custom smooth, symmetrical concave curved top edge that wraps around avatar
+ * - Proportional ~3/4 desktop width (balanced 3-column / 430px max layout)
+ * - Prominent, large circular avatar (144px)
+ * - Geometrically concentric circular arc perfectly matching the avatar circle
+ * - Uniform 13px breathing air gap (zero touch with card)
  * - Clear Persian typography hierarchy
  * - Responsive from mobile to desktop
  */
@@ -52,11 +53,11 @@ export const CoachProfileCard = ({
   const getExperienceText = () => {
     const bio = coach.bio || '';
     const match = bio.match(/(\d+)\s*سال\s*سابقه/);
-    if (match) return `${match[1]} سال سابقه مربیگری`;
+    if (match) return `${match[1]} سال سابقه`;
     if (bio.includes('۱۰ سال')) return '۱۰ سال سابقه';
     if (bio.includes('۱۲ سال')) return '۱۲ سال سابقه';
     if (bio.includes('۸ سال')) return '۸ سال سابقه';
-    return 'مربی رسمی و باسابقه';
+    return 'مربی باسابقه';
   };
 
   // Extract certification
@@ -64,15 +65,15 @@ export const CoachProfileCard = ({
     const spec = (coach.specialties || '').toLowerCase();
     const bio = (coach.bio || '').toLowerCase();
     if (spec.includes('نجات غریق') || bio.includes('نجات غریق')) {
-      return 'نجات‌غریق فدراسیون';
+      return 'نجات‌غریق ۱';
     }
     if (bio.includes('کارشناس تربیت بدنی')) {
-      return 'کارشناس تربیت بدنی';
+      return 'تربیت بدنی';
     }
     if (bio.includes('مدرس رسمی')) {
-      return 'مدرس رسمی فدراسیون';
+      return 'مدرس فدراسیون';
     }
-    return 'مدرک مربیگری فدراسیون';
+    return 'مربی فدراسیون';
   };
 
   // Specialties parsed as tags
@@ -83,13 +84,13 @@ export const CoachProfileCard = ({
 
   return (
     <div
-      className={`coach-profile-card-wrapper relative pt-14 pb-2 w-full max-w-2xl mx-auto group select-none ${className}`}
+      className={`coach-profile-card-wrapper relative pt-[84px] pb-2 w-full max-w-[430px] mx-auto group select-none ${className}`}
       dir="rtl"
     >
       {/* =========================================================================
-          1. Overlapping Circular Avatar (Horizontally Centered)
+          1. Overlapping Circular Avatar (Large 144px, Decoupled with Constant 13px Gap)
           ========================================================================= */}
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 z-20 w-24 h-24 sm:w-26 sm:h-26 md:w-28 md:h-28 rounded-full p-1 bg-white ring-1 ring-sky-200/90 shadow-[0_10px_24px_rgba(15,43,56,0.15)] transition-transform duration-300 group-hover:scale-105">
+      <div className="absolute top-[20px] left-1/2 -translate-x-1/2 z-20 w-[136px] h-[136px] sm:w-[144px] sm:h-[144px] rounded-full p-1 bg-white ring-1 ring-sky-200/90 shadow-[0_14px_30px_rgba(15,43,56,0.18)] transition-transform duration-300 group-hover:scale-105">
         <div className="relative w-full h-full rounded-full overflow-hidden bg-sky-50">
           {hasValidPhoto ? (
             <img
@@ -101,47 +102,39 @@ export const CoachProfileCard = ({
             />
           ) : (
             <div className="w-full h-full rounded-full bg-gradient-to-tr from-sky-100 via-sky-50 to-teal-50 flex items-center justify-center text-sky-600">
-              <User className="w-11 h-11 sm:w-12 sm:h-12 text-sky-600/70" strokeWidth={1.75} />
+              <User className="w-16 h-16 text-sky-600/70" strokeWidth={1.75} />
             </div>
           )}
-        </div>
-
-        {/* Federation Verified Check Badge */}
-        <div
-          className="absolute bottom-0.5 left-0.5 sm:bottom-1 sm:left-1 w-6 h-6 sm:w-7 sm:h-7 bg-emerald-500 text-white rounded-full flex items-center justify-center border-2 border-white text-xs font-bold shadow-xs"
-          title="دارای مدرک رسمی و معتبر فدراسیون شنا"
-        >
-          ✓
         </div>
       </div>
 
       {/* =========================================================================
-          2. Unified Card Container with Curved Top Edge & Filter Shadow
+          2. Unified Card Container with Concentric Curved Top Edge & Filter Shadow
           ========================================================================= */}
       <div className="coach-card-body-shell flex flex-col w-full transition-all duration-300 group-hover:-translate-y-1">
         
-        {/* Top Boundary with Smooth Concave Curve Indentation */}
-        <div className="flex items-stretch h-11 sm:h-12 w-full -mb-[1px]">
-          {/* Right Shoulder (RTL layout: right side of card) */}
+        {/* Top Boundary with Exact Concentric Circular Arc & Smooth Tangent Fillets */}
+        <div className="flex items-stretch h-[98px] w-full -mb-[1px]">
+          {/* Right Shoulder (RTL right) */}
           <div className="flex-1 bg-white border-t-[1.5px] border-r-[1.5px] border-[#bae0eb] rounded-tr-2xl sm:rounded-tr-3xl transition-colors duration-300 group-hover:border-sky-300/90" />
 
-          {/* Concave Notch SVG (Smoothly descending and ascending around avatar) */}
-          <div className="w-[130px] sm:w-[144px] h-11 sm:h-12 shrink-0 relative overflow-visible">
+          {/* Center Concentric Notch SVG (Exact circular arc radius 85px concentric to avatar radius 72px) */}
+          <div className="w-[208.6px] h-[98px] shrink-0 relative overflow-visible">
             <svg
               className="w-full h-full block"
-              viewBox="0 0 144 48"
+              viewBox="0 0 208.6 98"
               fill="none"
               preserveAspectRatio="none"
               aria-hidden="true"
             >
               {/* Card Fill */}
               <path
-                d="M 0 0 C 34 0, 42 44, 72 44 C 102 44, 110 0, 144 0 L 144 48 L 0 48 Z"
+                d="M 0 0 A 20 20 0 0 0 19.9 17.7 A 85 85 0 0 0 188.8 17.7 A 20 20 0 0 0 208.6 0 L 208.6 98 L 0 98 Z"
                 fill="#ffffff"
               />
               {/* Curved Top Stroke */}
               <path
-                d="M 0 0.75 C 34 0.75, 42 44, 72 44 C 102 44, 110 0.75, 144 0.75"
+                d="M 0 0.75 A 20 20 0 0 0 19.9 17.7 A 85 85 0 0 0 188.8 17.7 A 20 20 0 0 0 208.6 0.75"
                 stroke="#bae0eb"
                 strokeWidth="1.5"
                 className="transition-colors duration-300 group-hover:stroke-sky-300/90"
@@ -149,12 +142,12 @@ export const CoachProfileCard = ({
             </svg>
           </div>
 
-          {/* Left Shoulder (RTL layout: left side of card) */}
+          {/* Left Shoulder (RTL left) */}
           <div className="flex-1 bg-white border-t-[1.5px] border-l-[1.5px] border-[#bae0eb] rounded-tl-2xl sm:rounded-tl-3xl transition-colors duration-300 group-hover:border-sky-300/90" />
         </div>
 
         {/* Card Main Body */}
-        <div className="bg-white border-b-[1.5px] border-x-[1.5px] border-[#bae0eb] rounded-b-2xl sm:rounded-b-3xl px-5 sm:px-8 pt-5 pb-6 text-center space-y-3.5 transition-colors duration-300 group-hover:border-sky-300/90 flex flex-col justify-between h-full">
+        <div className="bg-white border-b-[1.5px] border-x-[1.5px] border-[#bae0eb] rounded-b-2xl sm:rounded-b-3xl px-5 sm:px-6 pt-5 pb-6 text-center space-y-3.5 transition-colors duration-300 group-hover:border-sky-300/90 flex flex-col justify-between h-full">
           <div>
             {/* 1. Coach Name */}
             <h3 className="text-xl sm:text-2xl font-black text-[#0f2c3d] tracking-tight">
@@ -170,33 +163,32 @@ export const CoachProfileCard = ({
             </div>
 
             {/* 3. Metadata Row */}
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3.5 text-xs text-[#486875] border-y border-sky-100/90 py-2.5 my-3.5">
+            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 text-xs text-[#486875] border-y border-sky-100/90 py-2.5 my-3.5">
               <span className="flex items-center gap-1 font-medium">
                 <Award className="w-3.5 h-3.5 text-sky-600 shrink-0" />
                 {getExperienceText()}
               </span>
-              <span className="w-1 h-1 rounded-full bg-sky-300 hidden sm:inline-block" />
+              <span className="w-1 h-1 rounded-full bg-sky-300 inline-block" />
               <span className="flex items-center gap-1 font-medium">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                 {getCertificationText()}
               </span>
-              <span className="w-1 h-1 rounded-full bg-sky-300 hidden sm:inline-block" />
+              <span className="w-1 h-1 rounded-full bg-sky-300 inline-block" />
               <span className="flex items-center gap-1 font-medium">
                 <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                استخرهای قزوین
+                قزوین
               </span>
             </div>
 
             {/* 4. Readable Persian Biography */}
-            <p className="text-xs sm:text-sm text-[#486875] leading-relaxed max-w-lg mx-auto text-center line-clamp-3">
+            <p className="text-xs text-[#486875] leading-relaxed line-clamp-3">
               {coach.bio || 'مدرس باسابقه دوره‌های تخصصی شنای پایه و قهرمانی با سابقه درخشان در آموزش شناگران استان قزوین'}
             </p>
           </div>
 
           {/* 5. Supported Specialties Section */}
           {specialtiesList.length > 0 && (
-            <div className="mt-2 bg-[#f0f8fb] border border-sky-100/90 rounded-2xl p-2.5 sm:p-3 flex flex-wrap items-center justify-center gap-1.5 sm:gap-2">
-              <span className="text-xs font-bold text-sky-900 ml-1">تخصص‌ها:</span>
+            <div className="mt-2 bg-[#f0f8fb] border border-sky-100/90 rounded-2xl p-2.5 flex flex-wrap items-center justify-center gap-1.5">
               {specialtiesList.map((spec, idx) => (
                 <span
                   key={idx}
@@ -215,7 +207,7 @@ export const CoachProfileCard = ({
               وضعیت: فعال و مجاز
             </span>
             <span className="font-mono text-sky-700/80 bg-sky-50 px-2 py-0.5 rounded-md border border-sky-100">
-              تأییدیه فدراسیون شنا ✓
+              تأییدیه فدراسیون ✓
             </span>
           </div>
         </div>

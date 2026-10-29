@@ -142,6 +142,32 @@
 /* =========================================================================
    POWDERY BENEFIT CARDS (کارت‌های با بافت و رنگ پودری مخملی)
    ========================================================================= */
+.landing-benefits-track {
+  padding-top: 1.5rem;
+  padding-bottom: 3rem;
+  padding-inline: 1rem;
+}
+
+@media (min-width: 640px) {
+  .landing-benefits-track {
+    padding-top: 2rem;
+    padding-bottom: 3.5rem;
+    padding-inline: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-benefits-track {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 2rem !important;
+    padding-top: 2rem;
+    padding-bottom: 3.5rem;
+    padding-inline: 1.5rem;
+    overflow: visible !important;
+  }
+}
+
 .benefit-card {
   position: relative;
   isolation: isolate;
@@ -153,6 +179,14 @@
   border-radius: 0 1.85rem 0.65rem 1.85rem;
   overflow: hidden;
   transition: transform 250ms ease, box-shadow 250ms ease, border-color 250ms ease;
+  will-change: transform, box-shadow;
+}
+
+.benefit-card__title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  letter-spacing: -0.02em;
 }
 
 /* Powder micro-grain texture overlay (بافت دانه ریز پودری مات) */
@@ -624,7 +658,7 @@
 
 @media (max-width: 639px) {
   .benefit-card {
-    padding: 1.35rem 1.15rem 1.15rem;
+    padding: 1.5rem 1.25rem 1.25rem;
   }
 }
 
@@ -956,31 +990,49 @@ html.dark .auth-page > .auth-panel {
   text-shadow: 0 2px 10px rgba(1, 15, 24, 0.9), 0 1px 3px rgba(0, 0, 0, 0.9) !important;
 }
 
-/* Feature cards inside hero - ensure clear dark text and no text-shadow */
+/* Feature cards inside hero - ensure equal size and bold dark header */
 .landing-experience .landing-hero__panel .hero-feature-card {
-  color: #0f172a !important;
+  color: #000000 !important;
   text-shadow: none !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 100% !important;
+  min-height: 104px !important;
 }
 
-.landing-experience .landing-hero__panel .hero-feature-card :is(div, span, strong) {
-  color: #0f172a !important;
+.landing-experience .landing-hero__panel .hero-feature-card .hero-feature-header,
+.landing-experience .landing-hero__panel .hero-feature-card .hero-feature-header span,
+.landing-experience .landing-hero__panel .hero-feature-card .hero-feature-title {
+  color: #000000 !important;
   text-shadow: none !important;
   font-weight: 900 !important;
   white-space: nowrap !important;
+  -webkit-font-smoothing: antialiased;
 }
 
-.landing-experience .landing-hero__panel .hero-feature-card p {
+.landing-experience .landing-hero__panel .hero-feature-card p,
+.landing-experience .landing-hero__panel .hero-feature-card .hero-feature-desc {
   color: #1e293b !important;
   text-shadow: none !important;
-  font-weight: 700 !important;
-  font-size: 0.85rem !important;
+  font-weight: 600 !important;
+  font-size: 0.825rem !important;
   line-height: 1.45 !important;
+  min-height: 2.75rem !important;
+  margin: 0 !important;
 }
 
 @media (max-width: 640px) {
-  .landing-experience .landing-hero__panel .hero-feature-card p {
+  .landing-experience .landing-hero__panel .hero-feature-card {
+    min-height: 98px !important;
+  }
+
+  .landing-experience .landing-hero__panel .hero-feature-card p,
+  .landing-experience .landing-hero__panel .hero-feature-card .hero-feature-desc {
     font-size: 0.775rem !important;
-    line-height: 1.35 !important;
+    line-height: 1.4 !important;
+    min-height: 2.35rem !important;
   }
 }
 

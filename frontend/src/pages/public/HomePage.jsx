@@ -441,6 +441,42 @@ export const HomePage = () => {
     }
   };
 
+  const renderHeroFeatureCards = () => (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5 lg:gap-4 items-stretch">
+      <div className="hero-feature-card w-full p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
+        <div className="hero-feature-header flex items-center gap-1.5 text-black text-xs sm:text-sm lg:text-[14px] font-black whitespace-nowrap">
+          <Waves className="w-4 h-4 text-cyan-600 shrink-0" />
+          <span className="hero-feature-title font-black text-black whitespace-nowrap">آموزش ۴ شنا</span>
+        </div>
+        <p className="hero-feature-desc text-xs sm:text-[13px] text-slate-800 font-semibold leading-snug sm:leading-relaxed">کرال سینه، پشت، قورباغه و پروانه</p>
+      </div>
+
+      <div className="hero-feature-card w-full p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
+        <div className="hero-feature-header flex items-center gap-1.5 text-black text-xs sm:text-sm lg:text-[14px] font-black whitespace-nowrap">
+          <Award className="w-4 h-4 text-cyan-600 shrink-0" />
+          <span className="hero-feature-title font-black text-black whitespace-nowrap">مربیان رسمی</span>
+        </div>
+        <p className="hero-feature-desc text-xs sm:text-[13px] text-slate-800 font-semibold leading-snug sm:leading-relaxed">دارای کارت مربیگری و نجات‌غریق</p>
+      </div>
+
+      <div className="hero-feature-card w-full p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
+        <div className="hero-feature-header flex items-center gap-1.5 text-black text-xs sm:text-sm lg:text-[14px] font-black whitespace-nowrap">
+          <Users2 className="w-4 h-4 text-cyan-600 shrink-0" />
+          <span className="hero-feature-title font-black text-black whitespace-nowrap">کودکان و بزرگسالان</span>
+        </div>
+        <p className="hero-feature-desc text-xs sm:text-[13px] text-slate-800 font-semibold leading-snug sm:leading-relaxed">از ۵ سال تا رده‌های بزرگسال</p>
+      </div>
+
+      <div className="hero-feature-card w-full p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
+        <div className="hero-feature-header flex items-center gap-1.5 text-black text-xs sm:text-sm lg:text-[14px] font-black whitespace-nowrap">
+          <MapPin className="w-4 h-4 text-cyan-600 shrink-0" />
+          <span className="hero-feature-title font-black text-black whitespace-nowrap">استخرهای قزوین</span>
+        </div>
+        <p className="hero-feature-desc text-xs sm:text-[13px] text-slate-800 font-semibold leading-snug sm:leading-relaxed">محیط تمیز، بهداشتی و ایمن</p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="landing-experience relative min-h-screen selection:bg-cyan-200 selection:text-slate-900 overflow-x-hidden text-right font-sans">
       {/* Dynamic Aquatic Water Caustic Canvas */}
@@ -513,39 +549,9 @@ export const HomePage = () => {
                   </a>
                 </div>
 
-                {/* Key Metric Features */}
-                <div className="pt-6 border-t border-cyan-300/40 flex overflow-x-auto sm:grid sm:grid-cols-4 gap-2.5 sm:gap-4 pb-2 sm:pb-0 landing-scroll-track snap-x snap-mandatory">
-                  <div className="hero-feature-card min-w-[160px] sm:min-w-0 shrink-0 sm:shrink snap-start p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all">
-                    <div className="flex items-center gap-1.5 text-slate-950 text-xs sm:text-[13px] lg:text-sm font-black whitespace-nowrap">
-                      <Waves className="w-4 h-4 text-cyan-600 shrink-0" />
-                      <span className="font-black whitespace-nowrap">آموزش ۴ شنا</span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-slate-800 font-bold leading-snug sm:leading-relaxed">کرال سینه، پشت، قورباغه و پروانه</p>
-                  </div>
-
-                  <div className="hero-feature-card min-w-[160px] sm:min-w-0 shrink-0 sm:shrink snap-start p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all">
-                    <div className="flex items-center gap-1.5 text-slate-950 text-xs sm:text-[13px] lg:text-sm font-black whitespace-nowrap">
-                      <Award className="w-4 h-4 text-cyan-600 shrink-0" />
-                      <span className="font-black whitespace-nowrap">مربیان رسمی</span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-slate-800 font-bold leading-snug sm:leading-relaxed">دارای کارت مربیگری و نجات‌غریق</p>
-                  </div>
-
-                  <div className="hero-feature-card min-w-[160px] sm:min-w-0 shrink-0 sm:shrink snap-start p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all">
-                    <div className="flex items-center gap-1.5 text-slate-950 text-xs sm:text-[13px] lg:text-sm font-black whitespace-nowrap">
-                      <Users2 className="w-4 h-4 text-cyan-600 shrink-0" />
-                      <span className="font-black whitespace-nowrap">کودکان و بزرگسالان</span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-slate-800 font-bold leading-snug sm:leading-relaxed">از ۵ سال تا رده‌های بزرگسال</p>
-                  </div>
-
-                  <div className="hero-feature-card min-w-[160px] sm:min-w-0 shrink-0 sm:shrink snap-start p-3.5 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all">
-                    <div className="flex items-center gap-1.5 text-slate-950 text-xs sm:text-[13px] lg:text-sm font-black whitespace-nowrap">
-                      <MapPin className="w-4 h-4 text-cyan-600 shrink-0" />
-                      <span className="font-black whitespace-nowrap">استخرهای قزوین</span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-slate-800 font-bold leading-snug sm:leading-relaxed">محیط تمیز، بهداشتی و ایمن</p>
-                  </div>
+                {/* Desktop Only: Key Metric Features */}
+                <div className="hidden lg:block pt-6 border-t border-cyan-300/40">
+                  {renderHeroFeatureCards()}
                 </div>
 
               </div>
@@ -563,6 +569,11 @@ export const HomePage = () => {
                     loading="eager"
                   />
                 </div>
+              </div>
+
+              {/* Mobile & Tablet Only: Key Metric Features (under swimmer boy, 2x2 on mobile, 4-col on tablet) */}
+              <div className="block lg:hidden col-span-1 w-full pt-2 sm:pt-4 border-t border-cyan-300/30">
+                {renderHeroFeatureCards()}
               </div>
 
             </div>
@@ -590,69 +601,75 @@ export const HomePage = () => {
             onTouchStart={handleBenefitInteractionStart}
             onTouchEnd={handleBenefitInteractionEnd}
             onScroll={handleBenefitScroll}
-            className="landing-benefits-track landing-scroll-track flex overflow-x-auto pt-2 pb-4 px-1 gap-4 sm:gap-6 snap-x snap-mandatory lg:grid lg:grid-cols-3 lg:gap-8 lg:overflow-visible lg:pb-0 lg:px-0 items-stretch"
+            className="landing-benefits-track landing-scroll-track flex overflow-x-auto pt-6 pb-12 px-4 sm:pt-8 sm:pb-16 sm:px-6 gap-6 sm:gap-8 snap-x snap-mandatory lg:grid lg:grid-cols-3 lg:gap-8 lg:overflow-visible lg:pt-9 lg:pb-16 lg:px-7 items-stretch"
           >
             {/* Benefit Card 1 - فیروزه‌ای پودری */}
-            <div className="benefit-card benefit-card--turquoise card-hydrofoil group relative flex flex-col justify-between w-[84vw] sm:w-[340px] md:w-[360px] max-w-[380px] shrink-0 snap-center lg:w-auto lg:max-w-none lg:shrink">
-              <div className="benefit-card__icon w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
-                <CardioAquaticIcon className="w-6 h-6 sm:w-7 sm:h-7" />
-              </div>
-              <div className="space-y-2.5 sm:space-y-3 flex-1 flex flex-col">
-                <span className="benefit-card__badge inline-block self-start px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold">
+            <div className="benefit-card benefit-card--turquoise card-hydrofoil group relative flex flex-col justify-between w-[84vw] sm:w-[340px] md:w-[360px] max-w-[380px] shrink-0 snap-center lg:w-auto lg:max-w-none lg:shrink h-full">
+              <div className="flex items-center justify-between gap-3 mb-4 sm:mb-5">
+                <div className="benefit-card__icon w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <CardioAquaticIcon className="w-6 h-6 sm:w-7 sm:h-7" />
+                </div>
+                <span className="benefit-card__badge px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold whitespace-nowrap">
                   کودکان و نوجوانان
                 </span>
-                <h3 className="benefit-card__title font-black text-xl sm:text-2xl lg:text-[1.35rem] xl:text-2xl leading-snug">
+              </div>
+              <div className="space-y-3 flex-1 flex flex-col justify-between">
+                <h3 className="benefit-card__title font-black text-lg sm:text-xl lg:text-[1.2rem] xl:text-[1.35rem] whitespace-nowrap tracking-tight leading-snug" title="آموزش بدون ترس و روان‌شناختی">
                   آموزش بدون ترس و روان‌شناختی
                 </h3>
-                <p className="benefit-card__desc text-sm sm:text-base leading-relaxed sm:leading-loose text-justify font-medium flex-1">
+                <p className="benefit-card__desc text-sm sm:text-base leading-relaxed sm:leading-loose text-justify font-medium flex-1 pt-1">
                   شروع از بازی‌های شاداب در آب کم‌عمق تا کودک احساس امنیت کامل کند و با انگیزه و علاقه واقعی مراحل یادگیری شنا را پشت سر بگذارد.
                 </p>
               </div>
-              <div className="benefit-card__footer mt-4 sm:mt-5 pt-3.5 flex items-center justify-between text-xs sm:text-sm font-bold">
+              <div className="benefit-card__footer mt-5 pt-3.5 flex items-center justify-between text-xs sm:text-sm font-bold">
                 <span>محیط شاداب و امن برای کودک</span>
                 <Check className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
               </div>
             </div>
 
             {/* Benefit Card 2 - بنفش ملو پودری */}
-            <div className="benefit-card benefit-card--purple card-hydrofoil group relative flex flex-col justify-between w-[84vw] sm:w-[340px] md:w-[360px] max-w-[380px] shrink-0 snap-center lg:w-auto lg:max-w-none lg:shrink">
-              <div className="benefit-card__icon w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
-                <HydroTherapySpineIcon className="w-6 h-6 sm:w-7 sm:h-7" />
-              </div>
-              <div className="space-y-2.5 sm:space-y-3 flex-1 flex flex-col">
-                <span className="benefit-card__badge inline-block self-start px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold">
+            <div className="benefit-card benefit-card--purple card-hydrofoil group relative flex flex-col justify-between w-[84vw] sm:w-[340px] md:w-[360px] max-w-[380px] shrink-0 snap-center lg:w-auto lg:max-w-none lg:shrink h-full">
+              <div className="flex items-center justify-between gap-3 mb-4 sm:mb-5">
+                <div className="benefit-card__icon w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <HydroTherapySpineIcon className="w-6 h-6 sm:w-7 sm:h-7" />
+                </div>
+                <span className="benefit-card__badge px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold whitespace-nowrap">
                   اصلاح ساختار قامت و تنفس
                 </span>
-                <h3 className="benefit-card__title font-black text-xl sm:text-2xl lg:text-[1.35rem] xl:text-2xl leading-snug">
+              </div>
+              <div className="space-y-3 flex-1 flex flex-col justify-between">
+                <h3 className="benefit-card__title font-black text-lg sm:text-xl lg:text-[1.2rem] xl:text-[1.35rem] whitespace-nowrap tracking-tight leading-snug" title="تقویت ستون فقرات و سلامت جسمانی">
                   تقویت ستون فقرات و سلامت جسمانی
                 </h3>
-                <p className="benefit-card__desc text-sm sm:text-base leading-relaxed sm:leading-loose text-justify font-medium flex-1">
+                <p className="benefit-card__desc text-sm sm:text-base leading-relaxed sm:leading-loose text-justify font-medium flex-1 pt-1">
                   شنا بهترین ورزش برای جلوگیری از افتادگی شانه و گودی کمر در کودکان محصل است و در بزرگسالان به بهبود تنفس و کاهش دردهای عضلانی کمک می‌کند.
                 </p>
               </div>
-              <div className="benefit-card__footer mt-4 sm:mt-5 pt-3.5 flex items-center justify-between text-xs sm:text-sm font-bold">
+              <div className="benefit-card__footer mt-5 pt-3.5 flex items-center justify-between text-xs sm:text-sm font-bold">
                 <span>بهبود استقامت و سلامت بدنی</span>
                 <Check className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
               </div>
             </div>
 
             {/* Benefit Card 3 - سبز پودری */}
-            <div className="benefit-card benefit-card--green card-hydrofoil group relative flex flex-col justify-between w-[84vw] sm:w-[340px] md:w-[360px] max-w-[380px] shrink-0 snap-center lg:w-auto lg:max-w-none lg:shrink">
-              <div className="benefit-card__icon w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
-                <RescueBuoyRingIcon className="w-6 h-6 sm:w-7 sm:h-7" />
-              </div>
-              <div className="space-y-2.5 sm:space-y-3 flex-1 flex flex-col">
-                <span className="benefit-card__badge inline-block self-start px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold">
+            <div className="benefit-card benefit-card--green card-hydrofoil group relative flex flex-col justify-between w-[84vw] sm:w-[340px] md:w-[360px] max-w-[380px] shrink-0 snap-center lg:w-auto lg:max-w-none lg:shrink h-full">
+              <div className="flex items-center justify-between gap-3 mb-4 sm:mb-5">
+                <div className="benefit-card__icon w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
+                  <RescueBuoyRingIcon className="w-6 h-6 sm:w-7 sm:h-7" />
+                </div>
+                <span className="benefit-card__badge px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold whitespace-nowrap">
                   نظارت و ایمنی کامل
                 </span>
-                <h3 className="benefit-card__title font-black text-xl sm:text-2xl lg:text-[1.35rem] xl:text-2xl leading-snug">
+              </div>
+              <div className="space-y-3 flex-1 flex flex-col justify-between">
+                <h3 className="benefit-card__title font-black text-lg sm:text-xl lg:text-[1.2rem] xl:text-[1.35rem] whitespace-nowrap tracking-tight leading-snug" title="مربیان رسمی و کلاس‌های کم‌جمعیت">
                   مربیان رسمی و کلاس‌های کم‌جمعیت
                 </h3>
-                <p className="benefit-card__desc text-sm sm:text-base leading-relaxed sm:leading-loose text-justify font-medium flex-1">
+                <p className="benefit-card__desc text-sm sm:text-base leading-relaxed sm:leading-loose text-justify font-medium flex-1 pt-1">
                   آموزش توسط مربیان دارای کارت رسمی فدراسیون در گروه‌های خلوت و با حضور پیوسته نجات‌غریق برگزار می‌شود تا پیشرفت هر شناگر به طور اختصاصی پایش شود.
                 </p>
               </div>
-              <div className="benefit-card__footer mt-4 sm:mt-5 pt-3.5 flex items-center justify-between text-xs sm:text-sm font-bold">
+              <div className="benefit-card__footer mt-5 pt-3.5 flex items-center justify-between text-xs sm:text-sm font-bold">
                 <span>توجه اختصاصی به تک‌تک شناگران</span>
                 <Check className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
               </div>
@@ -792,7 +809,7 @@ export const HomePage = () => {
             items={coaches}
             className="landing-carousel"
             ariaLabel="اسلایدر کادر مربیان آموزشگاه"
-            visibleItems={{ mobile: 1, tablet: 1, desktop: 2 }}
+            visibleItems={{ mobile: 1, tablet: 2, desktop: 3 }}
             interval={6000}
             renderItem={(coach) => (
               <CoachProfileCard
@@ -822,7 +839,7 @@ export const HomePage = () => {
             </div>
           </div>
 
-          <div className="landing-facilities-track landing-scroll-track flex overflow-x-auto pt-2 pb-6 px-1 gap-5 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pb-0 lg:px-0 items-stretch">
+          <div className="landing-facilities-track landing-scroll-track flex overflow-x-auto pt-5 pb-10 px-3 sm:pt-7 sm:pb-12 sm:px-5 gap-5 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pt-7 lg:pb-12 lg:px-5 items-stretch">
             {/* Feature 1 */}
             <div className="bg-slate-900/80 p-6 card-hydrofoil border-2 border-teal-500/20 hover:border-teal-400/60 transition-all duration-300 flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
               <div className="space-y-4">
