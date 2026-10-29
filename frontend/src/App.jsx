@@ -36,8 +36,18 @@ import { AdminSessionsPage } from './pages/admin/AdminSessionsPage';
 
 // Coach Pages
 import { CoachDashboard } from './pages/coach/CoachDashboard';
+import { CoachClassesPage } from './pages/coach/CoachClassesPage';
+import { CoachClassDetailPage } from './pages/coach/CoachClassDetailPage';
 import { CoachAttendancePage } from './pages/coach/CoachAttendancePage';
+import { CoachProgressPage } from './pages/coach/CoachProgressPage';
+import { CoachSwimmerDossierPage } from './pages/coach/CoachSwimmerDossierPage';
 import { CoachAssessmentsPage } from './pages/coach/CoachAssessmentsPage';
+import { CoachExamsPage } from './pages/coach/CoachExamsPage';
+import { CoachWorkoutsPage } from './pages/coach/CoachWorkoutsPage';
+import { CoachAIAssistantPage } from './pages/coach/CoachAIAssistantPage';
+import { CoachMessagesPage } from './pages/coach/CoachMessagesPage';
+import { CoachProfilePage } from './pages/coach/CoachProfilePage';
+
 
 // Swimmer Pages
 import { SwimmerPortal } from './pages/swimmer/SwimmerPortal';
@@ -154,7 +164,7 @@ export default function App() {
                 <Route path="sessions" element={<AdminSessionsPage />} />
               </Route>
 
-              {/* Coach Protected Routes */}
+              {/* Coach Protected Routes (9 Modules Hub) */}
               <Route
                 path="/coach"
                 element={
@@ -163,10 +173,37 @@ export default function App() {
                   </ProtectedRoute>
                 }
               >
+                {/* 1. Dashboard */}
                 <Route index element={<CoachDashboard />} />
+
+                {/* 2. My Classes */}
+                <Route path="classes" element={<CoachClassesPage />} />
+                <Route path="classes/:id" element={<CoachClassDetailPage />} />
+
+                {/* 3. Attendance */}
                 <Route path="attendance" element={<CoachAttendancePage />} />
-                <Route path="assessments" element={<CoachAssessmentsPage />} />
+
+                {/* 4. Progress & Swimmer Dossier */}
+                <Route path="progress" element={<CoachProgressPage />} />
+                <Route path="progress/:swimmerId" element={<CoachSwimmerDossierPage />} />
+                <Route path="assessments" element={<Navigate to="/coach/progress" replace />} />
+
+                {/* 5. Exams & Levels */}
+                <Route path="exams" element={<CoachExamsPage />} />
+
+                {/* 6. Workouts */}
+                <Route path="workouts" element={<CoachWorkoutsPage />} />
+
+                {/* 7. AI Assistant */}
+                <Route path="ai-assistant" element={<CoachAIAssistantPage />} />
+
+                {/* 8. Messages & Communications */}
+                <Route path="messages" element={<CoachMessagesPage />} />
+
+                {/* 9. Profile & Settings */}
+                <Route path="profile" element={<CoachProfilePage />} />
               </Route>
+
 
               {/* Swimmer Protected Routes (10 Modules Hub) */}
               <Route

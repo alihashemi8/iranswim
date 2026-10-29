@@ -245,100 +245,93 @@ export const HomePage = () => {
               <div className="lg:col-span-7 space-y-6 sm:space-y-8 text-right">
                 
                 {/* Floating Aquatic Pill */}
-                <div className="inline-flex items-center gap-2.5 px-4 py-2 bg-slate-900/80 border border-cyan-400/40 rounded-full text-xs sm:text-sm font-bold text-cyan-200 shadow-md">
-                  <MapPin className="w-4 h-4 text-cyan-400 shrink-0" />
+                <div className="inline-flex items-center gap-2.5 px-4 py-2 bg-white/95 border-2 border-cyan-200/90 rounded-full text-xs sm:text-sm font-bold text-slate-900 shadow-md">
+                  <MapPin className="w-4 h-4 text-cyan-600 shrink-0" />
                   <span>مدرسه شنای ایران • استان قزوین</span>
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-1" />
-                  <span className="text-[11px] sm:text-xs text-emerald-300 font-semibold">پذیرش ترم جدید</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-1" />
+                  <span className="text-[11px] sm:text-xs text-emerald-800 font-extrabold bg-emerald-100/80 px-2.5 py-0.5 rounded-full border border-emerald-300/80">پذیرش ترم جدید</span>
                 </div>
 
                 {/* Main Headline */}
                 <div className="space-y-4">
                   <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black tracking-tight leading-[1.18] text-white">
-                    آموزش اصولی شنا در قزوین؛
+                    آموزش اصولی شنا 
                     <br />
                     <span className="text-cyan-300 font-black">
                       از مبتدی تا پیشرفته
                     </span>
                   </h1>
-                  <p className="text-base sm:text-xl font-bold text-sky-100 leading-snug">
+                  <p className="hero-lead-text text-base sm:text-xl font-bold text-sky-100 leading-snug">
                     دوره‌های آموزش شنا ویژه کودکان، نوجوانان و بزرگسالان زیر نظر مربیان رسمی فدراسیون شنا
                   </p>
                 </div>
 
                 {/* Editorial Description */}
-                <p className="text-sm sm:text-base lg:text-lg text-slate-100/90 leading-relaxed font-normal max-w-2xl text-justify">
+                <p className="hero-editorial-p text-sm sm:text-base lg:text-lg text-slate-100/90 leading-relaxed font-normal max-w-2xl text-justify">
                   اگر به دنبال یادگیری اصولی شنا، رفع ترس از آب در کودکان یا آموزش چهار شنا (کرال سینه، کرال پشت، قورباغه و پروانه) هستید؛ کلاس‌های ما در استخرهای منتخب قزوین در محیطی بهداشتی، خلوت و با برنامه‌ریزی منظم برگزار می‌شود.
                 </p>
 
                 {/* Primary Conversion & Navigation Buttons */}
-                <div className="flex flex-wrap items-center gap-3 sm:gap-4 pt-3">
+                <div className="flex flex-row items-center gap-2.5 sm:gap-4 pt-3 w-full sm:w-auto">
                   {user ? (
                     <Link
                       to={getDashboardDestination()}
-                      className="px-6 sm:px-7 py-3.5 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black rounded-2xl shadow-lg transition-all text-sm sm:text-base inline-flex items-center gap-2 cursor-pointer active:scale-95"
+                      className="flex-1 sm:flex-initial justify-center px-4 sm:px-7 py-3.5 sm:py-4 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black rounded-2xl shadow-[0_8px_20px_-4px_rgba(34,211,238,0.5)] hover:shadow-cyan-400/60 transition-all text-xs sm:text-base inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95 text-center whitespace-nowrap"
                     >
                       <span>ورود به پنل کاربری</span>
-                      <ArrowLeft className="w-5 h-5" />
+                      <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                     </Link>
                   ) : (
                     <Link
                       to="/login"
-                      className="px-6 sm:px-7 py-3.5 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black rounded-2xl shadow-lg transition-all text-sm sm:text-base inline-flex items-center gap-2 cursor-pointer active:scale-95"
+                      className="flex-1 sm:flex-initial justify-center px-4 sm:px-7 py-3.5 sm:py-4 bg-cyan-300 hover:bg-cyan-200 text-slate-950 font-black rounded-2xl shadow-[0_8px_20px_-4px_rgba(34,211,238,0.5)] hover:shadow-cyan-400/60 transition-all text-xs sm:text-base inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95 text-center whitespace-nowrap"
                     >
-                      <span>مشاهده و ثبت‌نام در کلاس‌ها</span>
-                      <ArrowLeft className="w-5 h-5" />
+                      <span>ثبت‌نام در کلاس‌ها</span>
+                      <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                     </Link>
                   )}
 
                   <a
-                    href="#courses"
-                    className="px-5 sm:px-6 py-3.5 bg-slate-900/80 hover:bg-slate-800 text-white font-bold rounded-2xl border-2 border-cyan-400/40 hover:border-cyan-300 transition-all text-sm sm:text-base inline-flex items-center gap-2 cursor-pointer shadow-md"
-                  >
-                    <span>لیست دوره‌ها و شهریه</span>
-                  </a>
-
-                  <a
                     href="#coaches"
-                    className="px-4 sm:px-5 py-3.5 bg-slate-900/60 hover:bg-slate-800/80 text-cyan-200 hover:text-white font-bold rounded-2xl border border-cyan-500/30 transition-all text-sm sm:text-base inline-flex items-center gap-1.5"
+                    className="flex-1 sm:flex-initial justify-center px-4 sm:px-6 py-3.5 sm:py-4 bg-white hover:bg-cyan-50 text-slate-950 font-black rounded-2xl border-2 border-cyan-200/80 shadow-[0_8px_20px_-4px_rgba(255,255,255,0.4)] hover:shadow-white/60 transition-all text-xs sm:text-base inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95 text-center whitespace-nowrap"
                   >
-                    <Users2 className="w-4 h-4 text-teal-400" />
+                    <Users2 className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600 shrink-0" />
                     <span>کادر مربیان قزوین</span>
                   </a>
                 </div>
 
                 {/* Key Metric Features */}
-                <div className="pt-6 border-t border-cyan-500/30 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
-                  <div className="p-3.5 rounded-2xl bg-slate-900/75 border border-cyan-400/25 space-y-1">
-                    <div className="flex items-center gap-1.5 text-cyan-300 text-xs sm:text-sm font-bold">
-                      <OlympicPoolLaneIcon className="w-4 h-4 text-teal-400 shrink-0" />
+                <div className="pt-6 border-t border-cyan-300/40 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+                  <div className="hero-feature-card p-3.5 sm:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] space-y-1.5 hover:shadow-lg transition-all">
+                    <div className="flex items-center gap-1.5 text-slate-900 text-xs sm:text-sm font-black">
+                      <OlympicPoolLaneIcon className="w-4 h-4 text-cyan-600 shrink-0" />
                       <span>آموزش ۴ شنا</span>
                     </div>
-                    <p className="text-[11px] sm:text-xs text-slate-200">کرال سینه، پشت، قورباغه و پروانه</p>
+                    <p className="text-[11px] sm:text-xs text-slate-700 font-bold leading-relaxed">کرال سینه، پشت، قورباغه و پروانه</p>
                   </div>
 
-                  <div className="p-3.5 rounded-2xl bg-slate-900/75 border border-cyan-400/25 space-y-1">
-                    <div className="flex items-center gap-1.5 text-cyan-300 text-xs sm:text-sm font-bold">
-                      <RescueBuoyRingIcon className="w-4 h-4 text-teal-400 shrink-0" />
+                  <div className="hero-feature-card p-3.5 sm:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] space-y-1.5 hover:shadow-lg transition-all">
+                    <div className="flex items-center gap-1.5 text-slate-900 text-xs sm:text-sm font-black">
+                      <RescueBuoyRingIcon className="w-4 h-4 text-cyan-600 shrink-0" />
                       <span>مربیان رسمی</span>
                     </div>
-                    <p className="text-[11px] sm:text-xs text-slate-200">دارای کارت مربیگری و نجات‌غریق</p>
+                    <p className="text-[11px] sm:text-xs text-slate-700 font-bold leading-relaxed">دارای کارت مربیگری و نجات‌غریق</p>
                   </div>
 
-                  <div className="p-3.5 rounded-2xl bg-slate-900/75 border border-cyan-400/25 space-y-1">
-                    <div className="flex items-center gap-1.5 text-cyan-300 text-xs sm:text-sm font-bold">
-                      <Sparkles className="w-4 h-4 text-teal-400 shrink-0" />
+                  <div className="hero-feature-card p-3.5 sm:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] space-y-1.5 hover:shadow-lg transition-all">
+                    <div className="flex items-center gap-1.5 text-slate-900 text-xs sm:text-sm font-black">
+                      <Sparkles className="w-4 h-4 text-cyan-600 shrink-0" />
                       <span>کودکان و بزرگسالان</span>
                     </div>
-                    <p className="text-[11px] sm:text-xs text-slate-200">از ۵ سال تا رده‌های بزرگسال</p>
+                    <p className="text-[11px] sm:text-xs text-slate-700 font-bold leading-relaxed">از ۵ سال تا رده‌های بزرگسال</p>
                   </div>
 
-                  <div className="p-3.5 rounded-2xl bg-slate-900/75 border border-cyan-400/25 space-y-1">
-                    <div className="flex items-center gap-1.5 text-cyan-300 text-xs sm:text-sm font-bold">
-                      <MapPin className="w-4 h-4 text-teal-400 shrink-0" />
+                  <div className="hero-feature-card p-3.5 sm:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] space-y-1.5 hover:shadow-lg transition-all">
+                    <div className="flex items-center gap-1.5 text-slate-900 text-xs sm:text-sm font-black">
+                      <MapPin className="w-4 h-4 text-cyan-600 shrink-0" />
                       <span>استخرهای قزوین</span>
                     </div>
-                    <p className="text-[11px] sm:text-xs text-slate-200">محیط تمیز، بهداشتی و ایمن</p>
+                    <p className="text-[11px] sm:text-xs text-slate-700 font-bold leading-relaxed">محیط تمیز، بهداشتی و ایمن</p>
                   </div>
                 </div>
 
@@ -794,9 +787,9 @@ export const HomePage = () => {
 
                 <a
                   href="tel:02833650000"
-                  className="px-7 sm:px-9 py-4 bg-slate-900/90 hover:bg-slate-800 text-white font-bold rounded-2xl border-2 border-cyan-400/40 hover:border-cyan-300 transition-all text-base sm:text-lg inline-flex items-center gap-2.5 shadow-md"
+                  className="px-7 sm:px-9 py-4 bg-white hover:bg-cyan-50 text-slate-950 font-black rounded-2xl border-2 border-cyan-200/90 transition-all text-base sm:text-lg inline-flex items-center gap-2.5 shadow-md"
                 >
-                  <PhoneCall className="w-5 h-5 text-cyan-400" />
+                  <PhoneCall className="w-5 h-5 text-cyan-600" />
                   <span>تماس با پذیرش: ۰۲۸-۳۳۶۵۰۰۰۰</span>
                 </a>
               </div>
