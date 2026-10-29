@@ -376,7 +376,8 @@
   box-shadow: 0 8px 22px rgb(24 74 84 / 14%);
 }
 
-#courses > div.grid {
+#courses > div.grid,
+#courses > div.landing-courses-track {
   max-width: 80rem;
   margin-inline: auto;
 }
@@ -401,6 +402,12 @@
   margin-top: 1.5rem;
   background: rgb(237 249 244 / 96%);
   border-radius: 1.5rem 0.45rem 1.5rem 1.5rem;
+}
+
+.landing-carousel .landing-course,
+.landing-carousel .landing-course--1 {
+  margin-top: 0;
+  height: 100%;
 }
 
 .landing-course--2 {
@@ -568,15 +575,15 @@
   color: #486875;
 }
 
-#facilities .grid h4 {
+#facilities :is(.grid, .landing-facilities-track) h4 {
   color: var(--pool-ink);
 }
 
-#facilities .grid p {
+#facilities :is(.grid, .landing-facilities-track) p {
   color: #4c626d;
 }
 
-#facilities .grid > div {
+#facilities :is(.grid, .landing-facilities-track) > div {
   min-height: 15rem;
   padding: 1.5rem;
   border: 1px solid rgb(255 255 255 / 92%);
@@ -586,18 +593,49 @@
   transition: transform 240ms ease, box-shadow 240ms ease;
 }
 
-#facilities .grid > div [class*="bg-teal-950"],
-#facilities .grid > div [class*="bg-amber-950"],
-#facilities .grid > div [class*="bg-orange-950"],
-#facilities .grid > div [class*="bg-indigo-950"] {
+#facilities :is(.grid, .landing-facilities-track) > div [class*="bg-teal-950"],
+#facilities :is(.grid, .landing-facilities-track) > div [class*="bg-amber-950"],
+#facilities :is(.grid, .landing-facilities-track) > div [class*="bg-orange-950"],
+#facilities :is(.grid, .landing-facilities-track) > div [class*="bg-indigo-950"] {
   color: #087e91;
   background: #e4f4f0;
   border-color: #c7e8df;
 }
 
-#facilities .grid > div:hover {
+#facilities :is(.grid, .landing-facilities-track) > div:hover {
   transform: translateY(-7px);
   box-shadow: 0 30px 54px rgb(25 72 83 / 30%), inset 0 1px #fff;
+}
+
+/* =========================================================================
+   HORIZONTAL SCROLL TRACKS (اسکرول افقی اختصاصی کارت‌ها در تبلت و موبایل)
+   ========================================================================= */
+.landing-scroll-track {
+  display: flex;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE & Edge */
+}
+
+/* Hide scrollbar for Chrome, Safari, Opera */
+.landing-scroll-track::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.landing-scroll-track > * {
+  scroll-snap-align: start;
+}
+
+@media (max-width: 639px) {
+  .benefit-card {
+    padding: 1.35rem 1.15rem 1.15rem;
+  }
 }
 
 #news {
@@ -734,7 +772,7 @@
     margin-top: 0;
   }
 
-  #facilities .grid > div {
+  #facilities :is(.grid, .landing-facilities-track) > div {
     min-height: auto;
     border-inline-start: 1px solid rgb(211 248 241 / 55%);
   }
@@ -771,7 +809,7 @@ html.dark .auth-page > .auth-panel {
   .landing-course,
   .landing-coach-card,
   .landing-news-card,
-  #facilities .grid > div {
+  #facilities :is(.grid, .landing-facilities-track) > div {
     transition: none;
   }
 }

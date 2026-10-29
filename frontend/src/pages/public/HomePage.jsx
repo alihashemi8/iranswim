@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import {
   ShieldCheck, ArrowLeft, PhoneCall,
@@ -31,8 +31,75 @@ import { useAuth } from '../../context/AuthContext';
 import { AquaticPoolBackground } from '../../components/landing/AquaticPoolBackground';
 import './HomePage.css';
 
-// Verified real database records for coaches and news
 // Verified real database records for coaches and news in Qazvin
+const INITIAL_COURSES = [
+  {
+    id: 1,
+    name: 'دوره جامع استعدادیابی نخبگان نونهال',
+    status: 'ACTIVE',
+    sessions_count: 12,
+    age_range: 'نونهالان و نوجوانان (۶ تا ۱۲ سال)',
+    gender: 'ALL',
+    gender_display: 'عمومی (دختران و پسران)',
+    what_you_learn: 'آزمون‌های فیزیولوژیک درون آب، پیکرسنجی و کشش عضلانی، سنجش توان قلبی‌عروقی و ارزیابی ورود به لیگ باشگاهی',
+    groups: [
+      { id: 1, name: 'گروه استعدادیابی نونهالان (شنبه و چهارشنبه ۱۶:۰۰)', pool_location: 'استخر نیلگون انقلاب', remaining_capacity: 10 }
+    ]
+  },
+  {
+    id: 2,
+    name: 'مدرسه شنای نونهالان (آشنایی با آب و رفع ترس)',
+    status: 'ACTIVE',
+    sessions_count: 10,
+    age_range: 'کودکان و خردسالان (۴ تا ۹ سال)',
+    gender: 'ALL',
+    gender_display: 'عمومی (دختران و پسران)',
+    what_you_learn: 'غلبه بر ترس از آب، اصول تنفس و غوطه‌وری، بازی‌های تعادلی و شناوری، آموزش مقدماتی پا زدن',
+    groups: [
+      { id: 2, name: 'گروه نونهالان آب‌پری (پنج‌شنبه‌ها ۱۰:۰۰)', pool_location: 'استخر آموزشی سرپوشیده با دمای ۳۱ درجه', remaining_capacity: 5 }
+    ]
+  },
+  {
+    id: 3,
+    name: 'دوره تخصصی شنای پروانه و استارت قهرمانی',
+    status: 'ACTIVE',
+    sessions_count: 12,
+    age_range: 'نوجوانان و جوانان (۱۲ سال به بالا)',
+    gender: 'MALE',
+    gender_display: 'پسران / آقایان',
+    what_you_learn: 'تکنیک تخصصی موج دلفین، پرتاب دست و تنفس تک‌ضرب پروانه، استارت جهشی از سکو و چرخش‌های سالتو',
+    groups: [
+      { id: 3, name: 'گروه پیشرفته صبحگاهی (روزهای زوج ۰۸:۰۰)', pool_location: 'استخر قهرمانی آزادی - لاین اختصاصی ۲', remaining_capacity: 3 }
+    ]
+  },
+  {
+    id: 4,
+    name: 'دوره جامع آموزش کرال سینه و استقامت پاییز ۱۴۰۵',
+    status: 'ACTIVE',
+    sessions_count: 12,
+    age_range: 'نوجوانان و بزرگسالان (۱۰ سال به بالا)',
+    gender: 'MALE',
+    gender_display: 'پسران / آقایان',
+    what_you_learn: 'اصلاح تکنیک دست و پای کرال سینه، تنفس ریتمیک دوطرفه، افزایش ظرفیت هوازی و شنای ممتد در لاین طولانی',
+    groups: [
+      { id: 4, name: 'گروه A (روزهای فرد ساعت ۱۷:۰۰)', pool_location: 'استخر آزادی', remaining_capacity: 12 }
+    ]
+  },
+  {
+    id: 5,
+    name: 'دوره جامع آموزش کرال سینه و تکنیک تنفس',
+    status: 'ACTIVE',
+    sessions_count: 12,
+    age_range: 'نونهالان و نوجوانان (۸ تا ۱۵ سال)',
+    gender: 'ALL',
+    gender_display: 'عمومی (دختران و پسران)',
+    what_you_learn: 'آموزش زاویه اصولی دست کرال، پای منظم با تخته شنا، تنفس منظم دوطرفه و رهاسازی عضلانی در آب',
+    groups: [
+      { id: 5, name: 'گروه A عصرها (یکشنبه و سه‌شنبه ۱۷:۰۰)', pool_location: 'استخر ۵۰ متری المپیک - لاین ۳ و ۴', remaining_capacity: 7 }
+    ]
+  }
+];
+
 const INITIAL_COACHES = [
   {
     id: 1,
@@ -110,13 +177,147 @@ const INITIAL_NEWS = [
   },
 ];
 
+const getCourseDetails = (course) => {
+  // 1. Age Range (رده سنی)
+  let ageRange = course.age_range;
+  if (!ageRange) {
+    const name = course.name || '';
+    if (name.includes('نونهال') || name.includes('کودک')) {
+      ageRange = 'کودکان و نونهالان (۶ تا ۱۲ سال)';
+    } else if (name.includes('پروانه') || name.includes('قهرمانی')) {
+      ageRange = 'نوجوانان و جوانان (۱۲ سال به بالا)';
+    } else if (name.includes('استقامت') || name.includes('پاییز')) {
+      ageRange = 'نوجوانان و بزرگسالان (۱۰ سال به بالا)';
+    } else {
+      ageRange = 'عموم رده‌های سنی (۸ تا ۱۶ سال)';
+    }
+  }
+
+  // 2. Gender (جنسیت)
+  let gender = course.gender_display;
+  if (!gender) {
+    if (course.gender === 'MALE') {
+      gender = 'پسران / آقایان';
+    } else if (course.gender === 'FEMALE') {
+      gender = 'دختران / بانوان';
+    } else if (course.gender === 'ALL') {
+      gender = 'عمومی (دختران و پسران)';
+    } else {
+      const name = course.name || '';
+      if (name.includes('پروانه') || name.includes('استقامت')) {
+        gender = 'پسران / آقایان';
+      } else {
+        gender = 'عمومی (دختران و پسران)';
+      }
+    }
+  }
+
+  // 3. What they teach (چیزی که یاد میدن)
+  let whatYouLearn = course.what_you_learn;
+  if (!whatYouLearn) {
+    const name = course.name || '';
+    if (name.includes('پروانه')) {
+      whatYouLearn = 'تکنیک تخصصی موج دلفین، پرتاب دست و تنفس تک‌ضرب پروانه، استارت جهشی از سکو و سالتو';
+    } else if (name.includes('نونهال') && name.includes('ترس')) {
+      whatYouLearn = 'غلبه بر ترس از آب، اصول تنفس و غوطه‌وری، بازی‌های تعادلی و شناوری، آموزش مقدماتی پا زدن';
+    } else if (name.includes('استعدادیابی')) {
+      whatYouLearn = 'آزمون‌های فیزیولوژیک درون آب، پیکرسنجی و کشش عضلانی، سنجش توان قلبی و ارزیابی ورود به لیگ';
+    } else if (name.includes('کرال سینه') && name.includes('استقامت')) {
+      whatYouLearn = 'اصلاح تکنیک دست و پای کرال سینه، تنفس ریتمیک دوطرفه، افزایش ظرفیت هوازی و شنای ممتد در لاین طولانی';
+    } else if (name.includes('کرال سینه') && name.includes('تنفس')) {
+      whatYouLearn = 'آموزش زاویه اصولی دست کرال، پای منظم با تخته شنا، تنفس منظم دوطرفه و رهاسازی عضلانی در آب';
+    } else if (course.description) {
+      whatYouLearn = course.description;
+    } else {
+      whatYouLearn = 'آموزش اصولی تکنیک‌های پایه شنا، هماهنگی تنفس و دست و پا، و غوطه‌وری ایمن';
+    }
+  }
+
+  return { ageRange, gender, whatYouLearn };
+};
+
 export const HomePage = () => {
   const { user } = useAuth();
-  const [courses, setCourses] = useState([]);
-  const [coursesLoading, setCoursesLoading] = useState(true);
+  const [courses, setCourses] = useState(INITIAL_COURSES);
+  const [coursesLoading, setCoursesLoading] = useState(false);
   const [coaches, setCoaches] = useState(INITIAL_COACHES);
   const [news, setNews] = useState(INITIAL_NEWS);
   const [selectedNews, setSelectedNews] = useState(null);
+
+  // Auto-scroll for core benefit cards on mobile & tablet without play/pause buttons
+  const benefitsTrackRef = useRef(null);
+  const activeBenefitIndexRef = useRef(0);
+  const [activeBenefitDot, setActiveBenefitDot] = useState(0);
+  const isBenefitInteractingRef = useRef(false);
+  const benefitTimeoutRef = useRef(null);
+
+  useEffect(() => {
+    const track = benefitsTrackRef.current;
+    if (!track) return;
+
+    const intervalId = setInterval(() => {
+      // Don't auto-scroll if user is currently interacting
+      if (isBenefitInteractingRef.current) return;
+
+      // On desktop (grid layout where all cards fit), do not scroll
+      if (track.scrollWidth <= track.clientWidth + 20) return;
+
+      const cards = Array.from(track.children);
+      if (!cards || cards.length <= 1) return;
+
+      const nextIndex = (activeBenefitIndexRef.current + 1) % cards.length;
+      activeBenefitIndexRef.current = nextIndex;
+      setActiveBenefitDot(nextIndex);
+
+      cards[nextIndex]?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+        inline: 'center',
+      });
+    }, 3600);
+
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const handleBenefitInteractionStart = () => {
+    isBenefitInteractingRef.current = true;
+    if (benefitTimeoutRef.current) {
+      clearTimeout(benefitTimeoutRef.current);
+    }
+  };
+
+  const handleBenefitInteractionEnd = () => {
+    if (benefitTimeoutRef.current) {
+      clearTimeout(benefitTimeoutRef.current);
+    }
+    benefitTimeoutRef.current = setTimeout(() => {
+      isBenefitInteractingRef.current = false;
+    }, 4000);
+  };
+
+  const handleBenefitScroll = () => {
+    const track = benefitsTrackRef.current;
+    if (!track) return;
+    const cards = Array.from(track.children);
+    if (!cards || cards.length === 0) return;
+
+    const trackCenter = track.getBoundingClientRect().left + track.clientWidth / 2;
+    let closestIndex = 0;
+    let minDiff = Infinity;
+
+    cards.forEach((card, idx) => {
+      const cardRect = card.getBoundingClientRect();
+      const cardCenter = cardRect.left + cardRect.width / 2;
+      const diff = Math.abs(trackCenter - cardCenter);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = idx;
+      }
+    });
+
+    activeBenefitIndexRef.current = closestIndex;
+    setActiveBenefitDot(closestIndex);
+  };
 
   useEffect(() => {
     const fetchLandingData = async () => {
@@ -128,7 +329,7 @@ export const HomePage = () => {
         ]);
         if (courseRes.status === 'fulfilled' && courseRes.value?.data) {
           const courseData = courseRes.value.data.results || courseRes.value.data;
-          if (Array.isArray(courseData)) setCourses(courseData);
+          if (Array.isArray(courseData) && courseData.length > 0) setCourses(courseData);
         }
         if (coachRes.status === 'fulfilled' && coachRes.value?.data) {
           const cData = coachRes.value.data.results || coachRes.value.data;
@@ -300,8 +501,8 @@ export const HomePage = () => {
                 </div>
 
                 {/* Key Metric Features */}
-                <div className="pt-6 border-t border-cyan-300/40 grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4">
-                  <div className="hero-feature-card p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all">
+                <div className="pt-6 border-t border-cyan-300/40 flex overflow-x-auto sm:grid sm:grid-cols-4 gap-2.5 sm:gap-4 pb-2 sm:pb-0 landing-scroll-track snap-x snap-mandatory">
+                  <div className="hero-feature-card min-w-[160px] sm:min-w-0 shrink-0 sm:shrink snap-start p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all">
                     <div className="flex items-center gap-1.5 text-slate-950 text-xs sm:text-[13px] lg:text-sm font-black whitespace-nowrap">
                       <Waves className="w-4 h-4 text-cyan-600 shrink-0" />
                       <span className="font-black whitespace-nowrap">آموزش ۴ شنا</span>
@@ -309,7 +510,7 @@ export const HomePage = () => {
                     <p className="text-xs sm:text-sm text-slate-800 font-bold leading-snug sm:leading-relaxed">کرال سینه، پشت، قورباغه و پروانه</p>
                   </div>
 
-                  <div className="hero-feature-card p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all">
+                  <div className="hero-feature-card min-w-[160px] sm:min-w-0 shrink-0 sm:shrink snap-start p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all">
                     <div className="flex items-center gap-1.5 text-slate-950 text-xs sm:text-[13px] lg:text-sm font-black whitespace-nowrap">
                       <Award className="w-4 h-4 text-cyan-600 shrink-0" />
                       <span className="font-black whitespace-nowrap">مربیان رسمی</span>
@@ -317,7 +518,7 @@ export const HomePage = () => {
                     <p className="text-xs sm:text-sm text-slate-800 font-bold leading-snug sm:leading-relaxed">دارای کارت مربیگری و نجات‌غریق</p>
                   </div>
 
-                  <div className="hero-feature-card p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all">
+                  <div className="hero-feature-card min-w-[160px] sm:min-w-0 shrink-0 sm:shrink snap-start p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all">
                     <div className="flex items-center gap-1.5 text-slate-950 text-xs sm:text-[13px] lg:text-sm font-black whitespace-nowrap">
                       <Users2 className="w-4 h-4 text-cyan-600 shrink-0" />
                       <span className="font-black whitespace-nowrap">کودکان و بزرگسالان</span>
@@ -325,7 +526,7 @@ export const HomePage = () => {
                     <p className="text-xs sm:text-sm text-slate-800 font-bold leading-snug sm:leading-relaxed">از ۵ سال تا رده‌های بزرگسال</p>
                   </div>
 
-                  <div className="hero-feature-card p-3.5 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all">
+                  <div className="hero-feature-card min-w-[160px] sm:min-w-0 shrink-0 sm:shrink snap-start p-3.5 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all">
                     <div className="flex items-center gap-1.5 text-slate-950 text-xs sm:text-[13px] lg:text-sm font-black whitespace-nowrap">
                       <MapPin className="w-4 h-4 text-cyan-600 shrink-0" />
                       <span className="font-black whitespace-nowrap">استخرهای قزوین</span>
@@ -358,83 +559,105 @@ export const HomePage = () => {
         {/* =========================================================================
             SECTION 2: REAL CORE BENEFITS
             ========================================================================= */}
-        <section id="about" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 min-w-0">
+        <section id="about" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8 min-w-0">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <Badge variant="info">ویژگی‌های کلاس‌های ما</Badge>
             <h2 className="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
               چرا مدرسه شنای ایران؟
             </h2>
-            <p className="text-xs sm:text-sm text-cyan-200/90 leading-relaxed">
+            <p className="text-sm sm:text-base text-cyan-200/90 leading-relaxed font-medium">
               آموزش شنا با صبر و حوصله، متناسب با روحیات نوآموزان و با بالاترین استانداردهای ایمنی
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 lg:gap-8 pt-4 items-stretch">
+          <div
+            ref={benefitsTrackRef}
+            onMouseEnter={handleBenefitInteractionStart}
+            onMouseLeave={handleBenefitInteractionEnd}
+            onTouchStart={handleBenefitInteractionStart}
+            onTouchEnd={handleBenefitInteractionEnd}
+            onScroll={handleBenefitScroll}
+            className="landing-benefits-track landing-scroll-track flex overflow-x-auto pt-2 pb-4 px-1 gap-4 sm:gap-6 snap-x snap-mandatory lg:grid lg:grid-cols-3 lg:gap-8 lg:overflow-visible lg:pb-0 lg:px-0 items-stretch"
+          >
             {/* Benefit Card 1 - فیروزه‌ای پودری */}
-            <div className="benefit-card benefit-card--turquoise card-hydrofoil group relative flex flex-col justify-between h-full">
-              <div className="benefit-card__icon w-14 h-14 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                <CardioAquaticIcon className="w-7 h-7" />
+            <div className="benefit-card benefit-card--turquoise card-hydrofoil group relative flex flex-col justify-between w-[84vw] sm:w-[340px] md:w-[360px] max-w-[380px] shrink-0 snap-center lg:w-auto lg:max-w-none lg:shrink">
+              <div className="benefit-card__icon w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
+                <CardioAquaticIcon className="w-6 h-6 sm:w-7 sm:h-7" />
               </div>
-              <div className="space-y-3 flex-1 flex flex-col">
-                <span className="benefit-card__badge inline-block self-start px-3 py-1 rounded-lg text-[11px] font-bold">
+              <div className="space-y-2.5 sm:space-y-3 flex-1 flex flex-col">
+                <span className="benefit-card__badge inline-block self-start px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold">
                   کودکان و نوجوانان
                 </span>
-                <h3 className="benefit-card__title font-bold text-lg">
+                <h3 className="benefit-card__title font-black text-xl sm:text-2xl lg:text-[1.35rem] xl:text-2xl leading-snug">
                   آموزش بدون ترس و روان‌شناختی
                 </h3>
-                <p className="benefit-card__desc text-xs sm:text-sm leading-relaxed text-justify flex-1">
+                <p className="benefit-card__desc text-sm sm:text-base leading-relaxed sm:leading-loose text-justify font-medium flex-1">
                   شروع از بازی‌های شاداب در آب کم‌عمق تا کودک احساس امنیت کامل کند و با انگیزه و علاقه واقعی مراحل یادگیری شنا را پشت سر بگذارد.
                 </p>
               </div>
-              <div className="benefit-card__footer mt-6 pt-4 flex items-center justify-between text-xs font-semibold">
+              <div className="benefit-card__footer mt-4 sm:mt-5 pt-3.5 flex items-center justify-between text-xs sm:text-sm font-bold">
                 <span>محیط شاداب و امن برای کودک</span>
-                <Check className="w-4 h-4" />
+                <Check className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
               </div>
             </div>
 
             {/* Benefit Card 2 - بنفش ملو پودری */}
-            <div className="benefit-card benefit-card--purple card-hydrofoil group relative flex flex-col justify-between h-full">
-              <div className="benefit-card__icon w-14 h-14 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                <HydroTherapySpineIcon className="w-7 h-7" />
+            <div className="benefit-card benefit-card--purple card-hydrofoil group relative flex flex-col justify-between w-[84vw] sm:w-[340px] md:w-[360px] max-w-[380px] shrink-0 snap-center lg:w-auto lg:max-w-none lg:shrink">
+              <div className="benefit-card__icon w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
+                <HydroTherapySpineIcon className="w-6 h-6 sm:w-7 sm:h-7" />
               </div>
-              <div className="space-y-3 flex-1 flex flex-col">
-                <span className="benefit-card__badge inline-block self-start px-3 py-1 rounded-lg text-[11px] font-bold">
+              <div className="space-y-2.5 sm:space-y-3 flex-1 flex flex-col">
+                <span className="benefit-card__badge inline-block self-start px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold">
                   اصلاح ساختار قامت و تنفس
                 </span>
-                <h3 className="benefit-card__title font-bold text-lg">
+                <h3 className="benefit-card__title font-black text-xl sm:text-2xl lg:text-[1.35rem] xl:text-2xl leading-snug">
                   تقویت ستون فقرات و سلامت جسمانی
                 </h3>
-                <p className="benefit-card__desc text-xs sm:text-sm leading-relaxed text-justify flex-1">
+                <p className="benefit-card__desc text-sm sm:text-base leading-relaxed sm:leading-loose text-justify font-medium flex-1">
                   شنا بهترین ورزش برای جلوگیری از افتادگی شانه و گودی کمر در کودکان محصل است و در بزرگسالان به بهبود تنفس و کاهش دردهای عضلانی کمک می‌کند.
                 </p>
               </div>
-              <div className="benefit-card__footer mt-6 pt-4 flex items-center justify-between text-xs font-semibold">
+              <div className="benefit-card__footer mt-4 sm:mt-5 pt-3.5 flex items-center justify-between text-xs sm:text-sm font-bold">
                 <span>بهبود استقامت و سلامت بدنی</span>
-                <Check className="w-4 h-4" />
+                <Check className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
               </div>
             </div>
 
             {/* Benefit Card 3 - سبز پودری */}
-            <div className="benefit-card benefit-card--green card-hydrofoil group relative flex flex-col justify-between h-full">
-              <div className="benefit-card__icon w-14 h-14 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform">
-                <RescueBuoyRingIcon className="w-7 h-7" />
+            <div className="benefit-card benefit-card--green card-hydrofoil group relative flex flex-col justify-between w-[84vw] sm:w-[340px] md:w-[360px] max-w-[380px] shrink-0 snap-center lg:w-auto lg:max-w-none lg:shrink">
+              <div className="benefit-card__icon w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3 sm:mb-4 group-hover:scale-110 transition-transform">
+                <RescueBuoyRingIcon className="w-6 h-6 sm:w-7 sm:h-7" />
               </div>
-              <div className="space-y-3 flex-1 flex flex-col">
-                <span className="benefit-card__badge inline-block self-start px-3 py-1 rounded-lg text-[11px] font-bold">
+              <div className="space-y-2.5 sm:space-y-3 flex-1 flex flex-col">
+                <span className="benefit-card__badge inline-block self-start px-3.5 py-1.5 rounded-xl text-xs sm:text-sm font-extrabold">
                   نظارت و ایمنی کامل
                 </span>
-                <h3 className="benefit-card__title font-bold text-lg">
+                <h3 className="benefit-card__title font-black text-xl sm:text-2xl lg:text-[1.35rem] xl:text-2xl leading-snug">
                   مربیان رسمی و کلاس‌های کم‌جمعیت
                 </h3>
-                <p className="benefit-card__desc text-xs sm:text-sm leading-relaxed text-justify flex-1">
+                <p className="benefit-card__desc text-sm sm:text-base leading-relaxed sm:leading-loose text-justify font-medium flex-1">
                   آموزش توسط مربیان دارای کارت رسمی فدراسیون در گروه‌های خلوت و با حضور پیوسته نجات‌غریق برگزار می‌شود تا پیشرفت هر شناگر به طور اختصاصی پایش شود.
                 </p>
               </div>
-              <div className="benefit-card__footer mt-6 pt-4 flex items-center justify-between text-xs font-semibold">
+              <div className="benefit-card__footer mt-4 sm:mt-5 pt-3.5 flex items-center justify-between text-xs sm:text-sm font-bold">
                 <span>توجه اختصاصی به تک‌تک شناگران</span>
-                <Check className="w-4 h-4" />
+                <Check className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
               </div>
             </div>
+          </div>
+
+          {/* Dots Indicator for Mobile & Tablet (NO Play/Pause button) */}
+          <div className="flex lg:hidden items-center justify-center gap-2 pt-1" aria-hidden="true">
+            {[0, 1, 2].map((idx) => (
+              <span
+                key={idx}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  activeBenefitDot === idx
+                    ? 'w-7 bg-cyan-400 shadow-sm shadow-cyan-400/50'
+                    : 'w-2 bg-cyan-900/40'
+                }`}
+              />
+            ))}
           </div>
         </section>
 
@@ -446,45 +669,88 @@ export const HomePage = () => {
             <div className="space-y-1.5">
               <Badge variant="info">برنامه آموزشی ترم جاری</Badge>
               <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">دوره‌ها و کلاس‌های آموزشی</h2>
-              <p className="text-xs sm:text-sm">کلاس‌های ثبت‌شده در سامانه، همراه با سطح، زمان‌بندی و ظرفیت گروه‌ها</p>
+              <p className="text-xs sm:text-sm">کلاس‌های ثبت‌شده در سامانه، همراه با رده سنی، جنسیت و سرفصل‌های آموزشی</p>
             </div>
-            <span className="text-xs font-medium px-3.5 py-1.5 rounded-xl shrink-0">{courses.length} دوره</span>
           </div>
 
           {coursesLoading ? (
             <LoadingState type="cards" count={3} message="در حال دریافت دوره‌های آموزشی..." />
           ) : courses.length ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {courses.map((course, index) => (
-                <article key={course.id} className={`landing-course landing-course--${index % 3}`}>
-                  <div className="flex items-start justify-between gap-3">
+            <Carousel
+              items={courses}
+              className="landing-carousel"
+              ariaLabel="گردونه دوره‌ها و کلاس‌های آموزشی"
+              visibleItems={{ mobile: 1, tablet: 2, desktop: 3 }}
+              interval={4000}
+              showPlayPause={false}
+              showNavigation={true}
+              showDots={true}
+              pauseOnHover={true}
+              renderItem={(course, index) => {
+                const details = getCourseDetails(course);
+                return (
+                  <article
+                    key={course.id}
+                    className={`landing-course landing-course--${index % 3} flex flex-col justify-between h-full`}
+                  >
                     <div>
-                      <span className="landing-course__eyebrow">{course.status === 'ACTIVE' ? 'ثبت‌نام فعال' : 'پیش‌ثبت‌نام'}</span>
-                      <h3 className="mt-2 text-lg font-bold">{course.name}</h3>
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <span className="landing-course__eyebrow">
+                            {course.status === 'ACTIVE' ? 'ثبت‌نام فعال' : 'پیش‌ثبت‌نام'}
+                          </span>
+                          <h3 className="mt-2 text-lg font-bold text-slate-900 dark:text-slate-100">
+                            {course.name}
+                          </h3>
+                        </div>
+                        <Waves className="w-6 h-6 shrink-0 text-cyan-600 dark:text-cyan-400" aria-hidden="true" />
+                      </div>
+
+                      {/* رده سنی و جنسیت */}
+                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/70 border border-sky-300/70 dark:border-sky-800/60 text-sky-900 dark:text-sky-200 text-xs">
+                          <Users2 className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
+                          <span className="text-slate-500 dark:text-slate-400">رده سنی:</span>
+                          <strong className="font-bold">{details.ageRange}</strong>
+                        </div>
+                        <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/70 border border-teal-300/70 dark:border-teal-800/60 text-teal-900 dark:text-teal-200 text-xs">
+                          <Award className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 shrink-0" />
+                          <span className="text-slate-500 dark:text-slate-400">جنسیت:</span>
+                          <strong className="font-bold">{details.gender}</strong>
+                        </div>
+                      </div>
+
+                      {/* چیزی که یاد میدن */}
+                      <div className="mt-4 p-3.5 rounded-xl bg-cyan-950/5 dark:bg-slate-900/60 border border-cyan-500/20 text-xs">
+                        <div className="flex items-center gap-1.5 font-bold text-cyan-900 dark:text-cyan-200 mb-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                          <span>آنچه در این دوره یاد می‌گیرید:</span>
+                        </div>
+                        <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-justify">
+                          {details.whatYouLearn}
+                        </p>
+                      </div>
+
+                      {/* اطلاعات جلسات و استخر بدون قیمت */}
+                      <div className="mt-4 pt-3 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 border-t border-cyan-500/20">
+                        <span>{course.sessions_count} جلسه آموزشی</span>
+                        <span className="font-medium text-cyan-800 dark:text-cyan-300">
+                          {course.groups?.[0]?.pool_location || 'استخر اختصاصی آکادمی'}
+                        </span>
+                      </div>
                     </div>
-                    <Waves className="w-6 h-6 shrink-0" aria-hidden="true" />
-                  </div>
-                  {course.description && <p className="mt-3 text-sm leading-7">{course.description}</p>}
-                  <div className="landing-course__meta mt-5">
-                    <span>{course.sessions_count} جلسه</span>
-                    <span>{Number(course.base_price || 0).toLocaleString('fa-IR')} تومان</span>
-                  </div>
-                  {Array.isArray(course.groups) && course.groups.length > 0 && (
-                    <ul className="landing-course__groups mt-4 space-y-2">
-                      {course.groups.slice(0, 2).map((group) => (
-                        <li key={group.id} className="flex items-center justify-between gap-2 text-xs">
-                          <span>{group.name} · {group.pool_location}</span>
-                          <span>{group.remaining_capacity > 0 ? `${group.remaining_capacity} ظرفیت` : 'تکمیل'}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                  <Link to="/login" className="landing-course__link mt-5 inline-flex items-center gap-2">
-                    مشاهده و پیگیری ثبت‌نام <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-                  </Link>
-                </article>
-              ))}
-            </div>
+
+                    <Link
+                      to="/login"
+                      className="landing-course__link mt-5 inline-flex items-center justify-between gap-2 pt-3 border-t border-cyan-500/20 font-bold"
+                    >
+                      <span>مشاهده و پیگیری ثبت‌نام</span>
+                      <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+                    </Link>
+                  </article>
+                );
+              }}
+            />
           ) : (
             <p className="landing-empty-state">در حال حاضر دوره‌ای برای نمایش ثبت نشده است. برای اطلاع از ثبت‌نام با پذیرش تماس بگیرید.</p>
           )}
@@ -571,7 +837,7 @@ export const HomePage = () => {
         {/* =========================================================================
             SECTION 4: ACADEMY FACILITIES & INFRASTRUCTURE
             ========================================================================= */}
-        <section id="facilities" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-10 min-w-0">
+        <section id="facilities" className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 sm:space-y-10 min-w-0">
           <div className="text-center max-w-2xl mx-auto space-y-2.5">
             <Badge variant="info">محیط استخر و بهداشت آب</Badge>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
@@ -580,11 +846,16 @@ export const HomePage = () => {
             <p className="text-xs sm:text-sm text-cyan-200/80 leading-relaxed">
               برگزاری کلاس‌ها در استخرهای تمیز و استاندارد شهر قزوین با آب گرم، تصفیه بهداشتی و وسایل کمک‌آموزشی
             </p>
+            {/* Swipe hint on mobile & tablet */}
+            <div className="flex lg:hidden items-center justify-center gap-1.5 text-[11px] sm:text-xs text-cyan-200/80 pt-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <span>برای مشاهده سایر امکانات به صورت افقی بکشید</span>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="landing-facilities-track landing-scroll-track flex overflow-x-auto pt-2 pb-6 px-1 gap-5 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pb-0 lg:px-0 items-stretch">
             {/* Feature 1 */}
-            <div className="bg-slate-900/80 p-6 card-hydrofoil border-2 border-teal-500/20 hover:border-teal-400/60 transition-all duration-300 flex flex-col justify-between">
+            <div className="bg-slate-900/80 p-6 card-hydrofoil border-2 border-teal-500/20 hover:border-teal-400/60 transition-all duration-300 flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="w-12 h-12 rounded-xl bg-teal-950 text-teal-300 flex items-center justify-center border border-teal-500/30">
@@ -608,7 +879,7 @@ export const HomePage = () => {
             </div>
 
             {/* Feature 2 */}
-            <div className="bg-slate-900/80 p-6 card-hydrofoil-alt border-2 border-amber-500/20 hover:border-amber-400/60 transition-all duration-300 flex flex-col justify-between">
+            <div className="bg-slate-900/80 p-6 card-hydrofoil-alt border-2 border-amber-500/20 hover:border-amber-400/60 transition-all duration-300 flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="w-12 h-12 rounded-xl bg-amber-950 text-amber-300 flex items-center justify-center border border-amber-500/30">
@@ -632,7 +903,7 @@ export const HomePage = () => {
             </div>
 
             {/* Feature 3 */}
-            <div className="bg-slate-900/80 p-6 card-hydrofoil border-2 border-orange-500/20 hover:border-orange-400/60 transition-all duration-300 flex flex-col justify-between">
+            <div className="bg-slate-900/80 p-6 card-hydrofoil border-2 border-orange-500/20 hover:border-orange-400/60 transition-all duration-300 flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="w-12 h-12 rounded-xl bg-orange-950 text-orange-300 flex items-center justify-center border border-orange-500/30">
@@ -656,7 +927,7 @@ export const HomePage = () => {
             </div>
 
             {/* Feature 4 */}
-            <div className="bg-slate-900/80 p-6 card-hydrofoil-alt border-2 border-indigo-500/20 hover:border-indigo-400/60 transition-all duration-300 flex flex-col justify-between">
+            <div className="bg-slate-900/80 p-6 card-hydrofoil-alt border-2 border-indigo-500/20 hover:border-indigo-400/60 transition-all duration-300 flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="w-12 h-12 rounded-xl bg-indigo-950 text-indigo-300 flex items-center justify-center border border-indigo-500/30">

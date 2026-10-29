@@ -20,6 +20,11 @@ export const Carousel = ({
   itemClassName = '',
   ariaLabel = 'گردونه اسلایدر',
   visibleItems = { mobile: 1, tablet: 2, desktop: 3 },
+  showPlayPause = true,
+  showNavigation = true,
+  showProgress = true,
+  showDots = true,
+  pauseOnHover = true,
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
@@ -86,19 +91,22 @@ export const Carousel = ({
   // Handler for manual controls with temporary pause
   const handleManualAction = (action) => {
     action();
-    setIsManuallyPaused(true);
-    if (userInteractionTimeout.current) {
-      clearTimeout(userInteractionTimeout.current);
+    if (showPlayPause) {
+      setIsManuallyPaused(true);
+      if (userInteractionTimeout.current) {
+        clearTimeout(userInteractionTimeout.current);
+      }
+      // Resume auto-play after 8 seconds of inactivity
+      userInteractionTimeout.current = setTimeout(() => {
+        setIsManuallyPaused(false);
+      }, 8000);
     }
-    // Resume auto-play after 8 seconds of inactivity
-    userInteractionTimeout.current = setTimeout(() => {
-      setIsManuallyPaused(false);
-    }, 8000);
   };
 
   // Auto-play interval
   useEffect(() => {
-    if (!autoPlay || !canSlide || isReducedMotion || isHovered || isFocused || isManuallyPaused) {
+    const shouldPause = (pauseOnHover && isHovered) || (showPlayPause && isManuallyPaused);
+    if (!autoPlay || !canSlide || isReducedMotion || shouldPause || isFocused) {
       return;
     }
 
@@ -118,7 +126,7 @@ export const Carousel = ({
       clearInterval(timer);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [autoPlay, canSlide, isReducedMotion, isHovered, isFocused, isManuallyPaused, interval, nextSlide]);
+  }, [autoPlay, canSlide, isReducedMotion, pauseOnHover, isHovered, isFocused, showPlayPause, isManuallyPaused, interval, nextSlide]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -197,57 +205,59 @@ export const Carousel = ({
       role="region"
     >
       {/* Top Header Actions (Arrows + Play status) */}
-      <div className="flex items-center justify-between mb-4 gap-3">
-        <div className="flex items-center gap-2">
-          {canSlide && (
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-              {safeIndex + 1} از {dotCount}
-            </span>
-          )}
-          {canSlide && !isReducedMotion && (
-            <button
-              type="button"
-              onClick={() => setIsManuallyPaused((prev) => !prev)}
-              className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors rounded-lg cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40"
-              title={isManuallyPaused ? 'پخش خودکار' : 'توقف حرکت خودکار'}
-              aria-label={isManuallyPaused ? 'پخش خودکار' : 'توقف حرکت خودکار'}
-            >
-              {isManuallyPaused ? (
-                <Play className="w-3.5 h-3.5" />
-              ) : (
-                <Pause className="w-3.5 h-3.5" />
-              )}
-            </button>
+      {canSlide && (showProgress || (showPlayPause && !isReducedMotion) || showNavigation) && (
+        <div className="flex items-center justify-between mb-4 gap-3">
+          <div className="flex items-center gap-2">
+            {showProgress && (
+              <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                {safeIndex + 1} از {dotCount}
+              </span>
+            )}
+            {showPlayPause && !isReducedMotion && (
+              <button
+                type="button"
+                onClick={() => setIsManuallyPaused((prev) => !prev)}
+                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors rounded-lg cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40"
+                title={isManuallyPaused ? 'پخش خودکار' : 'توقف حرکت خودکار'}
+                aria-label={isManuallyPaused ? 'پخش خودکار' : 'توقف حرکت خودکار'}
+              >
+                {isManuallyPaused ? (
+                  <Play className="w-3.5 h-3.5" />
+                ) : (
+                  <Pause className="w-3.5 h-3.5" />
+                )}
+              </button>
+            )}
+          </div>
+
+          {/* Previous and Next Navigation Buttons (RTL aligned) */}
+          {showNavigation && (
+            <div className="flex items-center gap-2">
+              {/* Previous Button in RTL: points Right (ChevronRight) */}
+              <button
+                type="button"
+                onClick={() => handleManualAction(prevSlide)}
+                className="p-2 sm:p-2.5 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/50"
+                aria-label="کارت قبلی"
+                title="کارت قبلی"
+              >
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+
+              {/* Next Button in RTL: points Left (ChevronLeft) */}
+              <button
+                type="button"
+                onClick={() => handleManualAction(nextSlide)}
+                className="p-2 sm:p-2.5 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/50"
+                aria-label="کارت بعدی"
+                title="کارت بعدی"
+              >
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+              </button>
+            </div>
           )}
         </div>
-
-        {/* Previous and Next Navigation Buttons (RTL aligned) */}
-        {canSlide && (
-          <div className="flex items-center gap-2">
-            {/* Previous Button in RTL: points Right (ChevronRight) */}
-            <button
-              type="button"
-              onClick={() => handleManualAction(prevSlide)}
-              className="p-2 sm:p-2.5 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/50"
-              aria-label="کارت قبلی"
-              title="کارت قبلی"
-            >
-              <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-
-            {/* Next Button in RTL: points Left (ChevronLeft) */}
-            <button
-              type="button"
-              onClick={() => handleManualAction(nextSlide)}
-              className="p-2 sm:p-2.5 rounded-xl bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200/90 dark:border-slate-700/80 shadow-2xs hover:bg-slate-100 dark:hover:bg-slate-700 hover:border-sky-300 dark:hover:border-sky-600 transition-all cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/50"
-              aria-label="کارت بعدی"
-              title="کارت بعدی"
-            >
-              <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
-            </button>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Overflow Track Viewport */}
       <div className="w-full max-w-full min-w-0 overflow-hidden rounded-2xl sm:rounded-3xl p-1 -m-1">
@@ -273,7 +283,7 @@ export const Carousel = ({
       </div>
 
       {/* Dot Indicators */}
-      {canSlide && dotCount > 1 && (
+      {canSlide && showDots && dotCount > 1 && (
         <div className="flex items-center justify-center gap-1.5 mt-6">
           {Array.from({ length: dotCount }).map((_, dotIdx) => {
             const isActive = dotIdx === safeIndex;

@@ -32,6 +32,9 @@ export const AdminCoursesPage = () => {
     end_date: '',
     base_price: '',
     sessions_count: 12,
+    age_range: '',
+    gender: 'ALL',
+    what_you_learn: '',
   });
   const [savingCourse, setSavingCourse] = useState(false);
 
@@ -104,6 +107,9 @@ export const AdminCoursesPage = () => {
         end_date: '',
         base_price: '',
         sessions_count: 12,
+        age_range: '',
+        gender: 'ALL',
+        what_you_learn: '',
       });
       toast.success('دوره آموزشی جدید با موفقیت ایجاد گردید.');
       fetchData();
@@ -522,6 +528,48 @@ export const AdminCoursesPage = () => {
                 className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                رده سنی مخاطبان
+              </label>
+              <input
+                type="text"
+                placeholder="مثال: نونهالان (۶ تا ۱۲ سال)"
+                value={courseForm.age_range}
+                onChange={(e) => setCourseForm({ ...courseForm, age_range: e.target.value })}
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                جنسیت مجاز
+              </label>
+              <select
+                value={courseForm.gender}
+                onChange={(e) => setCourseForm({ ...courseForm, gender: e.target.value })}
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              >
+                <option value="ALL">عمومی (دختران و پسران)</option>
+                <option value="MALE">پسران / آقایان</option>
+                <option value="FEMALE">دختران / بانوان</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              آنچه یاد می‌دهید (سرفصل‌ها و مهارت‌های آموزشی)
+            </label>
+            <textarea
+              rows={2}
+              placeholder="مثال: تکنیک‌های کرال سینه، تنفس ریتمیک، افزایش ظرفیت هوازی و..."
+              value={courseForm.what_you_learn}
+              onChange={(e) => setCourseForm({ ...courseForm, what_you_learn: e.target.value })}
+              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+            />
           </div>
 
           <div>

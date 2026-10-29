@@ -113,7 +113,10 @@ class Command(BaseCommand):
                 'base_price': Decimal('2400000.00'),
                 'sessions_count': 10,
                 'status': Course.Status.ACTIVE,
-                'description': 'محیط شاد و مفرح برای کودکان با متدهای بین‌المللی همراه با مربی و نجات‌غریق مقیم'
+                'description': 'محیط شاد و مفرح برای کودکان با متدهای بین‌المللی همراه با مربی و نجات‌غریق مقیم',
+                'age_range': 'کودکان و خردسالان (۴ تا ۹ سال)',
+                'gender': Course.GenderTarget.ALL,
+                'what_you_learn': 'غلبه بر ترس از آب، اصول تنفس و غوطه‌وری، بازی‌های تعادلی و شناوری، آموزش مقدماتی پا زدن',
             }
         )
 
@@ -125,7 +128,10 @@ class Command(BaseCommand):
                 'base_price': Decimal('2600000.00'),
                 'sessions_count': 12,
                 'status': Course.Status.ACTIVE,
-                'description': 'آزمون‌های فیزیولوژیک درون آب و استعدادیابی جهت معرفی به لیگ باشگاهی'
+                'description': 'آزمون‌های فیزیولوژیک درون آب و استعدادیابی جهت معرفی به لیگ باشگاهی',
+                'age_range': 'نونهالان و نوجوانان (۶ تا ۱۲ سال)',
+                'gender': Course.GenderTarget.ALL,
+                'what_you_learn': 'آزمون‌های فیزیولوژیک درون آب، پیکرسنجی و کشش عضلانی، سنجش توان قلبی‌عروقی و ارزیابی ورود به لیگ',
             }
         )
 
