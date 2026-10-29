@@ -278,30 +278,30 @@ export const LoginPage = ({ defaultMode }) => {
         {/* ============================================================== */}
         {/* RIGHT COLUMN (DESKTOP HERO / BRANDING PANEL)                   */}
         {/* ============================================================== */}
-        <div className="auth-panel__intro hidden lg:flex lg:col-span-5 relative flex-col justify-between p-10 text-white overflow-hidden">
-          {/* Background swimming imagery with rich gradient overlay */}
+        <div className="auth-panel__intro hidden lg:flex lg:col-span-5 relative flex-col justify-between p-10 overflow-hidden">
+          {/* Background swimming imagery with bright overlay */}
           <div
-            className="absolute inset-0 bg-cover bg-center transition-transform duration-700 hover:scale-105"
+            className="absolute inset-0 bg-cover bg-center transition-transform duration-700 hover:scale-105 opacity-40 pointer-events-none"
             style={{
               backgroundImage: 'url("/images/olympic-pool-aerial.webp")',
             }}
           />
-          <div className="auth-panel__veil absolute inset-0 bg-gradient-to-t from-slate-950 via-sky-950/85 to-indigo-950/80 backdrop-blur-[1px]" />
+          <div className="auth-panel__veil" />
 
           {/* Top Brand Tag */}
           <div className="relative z-10 space-y-3">
             <Link to="/" className="inline-flex items-center gap-2.5 group">
-              <div className="w-11 h-11 bg-gradient-to-tr from-sky-500 to-cyan-400 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-sky-500/30 group-hover:scale-105 transition-transform">
+              <div className="w-11 h-11 bg-gradient-to-tr from-[#087EA4] to-[#16B8B0] rounded-2xl flex items-center justify-center text-white shadow-md shadow-cyan-500/25 group-hover:scale-105 transition-transform">
                 <Waves className="w-6 h-6" />
               </div>
               <div className="text-right">
-                <span className="font-extrabold text-base tracking-tight block">آکادمی شنای ایران</span>
-                <span className="text-[11px] text-cyan-200 font-light block">سامانه مدیریت آموزش و پرونده شناگران</span>
+                <span className="font-black text-base text-[#083b5c] tracking-tight block">آکادمی شنای ایران</span>
+                <span className="text-[11px] text-[#0a667f] font-bold block">سامانه مدیریت آموزش و پرونده شناگران</span>
               </div>
             </Link>
 
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/10 backdrop-blur-md rounded-full text-[11px] font-semibold text-cyan-200 border border-white/15">
-              <Sparkles className="w-3.5 h-3.5 text-cyan-300" />
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/90 backdrop-blur-md rounded-full text-[11px] font-bold text-[#065b6e] border border-teal-200/90 shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5 text-teal-600" />
               پرتال اختصاصی اعضای آموزشگاه
             </div>
           </div>
@@ -309,55 +309,55 @@ export const LoginPage = ({ defaultMode }) => {
           {/* Center Content */}
           <div className="relative z-10 my-8 space-y-5">
             <div>
-              <h1 className="text-2xl xl:text-3xl font-extrabold tracking-tight leading-snug text-white">
+              <h1 className="text-2xl xl:text-3xl font-black tracking-tight leading-snug text-[#083b5c]">
                 مدیریت کلاس‌ها و پیشرفت مهارتی شناگر
               </h1>
-              <p className="text-xs xl:text-sm text-slate-300 leading-relaxed font-light mt-2">
+              <p className="text-xs xl:text-sm text-[#1e485e] leading-relaxed font-semibold mt-2">
                 مشاهده آنلاین وضعیت ثبت‌نام، جلسات باقی‌مانده استخر، ارزیابی مربی و مدارک بیمه ورزشی در یک پرتال متمرکز.
               </p>
             </div>
 
             {/* Feature Highlights */}
             <div className="space-y-2.5 pt-1">
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10">
-                <div className="w-8 h-8 rounded-xl bg-sky-500/30 text-sky-300 flex items-center justify-center shrink-0">
+              <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/95 backdrop-blur-md border border-teal-100/90 shadow-[0_4px_16px_rgba(8,59,92,0.06)] hover:shadow-md transition-all">
+                <div className="w-9 h-9 rounded-xl bg-sky-100/90 text-sky-700 flex items-center justify-center shrink-0">
                   <Calendar className="w-4 h-4" />
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-bold text-white block">برنامه سانس‌ها و جلسات</span>
-                  <span className="text-[11px] text-slate-300 block">اطلاع از روزها، ساعت حضور و سهمیه باقیمانده</span>
+                  <span className="text-xs font-black text-[#083b5c] block">برنامه سانس‌ها و جلسات</span>
+                  <span className="text-[11px] text-slate-600 font-semibold block mt-0.5">اطلاع از روزها، ساعت حضور و سهمیه باقیمانده</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10">
-                <div className="w-8 h-8 rounded-xl bg-emerald-500/30 text-emerald-300 flex items-center justify-center shrink-0">
+              <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/95 backdrop-blur-md border border-teal-100/90 shadow-[0_4px_16px_rgba(8,59,92,0.06)] hover:shadow-md transition-all">
+                <div className="w-9 h-9 rounded-xl bg-emerald-100/90 text-emerald-700 flex items-center justify-center shrink-0">
                   <Award className="w-4 h-4" />
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-bold text-white block">ارزیابی فنی و سطح‌بندی</span>
-                  <span className="text-[11px] text-slate-300 block">مشاهده بازخورد مربی و مهارت‌های پاس‌شده</span>
+                  <span className="text-xs font-black text-[#083b5c] block">ارزیابی فنی و سطح‌بندی</span>
+                  <span className="text-[11px] text-slate-600 font-semibold block mt-0.5">مشاهده بازخورد مربی و مهارت‌های پاس‌شده</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/10">
-                <div className="w-8 h-8 rounded-xl bg-cyan-500/30 text-cyan-300 flex items-center justify-center shrink-0">
+              <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-white/95 backdrop-blur-md border border-teal-100/90 shadow-[0_4px_16px_rgba(8,59,92,0.06)] hover:shadow-md transition-all">
+                <div className="w-9 h-9 rounded-xl bg-teal-100/90 text-teal-700 flex items-center justify-center shrink-0">
                   <ShieldCheck className="w-4 h-4" />
                 </div>
                 <div className="text-right">
-                  <span className="text-xs font-bold text-white block">پرونده آنلاین و بیمه ورزشی</span>
-                  <span className="text-[11px] text-slate-300 block">ثبت مدارک هویتی، آدرس و کارت سلامت</span>
+                  <span className="text-xs font-black text-[#083b5c] block">پرونده آنلاین و بیمه ورزشی</span>
+                  <span className="text-[11px] text-slate-600 font-semibold block mt-0.5">ثبت مدارک هویتی، آدرس و کارت سلامت</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Bottom Trust Badge */}
-          <div className="relative z-10 pt-4 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400">
-            <span className="flex items-center gap-1.5 text-cyan-100 font-medium">
-              <Droplets className="w-3.5 h-3.5 text-cyan-400" />
+          <div className="relative z-10 pt-4 border-t border-teal-200/70 flex items-center justify-between text-[11px]">
+            <span className="flex items-center gap-1.5 text-teal-900 font-bold">
+              <Droplets className="w-3.5 h-3.5 text-teal-600" />
               آموزش شنا از مبتدی تا قهرمانی
             </span>
-            <span className="text-slate-400">پشتیبانی آموزشگاه</span>
+            <span className="text-slate-600 font-medium">پشتیبانی آموزشگاه</span>
           </div>
         </div>
 

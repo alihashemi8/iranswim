@@ -53,9 +53,12 @@ dist-ssr/
 # Temporary / Scratch assets
 *.old.*
 enhanced_*.png
+swimmer_boy_*.png
 swimmer_boy_transparent.png
 upscaled_ai_render.jpg
 shoulder_to_inspect.png
+*.pb
+
 
 *.swp
 *.swo
