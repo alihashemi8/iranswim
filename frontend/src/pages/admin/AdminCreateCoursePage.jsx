@@ -409,7 +409,7 @@ export const AdminCreateCoursePage = () => {
       </div>
 
       {/* 3. STEP CONTENT CARD */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs transition-colors">
         {/* Step 1: مشخصات عمومی و سرفصل‌های دوره */}
         {currentStep === 1 && (
           <div className="p-6 sm:p-8 space-y-5 animate-in fade-in-50 duration-200">
@@ -1022,7 +1022,7 @@ export const AdminCreateCoursePage = () => {
         )}
 
         {/* 4. Wizard Footer Navigation */}
-        <div className="p-4 sm:p-5 bg-slate-50/80 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+        <div className="p-4 sm:p-5 bg-slate-50/80 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 rounded-b-3xl flex items-center justify-between gap-3">
           <div>
             {currentStep > 1 ? (
               <Button

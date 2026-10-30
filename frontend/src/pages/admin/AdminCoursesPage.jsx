@@ -328,6 +328,11 @@ export const AdminCoursesPage = () => {
                         <Badge variant={course.gender === 'FEMALE' ? 'warning' : 'info'}>
                           {course.gender_display || (course.gender === 'FEMALE' ? 'دختران / بانوان' : 'پسران / آقایان')}
                         </Badge>
+                        {course.age_range && (
+                          <Badge variant="violet">
+                            {course.age_range}
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </div>
