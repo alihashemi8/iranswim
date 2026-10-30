@@ -249,11 +249,6 @@ export const AdminCreateCoursePage = () => {
                     label: 'پیش‌ثبت‌نام',
                     description: 'دوره برای رزرو و مشاهده ظرفیت فعال است',
                   },
-                  {
-                    value: 'COMPLETED',
-                    label: 'خاتمه‌یافته',
-                    description: 'دوره به پایان رسیده است',
-                  },
                 ]}
                 placeholder="انتخاب وضعیت دوره..."
               />
