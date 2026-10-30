@@ -4,7 +4,7 @@ import {
   CreditCard, AlertCircle, FileText, CheckCircle2,
   DollarSign, ArrowUpRight, ArrowDownLeft, Plus,
   FileSpreadsheet, Search, RefreshCw, User, Phone,
-  Filter, RotateCcw, Calendar, MapPin, UserCheck, Users, X
+  Filter, RotateCcw, Calendar, MapPin, UserCheck, Users, X, Sparkles
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -81,6 +81,16 @@ export const AdminFinancePage = () => {
     reason: '',
   });
   const [submittingAdj, setSubmittingAdj] = useState(false);
+
+  // Next Course Discount Modal (for Settled Swimmers)
+  const [isNextCourseModalOpen, setIsNextCourseModalOpen] = useState(false);
+  const [selectedPaidInvoice, setSelectedPaidInvoice] = useState(null);
+  const [nextCourseForm, setNextCourseForm] = useState({
+    amount: '',
+    presetReason: 'تخفیف وفاداری و تمدید دوره',
+    customReason: '',
+  });
+  const [submittingNextCourse, setSubmittingNextCourse] = useState(false);
 
   const fetchFinance = async () => {
     try {
@@ -217,6 +227,61 @@ export const AdminFinancePage = () => {
     } finally {
       setSubmittingAdj(false);
     }
+  };
+
+  // Open Next Course Discount Modal for Settled Swimmers
+  const handleOpenNextCourseModal = (invoice) => {
+    setSelectedPaidInvoice(invoice);
+    setNextCourseForm({
+      amount: '',
+      presetReason: 'تخفیف وفاداری و تمدید دوره',
+      customReason: '',
+    });
+    setIsNextCourseModalOpen(true);
+  };
+
+  // Submit Next Course Discount (as CREDIT_MEMO on swimmer's account)
+  const handleRecordNextCourseDiscount = async (e) => {
+    e.preventDefault();
+    if (!selectedPaidInvoice || !nextCourseForm.amount || Number(nextCourseForm.amount) <= 0) {
+      toast.error('لطفاً مبلغ تخفیف را وارد کنید.');
+      return;
+    }
+
+    const finalReason = nextCourseForm.presetReason === 'سایر دلایل (توضیحات سفارشی)'
+      ? (nextCourseForm.customReason.trim() || 'تخفیف دوره بعد')
+      : (nextCourseForm.customReason.trim()
+          ? `${nextCourseForm.presetReason} - ${nextCourseForm.customReason.trim()}`
+          : nextCourseForm.presetReason);
+
+    try {
+      setSubmittingNextCourse(true);
+      await api.post('/finance/adjustments/', {
+        invoice: selectedPaidInvoice.id,
+        type: 'CREDIT_MEMO',
+        amount: nextCourseForm.amount,
+        reason: `[تخفیف دوره بعد] ${finalReason}`,
+      });
+
+      setIsNextCourseModalOpen(false);
+      setSelectedPaidInvoice(null);
+      toast.success(
+        `تخفیف دوره بعدی به مبلغ ${formatPrice(nextCourseForm.amount)} تومان با موفقیت برای شناگر ثبت گردید.`
+      );
+      fetchFinance();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'خطا در ثبت تخفیف دوره بعدی');
+    } finally {
+      setSubmittingNextCourse(false);
+    }
+  };
+
+  // Helper to extract next-course discounts from invoice adjustments
+  const getNextCourseDiscounts = (invoice) => {
+    if (!invoice || !Array.isArray(invoice.adjustments)) return [];
+    return invoice.adjustments.filter(
+      (a) => a.type === 'CREDIT_MEMO' || (a.reason && a.reason.includes('تخفیف دوره بعد'))
+    );
   };
 
   const formatPrice = (val) => Number(val || 0).toLocaleString('fa-IR');
@@ -892,9 +957,25 @@ export const AdminFinancePage = () => {
                               <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                                 {inv.swimmer_name ? inv.swimmer_name.trim().charAt(0) : <User className="w-4 h-4" />}
                               </div>
-                              <span className="font-bold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
-                                {inv.swimmer_name}
-                              </span>
+                              <div>
+                                <span className="font-bold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors block">
+                                  {inv.swimmer_name}
+                                </span>
+                                {(() => {
+                                  const nextDisc = getNextCourseDiscounts(inv);
+                                  const totalNext = nextDisc.reduce((s, a) => s + Number(a.amount || 0), 0);
+                                  if (totalNext <= 0) return null;
+                                  return (
+                                    <span
+                                      className="inline-flex items-center gap-1 text-[10px] font-semibold text-sky-700 dark:text-sky-300 bg-sky-100/80 dark:bg-sky-950/70 px-1.5 py-0.5 rounded mt-0.5 border border-sky-200/50 dark:border-sky-800/50"
+                                      title={`تخفیف دوره بعد: ${formatPrice(totalNext)} تومان`}
+                                    >
+                                      <Sparkles className="w-2.5 h-2.5 text-sky-600 dark:text-sky-400" />
+                                      <span>تخفیف دوره بعد: {formatCompactPrice(totalNext)}</span>
+                                    </span>
+                                  );
+                                })()}
+                              </div>
                             </div>
                           </td>
                           <td className={`px-4 py-3.5 text-xs font-semibold text-slate-700 dark:text-slate-300 ${theme.td}`}>
@@ -934,24 +1015,36 @@ export const AdminFinancePage = () => {
                           </td>
                           <td className={`px-4 py-3.5 text-center ${theme.td} ${theme.lastTd}`} onClick={(e) => e.stopPropagation()}>
                             <div className="flex items-center justify-center gap-1.5">
-                              {inv.status !== 'PAID' && (
+                              {inv.status !== 'PAID' ? (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenPayModal(inv)}
+                                    className="px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 font-semibold text-xs border border-emerald-200 dark:border-emerald-800 transition-colors cursor-pointer"
+                                    title="ثبت پرداخت برای این فاکتور"
+                                  >
+                                    ثبت واریزی
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => handleOpenAdjModal(inv)}
+                                    className="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 font-semibold text-xs border border-slate-200/60 dark:border-slate-700 transition-colors cursor-pointer"
+                                    title="ثبت تخفیف یا استرداد وجه"
+                                  >
+                                    تخفیف
+                                  </button>
+                                </>
+                              ) : (
                                 <button
                                   type="button"
-                                  onClick={() => handleOpenPayModal(inv)}
-                                  className="px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 font-semibold text-xs border border-emerald-200 dark:border-emerald-800 transition-colors cursor-pointer"
-                                  title="ثبت پرداخت برای این فاکتور"
+                                  onClick={() => handleOpenNextCourseModal(inv)}
+                                  className="px-2.5 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 font-semibold text-xs border border-sky-200 dark:border-sky-800 transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                                  title="ثبت تخفیف یا اعتبار برای ثبت‌نام دوره بعدی این شناگر"
                                 >
-                                  ثبت واریزی
+                                  <Sparkles className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                                  <span>تخفیف دوره بعد</span>
                                 </button>
                               )}
-                              <button
-                                type="button"
-                                onClick={() => handleOpenAdjModal(inv)}
-                                className="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 font-semibold text-xs border border-slate-200/60 dark:border-slate-700 transition-colors cursor-pointer"
-                                title="ثبت تخفیف یا استرداد وجه"
-                              >
-                                تخفیف
-                              </button>
                             </div>
                           </td>
                         </tr>
@@ -980,6 +1073,20 @@ export const AdminFinancePage = () => {
                             <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
                               {inv.swimmer_name}
                             </h3>
+                            {(() => {
+                              const nextDisc = getNextCourseDiscounts(inv);
+                              const totalNext = nextDisc.reduce((s, a) => s + Number(a.amount || 0), 0);
+                              if (totalNext <= 0) return null;
+                              return (
+                                <span
+                                  className="inline-flex items-center gap-1 text-[10px] font-semibold text-sky-700 dark:text-sky-300 bg-sky-100/80 dark:bg-sky-950/70 px-1.5 py-0.5 rounded mt-0.5 border border-sky-200/50 dark:border-sky-800/50"
+                                  title={`تخفیف دوره بعد: ${formatPrice(totalNext)} تومان`}
+                                >
+                                  <Sparkles className="w-2.5 h-2.5 text-sky-600 dark:text-sky-400" />
+                                  <span>تخفیف دوره بعد: {formatCompactPrice(totalNext)}</span>
+                                </span>
+                              );
+                            })()}
                           </div>
                         </div>
                         <Badge variant={statusBadges[inv.status]?.variant || 'neutral'}>
@@ -1027,23 +1134,34 @@ export const AdminFinancePage = () => {
                       </div>
 
                       <div className="flex items-center gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50" onClick={(e) => e.stopPropagation()}>
-                        {inv.status !== 'PAID' && (
+                        {inv.status !== 'PAID' ? (
+                          <>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenPayModal(inv)}
+                              className="flex-1 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 font-semibold border border-emerald-200 dark:border-emerald-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                            >
+                              <DollarSign className="w-3.5 h-3.5" />
+                              <span>ثبت واریزی</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleOpenAdjModal(inv)}
+                              className="flex-1 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 font-semibold border border-slate-200/60 dark:border-slate-700 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                            >
+                              <span>تخفیف</span>
+                            </button>
+                          </>
+                        ) : (
                           <button
                             type="button"
-                            onClick={() => handleOpenPayModal(inv)}
-                            className="flex-1 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 font-semibold border border-emerald-200 dark:border-emerald-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                            onClick={() => handleOpenNextCourseModal(inv)}
+                            className="flex-1 py-2 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 font-semibold border border-sky-200 dark:border-sky-800 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer"
                           >
-                            <DollarSign className="w-3.5 h-3.5" />
-                            <span>ثبت واریزی</span>
+                            <Sparkles className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                            <span>تخفیف دوره بعد</span>
                           </button>
                         )}
-                        <button
-                          type="button"
-                          onClick={() => handleOpenAdjModal(inv)}
-                          className="flex-1 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 font-semibold border border-slate-200/60 dark:border-slate-700 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
-                        >
-                          <span>تخفیف</span>
-                        </button>
                       </div>
                     </div>
                   );
