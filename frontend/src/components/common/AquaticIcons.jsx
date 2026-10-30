@@ -403,3 +403,125 @@ export const PoolStartingBlockIcon = ({ className = 'w-6 h-6', ...props }) => (
     <path d="M3 21c2.5-0.6 5 0.6 7.5 0s5-0.6 7.5 0" opacity="0.5" />
   </svg>
 );
+
+// 16. Professional Swim Goggles (عینک حرفه‌ای ضد بخار و ارگونومیک شنا)
+export const SwimGogglesIcon = ({ className = 'w-6 h-6', ...props }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...props}
+  >
+    {/* Left Eye Goggle Lens */}
+    <path d="M4.5 14c-.8-1.5-.5-3.5 1-4.5 2-1.3 4.5-.5 5 1.5.5 2-.8 4-2.8 4.5-1.5.3-2.7-.3-3.2-1.5z" />
+    <path d="M6 11.5c.8-.5 2 0 2.2 1" opacity="0.6" />
+    {/* Right Eye Goggle Lens */}
+    <path d="M19.5 14c.8-1.5.5-3.5-1-4.5-2-1.3-4.5-.5-5 1.5-.5 2 .8 4 2.8 4.5 1.5.3 2.7-.3 3.2-1.5z" />
+    <path d="M18 11.5c-.8-.5-2 0-2.2 1" opacity="0.6" />
+    {/* Nose Bridge Connector */}
+    <path d="M10.5 11.5c.8-.8 2.2-.8 3 0" />
+    {/* Dual Elastic Silicone Straps */}
+    <path d="M4.5 11C3 11 2 12 2 13M4.5 13.5C3 14 2 14.5 2 15" />
+    <path d="M19.5 11c1.5 0 2.5 1 2.5 2M19.5 13.5c1.5.5 2.5 1 2.5 1.5" />
+  </svg>
+);
+
+// 17. Silicone Competition Swim Cap (کلاه مسابقاتی سیلیکونی شنا)
+export const SwimCapIcon = ({ className = 'w-6 h-6', ...props }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...props}
+  >
+    {/* Dome Profile of Cap */}
+    <path d="M4 15.5C3.5 9 7 4 12 4s8.5 5 8 11.5" />
+    {/* Ergonomic Ear/Base Contour */}
+    <path d="M4 15.5c1.5 1.5 3 2 4.5 1.5 1.5-.5 2.5-.5 3.5-.5s2 0 3.5.5c1.5.5 3 0 4.5-1.5" />
+    {/* Hydrodynamic Ridge Wave */}
+    <path d="M8 9.5c2-1 4 1 6 0s2-1 2-1" opacity="0.6" />
+    {/* Accent Star Mark */}
+    <circle cx="12" cy="7" r="1" fill="currentColor" opacity="0.8" />
+  </svg>
+);
+
+// 18. Training Kickboard (تخته شنا آموزشی و اصلاح تکنیک پای کرال)
+export const SwimKickboardIcon = ({ className = 'w-6 h-6', ...props }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...props}
+  >
+    {/* Kickboard Body Contour */}
+    <path d="M6 20h12a2 2 0 0 0 2-2V8c0-3.5-3-5.5-8-5.5S4 4.5 4 8v10a2 2 0 0 0 2 2z" />
+    {/* Dual Hand Grip Slots */}
+    <rect x="7" y="7.5" width="3" height="1.8" rx="0.9" fill="currentColor" fillOpacity="0.2" />
+    <rect x="14" y="7.5" width="3" height="1.8" rx="0.9" fill="currentColor" fillOpacity="0.2" />
+    {/* Center Water Flow Channel */}
+    <path d="M12 12v5" strokeDasharray="2 1.5" opacity="0.6" />
+    {/* Hydrodynamic Bottom Wake */}
+    <path d="M8 16c1.2-.5 2.5.5 4 0s2.8.5 4 0" opacity="0.5" />
+  </svg>
+);
+
+// 19. Training Swim Fins (فین‌های قدرتی و سرعتی شنا)
+export const SwimFinsIcon = ({ className = 'w-6 h-6', ...props }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...props}
+  >
+    {/* Left Fin Blade */}
+    <path d="M5 4h4l1.5 8 1.5 8H8l-3-8V4z" />
+    {/* Right Fin Blade */}
+    <path d="M15 4h4v8l-3 8h-4l1.5-8L15 4z" />
+    {/* Foot Pockets */}
+    <path d="M7 4v3M17 4v3" />
+    {/* Blade Water Channelling Ribs */}
+    <path d="M7 11l1 5M17 11l-1 5" opacity="0.6" />
+  </svg>
+);
+
+// 20. Coach Whistle & Lanyard (سوت مربیگری و زمان‌بندی شنا)
+export const SwimWhistleIcon = ({ className = 'w-6 h-6', ...props }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...props}
+  >
+    {/* Whistle Resonance Chamber */}
+    <circle cx="8" cy="14" r="5" />
+    {/* Whistle Air Barrel & Mouthpiece */}
+    <path d="M13 10h8v4h-8" />
+    <path d="M15 10v4" />
+    {/* Whistle Loop for Neck Lanyard */}
+    <circle cx="3" cy="14" r="1.5" />
+    {/* Sound Blast Wave Ripples */}
+    <path d="M19 7c1.5 1 2.5 1 3 0" opacity="0.6" />
+    <path d="M17 5c2 1.5 3.5 1.5 4.5 0" opacity="0.4" />
+  </svg>
+);
+

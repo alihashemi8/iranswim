@@ -30,6 +30,8 @@ import { LoadingState } from '../../components/common/LoadingState';
 import { useAuth } from '../../context/AuthContext';
 import { AquaticPoolBackground } from '../../components/landing/AquaticPoolBackground';
 import { AquaticWaveDivider } from '../../components/landing/AquaticWaveDivider';
+import { FloatingAquaticHeroIcons } from '../../components/landing/FloatingAquaticHeroIcons';
+import { FloatingAquaticSectionIcons } from '../../components/landing/FloatingAquaticSectionIcons';
 import { CoachProfileCard } from '../../components/common/CoachProfileCard';
 import './HomePage.css';
 
@@ -538,7 +540,10 @@ export const HomePage = () => {
             SECTION 1: CINEMATIC AQUATIC HERO & WATER ENTRY ARENA
             ========================================================================= */}
         <section className="landing-hero relative w-full pt-8 sm:pt-14 lg:pt-18 pb-12 sm:pb-16 min-w-0">
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Scattered Floating Aquatic Swimming Icons (excluding the mascot photo area) */}
+          <FloatingAquaticHeroIcons />
+
+          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
             <div className="landing-hero__panel relative w-full">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
               {/* Text & Primary Actions */}
@@ -637,8 +642,9 @@ export const HomePage = () => {
       {/* =========================================================================
           SECTION 2: REAL CORE BENEFITS
           ========================================================================= */}
-      <section id="about" className="w-full py-12 sm:py-16 lg:py-20 min-w-0">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-6">
+      <section id="about" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
+        <FloatingAquaticSectionIcons section="about" />
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-6 relative z-10">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <Badge variant="info">ویژگی‌های کلاس‌های ما</Badge>
             <h2 className="text-2xl sm:text-4xl font-extrabold text-slate-900 tracking-tight">
@@ -753,8 +759,9 @@ export const HomePage = () => {
       {/* =========================================================================
           SECTION 3: LIVE COURSES
           ========================================================================= */}
-      <section id="courses" className="landing-section w-full py-12 sm:py-16 lg:py-20 min-w-0">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7">
+      <section id="courses" className="landing-section relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
+        <FloatingAquaticSectionIcons section="courses" />
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
           <div className="landing-section__heading flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
             <div className="space-y-1.5">
               <Badge variant="info">برنامه آموزشی ترم جاری</Badge>
@@ -870,8 +877,9 @@ export const HomePage = () => {
       {/* =========================================================================
           SECTION 4: ACADEMY FACILITIES & INFRASTRUCTURE
           ========================================================================= */}
-      <section id="facilities" className="w-full py-12 sm:py-16 lg:py-20 min-w-0">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7">
+      <section id="facilities" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
+        <FloatingAquaticSectionIcons section="facilities" />
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
           <div className="text-center max-w-2xl mx-auto space-y-2.5">
             <Badge variant="info">محیط استخر و بهداشت آب</Badge>
             <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
@@ -993,8 +1001,9 @@ export const HomePage = () => {
       {/* =========================================================================
           SECTION 5: CERTIFIED FEDERATION COACHES
           ========================================================================= */}
-      <section id="coaches" className="w-full py-12 sm:py-16 lg:py-20 min-w-0">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7">
+      <section id="coaches" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
+        <FloatingAquaticSectionIcons section="coaches" />
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
             <div className="space-y-1.5">
               <Badge variant="success">کادر مربیان قزوین</Badge>
@@ -1032,8 +1041,9 @@ export const HomePage = () => {
       {/* =========================================================================
           SECTION 6: NEWS, ARTICLES & EVENTS
           ========================================================================= */}
-      <section id="news" className="w-full py-12 sm:py-16 lg:py-20 min-w-0">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7">
+      <section id="news" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
+        <FloatingAquaticSectionIcons section="news" />
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
             <div className="space-y-1.5">
               <Badge variant="warning">اخبار و اطلاعیه‌ها</Badge>
