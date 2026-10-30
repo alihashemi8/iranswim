@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
-  BookOpen, ArrowRight, ArrowLeft, MapPin, Clock, Calendar,
-  GraduationCap, Users, Check, CheckCircle2, Award,
-  Sparkles, DollarSign, Layers, Search, User, ChevronLeft, AlertCircle
+  ArrowRight, ArrowLeft, MapPin, Clock, Calendar,
+  Users, Check, CheckCircle2, Award,
+  Sparkles, DollarSign, Layers, Search, User, ChevronLeft, AlertCircle,
+  Whistle
 } from 'lucide-react';
+import { SwimmerCrawlIcon } from '../../components/common/AquaticIcons';
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
@@ -13,9 +15,9 @@ import { PersianDatePicker, toJalaliString, formatJalaliReadable } from '../../c
 import { useToast } from '../../context/ToastContext';
 
 const STEPS = [
-  { id: 1, title: 'مشخصات عمومی و سرفصل‌ها', subtitle: 'عنوان، جنسیت، رده سنی و توضیحات', icon: BookOpen },
+  { id: 1, title: 'مشخصات عمومی و سرفصل‌ها', subtitle: 'عنوان، جنسیت، رده سنی و توضیحات', icon: SwimmerCrawlIcon },
   { id: 2, title: 'محل برگزاری و زمان‌بندی', subtitle: 'استخر، روزهای هفته و ساعات جلسات', icon: MapPin },
-  { id: 3, title: 'کادر مربیان دوره آموزشی', subtitle: 'تعیین مربیان و تفکیک خودکار کلاس‌ها', icon: GraduationCap },
+  { id: 3, title: 'کادر مربیان دوره آموزشی', subtitle: 'تعیین مربیان و تفکیک خودکار کلاس‌ها', icon: Whistle },
   { id: 4, title: 'امور مالی و شهریه ثبت‌نام', subtitle: 'شهریه هر شناگر و مرور نهایی دوره', icon: DollarSign },
 ];
 
@@ -79,7 +81,9 @@ export const AdminCreateCoursePage = () => {
 
   const toggleDay = (dayName) => {
     setFormData((prev) => {
-      const currentDays = prev.days_of_week ? prev.days_of_week.split(' و ') : [];
+      const currentDays = prev.days_of_week
+        ? prev.days_of_week.split(' و ').map((d) => d.trim()).filter(Boolean)
+        : [];
       const exists = currentDays.includes(dayName);
       let nextDays;
       if (exists) {
@@ -329,7 +333,7 @@ export const AdminCreateCoursePage = () => {
           </Link>
           <div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-sky-600" />
+              <SwimmerCrawlIcon className="w-5 h-5 text-sky-600" />
               تعریف دوره آموزشی جدید
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -433,7 +437,7 @@ export const AdminCreateCoursePage = () => {
           <div className="p-6 sm:p-8 space-y-5 animate-in fade-in-50 duration-200">
             <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-900/60 text-sky-600 dark:text-sky-400 flex items-center justify-center">
-                <BookOpen className="w-4 h-4" />
+                <SwimmerCrawlIcon className="w-4 h-4" />
               </div>
               <div>
                 <h2 className="text-base font-bold text-slate-900 dark:text-white">
@@ -662,7 +666,11 @@ export const AdminCreateCoursePage = () => {
               </div>
               <div className="flex flex-wrap gap-2 pt-1">
                 {['شنبه', 'یک‌شنبه', 'دوشنبه', 'سه‌شنبه', 'چهارشنبه', 'پنج‌شنبه', 'جمعه'].map((day) => {
-                  const isSelected = (formData.days_of_week || '').includes(day);
+                  const selectedDays = (formData.days_of_week || '')
+                    .split(' و ')
+                    .map((d) => d.trim())
+                    .filter(Boolean);
+                  const isSelected = selectedDays.includes(day);
                   return (
                     <button
                       key={day}
@@ -812,7 +820,7 @@ export const AdminCreateCoursePage = () => {
             <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-900/60 text-sky-600 dark:text-sky-400 flex items-center justify-center">
-                  <GraduationCap className="w-4 h-4" />
+                  <Whistle className="w-4 h-4" />
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-slate-900 dark:text-white">
