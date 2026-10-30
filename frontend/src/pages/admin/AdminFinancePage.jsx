@@ -1264,26 +1264,26 @@ export const AdminFinancePage = () => {
             <>
               {/* Desktop Table View */}
               <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-sm text-right border-separate border-spacing-y-2">
-                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300">
+                <table className="w-full text-sm text-right">
+                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                     <tr>
-                      <th className="px-4 py-3 rounded-r-xl">شناگر</th>
-                      <th className="px-4 py-3">مربی</th>
-                      <th className="px-4 py-3">مبلغ پرداختی</th>
-                      <th className="px-4 py-3">روش پرداخت</th>
-                      <th className="px-4 py-3">وضعیت</th>
-                      <th className="px-4 py-3 rounded-l-xl">زمان ثبت تراکنش</th>
+                      <th className="px-4 py-3.5 rounded-r-xl">شناگر</th>
+                      <th className="px-4 py-3.5">مربی</th>
+                      <th className="px-4 py-3.5">مبلغ پرداختی</th>
+                      <th className="px-4 py-3.5">روش پرداخت</th>
+                      <th className="px-4 py-3.5">وضعیت</th>
+                      <th className="px-4 py-3.5 rounded-l-xl">زمان ثبت تراکنش</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
                     {filteredPayments.map((p) => (
                       <tr
                         key={p.id}
                         onClick={() => handleOpenSwimmerProfile(p)}
-                        className="group cursor-pointer"
+                        className="hover:bg-sky-50/40 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
                         title="جهت مشاهده پرونده شناگر کلیک کنید"
                       >
-                        <td className="px-4 py-3.5 bg-emerald-50 dark:bg-emerald-950/40 border-y border-s border-emerald-200/90 dark:border-emerald-800/80 border-r-4 border-r-emerald-500 rounded-r-xl group-hover:bg-emerald-100/70 dark:group-hover:bg-emerald-900/40 group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-colors duration-150">
+                        <td className="px-4 py-3.5">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                               {p.swimmer_name ? p.swimmer_name.trim().charAt(0) : <User className="w-4 h-4" />}
@@ -1293,26 +1293,26 @@ export const AdminFinancePage = () => {
                             </span>
                           </div>
                         </td>
-                        <td className="px-4 py-3.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-emerald-50 dark:bg-emerald-950/40 border-y border-emerald-200/90 dark:border-emerald-800/80 group-hover:bg-emerald-100/70 dark:group-hover:bg-emerald-900/40 group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-colors duration-150">
+                        <td className="px-4 py-3.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
                           <div className="flex items-center gap-1.5">
                             <UserCheck className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                             <span>{cleanCoachName(p.coach_name)}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3.5 bg-emerald-50 dark:bg-emerald-950/40 border-y border-emerald-200/90 dark:border-emerald-800/80 group-hover:bg-emerald-100/70 dark:group-hover:bg-emerald-900/40 group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-colors duration-150" title={`${formatPrice(p.amount)} تومان`}>
+                        <td className="px-4 py-3.5" title={`${formatPrice(p.amount)} تومان`}>
                           <span className="font-mono font-bold text-base text-emerald-600 dark:text-emerald-400 tracking-tight">
                             {formatCompactPrice(p.amount)}
                           </span>
                         </td>
-                        <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-300 bg-emerald-50 dark:bg-emerald-950/40 border-y border-emerald-200/90 dark:border-emerald-800/80 group-hover:bg-emerald-100/70 dark:group-hover:bg-emerald-900/40 group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-colors duration-150">
+                        <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-300">
                           {methodLabels[p.method] || p.method_display || p.method}
                         </td>
-                        <td className="px-4 py-3.5 bg-emerald-50 dark:bg-emerald-950/40 border-y border-emerald-200/90 dark:border-emerald-800/80 group-hover:bg-emerald-100/70 dark:group-hover:bg-emerald-900/40 group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-colors duration-150">
+                        <td className="px-4 py-3.5">
                           <Badge variant={p.status === 'SUCCESSFUL' ? 'success' : 'warning'}>
                             {p.status_display}
                           </Badge>
                         </td>
-                        <td className="px-4 py-3.5 font-mono text-xs text-slate-400 bg-emerald-50 dark:bg-emerald-950/40 border-y border-l border-emerald-200/90 dark:border-emerald-800/80 rounded-l-xl group-hover:bg-emerald-100/70 dark:group-hover:bg-emerald-900/40 group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-colors duration-150">
+                        <td className="px-4 py-3.5 font-mono text-xs text-slate-400">
                           {new Date(p.paid_at || p.created_at).toLocaleString('fa-IR')}
                         </td>
                       </tr>
@@ -1327,7 +1327,7 @@ export const AdminFinancePage = () => {
                   <div
                     key={p.id}
                     onClick={() => handleOpenSwimmerProfile(p)}
-                    className="p-4 rounded-2xl bg-emerald-50/30 hover:bg-emerald-50/60 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/35 border border-emerald-200/80 dark:border-emerald-800/60 border-r-4 border-r-emerald-500 space-y-3 text-xs hover:border-emerald-400 cursor-pointer transition-colors group shadow-2xs"
+                    className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-3 text-xs hover:border-sky-300 dark:hover:border-sky-700 cursor-pointer transition-colors group shadow-2xs"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2.5">
