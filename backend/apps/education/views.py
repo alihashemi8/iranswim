@@ -25,12 +25,12 @@ class SkillLevelListView(generics.ListCreateAPIView):
 
 
 class CourseListView(generics.ListCreateAPIView):
-    queryset = Course.objects.all().prefetch_related('groups__schedules', 'groups__coach_assignments')
+    queryset = Course.objects.all().prefetch_related('groups__schedules', 'groups__coach_assignments', 'coaches__user')
     serializer_class = CourseSerializer
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        qs = Course.objects.all().prefetch_related('groups__schedules', 'groups__coach_assignments')
+        qs = Course.objects.all().prefetch_related('groups__schedules', 'groups__coach_assignments', 'coaches__user')
         status_filter = self.request.query_params.get('status')
         if status_filter:
             qs = qs.filter(status=status_filter)
@@ -204,13 +204,13 @@ class EnrollmentRequestReviewView(APIView):
 
 class EnrollmentListView(generics.ListCreateAPIView):
     """مدیریت ثبت‌نام‌های قطعی"""
-    queryset = Enrollment.objects.all().select_related('swimmer', 'course', 'group')
+    queryset = Enrollment.objects.all().select_related('swimmer', 'course', 'group', 'coach')
     serializer_class = EnrollmentSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
-        qs = Enrollment.objects.all().select_related('swimmer', 'course', 'group')
+        qs = Enrollment.objects.all().select_related('swimmer', 'course', 'group', 'coach')
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             swimmer_id = self.request.query_params.get('swimmer_id')
             if swimmer_id:
@@ -218,17 +218,97 @@ class EnrollmentListView(generics.ListCreateAPIView):
             group_id = self.request.query_params.get('group_id')
             if group_id:
                 qs = qs.filter(group_id=group_id)
+            course_id = self.request.query_params.get('course_id')
+            if course_id:
+                qs = qs.filter(course_id=course_id)
+            coach_id = self.request.query_params.get('coach_id')
+            if coach_id:
+                qs = qs.filter(coach_id=coach_id)
             return qs
         elif user.role == 'COACH':
             coach_profile = getattr(user, 'coach_profile', None)
             if coach_profile:
-                return qs.filter(group__coach_assignments__coach=coach_profile).distinct()
+                return qs.filter(coach=coach_profile).distinct()
             return qs.none()
         elif user.role == 'SWIMMER':
             from apps.swimmers.utils import get_accessible_swimmer_ids
             ids = get_accessible_swimmer_ids(user, self.request)
             return qs.filter(swimmer_id__in=ids)
         return qs.none()
+
+
+class EnrollmentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """مشاهده، ویرایش و حذف ثبت‌نام مشخص"""
+    queryset = Enrollment.objects.all().select_related('swimmer', 'course', 'group', 'coach')
+    serializer_class = EnrollmentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+
+class EnrollmentAssignCoachView(APIView):
+    """
+    تخصیص یا تغییر مربی یک ثبت‌نام با انتساب مستقیم به کلاس آن مربی
+    """
+    permission_classes = [IsAdminUserRole]
+
+    def post(self, request, pk):
+        try:
+            enrollment = Enrollment.objects.select_related('course', 'group', 'swimmer').get(pk=pk)
+        except Enrollment.DoesNotExist:
+            return Response({'detail': 'ثبت‌نام یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        coach_id = request.data.get('coach_id')
+        if coach_id:
+            from apps.coaches.models import CoachProfile
+            try:
+                coach = CoachProfile.objects.get(pk=coach_id)
+            except CoachProfile.DoesNotExist:
+                return Response({'detail': 'مربی مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+            enrollment.coach = coach
+            # Find or assign group for this coach in this course
+            if enrollment.course:
+                target_group = SwimmerGroup.objects.filter(
+                    course=enrollment.course,
+                    coach_assignments__coach=coach
+                ).first()
+                if not target_group:
+                    # Create group if doesn't exist
+                    target_group, _ = SwimmerGroup.objects.get_or_create(
+                        course=enrollment.course,
+                        name=f"کلاس مربی {coach.full_name}",
+                        defaults={
+                            'skill_level': SkillLevel.objects.first(),
+                            'capacity': 15,
+                            'pool_location': enrollment.course.pool_location or 'استخر شهید رئیسی',
+                            'status': SwimmerGroup.Status.OPEN
+                        }
+                    )
+                    GroupCoach.objects.get_or_create(
+                        group=target_group,
+                        coach=coach,
+                        defaults={'is_primary': True, 'assigned_from': enrollment.course.start_date}
+                    )
+                enrollment.group = target_group
+        else:
+            enrollment.coach = None
+
+        enrollment.save()
+
+        AuditLog.objects.create(
+            actor=request.user,
+            action=AuditLog.Action.ENROLLMENT_CREATE,
+            entity_type='Enrollment',
+            entity_id=str(enrollment.id),
+            details={
+                'swimmer': enrollment.swimmer.full_name,
+                'course': enrollment.course.name if enrollment.course else '',
+                'coach': enrollment.coach.full_name if enrollment.coach else 'تعیین‌نشده',
+                'group': enrollment.group.name if enrollment.group else ''
+            }
+        )
+
+        serializer = EnrollmentSerializer(enrollment, context={'request': request})
+        return Response(serializer.data)
 
 
 class GroupCoachListCreateView(generics.ListCreateAPIView):

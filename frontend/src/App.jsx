@@ -21,6 +21,7 @@ import { AdminSwimmersPage } from './pages/admin/AdminSwimmersPage';
 import { AdminSwimmerDetailPage } from './pages/admin/AdminSwimmerDetailPage';
 import { AdminCoachesPage } from './pages/admin/AdminCoachesPage';
 import { AdminCoursesPage } from './pages/admin/AdminCoursesPage';
+import { AdminCreateCoursePage } from './pages/admin/AdminCreateCoursePage';
 import { AdminAttendancePage } from './pages/admin/AdminAttendancePage';
 import { AdminAssessmentsPage } from './pages/admin/AdminAssessmentsPage';
 import { AdminLeaguesPage } from './pages/admin/AdminLeaguesPage';
@@ -148,6 +149,7 @@ export default function App() {
                 <Route path="swimmers/:id" element={<AdminSwimmerDetailPage />} />
                 <Route path="coaches" element={<AdminCoachesPage />} />
                 <Route path="courses" element={<AdminCoursesPage />} />
+                <Route path="courses/new" element={<AdminCreateCoursePage />} />
                 <Route path="attendance" element={<AdminAttendancePage />} />
 
                 {/* 3. Performance & Competitions */}

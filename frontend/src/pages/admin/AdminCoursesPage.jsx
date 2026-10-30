@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   BookOpen, Plus, Clock, MapPin, Users,
-  Award, Calendar, AlertTriangle, Layers, ChevronRight
+  Award, Calendar, AlertTriangle, Layers, ChevronRight,
+  GraduationCap, LayoutGrid, List, CheckCircle2, UserCheck, Eye
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -10,8 +11,10 @@ import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { ProgressBar } from '../../components/common/Charts';
+import { CoachSelectorDropdown } from '../../components/common/CoachSelectorDropdown';
+import { SwimmerCourseCard } from '../../components/common/SwimmerCourseCard';
 import { useToast } from '../../context/ToastContext';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 
 export const AdminCoursesPage = () => {
   const [activeTab, setActiveTab] = useState('GROUPS'); // GROUPS, COURSES, LEVELS, SESSIONS
@@ -19,24 +22,17 @@ export const AdminCoursesPage = () => {
   const [groups, setGroups] = useState([]);
   const [levels, setLevels] = useState([]);
   const [sessions, setSessions] = useState([]);
+  const [coaches, setCoaches] = useState([]);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Create Course Modal
-  const [isCourseModalOpen, setIsCourseModalOpen] = useState(false);
-  const [courseForm, setCourseForm] = useState({
-    name: '',
-    description: '',
-    start_date: '',
-    end_date: '',
-    base_price: '',
-    sessions_count: 12,
-    age_range: '',
-    gender: 'ALL',
-    what_you_learn: '',
-  });
-  const [savingCourse, setSavingCourse] = useState(false);
+  // Swimmers of Course Modal / Drawer
+  const [selectedCourseForSwimmers, setSelectedCourseForSwimmers] = useState(null);
+  const [courseEnrollments, setCourseEnrollments] = useState([]);
+  const [loadingEnrollments, setLoadingEnrollments] = useState(false);
+  const [swimmerViewMode, setSwimmerViewMode] = useState('cards'); // 'cards' | 'table'
 
   // Create SwimmerGroup Modal
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
@@ -45,23 +41,25 @@ export const AdminCoursesPage = () => {
     name: '',
     skill_level: '',
     capacity: 15,
-    pool_location: 'استخر اصلی آزادی - لاین آموزشی ۲',
+    pool_location: 'استخر شهید رئیسی',
   });
   const [savingGroup, setSavingGroup] = useState(false);
 
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [coursesRes, groupsRes, levelsRes, sessionsRes] = await Promise.all([
+      const [coursesRes, groupsRes, levelsRes, sessionsRes, coachesRes] = await Promise.all([
         api.get('/education/courses/'),
         api.get('/education/groups/'),
         api.get('/education/levels/'),
         api.get('/scheduling/sessions/'),
+        api.get('/coaches/'),
       ]);
       setCourses(coursesRes.data.results || coursesRes.data);
       setGroups(groupsRes.data.results || groupsRes.data);
       setLevels(levelsRes.data.results || levelsRes.data);
       setSessions(sessionsRes.data.results || sessionsRes.data);
+      setCoaches(coachesRes.data.results || coachesRes.data);
     } catch (err) {
       console.error(err);
       toast.error('خطا در دریافت اطلاعات کلاس‌ها و برنامه‌ریزی');
@@ -74,6 +72,35 @@ export const AdminCoursesPage = () => {
     fetchData();
   }, []);
 
+  // Open Course Swimmers View
+  const handleOpenCourseSwimmers = async (course) => {
+    setSelectedCourseForSwimmers(course);
+    setLoadingEnrollments(true);
+    try {
+      const res = await api.get(`/education/enrollments/?course_id=${course.id}`);
+      setCourseEnrollments(res.data.results || res.data || []);
+    } catch (err) {
+      console.error(err);
+      toast.error('خطا در دریافت لیست شناگران دوره');
+    } finally {
+      setLoadingEnrollments(false);
+    }
+  };
+
+  // Assign Coach to Enrollment within Course Swimmers View
+  const handleAssignCoachToEnrollment = async (enrollmentId, coachId) => {
+    try {
+      const res = await api.post(`/education/enrollments/${enrollmentId}/assign-coach/`, { coach_id: coachId });
+      setCourseEnrollments((prev) =>
+        prev.map((e) => (e.id === enrollmentId ? res.data : e))
+      );
+      toast.success(coachId ? 'مربی با موفقیت به شناگر تخصیص یافت.' : 'تخصیص مربی با موفقیت حذف شد.');
+    } catch (err) {
+      console.error(err);
+      toast.error('خطا در تخصیص مربی به شناگر');
+    }
+  };
+
   // Handle Quick Action deep link
   useEffect(() => {
     const action = searchParams.get('action');
@@ -85,40 +112,9 @@ export const AdminCoursesPage = () => {
         return next;
       }, { replace: true });
     } else if (action === 'new-course') {
-      setIsCourseModalOpen(true);
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.delete('action');
-        return next;
-      }, { replace: true });
+      navigate('/admin/courses/new');
     }
-  }, [searchParams, setSearchParams]);
-
-  const handleCreateCourse = async (e) => {
-    e.preventDefault();
-    try {
-      setSavingCourse(true);
-      await api.post('/education/courses/', courseForm);
-      setIsCourseModalOpen(false);
-      setCourseForm({
-        name: '',
-        description: '',
-        start_date: '',
-        end_date: '',
-        base_price: '',
-        sessions_count: 12,
-        age_range: '',
-        gender: 'ALL',
-        what_you_learn: '',
-      });
-      toast.success('دوره آموزشی جدید با موفقیت ایجاد گردید.');
-      fetchData();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || 'خطا در ثبت دوره');
-    } finally {
-      setSavingCourse(false);
-    }
-  };
+  }, [searchParams, setSearchParams, navigate]);
 
   const handleCreateGroup = async (e) => {
     e.preventDefault();
@@ -140,7 +136,7 @@ export const AdminCoursesPage = () => {
         name: '',
         skill_level: '',
         capacity: 15,
-        pool_location: 'استخر اصلی آزادی - لاین آموزشی ۲',
+        pool_location: 'استخر شهید رئیسی',
       });
       toast.success('گروه کلاسی جدید با موفقیت تعریف شد.');
       fetchData();
@@ -167,7 +163,7 @@ export const AdminCoursesPage = () => {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="outline" onClick={() => setIsCourseModalOpen(true)} className="gap-1.5 text-xs">
+          <Button variant="outline" onClick={() => navigate('/admin/courses/new')} className="gap-1.5 text-xs">
             <Plus className="w-4 h-4" />
             <span>تعریف دوره جدید</span>
           </Button>
@@ -312,28 +308,122 @@ export const AdminCoursesPage = () => {
           {courses.map((course) => (
             <div
               key={course.id}
-              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+              className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between gap-5"
             >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <h3 className="font-bold text-slate-900 dark:text-white text-base">{course.name}</h3>
-                  <Badge variant={course.status === 'ACTIVE' ? 'success' : 'neutral'}>
-                    {course.status === 'ACTIVE' ? 'در حال برگزاری' : 'پیش‌ثبت‌نام'}
-                  </Badge>
+              <div className="space-y-3">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-10 h-10 rounded-2xl bg-sky-50 dark:bg-sky-950/80 text-sky-600 dark:text-sky-300 flex items-center justify-center shrink-0 border border-sky-200/60 dark:border-sky-800">
+                      <BookOpen className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg">
+                        {course.name}
+                      </h3>
+                      <div className="flex items-center gap-2 mt-0.5">
+                        <Badge variant={course.status === 'ACTIVE' ? 'success' : 'neutral'}>
+                          {course.status === 'ACTIVE' ? 'در حال برگزاری' : 'پیش‌ثبت‌نام'}
+                        </Badge>
+                        <Badge variant="info">
+                          {course.gender_display || (course.gender === 'MALE' ? 'پسران / آقایان' : course.gender === 'FEMALE' ? 'دختران / بانوان' : 'عمومی')}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="text-left font-mono">
+                    <span className="text-lg font-bold text-slate-900 dark:text-slate-100 block">
+                      {formatPrice(course.base_price)} تومان
+                    </span>
+                    <span className="text-xs text-slate-400">شهریه هر شناگر ({course.sessions_count} جلسه)</span>
+                  </div>
                 </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">{course.description || 'بدون توضیحات'}</p>
-                <div className="flex items-center gap-4 text-xs font-mono text-slate-500 pt-1">
-                  <span>شروع: {new Date(course.start_date).toLocaleDateString('fa-IR')}</span>
-                  <span>پایان: {new Date(course.end_date).toLocaleDateString('fa-IR')}</span>
-                  <span>تعداد جلسات: {course.sessions_count} جلسه</span>
+
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  {course.description || 'بدون توضیحات ثبت‌شده برای دوره'}
+                </p>
+
+                {/* Course Metadata (Pool, Days, Hours) */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 text-xs text-slate-600 dark:text-slate-300">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-4 h-4 text-sky-500 shrink-0" />
+                    <span className="font-semibold">{course.pool_location || 'استخر شهید رئیسی'}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-amber-500 shrink-0" />
+                    <span>{course.days_of_week || 'سه‌شنبه و پنج‌شنبه'} ({course.time_display || '۱۷:۰۰ الی ۱۹:۰۰'})</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-emerald-500 shrink-0" />
+                    <span className="font-mono text-[11px]">
+                      {new Date(course.start_date).toLocaleDateString('fa-IR')} تا {new Date(course.end_date).toLocaleDateString('fa-IR')}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Assigned Coaches & Classes List (مربی A -> کلاس A) */}
+                <div className="pt-2">
+                  <div className="flex items-center justify-between pb-2">
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                      <GraduationCap className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                      مربیان و کلاس‌های اختصاصی دوره (
+                      {course.coaches?.length || course.groups?.length || 0} کلاس):
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      هر مربی دارای یک کلاس مجزا در این دوره است
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    {course.coaches && course.coaches.length > 0 ? (
+                      course.coaches.map((c) => (
+                        <div
+                          key={c.id}
+                          className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-sky-50/70 dark:bg-sky-950/40 border border-sky-200/60 dark:border-sky-800/80 text-xs text-slate-800 dark:text-slate-200"
+                        >
+                          <div className="relative shrink-0">
+                            {c.avatar ? (
+                              <img
+                                src={c.avatar}
+                                alt={c.full_name}
+                                className="w-6 h-6 rounded-full object-cover border border-sky-400"
+                              />
+                            ) : (
+                              <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-[10px]">
+                                {c.full_name?.charAt(0) || 'م'}
+                              </div>
+                            )}
+                          </div>
+                          <span className="font-bold">{c.full_name}</span>
+                          <span className="text-[10px] text-sky-600 dark:text-sky-400 bg-sky-100 dark:bg-sky-900/60 px-1.5 py-0.5 rounded-md font-semibold">
+                            {c.class_name}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <span className="text-xs text-slate-400 italic">
+                        هنوز مربی به این دوره اختصاص نیافته است.
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
-              <div className="text-left font-mono">
-                <span className="text-base font-bold text-slate-900 dark:text-slate-100 block">
-                  {formatPrice(course.base_price)} تومان
+              {/* Bottom Actions */}
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                <span className="text-xs text-slate-400">
+                  ظرفیت لاین‌ها بر اساس کلاس‌های مربیان محاسبه می‌شود
                 </span>
-                <span className="text-xs text-slate-400">شهریه هر شناگر</span>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    onClick={() => handleOpenCourseSwimmers(course)}
+                    className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-700 text-white"
+                  >
+                    <Users className="w-4 h-4" />
+                    <span>شناگران دوره و تخصیص مربی</span>
+                  </Button>
+                </div>
               </div>
             </div>
           ))}
@@ -454,145 +544,209 @@ export const AdminCoursesPage = () => {
         </div>
       )}
 
-      {/* Modal: Create Course */}
+
+
+      {/* Modal: View Swimmers of Course & Assign Coaches */}
       <Modal
-        isOpen={isCourseModalOpen}
-        onClose={() => setIsCourseModalOpen(false)}
-        title="تعریف دوره و بسته آموزشی جدید"
+        isOpen={Boolean(selectedCourseForSwimmers)}
+        onClose={() => setSelectedCourseForSwimmers(null)}
+        title={selectedCourseForSwimmers ? `شناگران دوره: ${selectedCourseForSwimmers.name}` : ''}
+        maxWidth="max-w-4xl"
       >
-        <form onSubmit={handleCreateCourse} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              عنوان دوره *
-            </label>
-            <input
-              type="text"
-              required
-              value={courseForm.name}
-              onChange={(e) => setCourseForm({ ...courseForm, name: e.target.value })}
-              placeholder="مثال: دوره آموزش شنای کرال پاییزه"
-              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-            />
-          </div>
+        {selectedCourseForSwimmers && (
+          <div className="space-y-4">
+            {/* Header info */}
+            <div className="p-3.5 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200/70 dark:border-sky-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sky-900 dark:text-sky-200 text-sm">
+                    {selectedCourseForSwimmers.name}
+                  </span>
+                  <Badge variant="info">
+                    {selectedCourseForSwimmers.gender_display || 'پسرانه'}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-4 text-slate-600 dark:text-slate-400">
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                    {selectedCourseForSwimmers.pool_location || 'استخر شهید رئیسی'}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-slate-400" />
+                    {selectedCourseForSwimmers.days_of_week} ({selectedCourseForSwimmers.time_display || '۱۷:۰۰ الی ۱۹:۰۰'})
+                  </span>
+                </div>
+              </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                شهریه پایه دوره (تومان) *
-              </label>
-              <input
-                type="number"
-                required
-                value={courseForm.base_price}
-                onChange={(e) => setCourseForm({ ...courseForm, base_price: e.target.value })}
-                className="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              {/* View Switcher */}
+              <div className="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setSwimmerViewMode('cards')}
+                  className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer ${
+                    swimmerViewMode === 'cards'
+                      ? 'bg-sky-600 text-white shadow-2xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                  title="نمای کارتی"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">کارت‌ها</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSwimmerViewMode('table')}
+                  className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer ${
+                    swimmerViewMode === 'table'
+                      ? 'bg-sky-600 text-white shadow-2xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                  title="نمای جدولی"
+                >
+                  <List className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">جدول</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Swimmers Content */}
+            {loadingEnrollments ? (
+              <LoadingState type="cards" count={3} message="در حال دریافت شناگران دوره..." />
+            ) : courseEnrollments.length === 0 ? (
+              <EmptyState
+                title="شناگری در این دوره ثبت‌نام نکرده است"
+                description="متقاضیان می‌توانند از طریق فرم درخواست آنلاین ثبت‌نام کنند یا مدیر می‌تواند شناگر را مستقیم در کلاس ثبت‌نام نماید."
               />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                تعداد کل جلسات دوره *
-              </label>
-              <input
-                type="number"
-                required
-                min="1"
-                value={courseForm.sessions_count}
-                onChange={(e) => setCourseForm({ ...courseForm, sessions_count: Number(e.target.value) })}
-                className="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-              />
-            </div>
-          </div>
+            ) : swimmerViewMode === 'cards' ? (
+              /* CARDS VIEW */
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto p-1">
+                {courseEnrollments.map((enr) => (
+                  <SwimmerCourseCard
+                    key={enr.id}
+                    swimmer={{
+                      full_name: enr.swimmer_name,
+                      avatar: enr.swimmer_avatar,
+                      phone: enr.swimmer_phone,
+                      national_id: enr.swimmer_national_id,
+                      level_name: enr.swimmer_level_name,
+                    }}
+                    course={{
+                      name: enr.course_name,
+                      pool_location: enr.course_pool,
+                      days_of_week: enr.course_days,
+                      time_display: enr.course_time,
+                    }}
+                    coach={
+                      enr.coach
+                        ? {
+                            id: enr.coach,
+                            full_name: enr.coach_name,
+                            avatar: enr.coach_avatar,
+                          }
+                        : null
+                    }
+                    availableCoaches={enr.course_coaches || selectedCourseForSwimmers.coaches || []}
+                    onSelectCoach={(coachId) => handleAssignCoachToEnrollment(enr.id, coachId)}
+                    onOpenDossier={() => navigate(`/admin/swimmers/${enr.swimmer}`)}
+                    status={enr.status}
+                    sessionsPurchased={enr.sessions_purchased}
+                    sessionsAttended={enr.sessions_attended}
+                  />
+                ))}
+              </div>
+            ) : (
+              /* TABLE VIEW */
+              <div className="overflow-x-auto max-h-[60vh] p-1">
+                <table className="w-full text-sm text-right min-w-[650px]">
+                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800">
+                    <tr>
+                      <th className="px-4 py-3 rounded-r-xl">شناگر</th>
+                      <th className="px-4 py-3">کلاس / گروه</th>
+                      <th className="px-4 py-3">مربی تخصیص‌یافته</th>
+                      <th className="px-4 py-3">جلسات</th>
+                      <th className="px-4 py-3">وضعیت</th>
+                      <th className="px-4 py-3 text-center rounded-l-xl">عملیات</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
+                    {courseEnrollments.map((enr) => (
+                      <tr key={enr.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30 transition-colors">
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2.5">
+                            {enr.swimmer_avatar ? (
+                              <img
+                                src={enr.swimmer_avatar}
+                                alt={enr.swimmer_name}
+                                className="w-8 h-8 rounded-full object-cover border border-slate-200"
+                              />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-xs">
+                                {enr.swimmer_name?.charAt(0) || 'ش'}
+                              </div>
+                            )}
+                            <div>
+                              <span className="font-bold text-slate-900 dark:text-white block text-xs">
+                                {enr.swimmer_name}
+                              </span>
+                              <span className="text-[10px] text-slate-400 font-mono">
+                                {enr.swimmer_phone}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-xs font-medium text-slate-700 dark:text-slate-300">
+                          {enr.group_name || 'بدون کلاس'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <CoachSelectorDropdown
+                            currentCoach={
+                              enr.coach
+                                ? {
+                                    id: enr.coach,
+                                    full_name: enr.coach_name,
+                                    avatar: enr.coach_avatar,
+                                  }
+                                : null
+                            }
+                            availableCoaches={enr.course_coaches || selectedCourseForSwimmers.coaches || []}
+                            onSelectCoach={(coachId) => handleAssignCoachToEnrollment(enr.id, coachId)}
+                            placement="auto"
+                            size="sm"
+                          />
+                        </td>
+                        <td className="px-4 py-3 text-xs font-mono text-slate-500">
+                          {enr.sessions_attended} از {enr.sessions_purchased}
+                        </td>
+                        <td className="px-4 py-3">
+                          <Badge variant={enr.status === 'ACTIVE' ? 'success' : 'neutral'}>
+                            {enr.status === 'ACTIVE' ? 'فعال' : enr.status}
+                          </Badge>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/admin/swimmers/${enr.swimmer}`)}
+                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-sky-600 dark:text-sky-400 transition-colors inline-flex items-center gap-1 text-xs cursor-pointer"
+                            title="مشاهده پرونده جامع"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>پرونده</span>
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                تاریخ شروع دوره *
-              </label>
-              <input
-                type="date"
-                required
-                value={courseForm.start_date}
-                onChange={(e) => setCourseForm({ ...courseForm, start_date: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                تاریخ پایان دوره *
-              </label>
-              <input
-                type="date"
-                required
-                value={courseForm.end_date}
-                onChange={(e) => setCourseForm({ ...courseForm, end_date: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-              />
+            <div className="flex justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
+              <Button variant="outline" onClick={() => setSelectedCourseForSwimmers(null)}>
+                بستن
+              </Button>
             </div>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                رده سنی مخاطبان
-              </label>
-              <input
-                type="text"
-                placeholder="مثال: نونهالان (۶ تا ۱۲ سال)"
-                value={courseForm.age_range}
-                onChange={(e) => setCourseForm({ ...courseForm, age_range: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                جنسیت مجاز
-              </label>
-              <select
-                value={courseForm.gender}
-                onChange={(e) => setCourseForm({ ...courseForm, gender: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-              >
-                <option value="ALL">عمومی (دختران و پسران)</option>
-                <option value="MALE">پسران / آقایان</option>
-                <option value="FEMALE">دختران / بانوان</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              آنچه یاد می‌دهید (سرفصل‌ها و مهارت‌های آموزشی)
-            </label>
-            <textarea
-              rows={2}
-              placeholder="مثال: تکنیک‌های کرال سینه، تنفس ریتمیک، افزایش ظرفیت هوازی و..."
-              value={courseForm.what_you_learn}
-              onChange={(e) => setCourseForm({ ...courseForm, what_you_learn: e.target.value })}
-              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              توضیحات دوره
-            </label>
-            <textarea
-              rows={2}
-              value={courseForm.description}
-              onChange={(e) => setCourseForm({ ...courseForm, description: e.target.value })}
-              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <Button type="button" variant="outline" onClick={() => setIsCourseModalOpen(false)}>
-              انصراف
-            </Button>
-            <Button type="submit" disabled={savingCourse}>
-              {savingCourse ? 'در حال ثبت...' : 'ایجاد دوره'}
-            </Button>
-          </div>
-        </form>
+        )}
       </Modal>
 
       {/* Modal: Create SwimmerGroup */}

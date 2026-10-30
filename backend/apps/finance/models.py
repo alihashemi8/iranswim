@@ -9,7 +9,7 @@ import uuid
 class Invoice(models.Model):
     class Status(models.TextChoices):
         DRAFT = 'DRAFT', _('پیش‌نویس')
-        ISSUED = 'ISSUED', _('صادرشده / پرداخت‌نشده')
+        ISSUED = 'ISSUED', _('پرداخت نشده')
         PARTIALLY_PAID = 'PARTIALLY_PAID', _('بخشی پرداخت‌شده')
         PAID = 'PAID', _('تسویه‌شده کامل')
         CANCELLED = 'CANCELLED', _('ابطال‌شده')

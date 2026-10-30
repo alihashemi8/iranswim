@@ -12,6 +12,14 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
     national_card_status_display = serializers.CharField(source='get_national_card_status_display', read_only=True)
     sports_insurance_status_display = serializers.CharField(source='get_sports_insurance_status_display', read_only=True)
 
+    current_enrollment = serializers.SerializerMethodField()
+    coach_name = serializers.SerializerMethodField()
+    coach_avatar = serializers.SerializerMethodField()
+    coach_id = serializers.SerializerMethodField()
+    course_name = serializers.SerializerMethodField()
+    course_id = serializers.SerializerMethodField()
+    course_coaches = serializers.SerializerMethodField()
+
     class Meta:
         model = SwimmerProfile
         fields = [
@@ -25,9 +33,105 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
             'sports_insurance_image', 'sports_insurance_status', 'sports_insurance_status_display',
             'sports_insurance_expiry', 'documents_rejection_reason',
             'is_profile_completed', 'has_required_info',
-            'current_level', 'level_name', 'medical_notes', 'is_active', 'created_at', 'updated_at'
+            'current_level', 'level_name', 'medical_notes', 'is_active',
+            'current_enrollment', 'coach_name', 'coach_avatar', 'coach_id',
+            'course_name', 'course_id', 'course_coaches',
+            'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_current_enrollment(self, obj):
+        latest = obj.enrollments.select_related('course', 'coach__user', 'group').filter(status='ACTIVE').first()
+        if not latest:
+            latest = obj.enrollments.select_related('course', 'coach__user', 'group').first()
+        if not latest:
+            return None
+        request = self.context.get('request')
+        coach_avatar = None
+        if latest.coach and latest.coach.user and latest.coach.user.avatar:
+            coach_avatar = request.build_absolute_uri(latest.coach.user.avatar.url) if request else latest.coach.user.avatar.url
+
+        coaches = []
+        if latest.course:
+            course_coaches = latest.course.coaches.all()
+            if not course_coaches.exists():
+                from apps.coaches.models import CoachProfile
+                course_coaches = CoachProfile.objects.filter(assigned_groups__group__course=latest.course).distinct()
+            if not course_coaches.exists():
+                from apps.coaches.models import CoachProfile
+                course_coaches = CoachProfile.objects.filter(employment_status='ACTIVE')
+            for c in course_coaches:
+                c_avatar = None
+                if c.user and c.user.avatar:
+                    c_avatar = request.build_absolute_uri(c.user.avatar.url) if request else c.user.avatar.url
+                coaches.append({
+                    'id': c.id,
+                    'full_name': c.full_name,
+                    'avatar': c_avatar,
+                    'class_name': f"کلاس {c.full_name}"
+                })
+
+        time_display = ''
+        if latest.course and latest.course.start_time and latest.course.end_time:
+            st = latest.course.start_time.strftime('%H:%M') if hasattr(latest.course.start_time, 'strftime') else str(latest.course.start_time)[:5]
+            et = latest.course.end_time.strftime('%H:%M') if hasattr(latest.course.end_time, 'strftime') else str(latest.course.end_time)[:5]
+            time_display = f"{st} الی {et}"
+
+        return {
+            'id': latest.id,
+            'course_id': latest.course.id if latest.course else None,
+            'course_name': latest.course.name if latest.course else None,
+            'pool_location': latest.course.pool_location if latest.course else '',
+            'days_of_week': latest.course.days_of_week if latest.course else '',
+            'time_display': time_display,
+            'group_id': latest.group.id if latest.group else None,
+            'group_name': latest.group.name if latest.group else None,
+            'coach_id': latest.coach.id if latest.coach else None,
+            'coach_name': latest.coach.full_name if latest.coach else None,
+            'coach_avatar': coach_avatar,
+            'course_coaches': coaches,
+            'status': latest.status
+        }
+
+    def get_coach_name(self, obj):
+        enr = self.get_current_enrollment(obj)
+        return enr['coach_name'] if enr else None
+
+    def get_coach_avatar(self, obj):
+        enr = self.get_current_enrollment(obj)
+        return enr['coach_avatar'] if enr else None
+
+    def get_coach_id(self, obj):
+        enr = self.get_current_enrollment(obj)
+        return enr['coach_id'] if enr else None
+
+    def get_course_name(self, obj):
+        enr = self.get_current_enrollment(obj)
+        return enr['course_name'] if enr else None
+
+    def get_course_id(self, obj):
+        enr = self.get_current_enrollment(obj)
+        return enr['course_id'] if enr else None
+
+    def get_course_coaches(self, obj):
+        enr = self.get_current_enrollment(obj)
+        if enr and enr.get('course_coaches'):
+            return enr['course_coaches']
+        from apps.coaches.models import CoachProfile
+        request = self.context.get('request')
+        active_coaches = CoachProfile.objects.filter(employment_status='ACTIVE')
+        res = []
+        for c in active_coaches:
+            c_avatar = None
+            if c.user and c.user.avatar:
+                c_avatar = request.build_absolute_uri(c.user.avatar.url) if request else c.user.avatar.url
+            res.append({
+                'id': c.id,
+                'full_name': c.full_name,
+                'avatar': c_avatar,
+                'class_name': f"کلاس {c.full_name}"
+            })
+        return res
 
 
 class SwimmerGuardianRelationSerializer(serializers.ModelSerializer):

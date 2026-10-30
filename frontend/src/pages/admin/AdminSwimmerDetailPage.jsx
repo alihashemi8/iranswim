@@ -624,7 +624,7 @@ export const AdminSwimmerDetailPage = () => {
                             : 'danger'
                         }
                       >
-                        {inv.status_display}
+                        {inv.status === 'ISSUED' || inv.status_display?.includes('صادرشده') ? 'پرداخت نشده' : inv.status_display}
                       </Badge>
                     </div>
 

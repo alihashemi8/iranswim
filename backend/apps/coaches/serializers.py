@@ -9,15 +9,24 @@ class CoachProfileSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(source='user.phone', read_only=True)
     first_name = serializers.CharField(source='user.first_name', read_only=True)
     last_name = serializers.CharField(source='user.last_name', read_only=True)
+    avatar = serializers.SerializerMethodField()
 
     class Meta:
         model = CoachProfile
         fields = [
             'id', 'user', 'first_name', 'last_name', 'full_name', 'phone',
-            'specialties', 'bio', 'employment_status', 'hourly_rate',
+            'avatar', 'specialties', 'bio', 'employment_status', 'hourly_rate',
             'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
+    def get_avatar(self, obj):
+        if obj.user and obj.user.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.user.avatar.url)
+            return obj.user.avatar.url
+        return None
 
 
 class WorkoutPlanSerializer(serializers.ModelSerializer):

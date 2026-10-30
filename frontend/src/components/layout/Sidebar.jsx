@@ -12,12 +12,14 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import api from '../../api/client';
+import { LogoutModal } from '../common/LogoutModal';
 
 export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
   const [collapsed, setCollapsed] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Badge notification counts for admin
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
@@ -231,11 +233,16 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     activeNavigationGroups = swimmerGroups;
   }
 
-  const handleLogout = (isMobile = false) => {
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true);
+  };
+
+  const handleConfirmLogout = () => {
+    setShowLogoutModal(false);
     logout();
     toast.info('با موفقیت از حساب کاربری خارج شدید.');
     navigate('/login');
-    if (isMobile) onClose();
+    if (onClose) onClose();
   };
 
   // Fixed Top User Profile Header (Click navigates directly to user's page without dropdown)
@@ -510,7 +517,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     <div className="shrink-0 p-3 xl:p-3.5 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
       <button
         type="button"
-        onClick={() => handleLogout(isMobile)}
+        onClick={handleLogoutClick}
         className={`w-full flex items-center justify-center rounded-xl text-sm xl:text-[15px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-900 transition-colors shadow-2xs cursor-pointer group relative ${
           isMobile
             ? 'gap-2 px-3.5 py-3'
@@ -586,6 +593,14 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
           </div>
         </div>
       )}
+      {/* Logout Confirmation Modal */}
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleConfirmLogout}
+        userName={user?.full_name}
+        userRole={roleTitles[user?.role]}
+      />
     </>
   );
 };

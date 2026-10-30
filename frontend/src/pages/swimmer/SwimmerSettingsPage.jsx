@@ -7,6 +7,7 @@ import {
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { LogoutModal } from '../../components/common/LogoutModal';
 
 export const SwimmerSettingsPage = () => {
   const { user, logout } = useAuth();
@@ -22,6 +23,7 @@ export const SwimmerSettingsPage = () => {
   const [showOld, setShowOld] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   // Notification preferences state
   const [smsNotif, setSmsNotif] = useState(true);
@@ -53,7 +55,8 @@ export const SwimmerSettingsPage = () => {
     }
   };
 
-  const handleLogout = () => {
+  const handleConfirmLogout = () => {
+    setShowLogoutModal(false);
     logout();
     toast.info('با موفقیت از حساب کاربری خارج شدید.');
     navigate('/login');
@@ -79,7 +82,7 @@ export const SwimmerSettingsPage = () => {
 
         <button
           type="button"
-          onClick={handleLogout}
+          onClick={() => setShowLogoutModal(true)}
           className="px-4 py-2.5 text-xs sm:text-sm font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-2xl border border-rose-200 dark:border-rose-900/60 transition-colors flex items-center gap-2 cursor-pointer self-end md:self-auto"
         >
           <LogOut className="w-4.5 h-4.5" />
@@ -253,6 +256,14 @@ export const SwimmerSettingsPage = () => {
           </div>
         </div>
       </div>
+      {/* Logout Confirmation Modal */}
+      <LogoutModal
+        isOpen={showLogoutModal}
+        onClose={() => setShowLogoutModal(false)}
+        onConfirm={handleConfirmLogout}
+        userName={user?.full_name}
+        userRole="شناگر"
+      />
     </div>
   );
 };

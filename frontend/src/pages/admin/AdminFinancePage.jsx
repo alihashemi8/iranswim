@@ -219,13 +219,80 @@ export const AdminFinancePage = () => {
 
   const formatPrice = (val) => Number(val || 0).toLocaleString('fa-IR');
 
+  const formatCompactPrice = (val) => {
+    const num = Number(val || 0);
+    if (!num || num === 0) return '0';
+    if (Math.abs(num) >= 1_000_000) {
+      const millions = num / 1_000_000;
+      return `${millions.toFixed(3)}m`;
+    }
+    if (Math.abs(num) >= 1_000) {
+      return `${(num / 1_000).toFixed(0)}k`;
+    }
+    return String(num);
+  };
+
   const statusBadges = {
     PAID: { label: 'تسویه کامل', variant: 'success' },
     PARTIALLY_PAID: { label: 'بخشی پرداخت‌شده', variant: 'warning' },
-    ISSUED: { label: 'پرداخت‌نشده', variant: 'danger' },
+    ISSUED: { label: 'پرداخت نشده', variant: 'danger' },
     CANCELLED: { label: 'باطل‌شده', variant: 'neutral' },
     OVERDUE: { label: 'سررسید گذشته', variant: 'danger' },
-    UNPAID: { label: 'پرداخت‌نشده', variant: 'warning' },
+    UNPAID: { label: 'پرداخت نشده', variant: 'danger' },
+  };
+
+  const formatInvoiceStatus = (inv) => {
+    if (!inv) return '';
+    if (inv.status === 'ISSUED' || inv.status === 'UNPAID') return 'پرداخت نشده';
+    if (inv.status === 'PAID') return 'تسویه کامل';
+    if (inv.status === 'PARTIALLY_PAID') return 'بخشی پرداخت‌شده';
+    if (inv.status === 'CANCELLED') return 'باطل‌شده';
+    if (inv.status_display?.includes('صادرشده') || inv.status_display?.includes('پرداخت‌نشده')) {
+      return 'پرداخت نشده';
+    }
+    return statusBadges[inv.status]?.label || inv.status_display || 'پرداخت نشده';
+  };
+
+  const getInvoiceTheme = (status) => {
+    switch (status) {
+      case 'PAID':
+        return {
+          td: 'bg-emerald-50 dark:bg-emerald-950/40 border-y border-emerald-200/90 dark:border-emerald-800/80 group-hover:bg-emerald-100/70 dark:group-hover:bg-emerald-900/40 group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-colors duration-150',
+          firstTd: 'rounded-r-xl border-r-4 border-r-emerald-500 border-s border-emerald-200/90 dark:border-emerald-800/80 group-hover:border-emerald-500 dark:group-hover:border-emerald-400',
+          lastTd: 'rounded-l-xl border-l border-emerald-200/90 dark:border-emerald-800/80 group-hover:border-emerald-500 dark:group-hover:border-emerald-400',
+          card: 'bg-emerald-50/70 hover:bg-emerald-100/60 dark:bg-emerald-950/35 dark:hover:bg-emerald-950/50 border border-emerald-200/90 dark:border-emerald-800/70 hover:border-emerald-500 dark:hover:border-emerald-400 border-r-4 border-r-emerald-500',
+        };
+      case 'PARTIALLY_PAID':
+        return {
+          td: 'bg-amber-50 dark:bg-amber-950/40 border-y border-amber-200/90 dark:border-amber-800/80 group-hover:bg-amber-100/70 dark:group-hover:bg-amber-900/40 group-hover:border-amber-500 dark:group-hover:border-amber-400 transition-colors duration-150',
+          firstTd: 'rounded-r-xl border-r-4 border-r-amber-500 border-s border-amber-200/90 dark:border-amber-800/80 group-hover:border-amber-500 dark:group-hover:border-amber-400',
+          lastTd: 'rounded-l-xl border-l border-amber-200/90 dark:border-amber-800/80 group-hover:border-amber-500 dark:group-hover:border-amber-400',
+          card: 'bg-amber-50/70 hover:bg-amber-100/60 dark:bg-amber-950/35 dark:hover:bg-amber-950/50 border border-amber-200/90 dark:border-amber-800/70 hover:border-amber-500 dark:hover:border-amber-400 border-r-4 border-r-amber-500',
+        };
+      case 'ISSUED':
+      case 'UNPAID':
+      case 'OVERDUE':
+        return {
+          td: 'bg-rose-50 dark:bg-rose-950/40 border-y border-rose-200/90 dark:border-rose-900/80 group-hover:bg-rose-100/70 dark:group-hover:bg-rose-900/40 group-hover:border-rose-500 dark:group-hover:border-rose-400 transition-colors duration-150',
+          firstTd: 'rounded-r-xl border-r-4 border-r-rose-500 border-s border-rose-200/90 dark:border-rose-900/80 group-hover:border-rose-500 dark:group-hover:border-rose-400',
+          lastTd: 'rounded-l-xl border-l border-rose-200/90 dark:border-rose-900/80 group-hover:border-rose-500 dark:group-hover:border-rose-400',
+          card: 'bg-rose-50/70 hover:bg-rose-100/60 dark:bg-rose-950/35 dark:hover:bg-rose-950/50 border border-rose-200/90 dark:border-rose-900/70 hover:border-rose-500 dark:hover:border-rose-400 border-r-4 border-r-rose-500',
+        };
+      case 'CANCELLED':
+        return {
+          td: 'bg-slate-100/90 dark:bg-slate-800/60 border-y border-slate-200 dark:border-slate-700 opacity-75 group-hover:bg-slate-200/80 dark:group-hover:bg-slate-800/80 group-hover:border-slate-400 dark:group-hover:border-slate-500 transition-colors duration-150',
+          firstTd: 'rounded-r-xl border-r-4 border-r-slate-400 border-s border-slate-200 dark:border-slate-700 group-hover:border-slate-400 dark:group-hover:border-slate-500',
+          lastTd: 'rounded-l-xl border-l border-slate-200 dark:border-slate-700 group-hover:border-slate-400 dark:group-hover:border-slate-500',
+          card: 'bg-slate-100/80 hover:bg-slate-200/80 dark:bg-slate-800/40 dark:hover:bg-slate-800/70 border border-slate-200/80 dark:border-slate-800 hover:border-slate-400 dark:hover:border-slate-500 opacity-75 border-r-4 border-r-slate-400',
+        };
+      default:
+        return {
+          td: 'bg-slate-50/80 dark:bg-slate-850 border-y border-slate-200/80 dark:border-slate-800 group-hover:bg-slate-100 dark:group-hover:bg-slate-800 group-hover:border-slate-400 transition-colors duration-150',
+          firstTd: 'rounded-r-xl border-s border-slate-200/80 group-hover:border-slate-400',
+          lastTd: 'rounded-l-xl border-l border-slate-200/80 group-hover:border-slate-400',
+          card: 'bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800',
+        };
+    }
   };
 
   const methodLabels = {
@@ -365,7 +432,7 @@ export const AdminFinancePage = () => {
       total_paid: formatPrice(inv.total_paid),
       balance: formatPrice(inv.remaining_balance),
       installments_count: (inv.installments || []).length,
-      status: inv.status_display,
+      status: formatInvoiceStatus(inv),
       date: new Date(inv.created_at).toLocaleDateString('fa-IR'),
     }));
     exportToCsv('IranSwim_Invoices_List', rows, {
@@ -741,168 +808,190 @@ export const AdminFinancePage = () => {
             <>
               {/* Desktop Table View */}
               <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-sm text-right min-w-[700px]">
-                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
+                <table className="w-full text-sm text-right min-w-[700px] border-separate border-spacing-y-2">
+                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300">
                     <tr>
-                      <th className="px-4 py-3.5 rounded-r-xl">شناگر</th>
-                      <th className="px-4 py-3.5">مربی</th>
-                      <th className="px-4 py-3.5">مبلغ کل</th>
-                      <th className="px-4 py-3.5">پرداخت‌شده</th>
-                      <th className="px-4 py-3.5">مانده بدهی</th>
-                      <th className="px-4 py-3.5">اقساط</th>
-                      <th className="px-4 py-3.5">وضعیت</th>
-                      <th className="px-4 py-3.5 text-center rounded-l-xl">عملیات مالی</th>
+                      <th className="px-4 py-3 rounded-r-xl">شناگر</th>
+                      <th className="px-4 py-3">مربی</th>
+                      <th className="px-4 py-3">مبلغ کل</th>
+                      <th className="px-4 py-3">پرداخت‌شده</th>
+                      <th className="px-4 py-3">مانده بدهی</th>
+                      <th className="px-4 py-3 text-center">اقساط</th>
+                      <th className="px-4 py-3 text-center">وضعیت</th>
+                      <th className="px-4 py-3 text-center rounded-l-xl">عملیات مالی</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
-                    {paginatedInvoices.map((inv) => (
-                      <tr
-                        key={inv.id}
-                        onClick={() => handleOpenSwimmerProfile(inv)}
-                        className="hover:bg-sky-50/40 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
-                        title="جهت مشاهده پرونده شناگر کلیک کنید"
-                      >
-                        <td className="px-4 py-3.5">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
-                              {inv.swimmer_name ? inv.swimmer_name.trim().charAt(0) : <User className="w-4 h-4" />}
+                  <tbody>
+                    {paginatedInvoices.map((inv) => {
+                      const theme = getInvoiceTheme(inv.status);
+                      return (
+                        <tr
+                          key={inv.id}
+                          onClick={() => handleOpenSwimmerProfile(inv)}
+                          className="group cursor-pointer"
+                          title="جهت مشاهده پرونده شناگر کلیک کنید"
+                        >
+                          <td className={`px-4 py-3.5 ${theme.td} ${theme.firstTd}`}>
+                            <div className="flex items-center gap-3">
+                              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
+                                {inv.swimmer_name ? inv.swimmer_name.trim().charAt(0) : <User className="w-4 h-4" />}
+                              </div>
+                              <span className="font-bold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                                {inv.swimmer_name}
+                              </span>
                             </div>
-                            <span className="font-bold text-slate-800 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
-                              {inv.swimmer_name}
+                          </td>
+                          <td className={`px-4 py-3.5 text-xs font-semibold text-slate-700 dark:text-slate-300 ${theme.td}`}>
+                            <div className="flex items-center gap-1.5">
+                              <UserCheck className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
+                              <span>{cleanCoachName(inv.coach_name)}</span>
+                            </div>
+                          </td>
+                          <td className={`px-4 py-3.5 ${theme.td}`} title={`${formatPrice(inv.total_amount)} تومان`}>
+                            <span className="font-mono font-bold text-base text-slate-800 dark:text-slate-100 tracking-tight">
+                              {formatCompactPrice(inv.total_amount)}
                             </span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                          <div className="flex items-center gap-1.5">
-                            <UserCheck className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
-                            <span>{cleanCoachName(inv.coach_name)}</span>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3.5 font-mono text-xs text-slate-700 dark:text-slate-300">
-                          {formatPrice(inv.total_amount)} تومان
-                        </td>
-                        <td className="px-4 py-3.5 font-mono text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
-                          {formatPrice(inv.total_paid)} تومان
-                        </td>
-                        <td className="px-4 py-3.5 font-mono text-xs font-bold text-rose-600 dark:text-rose-400">
-                          {formatPrice(inv.remaining_balance)} تومان
-                        </td>
-                        <td className="px-4 py-3.5 text-xs text-slate-500">
-                          {(inv.installments || []).length} قسط
-                        </td>
-                        <td className="px-4 py-3.5">
-                          <Badge variant={statusBadges[inv.status]?.variant || 'neutral'}>
-                            {inv.status_display}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
-                          <div className="flex items-center justify-center gap-1.5">
-                            {inv.status !== 'PAID' && (
+                          </td>
+                          <td className={`px-4 py-3.5 ${theme.td}`} title={`${formatPrice(inv.total_paid)} تومان`}>
+                            <span className="font-mono font-bold text-base text-emerald-600 dark:text-emerald-400 tracking-tight">
+                              {formatCompactPrice(inv.total_paid)}
+                            </span>
+                          </td>
+                          <td className={`px-4 py-3.5 ${theme.td}`} title={`${formatPrice(inv.remaining_balance)} تومان`}>
+                            <span className={`font-mono font-bold text-base tracking-tight ${
+                              Number(inv.remaining_balance) > 0
+                                ? 'text-rose-600 dark:text-rose-400'
+                                : 'text-slate-400 dark:text-slate-500'
+                            }`}>
+                              {formatCompactPrice(inv.remaining_balance)}
+                            </span>
+                          </td>
+                          <td className={`px-4 py-3.5 text-center ${theme.td}`}>
+                            <span className="font-mono font-bold text-base text-slate-700 dark:text-slate-300">
+                              {(inv.installments || []).length}
+                            </span>
+                          </td>
+                          <td className={`px-4 py-3.5 text-center ${theme.td}`}>
+                            <Badge variant={statusBadges[inv.status]?.variant || 'neutral'}>
+                              {formatInvoiceStatus(inv)}
+                            </Badge>
+                          </td>
+                          <td className={`px-4 py-3.5 text-center ${theme.td} ${theme.lastTd}`} onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center justify-center gap-1.5">
+                              {inv.status !== 'PAID' && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenPayModal(inv)}
+                                  className="px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 font-semibold text-xs border border-emerald-200 dark:border-emerald-800 transition-colors cursor-pointer"
+                                  title="ثبت پرداخت برای این فاکتور"
+                                >
+                                  ثبت واریزی
+                                </button>
+                              )}
                               <button
                                 type="button"
-                                onClick={() => handleOpenPayModal(inv)}
-                                className="px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 font-semibold text-xs border border-emerald-200 dark:border-emerald-800 transition-colors cursor-pointer"
-                                title="ثبت پرداخت برای این فاکتور"
+                                onClick={() => handleOpenAdjModal(inv)}
+                                className="px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 font-semibold text-xs border border-slate-200/60 dark:border-slate-700 transition-colors cursor-pointer"
+                                title="ثبت تخفیف یا استرداد وجه"
                               >
-                                ثبت واریزی
+                                تخفیف
                               </button>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => handleOpenAdjModal(inv)}
-                              className="px-2 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 font-semibold text-xs border border-slate-200/60 dark:border-slate-700 transition-colors cursor-pointer"
-                              title="تخفیف یا استرداد وجه"
-                            >
-                              تعدیل / تخفیف
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
 
               {/* Mobile Cards View */}
               <div className="md:hidden space-y-3">
-                {paginatedInvoices.map((inv) => (
-                  <div
-                    key={inv.id}
-                    onClick={() => handleOpenSwimmerProfile(inv)}
-                    className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-3 text-xs hover:border-sky-300 dark:hover:border-sky-700 cursor-pointer transition-colors group shadow-2xs"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
-                          {inv.swimmer_name ? inv.swimmer_name.trim().charAt(0) : <User className="w-4 h-4" />}
+                {paginatedInvoices.map((inv) => {
+                  const theme = getInvoiceTheme(inv.status);
+                  return (
+                    <div
+                      key={inv.id}
+                      onClick={() => handleOpenSwimmerProfile(inv)}
+                      className={`p-4 rounded-2xl ${theme.card} space-y-3 text-xs hover:border-sky-300 dark:hover:border-sky-700 cursor-pointer transition-colors group shadow-2xs`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-2.5">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs">
+                            {inv.swimmer_name ? inv.swimmer_name.trim().charAt(0) : <User className="w-4 h-4" />}
+                          </div>
+                          <div>
+                            <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                              {inv.swimmer_name}
+                            </h3>
+                          </div>
+                        </div>
+                        <Badge variant={statusBadges[inv.status]?.variant || 'neutral'}>
+                          {formatInvoiceStatus(inv)}
+                        </Badge>
+                      </div>
+
+                      {/* Coach tag (Pool and lane completely removed) */}
+                      {inv.coach_name && inv.coach_name !== '—' && (
+                        <div className="flex items-center gap-1.5 text-[11px] text-indigo-700 dark:text-indigo-300 bg-indigo-50/70 dark:bg-indigo-950/40 px-2.5 py-1 rounded-lg w-fit">
+                          <UserCheck className="w-3.5 h-3.5 text-indigo-500" />
+                          <span>{cleanCoachName(inv.coach_name)}</span>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
+                        <div>
+                          <span className="text-slate-400 block text-[10px]">مبلغ کل</span>
+                          <span className="font-mono font-bold text-sm sm:text-base text-slate-800 dark:text-slate-100" title={`${formatPrice(inv.total_amount)} تومان`}>
+                            {formatCompactPrice(inv.total_amount)}
+                          </span>
                         </div>
                         <div>
-                          <h3 className="font-bold text-slate-800 dark:text-slate-100 text-sm group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
-                            {inv.swimmer_name}
-                          </h3>
+                          <span className="text-slate-400 block text-[10px]">پرداخت‌شده</span>
+                          <span className="font-mono font-bold text-sm sm:text-base text-emerald-600 dark:text-emerald-400" title={`${formatPrice(inv.total_paid)} تومان`}>
+                            {formatCompactPrice(inv.total_paid)}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[10px]">مانده بدهی</span>
+                          <span className={`font-mono font-bold text-sm sm:text-base ${
+                            Number(inv.remaining_balance) > 0
+                              ? 'text-rose-600 dark:text-rose-400'
+                              : 'text-slate-400 dark:text-slate-500'
+                          }`} title={`${formatPrice(inv.remaining_balance)} تومان`}>
+                            {formatCompactPrice(inv.remaining_balance)}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-400 block text-[10px]">اقساط</span>
+                          <span className="font-mono font-bold text-sm sm:text-base text-slate-700 dark:text-slate-200">
+                            {(inv.installments || []).length}
+                          </span>
                         </div>
                       </div>
-                      <Badge variant={statusBadges[inv.status]?.variant || 'neutral'}>
-                        {inv.status_display}
-                      </Badge>
-                    </div>
 
-                    {/* Coach tag (Pool and lane completely removed) */}
-                    {inv.coach_name && inv.coach_name !== '—' && (
-                      <div className="flex items-center gap-1.5 text-[11px] text-indigo-700 dark:text-indigo-300 bg-indigo-50/70 dark:bg-indigo-950/40 px-2.5 py-1 rounded-lg w-fit">
-                        <UserCheck className="w-3.5 h-3.5 text-indigo-500" />
-                        <span>{cleanCoachName(inv.coach_name)}</span>
-                      </div>
-                    )}
-
-                    <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">مبلغ کل</span>
-                        <span className="font-mono text-slate-700 dark:text-slate-300">
-                          {formatPrice(inv.total_amount)} تومان
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">پرداخت‌شده</span>
-                        <span className="font-mono font-semibold text-emerald-600 dark:text-emerald-400">
-                          {formatPrice(inv.total_paid)} تومان
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">مانده بدهی</span>
-                        <span className="font-mono font-bold text-rose-600 dark:text-rose-400">
-                          {formatPrice(inv.remaining_balance)} تومان
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">تعداد اقساط</span>
-                        <span className="text-slate-600 dark:text-slate-300">
-                          {(inv.installments || []).length} قسط
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
-                      {inv.status !== 'PAID' && (
+                      <div className="flex items-center gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50" onClick={(e) => e.stopPropagation()}>
+                        {inv.status !== 'PAID' && (
+                          <button
+                            type="button"
+                            onClick={() => handleOpenPayModal(inv)}
+                            className="flex-1 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 font-semibold border border-emerald-200 dark:border-emerald-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                          >
+                            <DollarSign className="w-3.5 h-3.5" />
+                            <span>ثبت واریزی</span>
+                          </button>
+                        )}
                         <button
                           type="button"
-                          onClick={() => handleOpenPayModal(inv)}
-                          className="flex-1 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 font-semibold border border-emerald-200 dark:border-emerald-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
+                          onClick={() => handleOpenAdjModal(inv)}
+                          className="flex-1 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 font-semibold border border-slate-200/60 dark:border-slate-700 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
                         >
-                          <DollarSign className="w-3.5 h-3.5" />
-                          <span>ثبت واریزی</span>
+                          <span>تخفیف</span>
                         </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => handleOpenAdjModal(inv)}
-                        className="flex-1 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 font-semibold border border-slate-200/60 dark:border-slate-700 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
-                      >
-                        <span>تعدیل / تخفیف</span>
-                      </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
@@ -974,28 +1063,28 @@ export const AdminFinancePage = () => {
               <>
                 {/* Desktop Table View */}
                 <div className="hidden md:block overflow-x-auto">
-                  <table className="w-full text-sm text-right">
-                    <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
+                  <table className="w-full text-sm text-right border-separate border-spacing-y-2">
+                    <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300">
                       <tr>
-                        <th className="px-4 py-3.5 rounded-r-xl">شناگر</th>
-                        <th className="px-4 py-3.5">مربی</th>
-                        <th className="px-4 py-3.5">تلفن تماس</th>
-                        <th className="px-4 py-3.5">شماره قسط و فاکتور</th>
-                        <th className="px-4 py-3.5">مبلغ قسط</th>
-                        <th className="px-4 py-3.5">مانده پرداخت‌نشده</th>
-                        <th className="px-4 py-3.5">تاریخ سررسید</th>
-                        <th className="px-4 py-3.5 text-center rounded-l-xl">عملیات فوری</th>
+                        <th className="px-4 py-3 rounded-r-xl">شناگر</th>
+                        <th className="px-4 py-3">مربی</th>
+                        <th className="px-4 py-3">تلفن تماس</th>
+                        <th className="px-4 py-3">شماره قسط و فاکتور</th>
+                        <th className="px-4 py-3">مبلغ قسط</th>
+                        <th className="px-4 py-3">مانده پرداخت‌نشده</th>
+                        <th className="px-4 py-3">تاریخ سررسید</th>
+                        <th className="px-4 py-3 text-center rounded-l-xl">عملیات فوری</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
+                    <tbody>
                       {filteredInstallments.map((inst) => (
                         <tr
                           key={inst.id}
                           onClick={() => handleOpenSwimmerProfile(inst)}
-                          className="hover:bg-sky-50/40 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                          className="group cursor-pointer"
                           title="جهت مشاهده پرونده شناگر کلیک کنید"
                         >
-                          <td className="px-4 py-3.5">
+                          <td className="px-4 py-3.5 bg-rose-50 dark:bg-rose-950/40 border-y border-s border-rose-200/90 dark:border-rose-900/80 border-r-4 border-r-rose-500 rounded-r-xl group-hover:bg-rose-100/70 dark:group-hover:bg-rose-900/40 group-hover:border-rose-500 dark:group-hover:border-rose-400 transition-colors duration-150">
                             <div className="flex items-center gap-3">
                               <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                                 {inst.swimmer_name ? inst.swimmer_name.trim().charAt(0) : <User className="w-4 h-4" />}
@@ -1005,31 +1094,35 @@ export const AdminFinancePage = () => {
                               </span>
                             </div>
                           </td>
-                          <td className="px-4 py-3.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                          <td className="px-4 py-3.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-rose-50 dark:bg-rose-950/40 border-y border-rose-200/90 dark:border-rose-900/80 group-hover:bg-rose-100/70 dark:group-hover:bg-rose-900/40 group-hover:border-rose-500 dark:group-hover:border-rose-400 transition-colors duration-150">
                             <div className="flex items-center gap-1.5">
                               <UserCheck className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                               <span>{cleanCoachName(inst.coach_name)}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-300" onClick={(e) => e.stopPropagation()}>
+                          <td className="px-4 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-300 bg-rose-50 dark:bg-rose-950/40 border-y border-rose-200/90 dark:border-rose-900/80 group-hover:bg-rose-100/70 dark:group-hover:bg-rose-900/40 group-hover:border-rose-500 dark:group-hover:border-rose-400 transition-colors duration-150" onClick={(e) => e.stopPropagation()}>
                             <a href={`tel:${inst.swimmer_phone}`} className="hover:text-sky-600 flex items-center gap-1">
                               <Phone className="w-3.5 h-3.5 text-slate-400" />
                               <span>{inst.swimmer_phone}</span>
                             </a>
                           </td>
-                          <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-400 font-mono">
+                          <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-400 font-mono bg-rose-50 dark:bg-rose-950/40 border-y border-rose-200/90 dark:border-rose-900/80 group-hover:bg-rose-100/70 dark:group-hover:bg-rose-900/40 group-hover:border-rose-500 dark:group-hover:border-rose-400 transition-colors duration-150">
                             قسط {inst.installment_number} ({inst.invoice_number})
                           </td>
-                          <td className="px-4 py-3.5 font-mono text-xs">
-                            {formatPrice(inst.amount)} تومان
+                          <td className="px-4 py-3.5 bg-rose-50 dark:bg-rose-950/40 border-y border-rose-200/90 dark:border-rose-900/80 group-hover:bg-rose-100/70 dark:group-hover:bg-rose-900/40 group-hover:border-rose-500 dark:group-hover:border-rose-400 transition-colors duration-150" title={`${formatPrice(inst.amount)} تومان`}>
+                            <span className="font-mono font-bold text-base text-slate-800 dark:text-slate-100 tracking-tight">
+                              {formatCompactPrice(inst.amount)}
+                            </span>
                           </td>
-                          <td className="px-4 py-3.5 font-mono text-xs font-bold text-rose-600 dark:text-rose-400">
-                            {formatPrice(inst.remaining_amount)} تومان
+                          <td className="px-4 py-3.5 bg-rose-50 dark:bg-rose-950/40 border-y border-rose-200/90 dark:border-rose-900/80 group-hover:bg-rose-100/70 dark:group-hover:bg-rose-900/40 group-hover:border-rose-500 dark:group-hover:border-rose-400 transition-colors duration-150" title={`${formatPrice(inst.remaining_amount)} تومان`}>
+                            <span className="font-mono font-bold text-base text-rose-600 dark:text-rose-400 tracking-tight">
+                              {formatCompactPrice(inst.remaining_amount)}
+                            </span>
                           </td>
-                          <td className="px-4 py-3.5 font-mono text-xs text-rose-500 font-semibold">
+                          <td className="px-4 py-3.5 font-mono text-xs text-rose-500 font-semibold bg-rose-50 dark:bg-rose-950/40 border-y border-rose-200/90 dark:border-rose-900/80 group-hover:bg-rose-100/70 dark:group-hover:bg-rose-900/40 group-hover:border-rose-500 dark:group-hover:border-rose-400 transition-colors duration-150">
                             {new Date(inst.due_date).toLocaleDateString('fa-IR')}
                           </td>
-                          <td className="px-4 py-3.5 text-center" onClick={(e) => e.stopPropagation()}>
+                          <td className="px-4 py-3.5 text-center bg-rose-50 dark:bg-rose-950/40 border-y border-l border-rose-200/90 dark:border-rose-900/80 rounded-l-xl group-hover:bg-rose-100/70 dark:group-hover:bg-rose-900/40 group-hover:border-rose-500 dark:group-hover:border-rose-400 transition-colors duration-150" onClick={(e) => e.stopPropagation()}>
                             <button
                               type="button"
                               onClick={() => handleOpenPayModal(null, inst)}
@@ -1051,7 +1144,7 @@ export const AdminFinancePage = () => {
                     <div
                       key={inst.id}
                       onClick={() => handleOpenSwimmerProfile(inst)}
-                      className="p-4 rounded-2xl bg-rose-50/30 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 space-y-3 text-xs hover:border-sky-300 dark:hover:border-sky-700 cursor-pointer transition-colors group shadow-2xs"
+                      className="p-4 rounded-2xl bg-rose-50/40 hover:bg-rose-50/70 dark:bg-rose-950/25 dark:hover:bg-rose-950/40 border border-rose-200/80 dark:border-rose-900/60 border-r-4 border-r-rose-500 space-y-3 text-xs hover:border-rose-400 cursor-pointer transition-colors group shadow-2xs"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex items-center gap-2.5">
@@ -1083,14 +1176,14 @@ export const AdminFinancePage = () => {
                       <div className="grid grid-cols-2 gap-2 pt-2 border-t border-rose-200/40 dark:border-rose-900/30 text-slate-600 dark:text-slate-300">
                         <div>
                           <span className="text-slate-400 block text-[10px]">مبلغ قسط</span>
-                          <span className="font-mono text-slate-700 dark:text-slate-300">
-                            {formatPrice(inst.amount)} تومان
+                          <span className="font-mono font-bold text-sm sm:text-base text-slate-800 dark:text-slate-100" title={`${formatPrice(inst.amount)} تومان`}>
+                            {formatCompactPrice(inst.amount)}
                           </span>
                         </div>
                         <div>
                           <span className="text-slate-400 block text-[10px]">مانده معوقه</span>
-                          <span className="font-mono font-bold text-rose-600 dark:text-rose-400">
-                            {formatPrice(inst.remaining_amount)} تومان
+                          <span className="font-mono font-bold text-sm sm:text-base text-rose-600 dark:text-rose-400" title={`${formatPrice(inst.remaining_amount)} تومان`}>
+                            {formatCompactPrice(inst.remaining_amount)}
                           </span>
                         </div>
                         <div className="col-span-2" onClick={(e) => e.stopPropagation()}>
@@ -1171,26 +1264,26 @@ export const AdminFinancePage = () => {
             <>
               {/* Desktop Table View */}
               <div className="hidden md:block overflow-x-auto">
-                <table className="w-full text-sm text-right">
-                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
+                <table className="w-full text-sm text-right border-separate border-spacing-y-2">
+                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300">
                     <tr>
-                      <th className="px-4 py-3.5 rounded-r-xl">شناگر</th>
-                      <th className="px-4 py-3.5">مربی</th>
-                      <th className="px-4 py-3.5">مبلغ پرداختی</th>
-                      <th className="px-4 py-3.5">روش پرداخت</th>
-                      <th className="px-4 py-3.5">وضعیت</th>
-                      <th className="px-4 py-3.5 rounded-l-xl">زمان ثبت تراکنش</th>
+                      <th className="px-4 py-3 rounded-r-xl">شناگر</th>
+                      <th className="px-4 py-3">مربی</th>
+                      <th className="px-4 py-3">مبلغ پرداختی</th>
+                      <th className="px-4 py-3">روش پرداخت</th>
+                      <th className="px-4 py-3">وضعیت</th>
+                      <th className="px-4 py-3 rounded-l-xl">زمان ثبت تراکنش</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
+                  <tbody>
                     {filteredPayments.map((p) => (
                       <tr
                         key={p.id}
                         onClick={() => handleOpenSwimmerProfile(p)}
-                        className="hover:bg-sky-50/40 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
+                        className="group cursor-pointer"
                         title="جهت مشاهده پرونده شناگر کلیک کنید"
                       >
-                        <td className="px-4 py-3.5">
+                        <td className="px-4 py-3.5 bg-emerald-50 dark:bg-emerald-950/40 border-y border-s border-emerald-200/90 dark:border-emerald-800/80 border-r-4 border-r-emerald-500 rounded-r-xl group-hover:bg-emerald-100/70 dark:group-hover:bg-emerald-900/40 group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-colors duration-150">
                           <div className="flex items-center gap-3">
                             <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs group-hover:scale-105 transition-transform">
                               {p.swimmer_name ? p.swimmer_name.trim().charAt(0) : <User className="w-4 h-4" />}
@@ -1200,24 +1293,26 @@ export const AdminFinancePage = () => {
                             </span>
                           </div>
                         </td>
-                        <td className="px-4 py-3.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
+                        <td className="px-4 py-3.5 text-xs font-semibold text-slate-700 dark:text-slate-300 bg-emerald-50 dark:bg-emerald-950/40 border-y border-emerald-200/90 dark:border-emerald-800/80 group-hover:bg-emerald-100/70 dark:group-hover:bg-emerald-900/40 group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-colors duration-150">
                           <div className="flex items-center gap-1.5">
                             <UserCheck className="w-3.5 h-3.5 text-indigo-500 shrink-0" />
                             <span>{cleanCoachName(p.coach_name)}</span>
                           </div>
                         </td>
-                        <td className="px-4 py-3.5 font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                          {formatPrice(p.amount)} تومان
+                        <td className="px-4 py-3.5 bg-emerald-50 dark:bg-emerald-950/40 border-y border-emerald-200/90 dark:border-emerald-800/80 group-hover:bg-emerald-100/70 dark:group-hover:bg-emerald-900/40 group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-colors duration-150" title={`${formatPrice(p.amount)} تومان`}>
+                          <span className="font-mono font-bold text-base text-emerald-600 dark:text-emerald-400 tracking-tight">
+                            {formatCompactPrice(p.amount)}
+                          </span>
                         </td>
-                        <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-300">
+                        <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-300 bg-emerald-50 dark:bg-emerald-950/40 border-y border-emerald-200/90 dark:border-emerald-800/80 group-hover:bg-emerald-100/70 dark:group-hover:bg-emerald-900/40 group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-colors duration-150">
                           {methodLabels[p.method] || p.method_display || p.method}
                         </td>
-                        <td className="px-4 py-3.5">
+                        <td className="px-4 py-3.5 bg-emerald-50 dark:bg-emerald-950/40 border-y border-emerald-200/90 dark:border-emerald-800/80 group-hover:bg-emerald-100/70 dark:group-hover:bg-emerald-900/40 group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-colors duration-150">
                           <Badge variant={p.status === 'SUCCESSFUL' ? 'success' : 'warning'}>
                             {p.status_display}
                           </Badge>
                         </td>
-                        <td className="px-4 py-3.5 font-mono text-xs text-slate-400">
+                        <td className="px-4 py-3.5 font-mono text-xs text-slate-400 bg-emerald-50 dark:bg-emerald-950/40 border-y border-l border-emerald-200/90 dark:border-emerald-800/80 rounded-l-xl group-hover:bg-emerald-100/70 dark:group-hover:bg-emerald-900/40 group-hover:border-emerald-500 dark:group-hover:border-emerald-400 transition-colors duration-150">
                           {new Date(p.paid_at || p.created_at).toLocaleString('fa-IR')}
                         </td>
                       </tr>
@@ -1232,7 +1327,7 @@ export const AdminFinancePage = () => {
                   <div
                     key={p.id}
                     onClick={() => handleOpenSwimmerProfile(p)}
-                    className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-3 text-xs hover:border-sky-300 dark:hover:border-sky-700 cursor-pointer transition-colors group shadow-2xs"
+                    className="p-4 rounded-2xl bg-emerald-50/30 hover:bg-emerald-50/60 dark:bg-emerald-950/20 dark:hover:bg-emerald-950/35 border border-emerald-200/80 dark:border-emerald-800/60 border-r-4 border-r-emerald-500 space-y-3 text-xs hover:border-emerald-400 cursor-pointer transition-colors group shadow-2xs"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-center gap-2.5">
@@ -1261,8 +1356,8 @@ export const AdminFinancePage = () => {
                     <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
                       <div>
                         <span className="text-slate-400 block text-[10px]">مبلغ پرداختی</span>
-                        <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
-                          {formatPrice(p.amount)} تومان
+                        <span className="font-mono font-bold text-sm sm:text-base text-emerald-600 dark:text-emerald-400" title={`${formatPrice(p.amount)} تومان`}>
+                          {formatCompactPrice(p.amount)}
                         </span>
                       </div>
                       <div>

@@ -54,6 +54,16 @@ class Course(models.Model):
 
     name = models.CharField(_('عنوان دوره'), max_length=200)
     description = models.TextField(_('توضیحات دوره'), blank=True)
+    pool_location = models.CharField(_('استخر و محل برگزاری'), max_length=200, blank=True, default='استخر شهید رئیسی')
+    days_of_week = models.CharField(_('روزهای برگزاری'), max_length=150, blank=True, default='سه‌شنبه و پنج‌شنبه')
+    start_time = models.TimeField(_('ساعت شروع'), null=True, blank=True)
+    end_time = models.TimeField(_('ساعت پایان'), null=True, blank=True)
+    coaches = models.ManyToManyField(
+        'coaches.CoachProfile',
+        related_name='courses',
+        blank=True,
+        verbose_name=_('مربیان دوره')
+    )
     start_date = models.DateField(_('تاریخ شروع'))
     end_date = models.DateField(_('تاریخ پایان'))
     base_price = models.DecimalField(_('شهریه پایه (تومان)'), max_digits=12, decimal_places=2)
@@ -88,6 +98,66 @@ class Course(models.Model):
     def clean(self):
         if self.start_date and self.end_date and self.end_date < self.start_date:
             raise ValidationError(_('تاریخ پایان نمی‌تواند قبل از تاریخ شروع باشد.'))
+
+    def sync_coach_classes(self):
+        """
+        برای هر مربی تخصیص‌یافته به دوره، یک کلاس اختصاصی تعریف یا همگام می‌کند:
+        مربی A ---> کلاس A
+        و برنامه زمانی و استخر دوره را به آن منتسب می‌کند.
+        """
+        weekday_map = {
+            'شنبه': 0, 'یکشنبه': 1, 'یک‌شنبه': 1, 'دوشنبه': 2,
+            'سه‌شنبه': 3, 'سه شنبه': 3, 'چهارشنبه': 4,
+            'پنج‌شنبه': 5, 'پنج شنبه': 5, 'جمعه': 6
+        }
+
+        selected_weekdays = []
+        if self.days_of_week:
+            for day_name, w_idx in weekday_map.items():
+                if day_name in self.days_of_week and w_idx not in selected_weekdays:
+                    selected_weekdays.append(w_idx)
+        if not selected_weekdays:
+            selected_weekdays = [3, 5]  # سه‌شنبه و پنج‌شنبه پیش‌فرض
+
+        default_level = SkillLevel.objects.first()
+        if not default_level:
+            default_level = SkillLevel.objects.create(name='عمومی و پیش‌نیاز', order=1)
+
+        for coach in self.coaches.all():
+            group_name = f"کلاس مربی {coach.full_name}"
+            group, _ = SwimmerGroup.objects.get_or_create(
+                course=self,
+                name=group_name,
+                defaults={
+                    'skill_level': default_level,
+                    'capacity': 15,
+                    'pool_location': self.pool_location or 'استخر شهید رئیسی',
+                    'status': SwimmerGroup.Status.OPEN
+                }
+            )
+            if self.pool_location and group.pool_location != self.pool_location:
+                group.pool_location = self.pool_location
+                group.save(update_fields=['pool_location'])
+
+            GroupCoach.objects.get_or_create(
+                group=group,
+                coach=coach,
+                defaults={
+                    'is_primary': True,
+                    'assigned_from': self.start_date
+                }
+            )
+
+            if self.start_time and self.end_time:
+                for w in selected_weekdays:
+                    GroupSchedule.objects.get_or_create(
+                        group=group,
+                        weekday=w,
+                        defaults={
+                            'start_time': self.start_time,
+                            'end_time': self.end_time
+                        }
+                    )
 
 
 class SwimmerGroup(models.Model):
@@ -219,9 +289,19 @@ class EnrollmentRequest(models.Model):
     )
     group = models.ForeignKey(
         SwimmerGroup,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name='enrollment_requests',
         verbose_name=_('گروه درخواستی')
+    )
+    coach = models.ForeignKey(
+        'coaches.CoachProfile',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='enrollment_requests',
+        verbose_name=_('مربی انتخابی')
     )
     status = models.CharField(
         _('وضعیت درخواست'),
@@ -248,7 +328,7 @@ class EnrollmentRequest(models.Model):
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"درخواست {self.applicant_name} برای {self.group.name} ({self.get_status_display()})"
+        return f"درخواست {self.applicant_name} برای {self.course.name} ({self.get_status_display()})"
 
 
 class Enrollment(models.Model):
@@ -272,9 +352,19 @@ class Enrollment(models.Model):
     )
     group = models.ForeignKey(
         SwimmerGroup,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name='enrollments',
         verbose_name=_('گروه اجرایی')
+    )
+    coach = models.ForeignKey(
+        'coaches.CoachProfile',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='enrollments',
+        verbose_name=_('مربی تخصیص‌یافته')
     )
     status = models.CharField(
         _('وضعیت ثبت‌نام'),
@@ -294,13 +384,14 @@ class Enrollment(models.Model):
         ordering = ['-enrolled_at']
         constraints = [
             models.UniqueConstraint(
-                fields=['swimmer', 'course', 'group'],
-                name='unique_swimmer_course_group'
+                fields=['swimmer', 'course'],
+                name='unique_swimmer_course'
             )
         ]
 
     def __str__(self):
-        return f"{self.swimmer} در {self.group.name}"
+        coach_str = f" (مربی: {self.coach.full_name})" if self.coach else ""
+        return f"{self.swimmer} در {self.course.name}{coach_str}"
 
     @property
     def remaining_sessions(self):
