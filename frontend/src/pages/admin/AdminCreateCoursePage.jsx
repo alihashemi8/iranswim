@@ -9,6 +9,8 @@ import api from '../../api/client';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { CustomSelect } from '../../components/common/CustomSelect';
+import { PersianDatePicker, toJalaliString, formatJalaliReadable } from '../../components/common/PersianDatePicker';
+import { Time24Picker } from '../../components/common/Time24Picker';
 import { useToast } from '../../context/ToastContext';
 
 const STEPS = [
@@ -501,62 +503,46 @@ export const AdminCreateCoursePage = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  ساعت شروع جلسه *
-                </label>
-                <div className="relative">
-                  <Clock className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="time"
-                    required
-                    value={formData.start_time}
-                    onChange={(e) => setFormData({ ...formData, start_time: e.target.value })}
-                    className="w-full pl-3 pr-10 py-2.5 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
-                  />
-                </div>
+                <Time24Picker
+                  label="ساعت شروع جلسه (۲۴ ساعته) *"
+                  value={formData.start_time}
+                  onChange={(val) => setFormData({ ...formData, start_time: val })}
+                  placeholder="17:00"
+                  required
+                />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  ساعت پایان جلسه *
-                </label>
-                <div className="relative">
-                  <Clock className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="time"
-                    required
-                    value={formData.end_time}
-                    onChange={(e) => setFormData({ ...formData, end_time: e.target.value })}
-                    className="w-full pl-3 pr-10 py-2.5 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
-                  />
-                </div>
+                <Time24Picker
+                  label="ساعت پایان جلسه (۲۴ ساعته) *"
+                  value={formData.end_time}
+                  onChange={(val) => setFormData({ ...formData, end_time: val })}
+                  placeholder="19:00"
+                  required
+                />
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  تاریخ شروع دوره *
-                </label>
-                <input
-                  type="date"
-                  required
+                <PersianDatePicker
+                  label="تاریخ شروع دوره *"
                   value={formData.start_date}
-                  onChange={(e) => setFormData({ ...formData, start_date: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
+                  onChange={(jalaliStr, gDate, gIso) => {
+                    setFormData({ ...formData, start_date: gIso || jalaliStr });
+                  }}
+                  placeholder="انتخاب تاریخ شروع دوره..."
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  تاریخ پایان دوره *
-                </label>
-                <input
-                  type="date"
-                  required
+                <PersianDatePicker
+                  label="تاریخ پایان دوره *"
                   value={formData.end_date}
-                  onChange={(e) => setFormData({ ...formData, end_date: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
+                  onChange={(jalaliStr, gDate, gIso) => {
+                    setFormData({ ...formData, end_date: gIso || jalaliStr });
+                  }}
+                  placeholder="انتخاب تاریخ پایان دوره..."
                 />
               </div>
             </div>
@@ -771,8 +757,8 @@ export const AdminCreateCoursePage = () => {
 
                 <div>
                   <span className="text-slate-400 block text-[11px]">تاریخ دوره:</span>
-                  <span className="font-mono text-slate-800 dark:text-slate-100">
-                    {new Date(formData.start_date).toLocaleDateString('fa-IR')} تا {new Date(formData.end_date).toLocaleDateString('fa-IR')}
+                  <span className="font-semibold text-slate-800 dark:text-slate-100">
+                    {formData.start_date ? formatJalaliReadable(toJalaliString(formData.start_date)) : '-'} تا {formData.end_date ? formatJalaliReadable(toJalaliString(formData.end_date)) : '-'}
                   </span>
                 </div>
 

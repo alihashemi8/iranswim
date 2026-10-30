@@ -92,12 +92,16 @@ export const PersianDatePicker = ({
   const parsedValue = useMemo(() => {
     if (!value) return null;
     if (typeof value === 'string') {
-      // Check if it's already Jalali (e.g. starting with 13xx or 14xx)
       const p = parseJalaliString(value);
+      // Check if it's already Jalali (e.g. starting with 13xx or 14xx)
       if (p && (p.jy >= 1300 && p.jy <= 1500)) {
         return p;
       }
-      // Otherwise assume Gregorian ISO date string
+      // If it's a Gregorian YYYY-MM-DD or YYYY/MM/DD
+      if (p && p.jy > 1900) {
+        return jalaali.toJalaali(p.jy, p.jm, p.jd);
+      }
+      // Fallback Date object parsing
       const d = new Date(value);
       if (!isNaN(d.getTime())) {
         return jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate());
@@ -174,23 +178,26 @@ export const PersianDatePicker = ({
   const handleSelectDay = (day) => {
     const formatted = formatJalaliString(viewYear, viewMonth, day);
     const g = jalaali.toGregorian(viewYear, viewMonth, day);
+    const gIso = `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}`;
     const gDate = new Date(g.gy, g.gm - 1, g.gd);
-    onChange?.(formatted, gDate);
+    onChange?.(formatted, gDate, gIso);
     setIsOpen(false);
   };
 
   // Select today
   const handleSelectToday = () => {
     const formatted = formatJalaliString(todayJalali.jy, todayJalali.jm, todayJalali.jd);
-    const now = new Date();
-    onChange?.(formatted, now);
+    const g = jalaali.toGregorian(todayJalali.jy, todayJalali.jm, todayJalali.jd);
+    const gIso = `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}`;
+    const now = new Date(g.gy, g.gm - 1, g.gd);
+    onChange?.(formatted, now, gIso);
     setIsOpen(false);
   };
 
   // Clear value
   const handleClear = (e) => {
     e?.stopPropagation();
-    onChange?.('', null);
+    onChange?.('', null, '');
   };
 
   // Month days count and starting weekday
