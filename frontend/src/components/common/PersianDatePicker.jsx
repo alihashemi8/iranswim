@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { Calendar as CalendarIcon, ChevronRight, ChevronLeft, X, ChevronDown } from 'lucide-react';
-import jalaali from 'jalaali-js';
+import * as jalaali from 'jalaali-js';
 
 const PERSIAN_MONTHS = [
   'فروردین',

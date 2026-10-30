@@ -677,15 +677,28 @@ export const AdminFinancePage = () => {
             options={genderOptions}
           />
 
-          {/* 2. استخر */}
-          <CustomSelect
-            label="استخر"
-            icon={MapPin}
-            value={poolFilter}
-            onChange={(val) => { setPoolFilter(val); setCurrentPage(1); }}
-            options={poolOptions}
-            searchable={availablePools.length > 5}
-          />
+          {/* 2. استخر (در تب صورتحساب و اقساط) / تاریخ پرداخت شمسی (در تب رسیدها) */}
+          {activeTab === 'PAYMENTS' ? (
+            <PersianDatePicker
+              label="تاریخ تراکنش"
+              icon={Calendar}
+              value={paymentDateFilter}
+              onChange={(val) => {
+                setPaymentDateFilter(val);
+                setCurrentPage(1);
+              }}
+              placeholder="همه تاریخ‌ها"
+            />
+          ) : (
+            <CustomSelect
+              label="استخر"
+              icon={MapPin}
+              value={poolFilter}
+              onChange={(val) => { setPoolFilter(val); setCurrentPage(1); }}
+              options={poolOptions}
+              searchable={availablePools.length > 5}
+            />
+          )}
 
           {/* 3. مربی */}
           <CustomSelect
@@ -741,12 +754,25 @@ export const AdminFinancePage = () => {
                 </button>
               </span>
             )}
-            {poolFilter !== 'ALL' && (
+            {activeTab !== 'PAYMENTS' && poolFilter !== 'ALL' && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 font-bold">
                 <span>استخر: {poolFilter}</span>
                 <button
                   type="button"
                   onClick={() => setPoolFilter('ALL')}
+                  className="hover:text-rose-600 cursor-pointer p-0.5 rounded-md"
+                  title="حذف این فیلتر"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+              </span>
+            )}
+            {activeTab === 'PAYMENTS' && paymentDateFilter && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 font-bold">
+                <span>تاریخ: {formatJalaliReadable(paymentDateFilter)}</span>
+                <button
+                  type="button"
+                  onClick={() => setPaymentDateFilter('')}
                   className="hover:text-rose-600 cursor-pointer p-0.5 rounded-md"
                   title="حذف این فیلتر"
                 >
