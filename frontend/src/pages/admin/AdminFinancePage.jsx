@@ -1069,7 +1069,7 @@ export const AdminFinancePage = () => {
                         <th className="px-4 py-3 rounded-r-xl">شناگر</th>
                         <th className="px-4 py-3">مربی</th>
                         <th className="px-4 py-3">تلفن تماس</th>
-                        <th className="px-4 py-3">شماره قسط و فاکتور</th>
+                        <th className="px-4 py-3 text-center">تعداد قسط</th>
                         <th className="px-4 py-3">مبلغ قسط</th>
                         <th className="px-4 py-3">مانده پرداخت‌نشده</th>
                         <th className="px-4 py-3">تاریخ سررسید</th>
@@ -1106,8 +1106,8 @@ export const AdminFinancePage = () => {
                               <span>{inst.swimmer_phone}</span>
                             </a>
                           </td>
-                          <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-400 font-mono bg-rose-50 dark:bg-rose-950/40 border-y border-rose-200/90 dark:border-rose-900/80 group-hover:bg-rose-100/70 dark:group-hover:bg-rose-900/40 group-hover:border-rose-500 dark:group-hover:border-rose-400 transition-colors duration-150">
-                            قسط {inst.installment_number} ({inst.invoice_number})
+                          <td className="px-4 py-3.5 text-center font-mono font-bold text-base text-slate-700 dark:text-slate-300 bg-rose-50 dark:bg-rose-950/40 border-y border-rose-200/90 dark:border-rose-900/80 group-hover:bg-rose-100/70 dark:group-hover:bg-rose-900/40 group-hover:border-rose-500 dark:group-hover:border-rose-400 transition-colors duration-150">
+                            {inst.installment_number}
                           </td>
                           <td className="px-4 py-3.5 bg-rose-50 dark:bg-rose-950/40 border-y border-rose-200/90 dark:border-rose-900/80 group-hover:bg-rose-100/70 dark:group-hover:bg-rose-900/40 group-hover:border-rose-500 dark:group-hover:border-rose-400 transition-colors duration-150" title={`${formatPrice(inst.amount)} تومان`}>
                             <span className="font-mono font-bold text-base text-slate-800 dark:text-slate-100 tracking-tight">
@@ -1156,7 +1156,7 @@ export const AdminFinancePage = () => {
                               {inst.swimmer_name}
                             </h3>
                             <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400 block mt-0.5">
-                              قسط {inst.installment_number} ({inst.invoice_number})
+                              تعداد قسط: <span className="font-bold text-slate-700 dark:text-slate-200">{inst.installment_number}</span>
                             </span>
                           </div>
                         </div>
