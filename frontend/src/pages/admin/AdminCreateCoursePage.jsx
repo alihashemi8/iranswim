@@ -353,58 +353,76 @@ export const AdminCreateCoursePage = () => {
         </div>
       </div>
 
-      {/* 2. Stepper Navigation Header */}
-      <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs transition-colors">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
-          {STEPS.map((step) => {
+      {/* 2. Stepper Progress Bar Header */}
+      <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs transition-colors">
+        {/* Progress Bar & Icon Nodes */}
+        <div className="flex items-center justify-between max-w-2xl mx-auto px-2 sm:px-6">
+          {STEPS.map((step, idx) => {
             const Icon = step.icon;
             const isCompleted = step.id < currentStep;
             const isCurrent = step.id === currentStep;
 
             return (
-              <button
-                key={step.id}
-                type="button"
-                onClick={() => handleStepClick(step.id)}
-                className={`p-3 rounded-2xl text-right transition-all flex items-start gap-3 cursor-pointer select-none border ${
-                  isCurrent
-                    ? 'bg-sky-50/80 dark:bg-sky-950/50 border-sky-400 dark:border-sky-600 shadow-xs'
-                    : isCompleted
-                    ? 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-100/60'
-                    : 'bg-transparent border-transparent opacity-60 hover:opacity-80'
-                }`}
-              >
-                <div
-                  className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 text-xs font-bold transition-colors ${
+              <React.Fragment key={step.id}>
+                {/* Step Node Button with Icon */}
+                <button
+                  type="button"
+                  onClick={() => handleStepClick(step.id)}
+                  title={step.title}
+                  className={`relative group flex items-center justify-center rounded-2xl transition-all duration-300 cursor-pointer select-none shrink-0 ${
                     isCurrent
-                      ? 'bg-sky-600 text-white shadow-2xs'
+                      ? 'w-12 h-12 sm:w-14 sm:h-14 bg-gradient-to-br from-sky-500 to-sky-600 text-white shadow-lg shadow-sky-500/30 ring-4 ring-sky-100 dark:ring-sky-900/60 scale-105'
                       : isCompleted
-                      ? 'bg-emerald-500 text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                      ? 'w-11 h-11 sm:w-13 sm:h-13 bg-emerald-500 text-white shadow-md shadow-emerald-500/20 hover:bg-emerald-600 hover:scale-105'
+                      : 'w-11 h-11 sm:w-13 sm:h-13 bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 border border-slate-200/80 dark:border-slate-700/80 hover:bg-slate-200/70 dark:hover:bg-slate-700/70 hover:text-slate-600 dark:hover:text-slate-300'
                   }`}
                 >
-                  {isCompleted ? <Check className="w-4 h-4 stroke-[3]" /> : step.id}
-                </div>
+                  <Icon className={`${isCurrent ? 'w-6 h-6 sm:w-7 sm:h-7' : 'w-5 h-5 sm:w-6 sm:h-6'} transition-transform`} />
 
-                <div className="min-w-0">
-                  <span
-                    className={`block text-xs font-bold truncate ${
-                      isCurrent
-                        ? 'text-sky-950 dark:text-sky-100'
-                        : isCompleted
-                        ? 'text-slate-800 dark:text-slate-200'
-                        : 'text-slate-500 dark:text-slate-400'
-                    }`}
-                  >
-                    {step.title}
-                  </span>
-                  <span className="block text-[10px] text-slate-400 dark:text-slate-500 truncate mt-0.5">
-                    {step.subtitle}
-                  </span>
-                </div>
-              </button>
+                  {/* Completed checkmark badge */}
+                  {isCompleted && (
+                    <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-emerald-600 text-white rounded-full flex items-center justify-center ring-2 ring-white dark:ring-slate-900 shadow-2xs">
+                      <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[3]" />
+                    </span>
+                  )}
+
+                  {/* Active glowing indicator */}
+                  {isCurrent && (
+                    <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-sky-400 opacity-75" />
+                      <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-sky-400 border-2 border-white dark:border-slate-900" />
+                    </span>
+                  )}
+                </button>
+
+                {/* Connecting Progress Line between step icons */}
+                {idx < STEPS.length - 1 && (
+                  <div className="flex-1 h-1.5 mx-2 sm:mx-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-500 rounded-full ${
+                        currentStep > step.id
+                          ? 'w-full bg-gradient-to-l from-sky-500 to-cyan-400'
+                          : 'w-0'
+                      }`}
+                    />
+                  </div>
+                )}
+              </React.Fragment>
             );
           })}
+        </div>
+
+        {/* Current Active Step Title Display (only the active step is written here) */}
+        <div className="mt-5 pt-4 text-center border-t border-slate-100 dark:border-slate-800/80">
+          <span className="inline-block text-[11px] font-bold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-3 py-1 rounded-full border border-sky-200/60 dark:border-sky-800/60 mb-1.5">
+            مرحله {currentStep} از {STEPS.length}
+          </span>
+          <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+            {STEPS[currentStep - 1].title}
+          </h2>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            {STEPS[currentStep - 1].subtitle}
+          </p>
         </div>
       </div>
 
