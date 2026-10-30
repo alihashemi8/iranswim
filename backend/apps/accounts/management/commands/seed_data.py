@@ -198,7 +198,7 @@ class Command(BaseCommand):
                 'status': Course.Status.ACTIVE,
                 'description': 'آموزش کامل حرکات هماهنگ دست و پا، ریتم صحیح تنفس و استقامت در آب',
                 'age_range': 'نونهالان و نوجوانان (۸ تا ۱۵ سال)',
-                'gender': Course.GenderTarget.ALL,
+                'gender': Course.GenderTarget.MALE,
                 'what_you_learn': 'آموزش زاویه اصولی دست کرال، پای منظم با تخته شنا، تنفس منظم دوطرفه و رهاسازی عضلانی در آب',
             }
         )
@@ -226,7 +226,7 @@ class Command(BaseCommand):
                 'status': Course.Status.ACTIVE,
                 'description': 'محیط شاد و مفرح برای کودکان با متدهای بین‌المللی همراه با نجات‌غریق مقیم',
                 'age_range': 'کودکان و خردسالان (۴ تا ۹ سال)',
-                'gender': Course.GenderTarget.ALL,
+                'gender': Course.GenderTarget.MALE,
                 'what_you_learn': 'غلبه بر ترس از آب، اصول تنفس و غوطه‌وری، بازی‌های تعادلی و شناوری، آموزش مقدماتی پا زدن',
             }
         )

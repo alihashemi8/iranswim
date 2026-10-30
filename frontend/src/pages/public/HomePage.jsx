@@ -203,18 +203,14 @@ const getCourseDetails = (course) => {
   // 2. Gender (جنسیت)
   let gender = course.gender_display;
   if (!gender) {
-    if (course.gender === 'MALE') {
-      gender = 'پسران / آقایان';
-    } else if (course.gender === 'FEMALE') {
+    if (course.gender === 'FEMALE') {
       gender = 'دختران / بانوان';
-    } else if (course.gender === 'ALL') {
-      gender = 'عمومی (دختران و پسران)';
     } else {
       const name = course.name || '';
-      if (name.includes('پروانه') || name.includes('استقامت')) {
-        gender = 'پسران / آقایان';
+      if (name.includes('بانوان') || name.includes('دختر')) {
+        gender = 'دختران / بانوان';
       } else {
-        gender = 'عمومی (دختران و پسران)';
+        gender = 'پسران / آقایان';
       }
     }
   }

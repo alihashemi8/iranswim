@@ -13,6 +13,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { Pagination } from '../../components/common/Pagination';
 import { CoachSelectorDropdown } from '../../components/common/CoachSelectorDropdown';
 import { SwimmerCourseCard } from '../../components/common/SwimmerCourseCard';
+import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
 
@@ -229,18 +230,17 @@ export const AdminEnrollmentsPage = () => {
               </div>
 
               {/* Course Filter */}
-              <select
-                value={selectedCourse}
-                onChange={(e) => setSelectedCourse(e.target.value)}
-                className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 min-w-[180px]"
-              >
-                <option value="">همه دوره‌های آموزشی</option>
-                {courses.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
+              <div className="min-w-[200px]">
+                <CustomSelect
+                  value={selectedCourse}
+                  onChange={(val) => setSelectedCourse(val)}
+                  options={[
+                    { value: '', label: 'همه دوره‌های آموزشی' },
+                    ...courses.map((c) => ({ value: c.id, label: c.name })),
+                  ]}
+                  placeholder="فیلتر دوره..."
+                />
+              </div>
             </div>
 
             {/* View Switcher: Cards vs Table */}
@@ -451,21 +451,24 @@ export const AdminEnrollmentsPage = () => {
       ) : (
         /* 3. TAB 2: ONLINE ENROLLMENT REQUESTS */
         <div className="space-y-4">
-          <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex justify-between items-center">
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
               فیلتر وضعیت درخواست‌ها:
             </span>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
-            >
-              <option value="">تمام وضعیت‌ها</option>
-              <option value="PENDING">در انتظار بررسی</option>
-              <option value="APPROVED">تأییدشده</option>
-              <option value="REJECTED">رد شده</option>
-              <option value="WAITLIST">فهرست انتظار</option>
-            </select>
+            <div className="w-full sm:w-60">
+              <CustomSelect
+                value={statusFilter}
+                onChange={(val) => setStatusFilter(val)}
+                options={[
+                  { value: '', label: 'تمام وضعیت‌ها' },
+                  { value: 'PENDING', label: 'در انتظار بررسی' },
+                  { value: 'APPROVED', label: 'تأییدشده' },
+                  { value: 'REJECTED', label: 'رد شده' },
+                  { value: 'WAITLIST', label: 'فهرست انتظار' },
+                ]}
+                placeholder="فیلتر وضعیت..."
+              />
+            </div>
           </div>
 
           {loadingRequests ? (

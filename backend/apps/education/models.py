@@ -48,7 +48,6 @@ class Course(models.Model):
         ARCHIVED = 'ARCHIVED', _('بایگانی‌شده')
 
     class GenderTarget(models.TextChoices):
-        ALL = 'ALL', _('عمومی (دختران و پسران)')
         MALE = 'MALE', _('پسران / آقایان')
         FEMALE = 'FEMALE', _('دختران / بانوان')
 
@@ -73,7 +72,7 @@ class Course(models.Model):
         _('جنسیت مجاز'),
         max_length=20,
         choices=GenderTarget.choices,
-        default=GenderTarget.ALL,
+        default=GenderTarget.MALE,
         blank=True
     )
     what_you_learn = models.TextField(_('آنچه در این دوره یاد می‌گیرید'), blank=True, default='')

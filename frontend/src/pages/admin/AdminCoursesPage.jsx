@@ -13,6 +13,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { ProgressBar } from '../../components/common/Charts';
 import { CoachSelectorDropdown } from '../../components/common/CoachSelectorDropdown';
 import { SwimmerCourseCard } from '../../components/common/SwimmerCourseCard';
+import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 
@@ -324,8 +325,8 @@ export const AdminCoursesPage = () => {
                         <Badge variant={course.status === 'ACTIVE' ? 'success' : 'neutral'}>
                           {course.status === 'ACTIVE' ? 'در حال برگزاری' : 'پیش‌ثبت‌نام'}
                         </Badge>
-                        <Badge variant="info">
-                          {course.gender_display || (course.gender === 'MALE' ? 'پسران / آقایان' : course.gender === 'FEMALE' ? 'دختران / بانوان' : 'عمومی')}
+                        <Badge variant={course.gender === 'FEMALE' ? 'warning' : 'info'}>
+                          {course.gender_display || (course.gender === 'FEMALE' ? 'دختران / بانوان' : 'پسران / آقایان')}
                         </Badge>
                       </div>
                     </div>
@@ -757,26 +758,22 @@ export const AdminCoursesPage = () => {
       >
         <form onSubmit={handleCreateGroup} className="space-y-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               دوره آموزشی والد *
             </label>
-            <select
-              required
+            <CustomSelect
               value={groupForm.course}
-              onChange={(e) => setGroupForm({ ...groupForm, course: e.target.value })}
-              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-            >
-              <option value="">یک دوره را انتخاب کنید...</option>
-              {courses.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name} ({formatPrice(c.base_price)} تومان)
-                </option>
-              ))}
-            </select>
+              onChange={(val) => setGroupForm({ ...groupForm, course: val })}
+              options={courses.map((c) => ({
+                value: c.id,
+                label: `${c.name} (${formatPrice(c.base_price)} تومان)`,
+              }))}
+              placeholder="یک دوره را انتخاب کنید..."
+            />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
               نام گروه اجرایی *
             </label>
             <input
@@ -785,28 +782,24 @@ export const AdminCoursesPage = () => {
               value={groupForm.name}
               onChange={(e) => setGroupForm({ ...groupForm, name: e.target.value })}
               placeholder="مثال: گروه مقدماتی شنبه و دوشنبه ساعت ۱۷"
-              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 سطح مهارت گروه *
               </label>
-              <select
-                required
+              <CustomSelect
                 value={groupForm.skill_level}
-                onChange={(e) => setGroupForm({ ...groupForm, skill_level: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-              >
-                <option value="">انتخاب سطح...</option>
-                {levels.map((lvl) => (
-                  <option key={lvl.id} value={lvl.id}>
-                    سطح {lvl.order}: {lvl.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setGroupForm({ ...groupForm, skill_level: val })}
+                options={levels.map((lvl) => ({
+                  value: lvl.id,
+                  label: `سطح ${lvl.order}: ${lvl.name}`,
+                }))}
+                placeholder="انتخاب سطح..."
+              />
             </div>
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">

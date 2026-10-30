@@ -3,11 +3,12 @@ import { useNavigate, Link } from 'react-router-dom';
 import {
   BookOpen, ArrowRight, MapPin, Clock, Calendar,
   GraduationCap, Users, Check, CheckCircle2, Award,
-  Sparkles, DollarSign, Layers, Search
+  Sparkles, DollarSign, Layers, Search, User
 } from 'lucide-react';
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
+import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 
 export const AdminCreateCoursePage = () => {
@@ -194,15 +195,25 @@ export const AdminCreateCoursePage = () => {
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 جنسیت مجاز *
               </label>
-              <select
+              <CustomSelect
                 value={formData.gender}
-                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
-              >
-                <option value="MALE">پسران / آقایان</option>
-                <option value="FEMALE">دختران / بانوان</option>
-                <option value="ALL">عمومی (پسران و دختران)</option>
-              </select>
+                onChange={(val) => setFormData({ ...formData, gender: val })}
+                options={[
+                  {
+                    value: 'MALE',
+                    label: 'پسران / آقایان',
+                    description: 'دوره ویژه پسران و آقایان',
+                    icon: User,
+                  },
+                  {
+                    value: 'FEMALE',
+                    label: 'دختران / بانوان',
+                    description: 'دوره ویژه دختران و بانوان',
+                    icon: User,
+                  },
+                ]}
+                placeholder="انتخاب جنسیت مجاز..."
+              />
             </div>
           </div>
 
@@ -224,15 +235,28 @@ export const AdminCreateCoursePage = () => {
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 وضعیت اولیه دوره
               </label>
-              <select
+              <CustomSelect
                 value={formData.status}
-                onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
-              >
-                <option value="ACTIVE">در حال برگزاری (ثبت‌نام باز)</option>
-                <option value="UPCOMING">پیش‌ثبت‌نام</option>
-                <option value="COMPLETED">خاتمه‌یافته</option>
-              </select>
+                onChange={(val) => setFormData({ ...formData, status: val })}
+                options={[
+                  {
+                    value: 'ACTIVE',
+                    label: 'در حال برگزاری (ثبت‌نام باز)',
+                    description: 'امکان ثبت‌نام مستقیم شناگران فراهم است',
+                  },
+                  {
+                    value: 'UPCOMING',
+                    label: 'پیش‌ثبت‌نام',
+                    description: 'دوره برای رزرو و مشاهده ظرفیت فعال است',
+                  },
+                  {
+                    value: 'COMPLETED',
+                    label: 'خاتمه‌یافته',
+                    description: 'دوره به پایان رسیده است',
+                  },
+                ]}
+                placeholder="انتخاب وضعیت دوره..."
+              />
             </div>
           </div>
 
