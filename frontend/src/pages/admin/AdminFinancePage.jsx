@@ -15,6 +15,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { StatsCard } from '../../components/common/StatsCard';
 import { Pagination } from '../../components/common/Pagination';
 import { CustomSelect } from '../../components/common/CustomSelect';
+import { PersianDatePicker, toJalaliString, formatJalaliReadable } from '../../components/common/PersianDatePicker';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
 
@@ -37,6 +38,7 @@ export const AdminFinancePage = () => {
   // Category Filters: جنسیت, استخر, مربی, سال تولد
   const [genderFilter, setGenderFilter] = useState('ALL');
   const [poolFilter, setPoolFilter] = useState('ALL');
+  const [paymentDateFilter, setPaymentDateFilter] = useState('');
   const [coachFilter, setCoachFilter] = useState('ALL');
   const [birthYearFilter, setBirthYearFilter] = useState('ALL');
 
@@ -398,14 +400,41 @@ export const AdminFinancePage = () => {
     () => installments.filter(filterItem),
     [installments, genderFilter, poolFilter, coachFilter, birthYearFilter, searchQuery]
   );
-  const filteredPayments = useMemo(
-    () => payments.filter(filterItem),
-    [payments, genderFilter, poolFilter, coachFilter, birthYearFilter, searchQuery]
-  );
+  const filteredPayments = useMemo(() => {
+    return payments.filter((p) => {
+      if (genderFilter !== 'ALL' && p.gender !== genderFilter) return false;
+      if (coachFilter !== 'ALL' && p.coach_name !== coachFilter && !p.coach_name?.includes(coachFilter)) return false;
+      if (birthYearFilter !== 'ALL' && String(p.birth_year) !== String(birthYearFilter)) return false;
+      if (paymentDateFilter) {
+        const itemDateStr = toJalaliString(p.paid_at || p.created_at);
+        if (itemDateStr !== paymentDateFilter) return false;
+      }
+      if (searchQuery.trim()) {
+        const q = searchQuery.trim().toLowerCase();
+        const swimmer = String(p.swimmer_name || '').toLowerCase();
+        const invNum = String(p.invoice_number || '').toLowerCase();
+        const payNum = String(p.payment_number || '').toLowerCase();
+        const phone = String(p.swimmer_phone || '').toLowerCase();
+        const ref = String(p.transaction_ref || '').toLowerCase();
+        const notes = String(p.notes || '').toLowerCase();
+        const coach = String(p.coach_name || '').toLowerCase();
+        const match =
+          swimmer.includes(q) ||
+          invNum.includes(q) ||
+          payNum.includes(q) ||
+          phone.includes(q) ||
+          ref.includes(q) ||
+          notes.includes(q) ||
+          coach.includes(q);
+        if (!match) return false;
+      }
+      return true;
+    });
+  }, [payments, genderFilter, coachFilter, birthYearFilter, paymentDateFilter, searchQuery]);
 
   const isAnyFilterActive =
     genderFilter !== 'ALL' ||
-    poolFilter !== 'ALL' ||
+    (activeTab === 'PAYMENTS' ? Boolean(paymentDateFilter) : poolFilter !== 'ALL') ||
     coachFilter !== 'ALL' ||
     birthYearFilter !== 'ALL' ||
     Boolean(searchQuery.trim());
@@ -414,6 +443,7 @@ export const AdminFinancePage = () => {
     setSearchQuery('');
     setGenderFilter('ALL');
     setPoolFilter('ALL');
+    setPaymentDateFilter('');
     setCoachFilter('ALL');
     setBirthYearFilter('ALL');
     setCurrentPage(1);
