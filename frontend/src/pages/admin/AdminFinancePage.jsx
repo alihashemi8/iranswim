@@ -4,7 +4,7 @@ import {
   CreditCard, AlertCircle, FileText, CheckCircle2,
   DollarSign, ArrowUpRight, ArrowDownLeft, Plus,
   FileSpreadsheet, Search, RefreshCw, User, Phone,
-  Filter, RotateCcw, Calendar, MapPin, UserCheck, Users, X, Sparkles
+  Filter, RotateCcw, Calendar, MapPin, UserCheck, Users, X, Sparkles, Tag, Award
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -427,6 +427,45 @@ export const AdminFinancePage = () => {
     { value: 'ALL', label: 'همه سال‌های تولد' },
     ...availableBirthYears.map((y) => ({ value: y, label: `متولدین سال ${y}` })),
   ], [availableBirthYears]);
+
+  const nextCourseReasonOptions = useMemo(() => [
+    {
+      value: 'تخفیف وفاداری و تمدید دوره',
+      label: 'تخفیف وفاداری و تمدید دوره',
+      icon: Sparkles,
+      description: 'تشویق به تمدید ترم و استمرار آموزش شناگر',
+    },
+    {
+      value: 'تخفیف ثبت‌نام زودهنگام دوره بعد',
+      label: 'تخفیف ثبت‌نام زودهنگام دوره بعد',
+      icon: Calendar,
+      description: 'تخفیف خوش‌حسابی و رزرو پیش از شروع ترم جدید',
+    },
+    {
+      value: 'تخفیف استعداد برتر و پیشرفت عالی',
+      label: 'تخفیف استعداد برتر و پیشرفت عالی',
+      icon: Award,
+      description: 'به پاس ارتقای سطح و پیشرفت فنی برجسته شناگر',
+    },
+    {
+      value: 'تخفیف خانوادگی / فرزند دوم',
+      label: 'تخفیف خانوادگی / فرزند دوم',
+      icon: Users,
+      description: 'تسهیلات ویژه ثبت‌نام همزمان برادر، خواهر یا بستگان',
+    },
+    {
+      value: 'تخفیف تشویقی معرفی دوستان',
+      label: 'تخفیف تشویقی معرفی دوستان',
+      icon: User,
+      description: 'پاداش معرفی هنرجوی جدید به آکادمی',
+    },
+    {
+      value: 'سایر دلایل (توضیحات سفارشی)',
+      label: 'سایر دلایل (توضیحات سفارشی)',
+      icon: FileText,
+      description: 'توضیحات سفارشی و ثبت دلایل اختصاصی دیگر',
+    },
+  ], []);
 
   const filterItem = (item) => {
     if (genderFilter !== 'ALL' && item.gender !== genderFilter) return false;
@@ -1594,22 +1633,41 @@ export const AdminFinancePage = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                روش پرداخت *
-              </label>
-              <select
+              <CustomSelect
+                label="روش پرداخت *"
+                icon={CreditCard}
                 value={payForm.method}
-                onChange={(e) => setPayForm({ ...payForm, method: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-              >
-                <option value="POS">دستگاه کارتخوان حضوری (POS)</option>
-                <option value="CARD_TRANSFER">کارت به کارت / واریز شبا</option>
-                <option value="CASH">نقدی</option>
-                <option value="ONLINE_GATEWAY">درگاه پرداخت الکترونیک</option>
-              </select>
+                onChange={(val) => setPayForm({ ...payForm, method: val })}
+                options={[
+                  {
+                    value: 'POS',
+                    label: 'دستگاه کارتخوان حضوری (POS)',
+                    icon: CreditCard,
+                    description: 'پرداخت با کارت بانکی در پذیرش آموزشگاه',
+                  },
+                  {
+                    value: 'CARD_TRANSFER',
+                    label: 'کارت به کارت / واریز شبا',
+                    icon: ArrowUpRight,
+                    description: 'واریز اینترنتی به شماره کارت یا شبای باشگاه',
+                  },
+                  {
+                    value: 'CASH',
+                    label: 'نقدی',
+                    icon: DollarSign,
+                    description: 'دریافت نقدی وجه در پذیرش استخر',
+                  },
+                  {
+                    value: 'ONLINE_GATEWAY',
+                    label: 'درگاه پرداخت الکترونیک',
+                    icon: CheckCircle2,
+                    description: 'تراکنش موفق درگاه آنلاین',
+                  },
+                ]}
+              />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 شماره پیگیری / ارجاع بانکی (اختیاری)
               </label>
               <input
@@ -1617,7 +1675,7 @@ export const AdminFinancePage = () => {
                 value={payForm.transaction_ref}
                 onChange={(e) => setPayForm({ ...payForm, transaction_ref: e.target.value })}
                 placeholder="شماره پیگیری دستگاه پوز یا کارت"
-                className="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                className="w-full px-3.5 py-2.5 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
               />
             </div>
           </div>
@@ -1655,20 +1713,29 @@ export const AdminFinancePage = () => {
         <form onSubmit={handleRecordAdjustment} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                نوع سند تعدیل مالی *
-              </label>
-              <select
+              <CustomSelect
+                label="نوع سند تعدیل مالی *"
+                icon={Tag}
                 value={adjForm.type}
-                onChange={(e) => setAdjForm({ ...adjForm, type: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-              >
-                <option value="DISCOUNT">تخفیف مدیریتی (کاهش مانده صورتحساب)</option>
-                <option value="REFUND">استرداد وجه به شناگر (انصراف یا کنسلی)</option>
-              </select>
+                onChange={(val) => setAdjForm({ ...adjForm, type: val })}
+                options={[
+                  {
+                    value: 'DISCOUNT',
+                    label: 'تخفیف مدیریتی (کاهش بدهی)',
+                    icon: Tag,
+                    description: 'کسر مستقیم از مانده بدهی این صورتحساب',
+                  },
+                  {
+                    value: 'REFUND',
+                    label: 'استرداد وجه به شناگر (کنسلی)',
+                    icon: ArrowDownLeft,
+                    description: 'بازگشت وجه به حساب شناگر به علت انصراف',
+                  },
+                ]}
+              />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                 مبلغ تعدیل (تومان) *
               </label>
               <input
@@ -1677,7 +1744,7 @@ export const AdminFinancePage = () => {
                 min="1000"
                 value={adjForm.amount}
                 onChange={(e) => setAdjForm({ ...adjForm, amount: e.target.value })}
-                className="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                className="w-full px-3.5 py-2.5 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
               />
             </div>
           </div>
@@ -1790,21 +1857,13 @@ export const AdminFinancePage = () => {
 
           {/* Reason / Title */}
           <div className="space-y-2">
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-              علت یا عنوان تخفیف دوره بعدی *
-            </label>
-            <select
+            <CustomSelect
+              label="علت یا عنوان تخفیف دوره بعدی *"
+              icon={Tag}
               value={nextCourseForm.presetReason}
-              onChange={(e) => setNextCourseForm({ ...nextCourseForm, presetReason: e.target.value })}
-              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-            >
-              <option value="تخفیف وفاداری و تمدید دوره">تخفیف وفاداری و تمدید دوره</option>
-              <option value="تخفیف ثبت‌نام زودهنگام دوره بعد">تخفیف ثبت‌نام زودهنگام دوره بعد</option>
-              <option value="تخفیف استعداد برتر و پیشرفت عالی">تخفیف استعداد برتر و پیشرفت عالی</option>
-              <option value="تخفیف خانوادگی / فرزند دوم">تخفیف خانوادگی / فرزند دوم</option>
-              <option value="تخفیف تشویقی معرفی دوستان">تخفیف تشویقی معرفی دوستان</option>
-              <option value="سایر دلایل (توضیحات سفارشی)">سایر دلایل (توضیحات سفارشی)</option>
-            </select>
+              onChange={(val) => setNextCourseForm({ ...nextCourseForm, presetReason: val })}
+              options={nextCourseReasonOptions}
+            />
 
             <textarea
               rows={2}

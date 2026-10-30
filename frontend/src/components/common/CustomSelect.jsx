@@ -13,8 +13,10 @@ export const CustomSelect = ({
   disabled = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [openUpward, setOpenUpward] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const containerRef = useRef(null);
+  const triggerRef = useRef(null);
   const searchInputRef = useRef(null);
 
   // Normalize options: can be strings or objects { value, label, icon, description }
@@ -71,6 +73,66 @@ export const CustomSelect = ({
     }
   }, [isOpen, searchable]);
 
+  // Calculate upward or downward placement
+  const checkPlacement = () => {
+    const triggerEl = triggerRef.current || containerRef.current;
+    if (!triggerEl) return;
+    const rect = triggerEl.getBoundingClientRect();
+    const dropdownHeight = 250;
+    let spaceBelow = window.innerHeight - rect.bottom;
+    let spaceAbove = rect.top;
+
+    let parent = triggerEl.parentElement;
+    while (parent && parent !== document.body && parent !== document.documentElement) {
+      const style = window.getComputedStyle(parent);
+      const overflowY = style.overflowY;
+      if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'hidden') {
+        const parentRect = parent.getBoundingClientRect();
+        const parentSpaceBelow = parentRect.bottom - rect.bottom;
+        const parentSpaceAbove = rect.top - parentRect.top;
+        if (parentSpaceBelow < spaceBelow) {
+          spaceBelow = parentSpaceBelow;
+        }
+        if (parentSpaceAbove < spaceAbove) {
+          spaceAbove = parentSpaceAbove;
+        }
+      }
+      parent = parent.parentElement;
+    }
+
+    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+      setOpenUpward(true);
+    } else {
+      setOpenUpward(false);
+    }
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    checkPlacement();
+
+    const handleScrollOrResize = () => {
+      checkPlacement();
+    };
+
+    window.addEventListener('resize', handleScrollOrResize);
+    window.addEventListener('scroll', handleScrollOrResize, true);
+
+    return () => {
+      window.removeEventListener('resize', handleScrollOrResize);
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+    };
+  }, [isOpen, filteredOptions.length]);
+
+  const handleToggle = () => {
+    if (disabled) return;
+    if (!isOpen) {
+      checkPlacement();
+    }
+    setIsOpen(!isOpen);
+  };
+
   const handleSelect = (val) => {
     onChange(val);
     setIsOpen(false);
@@ -80,7 +142,7 @@ export const CustomSelect = ({
   const DisplayIcon = selectedOption?.icon || Icon;
 
   return (
-    <div className={`relative ${className}`} ref={containerRef} dir="rtl">
+    <div className={`relative ${isOpen ? 'z-40' : ''} ${className}`} ref={containerRef} dir="rtl">
       {label && (
         <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
           {label}
@@ -89,9 +151,10 @@ export const CustomSelect = ({
 
       {/* Trigger Button */}
       <button
+        ref={triggerRef}
         type="button"
         disabled={disabled}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className={`w-full text-right px-3.5 py-2.5 text-xs rounded-xl border transition-all flex items-center justify-between gap-2.5 cursor-pointer select-none ${
           disabled ? 'opacity-60 cursor-not-allowed bg-slate-100 dark:bg-slate-800' : ''
         } ${
@@ -139,7 +202,9 @@ export const CustomSelect = ({
       {/* Custom Dropdown Menu */}
       {isOpen && (
         <div
-          className="absolute z-50 w-full min-w-[210px] mt-1.5 py-1.5 bg-white/95 dark:bg-slate-900/95 border border-slate-200/90 dark:border-slate-800 rounded-2xl shadow-xl backdrop-blur-md overflow-hidden animate-in fade-in-50 zoom-in-95"
+          className={`absolute z-50 right-0 left-0 min-w-[210px] py-1.5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/90 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in-50 zoom-in-95 ${
+            openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
+          }`}
           role="listbox"
         >
           {/* Optional Search inside dropdown */}
@@ -191,18 +256,18 @@ export const CustomSelect = ({
                     role="option"
                     aria-selected={isSelected}
                   >
-                    <div className="flex items-center gap-2.5 min-w-0">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       {OptIcon && (
-                        <OptIcon
-                          className={`w-4 h-4 shrink-0 ${
-                            isSelected
-                              ? 'text-sky-600 dark:text-sky-400'
-                              : 'text-slate-400 dark:text-slate-500'
-                          }`}
-                        />
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                          isSelected
+                            ? 'bg-sky-100 dark:bg-sky-900/60 text-sky-600 dark:text-sky-400'
+                            : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
+                        }`}>
+                          <OptIcon className="w-3.5 h-3.5" />
+                        </div>
                       )}
-                      <div className="min-w-0">
-                        <span className="truncate block font-semibold">{opt.label}</span>
+                      <div className="min-w-0 flex-1 text-right">
+                        <span className="truncate block font-semibold text-slate-800 dark:text-slate-100">{opt.label}</span>
                         {opt.description && (
                           <span className="text-[10px] text-slate-400 dark:text-slate-500 block truncate font-normal mt-0.5">
                             {opt.description}
@@ -212,7 +277,7 @@ export const CustomSelect = ({
                     </div>
 
                     {isSelected && (
-                      <Check className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+                      <Check className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0 mr-1.5" />
                     )}
                   </button>
                 );

@@ -78,9 +78,13 @@ export const PersianDatePicker = ({
   clearable = true,
   minYear = 1380,
   maxYear = 1415,
+  placement = 'auto', // 'auto' | 'top' | 'bottom'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [openUpward, setOpenUpward] = useState(false);
   const containerRef = useRef(null);
+  const triggerRef = useRef(null);
+  const dropdownRef = useRef(null);
 
   // Today in Jalaali
   const todayJalali = useMemo(() => {
@@ -155,6 +159,80 @@ export const PersianDatePicker = ({
     };
   }, [isOpen]);
 
+  // Calculate whether calendar dropdown should open upwards or downwards
+  const checkPlacement = () => {
+    if (placement === 'top') {
+      setOpenUpward(true);
+      return;
+    }
+    if (placement === 'bottom') {
+      setOpenUpward(false);
+      return;
+    }
+
+    const triggerEl = triggerRef.current || containerRef.current;
+    if (!triggerEl) return;
+
+    const rect = triggerEl.getBoundingClientRect();
+    const dropdownHeight = dropdownRef.current?.offsetHeight || 375;
+
+    let spaceBelow = window.innerHeight - rect.bottom;
+    let spaceAbove = rect.top;
+
+    // Check parent containers that might clip with overflow (hidden/auto/scroll)
+    let parent = triggerEl.parentElement;
+    while (parent && parent !== document.body && parent !== document.documentElement) {
+      const style = window.getComputedStyle(parent);
+      const overflowY = style.overflowY;
+      if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'hidden') {
+        const parentRect = parent.getBoundingClientRect();
+        const parentSpaceBelow = parentRect.bottom - rect.bottom;
+        const parentSpaceAbove = rect.top - parentRect.top;
+        if (parentSpaceBelow < spaceBelow) {
+          spaceBelow = parentSpaceBelow;
+        }
+        if (parentSpaceAbove < spaceAbove) {
+          spaceAbove = parentSpaceAbove;
+        }
+      }
+      parent = parent.parentElement;
+    }
+
+    // Open upward if space below is insufficient and space above is larger
+    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+      setOpenUpward(true);
+    } else {
+      setOpenUpward(false);
+    }
+  };
+
+  // Re-check placement on open, scroll, or resize
+  useEffect(() => {
+    if (!isOpen) return;
+
+    checkPlacement();
+
+    const handleScrollOrResize = () => {
+      checkPlacement();
+    };
+
+    window.addEventListener('resize', handleScrollOrResize);
+    window.addEventListener('scroll', handleScrollOrResize, true);
+
+    return () => {
+      window.removeEventListener('resize', handleScrollOrResize);
+      window.removeEventListener('scroll', handleScrollOrResize, true);
+    };
+  }, [isOpen, pickerMode, placement]);
+
+  const handleToggle = () => {
+    if (disabled) return;
+    if (!isOpen) {
+      checkPlacement();
+    }
+    setIsOpen((prev) => !prev);
+  };
+
   // Navigate months
   const handlePrevMonth = () => {
     if (viewMonth === 1) {
@@ -224,19 +302,19 @@ export const PersianDatePicker = ({
   const isValueActive = Boolean(parsedValue);
 
   return (
-    <div className={`relative ${className}`} ref={containerRef} dir="rtl">
+    <div className={`relative ${isOpen ? 'z-40' : ''} ${className}`} ref={containerRef} dir="rtl">
       {label && (
         <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
           {label}
         </label>
       )}
 
-      {/* Trigger Button */}
-      <div className="relative">
+      {/* Trigger Button & Calendar Popup */}
+      <div className="relative" ref={triggerRef}>
         <button
           type="button"
           disabled={disabled}
-          onClick={() => setIsOpen(!isOpen)}
+          onClick={handleToggle}
           className={`w-full text-right px-3.5 py-2.5 text-xs rounded-xl border transition-all flex items-center justify-between gap-2.5 cursor-pointer select-none ${
             disabled ? 'opacity-60 cursor-not-allowed bg-slate-100 dark:bg-slate-800' : ''
           } ${
@@ -279,15 +357,19 @@ export const PersianDatePicker = ({
             }`} />
           </div>
         </button>
-      </div>
 
-      {/* Calendar Dropdown Popup */}
-      {isOpen && (
-        <div
-          role="dialog"
-          aria-label="تقویم شمسی"
-          className="absolute z-50 top-full mt-1.5 right-0 w-72 sm:w-80 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-xl animate-in fade-in zoom-in-95 duration-150 select-none"
-        >
+        {/* Calendar Dropdown Popup */}
+        {isOpen && (
+          <div
+            ref={dropdownRef}
+            role="dialog"
+            aria-label="تقویم شمسی"
+            className={`absolute z-50 right-0 w-72 sm:w-80 max-w-[calc(100vw-2rem)] p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 select-none ${
+              openUpward
+                ? 'bottom-full mb-1.5 origin-bottom'
+                : 'top-full mt-1.5 origin-top'
+            }`}
+          >
           {/* Header: Month & Year navigation */}
           <div className="flex items-center justify-between pb-3 mb-2.5 border-b border-slate-100 dark:border-slate-800">
             {/* Previous month button (Right arrow in RTL) */}
@@ -475,6 +557,7 @@ export const PersianDatePicker = ({
           )}
         </div>
       )}
+      </div>
     </div>
   );
 };

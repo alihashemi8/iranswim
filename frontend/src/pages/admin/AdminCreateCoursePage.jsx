@@ -33,6 +33,8 @@ export const AdminCreateCoursePage = () => {
   const [formData, setFormData] = useState({
     name: '',
     gender: 'MALE',
+    age_min: '',
+    age_max: '',
     age_range: '',
     pool_location: 'استخر شهید رئیسی',
     days_of_week: 'سه‌شنبه و پنج‌شنبه',
@@ -147,6 +149,43 @@ export const AdminCreateCoursePage = () => {
     return clean;
   };
 
+  const handleAgeChange = (field, rawValue) => {
+    // Convert Persian and Arabic digits to standard English digits
+    const eng = String(rawValue || '')
+      .replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+      .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+    const cleanDigits = eng.replace(/\D/g, '').slice(0, 2);
+
+    const nextMin = field === 'age_min' ? cleanDigits : formData.age_min;
+    const nextMax = field === 'age_max' ? cleanDigits : formData.age_max;
+
+    let computedRange = '';
+    if (nextMin && nextMax) {
+      computedRange = `${nextMin} تا ${nextMax} سال`;
+    } else if (nextMin) {
+      computedRange = `از ${nextMin} سال به بالا`;
+    } else if (nextMax) {
+      computedRange = `تا ${nextMax} سال`;
+    }
+
+    setFormData((prev) => ({
+      ...prev,
+      [field]: cleanDigits,
+      age_range: computedRange,
+    }));
+  };
+
+  const setQuickAgeRange = (min, max) => {
+    const minStr = String(min);
+    const maxStr = String(max);
+    setFormData((prev) => ({
+      ...prev,
+      age_min: minStr,
+      age_max: maxStr,
+      age_range: `${minStr} تا ${maxStr} سال`,
+    }));
+  };
+
   const validateStep = (step) => {
     if (step === 1) {
       if (!formData.name.trim()) {
@@ -155,6 +194,10 @@ export const AdminCreateCoursePage = () => {
       }
       if (!formData.gender) {
         toast.error('لطفاً جنسیت مجاز دوره را انتخاب کنید.');
+        return false;
+      }
+      if (formData.age_min && formData.age_max && Number(formData.age_min) > Number(formData.age_max)) {
+        toast.error('حداقل سن نمی‌تواند از حداکثر سن بیشتر باشد.');
         return false;
       }
       return true;
@@ -239,11 +282,16 @@ export const AdminCreateCoursePage = () => {
 
     try {
       setSubmitting(true);
-      await api.post('/education/courses/', {
+      const postPayload = {
         ...formData,
+        age_range: formData.age_range || (formData.age_min && formData.age_max ? `${formData.age_min} تا ${formData.age_max} سال` : formData.age_min ? `از ${formData.age_min} سال به بالا` : ''),
         base_price: Number(formData.base_price),
         sessions_count: Number(formData.sessions_count),
-      });
+      };
+      delete postPayload.age_min;
+      delete postPayload.age_max;
+
+      await api.post('/education/courses/', postPayload);
 
       toast.success('دوره آموزشی جدید و کلاس‌های مربیان با موفقیت ایجاد گردید.');
       navigate('/admin/courses');
@@ -422,16 +470,74 @@ export const AdminCreateCoursePage = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  رده سنی مخاطبان
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center justify-between">
+                  <span>رده سنی مخاطبان (سال)</span>
+                  {formData.age_range && (
+                    <span className="text-[11px] font-bold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-200/60 dark:border-sky-800">
+                      {formData.age_range}
+                    </span>
+                  )}
                 </label>
-                <input
-                  type="text"
-                  placeholder="مثال: نوجوانان (۱۲ تا ۱۶ سال) یا خردسالان"
-                  value={formData.age_range}
-                  onChange={(e) => setFormData({ ...formData, age_range: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
-                />
+
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none select-none">
+                      از
+                    </span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder="۵"
+                      value={formData.age_min}
+                      onChange={(e) => handleAgeChange('age_min', e.target.value)}
+                      className="w-full pr-8 pl-3 py-2.5 text-xs text-center font-bold font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100 transition-colors"
+                    />
+                  </div>
+
+                  <span className="text-xs font-bold text-slate-400 dark:text-slate-500 shrink-0 select-none">
+                    تا
+                  </span>
+
+                  <div className="relative flex-1">
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      placeholder="۷"
+                      value={formData.age_max}
+                      onChange={(e) => handleAgeChange('age_max', e.target.value)}
+                      className="w-full pr-3 pl-9 py-2.5 text-xs text-center font-bold font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100 transition-colors"
+                    />
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 pointer-events-none select-none">
+                      سال
+                    </span>
+                  </div>
+                </div>
+
+                {/* Quick suggestions */}
+                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                  <span className="text-[10px] text-slate-400 select-none">پیشنهاد سریع:</span>
+                  {[
+                    { label: '۵ تا ۷ سال', min: '5', max: '7' },
+                    { label: '۸ تا ۱۲ سال', min: '8', max: '12' },
+                    { label: '۱۳ تا ۱۷ سال', min: '13', max: '17' },
+                    { label: '۱۸ تا ۵۰ سال', min: '18', max: '50' },
+                  ].map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => setQuickAgeRange(preset.min, preset.max)}
+                      className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all cursor-pointer ${
+                        formData.age_min === preset.min && formData.age_max === preset.max
+                          ? 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-700 font-bold'
+                          : 'bg-slate-100/70 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200/60 dark:border-slate-700 hover:bg-slate-200/60 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div>
@@ -871,6 +977,13 @@ export const AdminCreateCoursePage = () => {
                   <span className="text-slate-400 block text-[11px]">جنسیت مجاز:</span>
                   <span className="font-bold text-slate-800 dark:text-slate-100">
                     {formData.gender === 'FEMALE' ? 'دختران / بانوان' : 'پسران / آقایان'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-slate-400 block text-[11px]">رده سنی مجاز:</span>
+                  <span className="font-bold text-sky-600 dark:text-sky-400">
+                    {formData.age_range || (formData.age_min && formData.age_max ? `${formData.age_min} تا ${formData.age_max} سال` : 'عموم رده‌های سنی')}
                   </span>
                 </div>
 
