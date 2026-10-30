@@ -89,6 +89,64 @@ export const AdminCreateCoursePage = () => {
     });
   };
 
+  // Auto-masking function for 24h time input: "17" -> "17:" -> "17:00"
+  const formatTimeInput = (inputVal, prevVal) => {
+    // If user is deleting characters
+    if (prevVal && inputVal.length < prevVal.length) {
+      if (prevVal.endsWith(':') && !inputVal.includes(':')) {
+        return inputVal.slice(0, -1);
+      }
+      return inputVal;
+    }
+
+    // Convert Persian and Arabic numbers to English digits
+    const eng = inputVal
+      .replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+      .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+
+    const digits = eng.replace(/\D/g, '').slice(0, 4);
+    if (!digits) return '';
+
+    if (digits.length === 1) {
+      if (inputVal.endsWith(':')) {
+        return `0${digits}:`;
+      }
+      return digits;
+    }
+
+    if (digits.length === 2) {
+      let h = parseInt(digits, 10);
+      if (h > 23) h = 23;
+      return `${String(h).padStart(2, '0')}:`;
+    }
+
+    if (digits.length === 3) {
+      let h = parseInt(digits.slice(0, 2), 10);
+      if (h > 23) h = 23;
+      return `${String(h).padStart(2, '0')}:${digits.slice(2)}`;
+    }
+
+    // 4 digits
+    let h = parseInt(digits.slice(0, 2), 10);
+    if (h > 23) h = 23;
+    let m = parseInt(digits.slice(2, 4), 10);
+    if (m > 59) m = 59;
+    return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  };
+
+  const normalizeTimeOnBlur = (timeStr) => {
+    if (!timeStr) return '';
+    const clean = timeStr.trim();
+    if (clean.endsWith(':')) {
+      return `${clean}00`;
+    }
+    const parts = clean.split(':');
+    if (parts.length === 2 && parts[1].length === 1) {
+      return `${parts[0]}:${parts[1]}0`;
+    }
+    return clean;
+  };
+
   const validateStep = (step) => {
     if (step === 1) {
       if (!formData.name.trim()) {
@@ -545,19 +603,24 @@ export const AdminCreateCoursePage = () => {
                   <input
                     type="text"
                     required
+                    maxLength={5}
                     placeholder="17:00"
                     value={formData.start_time}
                     onChange={(e) => {
-                      const val = e.target.value
-                        .replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
-                        .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
-                      setFormData({ ...formData, start_time: val });
+                      const formatted = formatTimeInput(e.target.value, formData.start_time);
+                      setFormData({ ...formData, start_time: formatted });
+                    }}
+                    onBlur={() => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        start_time: normalizeTimeOnBlur(prev.start_time),
+                      }));
                     }}
                     className="w-full pl-3 pr-10 py-2.5 text-xs font-mono font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
                   />
                 </div>
                 <span className="text-[10px] text-slate-400 mt-1 block">
-                  فرمت ۲۴ ساعته: مثال ۱۷:۰۰ یا ۰۹:۳۰
+                  دو رقم اول را بزنید دو نقطه (:) خودکار درج می‌شود (مثال ۱۷:۰۰)
                 </span>
               </div>
 
@@ -571,19 +634,24 @@ export const AdminCreateCoursePage = () => {
                   <input
                     type="text"
                     required
+                    maxLength={5}
                     placeholder="19:00"
                     value={formData.end_time}
                     onChange={(e) => {
-                      const val = e.target.value
-                        .replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
-                        .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
-                      setFormData({ ...formData, end_time: val });
+                      const formatted = formatTimeInput(e.target.value, formData.end_time);
+                      setFormData({ ...formData, end_time: formatted });
+                    }}
+                    onBlur={() => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        end_time: normalizeTimeOnBlur(prev.end_time),
+                      }));
                     }}
                     className="w-full pl-3 pr-10 py-2.5 text-xs font-mono font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
                   />
                 </div>
                 <span className="text-[10px] text-slate-400 mt-1 block">
-                  فرمت ۲۴ ساعته: مثال ۱۹:۰۰ یا ۱۱:۰۰
+                  دو رقم اول را بزنید دو نقطه (:) خودکار درج می‌شود (مثال ۱۹:۰۰)
                 </span>
               </div>
             </div>
