@@ -501,14 +501,46 @@ export const AdminCreateCoursePage = () => {
               </div>
             </div>
 
+            {/* Quick pool session presets */}
+            <div className="p-3 bg-sky-50/60 dark:bg-sky-950/40 rounded-2xl border border-sky-200/60 dark:border-sky-800/60 flex flex-wrap items-center justify-between gap-2">
+              <span className="text-xs font-bold text-sky-900 dark:text-sky-200 flex items-center gap-1.5">
+                <Clock className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                سانس‌های متداول استخر (تنظیم سریع):
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                {[
+                  { label: '۱۷:۰۰ تا ۱۹:۰۰ (۲ ساعته)', start: '17:00', end: '19:00' },
+                  { label: '۱۶:۰۰ تا ۱۸:۰۰', start: '16:00', end: '18:00' },
+                  { label: '۱۸:۰۰ تا ۲۰:۰۰', start: '18:00', end: '20:00' },
+                  { label: '۱۹:۰۰ تا ۲۱:۰۰', start: '19:00', end: '21:00' },
+                  { label: '۱۷:۰۰ تا ۱۸:۳۰ (۱.۵ ساعته)', start: '17:00', end: '18:30' },
+                  { label: '۱۸:۳۰ تا ۲۰:۰۰', start: '18:30', end: '20:00' },
+                ].map((preset) => {
+                  const isActive = formData.start_time === preset.start && formData.end_time === preset.end;
+                  return (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => setFormData({ ...formData, start_time: preset.start, end_time: preset.end })}
+                      className={`px-2.5 py-1 rounded-xl text-[11px] font-bold transition-all cursor-pointer ${
+                        isActive
+                          ? 'bg-sky-600 text-white shadow-2xs'
+                          : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-sky-300'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <Time24Picker
                   label="ساعت شروع جلسه (۲۴ ساعته) *"
                   value={formData.start_time}
                   onChange={(val) => setFormData({ ...formData, start_time: val })}
-                  placeholder="17:00"
-                  required
                 />
               </div>
 
@@ -517,8 +549,6 @@ export const AdminCreateCoursePage = () => {
                   label="ساعت پایان جلسه (۲۴ ساعته) *"
                   value={formData.end_time}
                   onChange={(val) => setFormData({ ...formData, end_time: val })}
-                  placeholder="19:00"
-                  required
                 />
               </div>
             </div>

@@ -275,7 +275,7 @@ class FinancialAdjustment(models.Model):
     class AdjustmentType(models.TextChoices):
         DISCOUNT = 'DISCOUNT', _('تخفیف')
         REFUND = 'REFUND', _('استرداد وجه')
-        CREDIT_MEMO = 'CREDIT_MEMO', _('بستانکاری')
+        CREDIT_MEMO = 'CREDIT_MEMO', _('اعتبار / تخفیف دوره بعد')
 
     invoice = models.ForeignKey(
         Invoice,
