@@ -22,6 +22,18 @@ class AttendanceListView(generics.ListAPIView):
         swimmer_id = self.request.query_params.get('swimmer_id')
         if swimmer_id:
             qs = qs.filter(swimmer_id=swimmer_id)
+        status_filter = self.request.query_params.get('status')
+        if status_filter:
+            qs = qs.filter(status=status_filter)
+        search = self.request.query_params.get('search')
+        if search:
+            from django.db.models import Q
+            qs = qs.filter(
+                Q(swimmer__first_name__icontains=search) |
+                Q(swimmer__last_name__icontains=search) |
+                Q(session__group__name__icontains=search) |
+                Q(note__icontains=search)
+            )
 
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs

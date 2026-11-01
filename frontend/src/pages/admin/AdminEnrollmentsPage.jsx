@@ -33,6 +33,7 @@ export const AdminEnrollmentsPage = () => {
   const [loadingRequests, setLoadingRequests] = useState(false);
   const [statusFilter, setStatusFilter] = useState('');
   const [selectedReq, setSelectedReq] = useState(null);
+  const [reviewInstallments, setReviewInstallments] = useState(1);
   const [rejectionReason, setRejectionReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -122,12 +123,13 @@ export const AdminEnrollmentsPage = () => {
       await api.post(`/education/requests/${selectedReq.id}/review/`, {
         action,
         rejection_reason: rejectionReason,
+        selected_installments: Number(reviewInstallments) || 1,
       });
       setSelectedReq(null);
       setRejectionReason('');
       toast.success(
         action === 'APPROVE'
-          ? 'درخواست ثبت‌نام با موفقیت تأیید شد و شناگر در دوره ثبت گردید.'
+          ? 'درخواست ثبت‌نام با موفقیت تأیید شد و اقساط فاکتور صادر گردید.'
           : 'درخواست متقاضی رد شد.'
       );
       fetchRequestsData();
@@ -485,6 +487,7 @@ export const AdminEnrollmentsPage = () => {
                       <th className="px-4 py-3.5">شماره همراه</th>
                       <th className="px-4 py-3.5">دوره درخواستی</th>
                       <th className="px-4 py-3.5">گروه اجرایی</th>
+                      <th className="px-4 py-3.5">اقساط انتخابی</th>
                       <th className="px-4 py-3.5">تاریخ ثبت</th>
                       <th className="px-4 py-3.5">وضعیت</th>
                       <th className="px-4 py-3.5 text-center rounded-l-xl">اقدام مدیر</th>
@@ -499,6 +502,9 @@ export const AdminEnrollmentsPage = () => {
                           <td className="px-4 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-400">{req.applicant_phone}</td>
                           <td className="px-4 py-3.5 text-xs text-slate-700 dark:text-slate-300">{req.course_name}</td>
                           <td className="px-4 py-3.5 text-xs font-medium text-slate-800 dark:text-slate-200">{req.group_name}</td>
+                          <td className="px-4 py-3.5 text-xs font-mono font-bold text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
+                            {req.selected_installments > 1 ? `${req.selected_installments} قسط` : 'یکجا (نقدی)'}
+                          </td>
                           <td className="px-4 py-3.5 text-xs text-slate-500 dark:text-slate-400 font-mono">
                             {new Date(req.created_at).toLocaleDateString('fa-IR')}
                           </td>
@@ -509,7 +515,11 @@ export const AdminEnrollmentsPage = () => {
                             {req.status === 'PENDING' ? (
                               <button
                                 type="button"
-                                onClick={() => setSelectedReq(req)}
+                                onClick={() => {
+                                  setSelectedReq(req);
+                                  setReviewInstallments(req.selected_installments || 1);
+                                  setRejectionReason('');
+                                }}
                                 className="px-3 py-1.5 bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 font-semibold text-xs rounded-xl border border-sky-200 dark:border-sky-800 transition-colors shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
                               >
                                 بررسی و تصمیم
@@ -564,6 +574,41 @@ export const AdminEnrollmentsPage = () => {
               <div className="flex justify-between">
                 <span className="text-slate-400">گروه کلاسی:</span>
                 <span className="font-semibold text-slate-700 dark:text-slate-300">{selectedReq.group_name}</span>
+              </div>
+              <div className="flex justify-between items-center pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                <span className="text-slate-400 font-medium">اقساط انتخابی شناگر:</span>
+                <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-lg border border-emerald-200/80 dark:border-emerald-800">
+                  {selectedReq.selected_installments > 1 ? `${selectedReq.selected_installments} قسط` : 'یکجا (نقدی)'}
+                  {selectedReq.course_max_installments > 1 && ` (از سقف مجاز ${selectedReq.course_max_installments} قسط)`}
+                </span>
+              </div>
+            </div>
+
+            {/* Installments selection before approving */}
+            <div className="p-3 bg-emerald-50/60 dark:bg-emerald-950/30 rounded-2xl border border-emerald-200/70 dark:border-emerald-800/60 space-y-2">
+              <div className="flex items-center justify-between">
+                <label className="text-xs font-bold text-emerald-900 dark:text-emerald-200">
+                  تعداد اقساط فاکتور نهایی:
+                </label>
+                <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300">
+                  {reviewInstallments > 1 ? `${reviewInstallments} قسط مساوی` : 'پرداخت یکجا (۱ قسط)'}
+                </span>
+              </div>
+              <div className="flex flex-wrap gap-1.5 pt-0.5">
+                {Array.from({ length: Math.max(1, selectedReq.course_max_installments || 1) }, (_, i) => i + 1).map((num) => (
+                  <button
+                    key={num}
+                    type="button"
+                    onClick={() => setReviewInstallments(num)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                      Number(reviewInstallments) === num
+                        ? 'bg-emerald-600 text-white shadow-2xs'
+                        : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-emerald-400'
+                    }`}
+                  >
+                    {num === 1 ? 'یکجا (۱ قسط)' : `${num} قسط`}
+                  </button>
+                ))}
               </div>
             </div>
 

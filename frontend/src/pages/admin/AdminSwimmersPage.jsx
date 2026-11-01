@@ -50,6 +50,7 @@ export const AdminSwimmersPage = () => {
   const [enrollModalSwimmer, setEnrollModalSwimmer] = useState(null);
   const [selectedGroup, setSelectedGroup] = useState('');
   const [enrollSessions, setEnrollSessions] = useState(12);
+  const [enrollInstallments, setEnrollInstallments] = useState(1);
   const [enrolling, setEnrolling] = useState(false);
 
   const fetchSwimmers = async () => {
@@ -155,10 +156,12 @@ export const AdminSwimmersPage = () => {
         course: groupObj.course,
         status: 'ACTIVE',
         sessions_purchased: Number(enrollSessions) || 12,
+        selected_installments: Number(enrollInstallments) || 1,
       });
       toast.success(`شناگر با موفقیت در گروه ${groupObj.name} ثبت‌نام شد.`);
       setEnrollModalSwimmer(null);
       setSelectedGroup('');
+      setEnrollInstallments(1);
       fetchSwimmers();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'خطا در ثبت‌نام مستقیم شناگر');
@@ -740,6 +743,40 @@ export const AdminSwimmersPage = () => {
               className="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
             />
           </div>
+
+          {(() => {
+            const currentGroupObj = groups.find((g) => g.id === Number(selectedGroup));
+            if (!currentGroupObj) return null;
+            const maxInst = currentGroupObj.course_max_installments || 1;
+            return (
+              <div className="p-3 bg-emerald-50/60 dark:bg-emerald-950/30 rounded-xl border border-emerald-200/70 dark:border-emerald-800/60 space-y-2">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-semibold text-emerald-900 dark:text-emerald-200">
+                    تعداد اقساط توافق‌شده:
+                  </span>
+                  <span className="font-mono font-bold text-emerald-700 dark:text-emerald-300">
+                    {enrollInstallments > 1 ? `${enrollInstallments} قسط` : 'یکجا'}
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {Array.from({ length: Math.max(1, maxInst) }, (_, i) => i + 1).map((num) => (
+                    <button
+                      key={num}
+                      type="button"
+                      onClick={() => setEnrollInstallments(num)}
+                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        enrollInstallments === num
+                          ? 'bg-emerald-600 text-white shadow-2xs'
+                          : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                      }`}
+                    >
+                      {num === 1 ? 'یکجا (۱ قسط)' : `${num} قسط`}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
 
           <div className="p-3 bg-sky-50 dark:bg-sky-950/40 rounded-xl border border-sky-200 dark:border-sky-800 text-xs text-sky-800 dark:text-sky-300">
             با تأیید ثبت‌نام، شناگر مستقیماً به لیست شاگردان این گروه اضافه شده و سهمیه جلسات و صورتحساب مربوطه صادر خواهد شد.

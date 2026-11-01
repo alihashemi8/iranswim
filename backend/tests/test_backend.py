@@ -177,6 +177,135 @@ def test_attendance_and_quota_consumption(db, coach_user, swimmer_user):
 
 
 @pytest.mark.django_db
+def test_admin_attendance_search_and_category_filtering(api_client, admin_user, coach_user, swimmer_user):
+    """تست فیلترهای دسته‌بندی و سرچ حضور و غیاب در پنل مدیریت"""
+    level_beginner = SkillLevel.objects.create(name='مبتدی (آشنایی با آب)', order=1)
+    level_advanced = SkillLevel.objects.create(name='پیشرفته (قورباغه و پروانه)', order=2)
+
+    course1 = Course.objects.create(
+        name='دوره جامع آموزش کرال سینه',
+        start_date=datetime.date.today(),
+        end_date=datetime.date.today() + datetime.timedelta(days=30),
+        base_price=Decimal('1000000.00'),
+        sessions_count=10
+    )
+    course2 = Course.objects.create(
+        name='دوره تخصصی پروانه و استارت',
+        start_date=datetime.date.today(),
+        end_date=datetime.date.today() + datetime.timedelta(days=30),
+        base_price=Decimal('1500000.00'),
+        sessions_count=10
+    )
+
+    group1 = SwimmerGroup.objects.create(
+        course=course1,
+        name='گروه A کرال سینه',
+        skill_level=level_beginner,
+        capacity=10
+    )
+    group2 = SwimmerGroup.objects.create(
+        course=course2,
+        name='گروه B پروانه',
+        skill_level=level_advanced,
+        capacity=10
+    )
+
+    coach = coach_user.coach_profile
+    swimmer = swimmer_user.swimmer_profile
+
+    Enrollment.objects.create(
+        swimmer=swimmer,
+        course=course1,
+        group=group1,
+        sessions_purchased=10,
+        sessions_attended=0,
+        status=Enrollment.Status.ACTIVE
+    )
+
+    session1 = ClassSession.objects.create(
+        group=group1,
+        coach=coach,
+        session_date=datetime.date.today(),
+        start_time=datetime.time(10, 0),
+        end_time=datetime.time(11, 30),
+        pool_location='استخر آزادی',
+        status=ClassSession.Status.COMPLETED
+    )
+    session2 = ClassSession.objects.create(
+        group=group2,
+        coach=coach,
+        session_date=datetime.date.today(),
+        start_time=datetime.time(14, 0),
+        end_time=datetime.time(15, 30),
+        pool_location='استخر ۵۰ متری المپیک',
+        status=ClassSession.Status.SCHEDULED
+    )
+
+    # Record attendance for session1
+    AttendanceRecord.objects.create(
+        session=session1,
+        swimmer=swimmer,
+        status=AttendanceRecord.Status.PRESENT
+    )
+
+    api_client.force_authenticate(user=admin_user)
+
+    # Helper to extract list from paginated or non-paginated response
+    def get_list(response):
+        if isinstance(response.data, dict) and 'results' in response.data:
+            return response.data['results']
+        return response.data
+
+    # 1. Test Course category filter
+    res = api_client.get('/api/scheduling/sessions/', {'course_id': course1.id})
+    assert res.status_code == 200
+    ids = [item['id'] for item in get_list(res)]
+    assert session1.id in ids
+    assert session2.id not in ids
+
+    # 2. Test Skill Level category filter
+    res = api_client.get('/api/scheduling/sessions/', {'skill_level_id': level_advanced.id})
+    assert res.status_code == 200
+    ids = [item['id'] for item in get_list(res)]
+    assert session2.id in ids
+    assert session1.id not in ids
+
+    # 3. Test Pool Location category filter
+    res = api_client.get('/api/scheduling/sessions/', {'pool_location': 'استخر آزادی'})
+    assert res.status_code == 200
+    ids = [item['id'] for item in get_list(res)]
+    assert session1.id in ids
+    assert session2.id not in ids
+
+    # 4. Test Search by group/course name
+    res = api_client.get('/api/scheduling/sessions/', {'search': 'پروانه'})
+    assert res.status_code == 200
+    ids = [item['id'] for item in get_list(res)]
+    assert session2.id in ids
+    assert session1.id not in ids
+
+    # 5. Test Attendance Status filters (RECORDED vs UNRECORDED)
+    res_rec = api_client.get('/api/scheduling/sessions/', {'attendance_status': 'RECORDED'})
+    assert res_rec.status_code == 200
+    ids_rec = [item['id'] for item in get_list(res_rec)]
+    assert session1.id in ids_rec
+    assert session2.id not in ids_rec
+
+    res_unrec = api_client.get('/api/scheduling/sessions/', {'attendance_status': 'UNRECORDED'})
+    assert res_unrec.status_code == 200
+    ids_unrec = [item['id'] for item in get_list(res_unrec)]
+    assert session2.id in ids_unrec
+    assert session1.id not in ids_unrec
+
+    # 6. Verify serializer category fields
+    item1 = next(item for item in get_list(res) if item['id'] == session2.id)
+    assert item1['course_name'] == 'دوره تخصصی پروانه و استارت'
+    assert item1['skill_level_name'] == 'پیشرفته (قورباغه و پروانه)'
+    assert item1['attendance_recorded'] is False
+    assert item1['attendance_count'] == 0
+
+
+@pytest.mark.django_db
 def test_financial_decimal_precision_and_allocations(db, swimmer_user, admin_user):
     """تست دقت ریاضی و مالی Decimal و تخصیص اقساط و مانده فاکتور"""
     swimmer = swimmer_user.swimmer_profile

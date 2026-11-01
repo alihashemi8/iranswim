@@ -73,6 +73,13 @@ class EnrollmentRequestCreateView(generics.CreateAPIView):
     serializer_class = EnrollmentRequestSerializer
     permission_classes = [permissions.AllowAny]
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        swimmer = None
+        if user and user.is_authenticated:
+            swimmer = getattr(user, 'swimmer_profile', None)
+        serializer.save(swimmer=swimmer)
+
 
 class EnrollmentRequestListView(generics.ListAPIView):
     """مشاهده لیست درخواست‌های ثبت‌نام توسط مدیر"""
@@ -138,6 +145,13 @@ class EnrollmentRequestReviewView(APIView):
                     )
                     req.swimmer = swimmer
 
+                course_max_inst = max(1, getattr(req.course, 'installments_count', 1) or 1)
+                admin_inst = request.data.get('selected_installments') or request.data.get('installments_count')
+                if admin_inst:
+                    inst_count = max(1, min(int(admin_inst), course_max_inst))
+                else:
+                    inst_count = max(1, min(getattr(req, 'selected_installments', 1) or 1, course_max_inst))
+
                 # Create or activate Enrollment
                 enrollment, created = Enrollment.objects.get_or_create(
                     swimmer=swimmer,
@@ -146,9 +160,13 @@ class EnrollmentRequestReviewView(APIView):
                     defaults={
                         'status': Enrollment.Status.ACTIVE,
                         'sessions_purchased': req.course.sessions_count,
-                        'sessions_attended': 0
+                        'sessions_attended': 0,
+                        'selected_installments': inst_count,
                     }
                 )
+                if not created and getattr(enrollment, 'selected_installments', None) != inst_count:
+                    enrollment.selected_installments = inst_count
+                    enrollment.save(update_fields=['selected_installments'])
 
                 # Generate Invoice & Installments
                 if not hasattr(enrollment, 'invoice'):
@@ -167,8 +185,7 @@ class EnrollmentRequestReviewView(APIView):
                         quantity=1,
                         total_price=req.course.base_price
                     )
-                    # Generate Installments based on course.installments_count
-                    inst_count = max(1, getattr(req.course, 'installments_count', 1) or 1)
+                    # Generate Installments based on swimmer's selected installments (up to course max)
                     total_amount = Decimal(str(req.course.base_price))
 
                     if inst_count <= 1:
@@ -230,6 +247,62 @@ class EnrollmentListView(generics.ListCreateAPIView):
     queryset = Enrollment.objects.all().select_related('swimmer', 'course', 'group', 'coach')
     serializer_class = EnrollmentSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+    def perform_create(self, serializer):
+        enrollment = serializer.save()
+        course = enrollment.course
+        group = enrollment.group
+        swimmer = enrollment.swimmer
+        if course and swimmer and not hasattr(enrollment, 'invoice'):
+            inst_count = max(1, getattr(enrollment, 'selected_installments', 1) or 1)
+            course_max_inst = max(1, getattr(course, 'installments_count', 1) or 1)
+            inst_count = min(inst_count, course_max_inst)
+
+            invoice = Invoice.objects.create(
+                invoice_number=Invoice.generate_invoice_number(),
+                swimmer=swimmer,
+                enrollment=enrollment,
+                total_amount=course.base_price,
+                issue_date=timezone.now().date(),
+                due_date=course.end_date or timezone.now().date()
+            )
+            InvoiceItem.objects.create(
+                invoice=invoice,
+                description=f"شهریه {course.name}" + (f" - {group.name}" if group else ""),
+                unit_price=course.base_price,
+                quantity=1,
+                total_price=course.base_price
+            )
+            total_amount = Decimal(str(course.base_price))
+            if inst_count <= 1:
+                Installment.objects.create(
+                    invoice=invoice,
+                    installment_number=1,
+                    amount=total_amount,
+                    due_date=course.start_date or timezone.now().date()
+                )
+            else:
+                base_installment_amount = (total_amount / inst_count).quantize(Decimal('1.00'))
+                start_d = course.start_date or timezone.now().date()
+                end_d = course.end_date or (start_d + datetime.timedelta(days=60))
+                total_days = max(1, (end_d - start_d).days)
+                step_days = total_days / (inst_count - 1)
+                allocated_sum = Decimal('0.00')
+                for i in range(1, inst_count + 1):
+                    if i == inst_count:
+                        inst_amount = total_amount - allocated_sum
+                        inst_due = end_d
+                    else:
+                        inst_amount = base_installment_amount
+                        allocated_sum += inst_amount
+                        days_offset = int(round((i - 1) * step_days))
+                        inst_due = start_d + datetime.timedelta(days=days_offset)
+                    Installment.objects.create(
+                        invoice=invoice,
+                        installment_number=i,
+                        amount=inst_amount,
+                        due_date=inst_due
+                    )
 
     def get_queryset(self):
         user = self.request.user

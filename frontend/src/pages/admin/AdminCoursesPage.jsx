@@ -343,7 +343,7 @@ export const AdminCoursesPage = () => {
                     </span>
                     <span className="text-xs text-slate-400">
                       شهریه هر شناگر ({course.sessions_count} جلسه
-                      {course.installments_count && course.installments_count > 1 ? ` • ${course.installments_count} قسط` : ' • پرداخت یکجا'}
+                      {course.installments_count && course.installments_count > 1 ? ` • تا ${course.installments_count} قسط مجاز` : ' • پرداخت یکجا'}
                       )
                     </span>
                   </div>

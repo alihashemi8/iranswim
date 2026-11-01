@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   ShieldCheck, ArrowLeft, PhoneCall,
   CheckCircle2, Clock, MapPin, Check,
-  Sparkles, Droplet, ArrowDown, Waves, Users2, Award
+  Sparkles, Droplet, ArrowDown, Waves, Users2, Award, CreditCard
 } from 'lucide-react';
 import {
   SwimmerCrawlIcon,
@@ -28,6 +28,7 @@ import { Modal } from '../../components/common/Modal';
 import { Carousel } from '../../components/common/Carousel';
 import { LoadingState } from '../../components/common/LoadingState';
 import { useAuth } from '../../context/AuthContext';
+import { useToast } from '../../context/ToastContext';
 import { AquaticPoolBackground } from '../../components/landing/AquaticPoolBackground';
 import { AquaticWaveDivider } from '../../components/landing/AquaticWaveDivider';
 import { FloatingLandingWaterIcons } from '../../components/landing/FloatingLandingWaterIcons';
@@ -264,11 +265,62 @@ const getCourseScheduleAndCapacity = (course) => {
 
 export const HomePage = () => {
   const { user } = useAuth();
+  const toast = useToast();
   const [courses, setCourses] = useState(INITIAL_COURSES);
   const [coursesLoading, setCoursesLoading] = useState(false);
   const [coaches, setCoaches] = useState(INITIAL_COACHES);
   const [news, setNews] = useState(INITIAL_NEWS);
   const [selectedNews, setSelectedNews] = useState(null);
+
+  // Course Enrollment Request State
+  const [enrollingCourse, setEnrollingCourse] = useState(null);
+  const [enrollForm, setEnrollForm] = useState({
+    applicant_name: '',
+    applicant_phone: '',
+    applicant_national_id: '',
+    selected_installments: 1,
+    notes: '',
+  });
+  const [enrollSubmitting, setEnrollSubmitting] = useState(false);
+
+  const handleOpenEnroll = (course) => {
+    setEnrollingCourse(course);
+    setEnrollForm({
+      applicant_name: user?.full_name || '',
+      applicant_phone: user?.phone || '',
+      applicant_national_id: user?.national_id || '',
+      selected_installments: 1,
+      notes: '',
+    });
+  };
+
+  const handleEnrollSubmit = async (e) => {
+    e.preventDefault();
+    if (!enrollingCourse) return;
+    if (!enrollForm.applicant_name.trim() || !enrollForm.applicant_phone.trim()) {
+      toast.error('لطفاً نام و شماره همراه متقاضی را وارد کنید.');
+      return;
+    }
+    try {
+      setEnrollSubmitting(true);
+      await api.post('/education/requests/submit/', {
+        course: enrollingCourse.id,
+        applicant_name: enrollForm.applicant_name.trim(),
+        applicant_phone: enrollForm.applicant_phone.trim(),
+        applicant_national_id: enrollForm.applicant_national_id.trim(),
+        selected_installments: Number(enrollForm.selected_installments) || 1,
+        notes: enrollForm.notes,
+      });
+      toast.success(
+        `درخواست ثبت‌نام شما در دوره ${enrollingCourse.name} با شیوه پرداخت (${enrollForm.selected_installments > 1 ? `${enrollForm.selected_installments} قسط` : 'یکجا'}) با موفقیت ثبت شد.`
+      );
+      setEnrollingCourse(null);
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'خطا در ثبت درخواست');
+    } finally {
+      setEnrollSubmitting(false);
+    }
+  };
 
   // Auto-scroll for core benefit cards on mobile & tablet without play/pause buttons
   const benefitsTrackRef = useRef(null);
@@ -841,22 +893,23 @@ export const HomePage = () => {
                         </div>
                       )}
 
-                      {/* اطلاعات جلسات و استخر بدون قیمت */}
+                      {/* اطلاعات جلسات و سقف اقساط مجاز */}
                       <div className="mt-3.5 pt-3 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 border-t border-cyan-500/20">
                         <span>{course.sessions_count} جلسه آموزشی</span>
-                        <span className="font-medium text-cyan-800 dark:text-cyan-300">
-                          {course.groups?.[0]?.pool_location || 'استخر اختصاصی آکادمی'}
+                        <span className="font-semibold text-emerald-700 dark:text-emerald-400">
+                          {course.installments_count > 1 ? `مجاز تا ${course.installments_count} قسط` : 'پرداخت یکجا'}
                         </span>
                       </div>
                     </div>
 
-                    <Link
-                      to={user ? getDashboardDestination() : '/login?mode=register'}
-                      className="landing-course__link mt-5 inline-flex items-center justify-between gap-2 pt-3 border-t border-cyan-500/20 font-bold"
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEnroll(course)}
+                      className="landing-course__link mt-5 inline-flex items-center justify-between gap-2 pt-3 border-t border-cyan-500/20 font-bold w-full cursor-pointer text-right"
                     >
-                      <span>مشاهده جزئیات و ثبت‌نام</span>
+                      <span>ثبت‌نام و انتخاب اقساط</span>
                       <ArrowLeft className="w-4 h-4" aria-hidden="true" />
-                    </Link>
+                    </button>
                   </article>
                 );
               }}
@@ -1325,6 +1378,142 @@ export const HomePage = () => {
               </Button>
             </div>
           </div>
+        )}
+      </Modal>
+
+      {/* Course Enrollment & Installment Selection Modal */}
+      <Modal
+        isOpen={Boolean(enrollingCourse)}
+        onClose={() => setEnrollingCourse(null)}
+        title={enrollingCourse ? `ثبت‌نام در دوره: ${enrollingCourse.name}` : ''}
+      >
+        {enrollingCourse && (
+          <form onSubmit={handleEnrollSubmit} className="space-y-4">
+            {/* Course Summary Box */}
+            <div className="p-4 bg-sky-50/70 dark:bg-sky-950/40 rounded-2xl border border-sky-200/80 dark:border-sky-800 space-y-2 text-xs">
+              <div className="flex justify-between items-center">
+                <span className="text-slate-500 dark:text-slate-400">شهریه کل دوره:</span>
+                <span className="text-sm font-mono font-black text-sky-800 dark:text-sky-200">
+                  {Number(enrollingCourse.base_price || 0).toLocaleString('fa-IR')} تومان
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400">تعداد جلسات:</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">{enrollingCourse.sessions_count} جلسه</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 dark:text-slate-400">سقف اقساط مجاز دوره:</span>
+                <span className="font-bold text-emerald-700 dark:text-emerald-300">
+                  {enrollingCourse.installments_count > 1 ? `تا ${enrollingCourse.installments_count} قسط` : 'فقط پرداخت یکجا'}
+                </span>
+              </div>
+            </div>
+
+            {/* Applicant Details */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  نام و نام خانوادگی متقاضی *
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="مثال: علی رضایی"
+                  value={enrollForm.applicant_name}
+                  onChange={(e) => setEnrollForm({ ...enrollForm, applicant_name: e.target.value })}
+                  className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100 font-semibold"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  شماره همراه (جهت پیامک و ورود) *
+                </label>
+                <input
+                  type="tel"
+                  required
+                  placeholder="۰۹۱۲۳۴۵۶۷۸۹"
+                  value={enrollForm.applicant_phone}
+                  onChange={(e) => setEnrollForm({ ...enrollForm, applicant_phone: e.target.value })}
+                  className="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
+                />
+              </div>
+            </div>
+
+            {/* Installment Selection (User can choose fewer than course max!) */}
+            <div className="p-4 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200/80 dark:border-emerald-800/70 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-emerald-950 dark:text-emerald-200 flex items-center gap-1.5">
+                  <CreditCard className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  انتخاب نحوه پرداخت و تعداد اقساط:
+                </span>
+                <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded-lg border border-emerald-300 dark:border-emerald-700">
+                  {enrollForm.selected_installments > 1 ? `${enrollForm.selected_installments} قسط` : 'یکجا'}
+                </span>
+              </div>
+
+              <p className="text-[11px] text-emerald-800/90 dark:text-emerald-300">
+                این دوره امکان تقسیط تا سقف {enrollingCourse.installments_count || 1} قسط را دارد. شما می‌توانید به دلخواه پرداخت یکجا یا اقساط کمتر را برگزینید:
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                {Array.from({ length: Math.max(1, enrollingCourse.installments_count || 1) }, (_, i) => i + 1).map((count) => {
+                  const isSelected = enrollForm.selected_installments === count;
+                  const instAmount = Math.round(Number(enrollingCourse.base_price || 0) / count);
+                  return (
+                    <button
+                      key={count}
+                      type="button"
+                      onClick={() => setEnrollForm({ ...enrollForm, selected_installments: count })}
+                      className={`p-3 rounded-xl border text-right transition-all cursor-pointer flex items-center justify-between ${
+                        isSelected
+                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+                          : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-emerald-400'
+                      }`}
+                    >
+                      <div>
+                        <span className="text-xs font-bold block">
+                          {count === 1 ? 'پرداخت یکجا (نقدی)' : `${count} قسط مساوی`}
+                        </span>
+                        <span className={`text-[10px] block mt-0.5 ${isSelected ? 'text-emerald-100' : 'text-slate-400'}`}>
+                          هر قسط: {instAmount.toLocaleString('fa-IR')} تومان
+                        </span>
+                      </div>
+                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                        isSelected ? 'border-white bg-white text-emerald-600' : 'border-slate-300 dark:border-slate-600'
+                      }`}>
+                        {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Optional Notes */}
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                یادداشت یا توضیحات شناگر (اختیاری)
+              </label>
+              <textarea
+                rows={2}
+                placeholder="توضیحات تکمیلی یا سوالات شما در مورد دوره..."
+                value={enrollForm.notes}
+                onChange={(e) => setEnrollForm({ ...enrollForm, notes: e.target.value })}
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <Button type="button" variant="outline" onClick={() => setEnrollingCourse(null)}>
+                انصراف
+              </Button>
+              <Button type="submit" disabled={enrollSubmitting} className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
+                {enrollSubmitting ? 'در حال ثبت...' : 'ثبت قطعی درخواست ثبت‌نام'}
+              </Button>
+            </div>
+          </form>
         )}
       </Modal>
     </div>

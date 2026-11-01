@@ -68,9 +68,9 @@ class Course(models.Model):
     base_price = models.DecimalField(_('شهریه پایه (تومان)'), max_digits=12, decimal_places=2)
     sessions_count = models.PositiveIntegerField(_('تعداد جلسات کل دوره'), default=12)
     installments_count = models.PositiveIntegerField(
-        _('تعداد اقساط شهریه'),
+        _('سقف تعداد اقساط مجاز'),
         default=1,
-        help_text=_('تعداد اقساط برای پرداخت شهریه این دوره (۱ قسط یعنی پرداخت یکجا)')
+        help_text=_('حداکثر تعداد اقساط مجاز برای این دوره (مثلاً ۴ قسط؛ شناگر می‌تواند کمتر هم انتخاب کند)')
     )
     age_range = models.CharField(_('رده سنی'), max_length=120, blank=True, default='')
     gender = models.CharField(
@@ -314,6 +314,11 @@ class EnrollmentRequest(models.Model):
         default=Status.PENDING,
         db_index=True
     )
+    selected_installments = models.PositiveSmallIntegerField(
+        _('تعداد اقساط انتخابی متقاضی'),
+        default=1,
+        help_text=_('تعداد اقساطی که متقاضی هنگام ثبت‌نام انتخاب کرده است (حداکثر تا سقف مجاز دوره)')
+    )
     notes = models.TextField(_('توضیحات متقاضی'), blank=True)
     rejection_reason = models.TextField(_('دلیل رد درخواست'), blank=True)
     reviewed_by = models.ForeignKey(
@@ -379,6 +384,11 @@ class Enrollment(models.Model):
     )
     sessions_purchased = models.PositiveIntegerField(_('تعداد جلسات خریداری‌شده'), default=12)
     sessions_attended = models.PositiveIntegerField(_('تعداد جلسات مصرف‌شده'), default=0)
+    selected_installments = models.PositiveSmallIntegerField(
+        _('تعداد اقساط توافق‌شده'),
+        default=1,
+        help_text=_('تعداد اقساط مورد توافق برای پرداخت شهریه این ثبت‌نام')
+    )
     enrolled_at = models.DateTimeField(_('تاریخ ثبت‌نام'), auto_now_add=True)
     notes = models.TextField(_('یادداشت مدیر'), blank=True)
 

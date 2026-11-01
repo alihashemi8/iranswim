@@ -976,16 +976,16 @@ export const AdminCreateCoursePage = () => {
                 </div>
                 <div>
                   <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                    مرحله ۴: امور مالی و اقساط شهریه
+                    مرحله ۴: امور مالی و سقف اقساط شهریه
                   </h2>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    شهریه ثبت‌نام، تعداد جلسات و شرایط اقساط را مشخص کرده و خلاصه دوره را بررسی نمایید
+                    شهریه دوره، تعداد جلسات و سقف مجاز اقساط را مشخص نمایید (شناگر در ثبت‌نام می‌تواند کمتر هم انتخاب کند)
                   </p>
                 </div>
               </div>
 
               <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 px-3.5 py-1.5 rounded-xl self-start sm:self-auto">
-                {Number(formData.installments_count) > 1 ? `${formData.installments_count} قسط مساوی` : 'پرداخت یکجا (نقدی)'}
+                {Number(formData.installments_count) > 1 ? `سقف تا ${formData.installments_count} قسط مجاز` : 'فقط پرداخت یکجا'}
               </span>
             </div>
 
@@ -1033,7 +1033,7 @@ export const AdminCreateCoursePage = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  تعداد اقساط شهریه *
+                  سقف تعداد اقساط مجاز *
                 </label>
                 <input
                   type="number"
@@ -1049,12 +1049,12 @@ export const AdminCreateCoursePage = () => {
                   className="w-full px-3.5 py-2.5 text-xs font-mono font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
                 />
                 <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                  <span className="text-[10px] text-slate-400 select-none">پیشنهاد:</span>
+                  <span className="text-[10px] text-slate-400 select-none">سقف اقساط:</span>
                   {[
-                    { label: 'یکجا (۱ قسط)', count: 1 },
-                    { label: '۲ قسط', count: 2 },
-                    { label: '۳ قسط', count: 3 },
-                    { label: '۴ قسط', count: 4 },
+                    { label: 'فقط ۱ قسط (یکجا)', count: 1 },
+                    { label: 'تا ۲ قسط', count: 2 },
+                    { label: 'تا ۳ قسط', count: 3 },
+                    { label: 'تا ۴ قسط', count: 4 },
                   ].map((preset) => (
                     <button
                       key={preset.count}
@@ -1079,17 +1079,21 @@ export const AdminCreateCoursePage = () => {
                 <CreditCard className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
                 <div>
                   <span className="font-bold text-emerald-900 dark:text-emerald-200 block">
-                    نحوه پرداخت شهریه: {Number(formData.installments_count) > 1 ? `${formData.installments_count} قسط مساوی` : 'پرداخت یکجا (نقدی)'}
+                    {Number(formData.installments_count) > 1
+                      ? `سقف تقسیط مجاز: تا ${formData.installments_count} قسط مساوی`
+                      : 'شیوه پرداخت: فقط یکجا (بدون تقسیط)'}
                   </span>
                   <p className="text-[11px] text-emerald-700/90 dark:text-emerald-400 mt-0.5">
                     {Number(formData.installments_count) > 1
-                      ? `سررسید اقساط به صورت متوازن از تاریخ شروع دوره تا پایان دوره توزیع می‌شود.`
-                      : 'شهریه به صورت کامل همزمان با شروع دوره توسط شناگر پرداخت خواهد شد.'}
+                      ? `شناگر در زمان ثبت‌نام می‌تواند کل شهریه را یکجا یا در هر تعداد قسط دلخواه از ۱ تا ${formData.installments_count} قسط پرداخت کند.`
+                      : 'شناگر شهریه را به صورت یکجا همزمان با شروع دوره پرداخت خواهد کرد.'}
                   </p>
                 </div>
               </div>
               <div className="text-left sm:text-right shrink-0">
-                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block font-semibold">مبلغ هر قسط:</span>
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block font-semibold">
+                  {Number(formData.installments_count) > 1 ? `مبلغ هر قسط در سقف ${formData.installments_count} قسط:` : 'مبلغ کل:'}
+                </span>
                 <span className="text-sm font-mono font-black text-emerald-800 dark:text-emerald-200">
                   {formatPrice(Math.round(Number(formData.base_price || 0) / (Number(formData.installments_count) || 1)))} تومان
                 </span>
@@ -1161,11 +1165,11 @@ export const AdminCreateCoursePage = () => {
                 </div>
 
                 <div>
-                  <span className="text-slate-400 block text-[11px]">برنامه پرداخت و اقساط:</span>
+                  <span className="text-slate-400 block text-[11px]">سقف تقسیط مجاز دوره:</span>
                   <span className="font-bold text-emerald-600 dark:text-emerald-400">
                     {Number(formData.installments_count) > 1
-                      ? `${formData.installments_count} قسط (هر قسط ~ ${formatPrice(Math.round(Number(formData.base_price || 0) / Number(formData.installments_count)))} تومان)`
-                      : 'پرداخت یکجا (نقدی)'}
+                      ? `تا ${formData.installments_count} قسط (شناگر می‌تواند ۱ تا ${formData.installments_count} قسط انتخاب کند)`
+                      : 'فقط پرداخت یکجا (بدون قسط)'}
                   </span>
                 </div>
               </div>

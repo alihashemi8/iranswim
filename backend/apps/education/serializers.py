@@ -37,6 +37,8 @@ class GroupCoachSerializer(serializers.ModelSerializer):
 
 class SwimmerGroupSerializer(serializers.ModelSerializer):
     course_name = serializers.CharField(source='course.name', read_only=True)
+    course_max_installments = serializers.IntegerField(source='course.installments_count', read_only=True)
+    course_base_price = serializers.DecimalField(source='course.base_price', max_digits=12, decimal_places=2, read_only=True)
     level_name = serializers.CharField(source='skill_level.name', read_only=True)
     current_enrollments_count = serializers.IntegerField(read_only=True)
     remaining_capacity = serializers.IntegerField(read_only=True)
@@ -46,7 +48,8 @@ class SwimmerGroupSerializer(serializers.ModelSerializer):
     class Meta:
         model = SwimmerGroup
         fields = [
-            'id', 'course', 'course_name', 'name', 'skill_level', 'level_name',
+            'id', 'course', 'course_name', 'course_max_installments', 'course_base_price',
+            'name', 'skill_level', 'level_name',
             'capacity', 'pool_location', 'status', 'current_enrollments_count',
             'remaining_capacity', 'schedules', 'coach_assignments', 'created_at'
         ]
@@ -146,6 +149,8 @@ class EnrollmentRequestSerializer(serializers.ModelSerializer):
     group_name = serializers.CharField(source='group.name', read_only=True)
     coach_name = serializers.CharField(source='coach.full_name', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    course_max_installments = serializers.IntegerField(source='course.installments_count', read_only=True)
+    course_base_price = serializers.DecimalField(source='course.base_price', max_digits=12, decimal_places=2, read_only=True)
 
     class Meta:
         model = EnrollmentRequest
@@ -153,9 +158,23 @@ class EnrollmentRequestSerializer(serializers.ModelSerializer):
             'id', 'swimmer', 'applicant_name', 'applicant_phone',
             'applicant_national_id', 'course', 'course_name', 'group',
             'group_name', 'coach', 'coach_name', 'status', 'status_display',
+            'selected_installments', 'course_max_installments', 'course_base_price',
             'notes', 'rejection_reason', 'created_at', 'reviewed_at'
         ]
-        read_only_fields = ['id', 'status', 'rejection_reason', 'created_at', 'reviewed_at']
+        read_only_fields = ['id', 'status', 'rejection_reason', 'created_at', 'reviewed_at', 'course_max_installments', 'course_base_price']
+
+    def validate(self, attrs):
+        course = attrs.get('course')
+        selected_inst = attrs.get('selected_installments', 1)
+        if selected_inst is not None and selected_inst < 1:
+            raise serializers.ValidationError({'selected_installments': 'تعداد اقساط باید حداقل ۱ قسط باشد.'})
+        if course and selected_inst:
+            max_inst = getattr(course, 'installments_count', 1) or 1
+            if selected_inst > max_inst:
+                raise serializers.ValidationError({
+                    'selected_installments': f'تعداد اقساط انتخابی ({selected_inst}) نمی‌تواند از سقف مجاز دوره ({max_inst} قسط) بیشتر باشد.'
+                })
+        return super().validate(attrs)
 
 
 class EnrollmentSerializer(serializers.ModelSerializer):
@@ -187,7 +206,7 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             'group', 'group_name', 'coach', 'coach_name', 'coach_avatar',
             'course_coaches', 'status', 'status_display',
             'sessions_purchased', 'sessions_attended', 'remaining_sessions',
-            'enrolled_at', 'notes'
+            'selected_installments', 'enrolled_at', 'notes'
         ]
         read_only_fields = ['id', 'enrolled_at', 'sessions_attended', 'remaining_sessions']
 
