@@ -101,6 +101,22 @@ class CourseSerializer(serializers.ModelSerializer):
             pass
         return result
 
+    def validate(self, attrs):
+        # Enforce at least one coach when creating a course, or if coach_ids is passed on update
+        if self.instance is None:
+            coach_ids = attrs.get('coach_ids')
+            if not coach_ids or len(coach_ids) == 0:
+                raise serializers.ValidationError({
+                    'coach_ids': 'حداقل یک مربی برای دوره آموزشی باید انتخاب شود.'
+                })
+        elif 'coach_ids' in attrs:
+            coach_ids = attrs.get('coach_ids')
+            if not coach_ids or len(coach_ids) == 0:
+                raise serializers.ValidationError({
+                    'coach_ids': 'حداقل یک مربی برای دوره آموزشی باید انتخاب شود.'
+                })
+        return super().validate(attrs)
+
     def create(self, validated_data):
         coach_ids = validated_data.pop('coach_ids', None)
         course = super().create(validated_data)

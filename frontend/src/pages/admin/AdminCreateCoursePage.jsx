@@ -232,7 +232,10 @@ export const AdminCreateCoursePage = () => {
     }
 
     if (step === 3) {
-      // Step 3 is coaches; coaches are optional but recommended
+      if (!formData.coach_ids || formData.coach_ids.length === 0) {
+        toast.error('لطفاً حداقل یک مربی برای دوره آموزشی انتخاب کنید.');
+        return false;
+      }
       return true;
     }
 
@@ -267,7 +270,10 @@ export const AdminCreateCoursePage = () => {
     } else if (targetStep > currentStep) {
       // Validate all previous steps
       for (let s = currentStep; s < targetStep; s++) {
-        if (!validateStep(s)) return;
+        if (!validateStep(s)) {
+          setCurrentStep(s);
+          return;
+        }
       }
       setCurrentStep(targetStep);
     }
@@ -823,19 +829,35 @@ export const AdminCreateCoursePage = () => {
                   <Whistle className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                    مرحله ۳: کادر مربیان دوره آموزشی
+                  <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <span>مرحله ۳: کادر مربیان دوره آموزشی</span>
+                    <span className="text-rose-500 text-sm font-bold" title="انتخاب مربی الزامی است">*</span>
                   </h2>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                    به ازای هر مربی انتخاب‌شده، یک کلاس اختصاصی با برنامه زمانی همین دوره تشکیل خواهد شد
+                    انتخاب حداقل یک مربی الزامی است؛ به ازای هر مربی، یک کلاس اختصاصی برای این دوره تشکیل می‌شود
                   </p>
                 </div>
               </div>
 
-              <span className="text-xs font-mono font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/70 border border-sky-200 dark:border-sky-800 px-3.5 py-1.5 rounded-xl self-start sm:self-auto">
-                {formData.coach_ids.length} مربی انتخاب شده ({formData.coach_ids.length} کلاس خودکار)
+              <span className={`text-xs font-mono font-bold px-3.5 py-1.5 rounded-xl self-start sm:self-auto border transition-colors ${
+                formData.coach_ids.length > 0
+                  ? 'text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/70 border-sky-200 dark:border-sky-800'
+                  : 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/70 border-amber-300 dark:border-amber-800'
+              }`}>
+                {formData.coach_ids.length > 0
+                  ? `${formData.coach_ids.length} مربی انتخاب شده (${formData.coach_ids.length} کلاس خودکار)`
+                  : 'هیچ مربی انتخاب نشده (الزامی)'}
               </span>
             </div>
+
+            {formData.coach_ids.length === 0 && (
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-800/80 rounded-2xl flex items-center gap-2.5 text-xs text-amber-800 dark:text-amber-300 animate-in fade-in duration-150">
+                <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                <span>
+                  برای ادامه و رفتن به مرحله بعدی، لطفاً حداقل یک مربی را از فهرست زیر برای دوره انتخاب کنید.
+                </span>
+              </div>
+            )}
 
             {/* Coach Search Bar */}
             <div className="relative max-w-sm">
@@ -854,9 +876,21 @@ export const AdminCreateCoursePage = () => {
               <div className="p-12 text-center text-xs text-slate-400">
                 در حال دریافت لیست کادر مربیان...
               </div>
+            ) : coaches.length === 0 ? (
+              <div className="p-8 text-center text-xs bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700 space-y-3">
+                <AlertCircle className="w-8 h-8 text-amber-500 mx-auto" />
+                <p className="font-bold text-slate-700 dark:text-slate-200">مربی فعالی در سیستم یافت نشد.</p>
+                <p className="text-slate-500 dark:text-slate-400">برای ثبت دوره آموزشی باید ابتدا حداقل یک مربی در سامانه ایجاد نمایید.</p>
+                <Link
+                  to="/admin/coaches"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white hover:bg-sky-700 transition-colors"
+                >
+                  افزودن مربی جدید
+                </Link>
+              </div>
             ) : filteredCoaches.length === 0 ? (
               <div className="p-8 text-center text-xs text-slate-400 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
-                مربی فعالی در سیستم یافت نشد.
+                مربی متناسب با عبارت جستجو یافت نشد.
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[380px] overflow-y-auto p-1">
@@ -1036,10 +1070,10 @@ export const AdminCreateCoursePage = () => {
 
                 <div>
                   <span className="text-slate-400 block text-[11px]">کادر مربیان دوره:</span>
-                  <span className="font-bold text-sky-600 dark:text-sky-400">
+                  <span className={`font-bold ${selectedCoachObjects.length > 0 ? 'text-sky-600 dark:text-sky-400' : 'text-rose-500'}`}>
                     {selectedCoachObjects.length > 0
                       ? `${selectedCoachObjects.length} مربی (${selectedCoachObjects.map(c => c.full_name).join('، ')})`
-                      : 'بدون تخصیص مربی'}
+                      : 'بدون انتخاب مربی (نامعتبر)'}
                   </span>
                 </div>
               </div>

@@ -33,7 +33,7 @@ export const Button = ({
   return (
     <button
       disabled={disabled || loading}
-      className={`inline-flex items-center justify-center font-medium rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-60 disabled:cursor-not-allowed ${variants[variant]} ${sizes[size]} ${className}`}
+      className={`inline-flex items-center justify-center font-medium rounded-xl transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-60 disabled:cursor-not-allowed whitespace-nowrap shrink-0 ${variants[variant]} ${sizes[size]} ${className}`}
       {...props}
     >
       {loading ? (

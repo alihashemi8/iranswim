@@ -31,7 +31,7 @@ export const Badge = ({ children, variant = 'info', className = '' }) => {
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs sm:text-sm font-bold border ${styles[variant] || styles.info} ${className}`}
+      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold border whitespace-nowrap shrink-0 ${styles[variant] || styles.info} ${className}`}
     >
       {children}
     </span>
