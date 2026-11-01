@@ -802,9 +802,12 @@ export const AdminAttendancePage = () => {
                     {/* 6. Attendance Status (Clean, pure attendance state) */}
                     <td className="px-3 py-3 align-middle text-center">
                       {session.attendance_recorded ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold shadow-2xs whitespace-nowrap">
+                        <span
+                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold shadow-2xs whitespace-nowrap"
+                          title={`${session.attendance_count || 0} نفر حاضر`}
+                        >
                           <CheckCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                          <span>ثبت‌شده ({session.attendance_count || 0} نفر)</span>
+                          <span className="font-mono font-bold">{session.attendance_count || 0}</span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[11px] font-bold shadow-2xs whitespace-nowrap">
@@ -875,9 +878,12 @@ export const AdminAttendancePage = () => {
                     </Badge>
                   )}
                   {session.attendance_recorded ? (
-                    <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[10px] font-bold">
+                    <span
+                      className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold"
+                      title={`${session.attendance_count || 0} نفر حاضر`}
+                    >
                       <CheckCircle className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                      ثبت‌شده ({session.attendance_count || 0} نفر)
+                      <span className="font-mono font-bold">{session.attendance_count || 0}</span>
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[10px] font-bold">
