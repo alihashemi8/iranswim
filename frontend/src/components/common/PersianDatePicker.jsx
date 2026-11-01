@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import { Calendar as CalendarIcon, ChevronRight, ChevronLeft, X, ChevronDown } from 'lucide-react';
 import * as jalaali from 'jalaali-js';
 
@@ -94,6 +95,34 @@ export const PersianDatePicker = ({
   const dropdownRef = useRef(null);
   const yearListRef = useRef(null);
 
+  // Mobile viewport detection for bottom-sheet rendering
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.matchMedia('(max-width: 639px)').matches;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const media = window.matchMedia('(max-width: 639px)');
+    const updateMobile = (e) => setIsMobile(e.matches);
+    setIsMobile(media.matches);
+    media.addEventListener('change', updateMobile);
+    return () => media.removeEventListener('change', updateMobile);
+  }, []);
+
+  // Prevent background scroll when mobile bottom sheet is open
+  useEffect(() => {
+    if (isOpen && isMobile) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isOpen, isMobile]);
+
   // Today in Jalaali
   const todayJalali = useMemo(() => {
     const now = new Date();
@@ -146,7 +175,13 @@ export const PersianDatePicker = ({
   // Close on click outside or Escape
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
+      if (isMobile) return; // Handled by backdrop in mobile bottom-sheet mode
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.target) &&
+        dropdownRef.current &&
+        !dropdownRef.current.contains(e.target)
+      ) {
         setIsOpen(false);
       }
     };
@@ -165,10 +200,11 @@ export const PersianDatePicker = ({
       document.removeEventListener('touchstart', handleClickOutside);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen]);
+  }, [isOpen, isMobile]);
 
   // Calculate whether calendar dropdown should open upwards or downwards and align left/right
   const checkPlacement = () => {
+    if (isMobile) return;
     const triggerEl = triggerRef.current || containerRef.current;
     if (!triggerEl) return;
 
@@ -347,6 +383,9 @@ export const PersianDatePicker = ({
   const handleClear = (e) => {
     e?.stopPropagation();
     onChange?.('', null, '');
+    if (isMobile) {
+      setIsOpen(false);
+    }
   };
 
   // Month days count and starting weekday
@@ -373,6 +412,225 @@ export const PersianDatePicker = ({
   }, [minYear, maxYear, parsedValue]);
 
   const isValueActive = Boolean(parsedValue);
+
+  const renderCalendarContent = (showCloseHeader = false) => (
+    <>
+      {showCloseHeader && (
+        <div className="flex items-center justify-between pb-3 mb-2.5 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2">
+            <Icon className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+            <span className="text-sm font-bold text-slate-800 dark:text-slate-100">
+              تقویم و انتخاب تاریخ
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsOpen(false)}
+            className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            aria-label="بستن تقویم"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+      )}
+
+      {/* Header: Month & Year navigation */}
+      <div className="flex items-center justify-between pb-3 mb-2.5 border-b border-slate-100 dark:border-slate-800">
+        {/* Previous month button (Right arrow in RTL) */}
+        <button
+          type="button"
+          onClick={handlePrevMonth}
+          className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+          title="ماه قبل"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+
+        {/* Month & Year Title buttons */}
+        <div className="flex items-center gap-1.5 text-xs font-bold">
+          <button
+            type="button"
+            onClick={() => setPickerMode(pickerMode === 'months' ? 'days' : 'months')}
+            className="px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 hover:text-sky-600 transition-colors cursor-pointer flex items-center gap-1"
+          >
+            <span>{PERSIAN_MONTHS[viewMonth - 1]}</span>
+            <ChevronDown className="w-3 h-3 text-slate-400" />
+          </button>
+          <button
+            type="button"
+            onClick={() => setPickerMode(pickerMode === 'years' ? 'days' : 'years')}
+            className="px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 hover:text-sky-600 font-mono transition-colors cursor-pointer flex items-center gap-1"
+          >
+            <span>{viewYear.toLocaleString('fa-IR')}</span>
+            <ChevronDown className="w-3 h-3 text-slate-400" />
+          </button>
+        </div>
+
+        {/* Next month button (Left arrow in RTL) */}
+        <button
+          type="button"
+          onClick={handleNextMonth}
+          className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+          title="ماه بعد"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Mode 1: Month Picker */}
+      {pickerMode === 'months' && (
+        <div className="grid grid-cols-3 gap-2 py-2">
+          {PERSIAN_MONTHS.map((name, idx) => {
+            const monthNum = idx + 1;
+            const isSelected = viewMonth === monthNum;
+            const isCurrentMonth = todayJalali.jm === monthNum && todayJalali.jy === viewYear;
+            return (
+              <button
+                key={name}
+                type="button"
+                onClick={() => {
+                  setViewMonth(monthNum);
+                  setPickerMode('days');
+                }}
+                className={`py-2 px-1 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-sky-600 text-white shadow-2xs font-bold'
+                    : isCurrentMonth
+                    ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-800'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                {name}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Mode 2: Year Picker */}
+      {pickerMode === 'years' && (
+        <div ref={yearListRef} className="max-h-56 overflow-y-auto grid grid-cols-3 gap-2 py-2 pr-1">
+          {yearsList.map((y) => {
+            const isSelected = viewYear === y;
+            const isCurrentYear = todayJalali.jy === y;
+            return (
+              <button
+                key={y}
+                type="button"
+                data-selected={isSelected ? 'true' : undefined}
+                onClick={() => {
+                  setViewYear(y);
+                  setPickerMode('days');
+                }}
+                className={`py-2 px-1 text-xs font-mono font-bold rounded-xl transition-all cursor-pointer ${
+                  isSelected
+                    ? 'bg-sky-600 text-white shadow-2xs'
+                    : isCurrentYear
+                    ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-800'
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                {y.toLocaleString('fa-IR')}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Mode 3: Days Calendar Grid */}
+      {pickerMode === 'days' && (
+        <div>
+          {/* Weekdays header */}
+          <div className="grid grid-cols-7 gap-1 text-center mb-1.5">
+            {PERSIAN_WEEKDAYS.map((wd) => (
+              <div
+                key={wd.name}
+                className={`text-[11px] font-bold py-1 ${
+                  wd.isWeekend
+                    ? 'text-rose-500 dark:text-rose-400'
+                    : 'text-slate-400 dark:text-slate-500'
+                }`}
+                title={wd.name}
+              >
+                {wd.short}
+              </div>
+            ))}
+          </div>
+
+          {/* Days grid */}
+          <div className="grid grid-cols-7 gap-1">
+            {/* Empty leading cells */}
+            {Array.from({ length: startWeekday }).map((_, i) => (
+              <div key={`empty-${i}`} className="h-8" />
+            ))}
+
+            {/* Days of current month */}
+            {Array.from({ length: monthLength }).map((_, i) => {
+              const day = i + 1;
+              const isSelected =
+                parsedValue &&
+                parsedValue.jy === viewYear &&
+                parsedValue.jm === viewMonth &&
+                parsedValue.jd === day;
+              const isToday =
+                todayJalali.jy === viewYear &&
+                todayJalali.jm === viewMonth &&
+                todayJalali.jd === day;
+              const isFriday = (startWeekday + i) % 7 === 6;
+
+              return (
+                <button
+                  key={day}
+                  type="button"
+                  onClick={() => handleSelectDay(day)}
+                  className={`h-8 rounded-xl font-mono text-xs flex items-center justify-center transition-all cursor-pointer ${
+                    isSelected
+                      ? 'bg-sky-600 text-white font-bold shadow-xs scale-105'
+                      : isToday
+                      ? 'border-2 border-sky-500 dark:border-sky-400 font-bold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/60'
+                      : isFriday
+                      ? 'text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-semibold'
+                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  }`}
+                >
+                  {day.toLocaleString('fa-IR')}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Quick actions footer */}
+          <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
+            <button
+              type="button"
+              onClick={handleSelectToday}
+              className="text-sky-600 dark:text-sky-400 hover:underline font-bold transition-colors cursor-pointer py-1.5 px-2.5 rounded-lg hover:bg-sky-50 dark:hover:bg-sky-950/40"
+            >
+              انتخاب امروز
+            </button>
+            {clearable && isValueActive && (
+              <button
+                type="button"
+                onClick={handleClear}
+                className="text-rose-600 dark:text-rose-400 hover:underline font-bold transition-colors cursor-pointer py-1.5 px-2.5 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40"
+              >
+                پاک کردن
+              </button>
+            )}
+            {showCloseHeader && (
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 font-medium transition-colors cursor-pointer py-1.5 px-2.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                بستن
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
 
   return (
     <div className={`relative ${isOpen ? 'z-40' : ''} ${className}`} ref={containerRef} dir="rtl">
@@ -436,8 +694,8 @@ export const PersianDatePicker = ({
           </div>
         </button>
 
-        {/* Calendar Dropdown Popup */}
-        {isOpen && (
+        {/* Desktop Calendar Dropdown Popup */}
+        {isOpen && !isMobile && (
           <div
             ref={dropdownRef}
             role="dialog"
@@ -450,194 +708,33 @@ export const PersianDatePicker = ({
                 : `top-full mt-1.5 ${horizontalAlign === 'left' ? 'origin-top-left' : 'origin-top-right'}`
             }`}
           >
-          {/* Header: Month & Year navigation */}
-          <div className="flex items-center justify-between pb-3 mb-2.5 border-b border-slate-100 dark:border-slate-800">
-            {/* Previous month button (Right arrow in RTL) */}
-            <button
-              type="button"
-              onClick={handlePrevMonth}
-              className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              title="ماه قبل"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
-
-            {/* Month & Year Title buttons */}
-            <div className="flex items-center gap-1.5 text-xs font-bold">
-              <button
-                type="button"
-                onClick={() => setPickerMode(pickerMode === 'months' ? 'days' : 'months')}
-                className="px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 hover:text-sky-600 transition-colors cursor-pointer flex items-center gap-1"
-              >
-                <span>{PERSIAN_MONTHS[viewMonth - 1]}</span>
-                <ChevronDown className="w-3 h-3 text-slate-400" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setPickerMode(pickerMode === 'years' ? 'days' : 'years')}
-                className="px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 hover:text-sky-600 font-mono transition-colors cursor-pointer flex items-center gap-1"
-              >
-                <span>{viewYear.toLocaleString('fa-IR')}</span>
-                <ChevronDown className="w-3 h-3 text-slate-400" />
-              </button>
-            </div>
-
-            {/* Next month button (Left arrow in RTL) */}
-            <button
-              type="button"
-              onClick={handleNextMonth}
-              className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-              title="ماه بعد"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </button>
+            {renderCalendarContent(false)}
           </div>
+        )}
 
-          {/* Mode 1: Month Picker */}
-          {pickerMode === 'months' && (
-            <div className="grid grid-cols-3 gap-2 py-2">
-              {PERSIAN_MONTHS.map((name, idx) => {
-                const monthNum = idx + 1;
-                const isSelected = viewMonth === monthNum;
-                const isCurrentMonth = todayJalali.jm === monthNum && todayJalali.jy === viewYear;
-                return (
-                  <button
-                    key={name}
-                    type="button"
-                    onClick={() => {
-                      setViewMonth(monthNum);
-                      setPickerMode('days');
-                    }}
-                    className={`py-2 px-1 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-sky-600 text-white shadow-2xs font-bold'
-                        : isCurrentMonth
-                        ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-800'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    {name}
-                  </button>
-                );
-              })}
+        {/* Mobile Bottom Sheet Modal */}
+        {isOpen && isMobile && typeof document !== 'undefined' && createPortal(
+          <div className="fixed inset-0 z-50 flex flex-col justify-end" dir="rtl">
+            {/* Backdrop */}
+            <div
+              className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+              onClick={() => setIsOpen(false)}
+            />
+
+            {/* Bottom Sheet Drawer */}
+            <div
+              ref={dropdownRef}
+              role="dialog"
+              aria-label="تقویم شمسی"
+              className="relative z-10 w-full max-w-lg mx-auto bg-white dark:bg-slate-900 rounded-t-3xl border-t border-slate-200 dark:border-slate-800 p-4 pb-8 shadow-2xl animate-in slide-in-from-bottom duration-200 select-none"
+            >
+              {/* Drag Handle */}
+              <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-3" />
+              {renderCalendarContent(true)}
             </div>
-          )}
-
-          {/* Mode 2: Year Picker */}
-          {pickerMode === 'years' && (
-            <div ref={yearListRef} className="max-h-56 overflow-y-auto grid grid-cols-3 gap-2 py-2 pr-1">
-              {yearsList.map((y) => {
-                const isSelected = viewYear === y;
-                const isCurrentYear = todayJalali.jy === y;
-                return (
-                  <button
-                    key={y}
-                    type="button"
-                    data-selected={isSelected ? 'true' : undefined}
-                    onClick={() => {
-                      setViewYear(y);
-                      setPickerMode('days');
-                    }}
-                    className={`py-2 px-1 text-xs font-mono font-bold rounded-xl transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-sky-600 text-white shadow-2xs'
-                        : isCurrentYear
-                        ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-300 dark:border-sky-800'
-                        : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                    }`}
-                  >
-                    {y.toLocaleString('fa-IR')}
-                  </button>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Mode 3: Days Calendar Grid */}
-          {pickerMode === 'days' && (
-            <div>
-              {/* Weekdays header */}
-              <div className="grid grid-cols-7 gap-1 text-center mb-1.5">
-                {PERSIAN_WEEKDAYS.map((wd) => (
-                  <div
-                    key={wd.name}
-                    className={`text-[11px] font-bold py-1 ${
-                      wd.isWeekend
-                        ? 'text-rose-500 dark:text-rose-400'
-                        : 'text-slate-400 dark:text-slate-500'
-                    }`}
-                    title={wd.name}
-                  >
-                    {wd.short}
-                  </div>
-                ))}
-              </div>
-
-              {/* Days grid */}
-              <div className="grid grid-cols-7 gap-1">
-                {/* Empty leading cells */}
-                {Array.from({ length: startWeekday }).map((_, i) => (
-                  <div key={`empty-${i}`} className="h-8" />
-                ))}
-
-                {/* Days of current month */}
-                {Array.from({ length: monthLength }).map((_, i) => {
-                  const day = i + 1;
-                  const isSelected =
-                    parsedValue &&
-                    parsedValue.jy === viewYear &&
-                    parsedValue.jm === viewMonth &&
-                    parsedValue.jd === day;
-                  const isToday =
-                    todayJalali.jy === viewYear &&
-                    todayJalali.jm === viewMonth &&
-                    todayJalali.jd === day;
-                  const isFriday = (startWeekday + i) % 7 === 6;
-
-                  return (
-                    <button
-                      key={day}
-                      type="button"
-                      onClick={() => handleSelectDay(day)}
-                      className={`h-8 rounded-xl font-mono text-xs flex items-center justify-center transition-all cursor-pointer ${
-                        isSelected
-                          ? 'bg-sky-600 text-white font-bold shadow-xs scale-105'
-                          : isToday
-                          ? 'border-2 border-sky-500 dark:border-sky-400 font-bold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/60'
-                          : isFriday
-                          ? 'text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-semibold'
-                          : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
-                      }`}
-                    >
-                      {day.toLocaleString('fa-IR')}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Quick actions footer */}
-              <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
-                <button
-                  type="button"
-                  onClick={handleSelectToday}
-                  className="text-sky-600 dark:text-sky-400 hover:underline font-bold transition-colors cursor-pointer py-1 px-2 rounded-lg hover:bg-sky-50 dark:hover:bg-sky-950/40"
-                >
-                  انتخاب امروز
-                </button>
-                {clearable && isValueActive && (
-                  <button
-                    type="button"
-                    onClick={handleClear}
-                    className="text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 transition-colors cursor-pointer py-1 px-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800"
-                  >
-                    پاک کردن
-                  </button>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
       </div>
     </div>
   );

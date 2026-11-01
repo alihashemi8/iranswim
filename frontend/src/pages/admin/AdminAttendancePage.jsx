@@ -13,6 +13,7 @@ import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Pagination } from '../../components/common/Pagination';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
+import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
 
@@ -404,30 +405,35 @@ export const AdminAttendancePage = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="outline" onClick={handleExportCsv} className="gap-1.5 text-xs">
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span>خروجی اکسل جلسات</span>
+        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={handleExportCsv}
+            className="w-full sm:w-auto justify-center gap-1.5 text-xs h-10 px-2 sm:px-3 truncate shadow-2xs"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="truncate">خروجی اکسل جلسات</span>
           </Button>
 
           {/* Persian Calendar Filter */}
-          <div className="w-44">
+          <div className="w-full sm:w-44">
             <PersianDatePicker
               value={dateFilter}
               onChange={(jalaliStr, gDate, gIso) => {
                 setDateFilter(gIso || '');
                 if (gIso) setFilterType('ALL');
               }}
-              placeholder="فیلتر تقویم..."
+              placeholder="تقویم"
               clearable
               align="left"
+              buttonClassName="h-10 justify-center sm:justify-between"
             />
           </div>
         </div>
       </div>
 
       {/* 2. Search & Category Filters Panel */}
-      <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3.5 transition-colors">
+      <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3.5 transition-colors relative z-20">
         {/* Top Filter Row: Search & Attendance Status Pills */}
         <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           {/* Real-time Search Box */}
@@ -506,100 +512,101 @@ export const AdminAttendancePage = () => {
         </div>
 
         {/* Real Categories Select Row */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2.5 pt-2 border-t border-slate-100 dark:border-slate-800 relative z-20">
           {/* 1. Skill Level Category */}
-          <div>
-            <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
-              سطح مهارت (رده مهارتی):
-            </label>
-            <select
-              value={selectedLevel}
-              onChange={(e) => setSelectedLevel(e.target.value)}
-              className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium"
-            >
-              <option value="">همه سطوح مهارت</option>
-              {levels.map((lvl) => (
-                <option key={lvl.id} value={lvl.id}>
-                  {lvl.order ? `${lvl.order}. ` : ''}{lvl.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            label="سطح مهارت (رده مهارتی):"
+            value={selectedLevel}
+            onChange={(val) => setSelectedLevel(val)}
+            icon={Award}
+            placeholder="همه سطوح مهارت"
+            clearable
+            size="sm"
+            options={[
+              { value: '', label: 'همه سطوح مهارت' },
+              ...levels.map((lvl) => ({
+                value: lvl.id,
+                label: lvl.order ? `${lvl.order}. ${lvl.name}` : lvl.name,
+                description: lvl.description || undefined,
+              })),
+            ]}
+          />
 
           {/* 2. Course Category */}
-          <div>
-            <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
-              دوره آموزشی:
-            </label>
-            <select
-              value={selectedCourse}
-              onChange={(e) => setSelectedCourse(e.target.value)}
-              className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium"
-            >
-              <option value="">همه دوره‌های آموزشی</option>
-              {courses.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            label="دوره آموزشی:"
+            value={selectedCourse}
+            onChange={(val) => setSelectedCourse(val)}
+            icon={BookOpen}
+            placeholder="همه دوره‌های آموزشی"
+            clearable
+            searchable
+            size="sm"
+            options={[
+              { value: '', label: 'همه دوره‌های آموزشی' },
+              ...courses.map((c) => ({
+                value: c.id,
+                label: c.name,
+                description: c.code ? `کد دوره: ${c.code}` : undefined,
+              })),
+            ]}
+          />
 
           {/* 3. Coach Category */}
-          <div>
-            <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
-              مربی مسئول:
-            </label>
-            <select
-              value={selectedCoach}
-              onChange={(e) => setSelectedCoach(e.target.value)}
-              className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium"
-            >
-              <option value="">همه مربیان</option>
-              {coaches.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.full_name}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            label="مربی مسئول:"
+            value={selectedCoach}
+            onChange={(val) => setSelectedCoach(val)}
+            icon={UserCheck}
+            placeholder="همه مربیان"
+            clearable
+            searchable
+            size="sm"
+            options={[
+              { value: '', label: 'همه مربیان' },
+              ...coaches.map((c) => ({
+                value: c.id,
+                label: c.full_name,
+                description: c.specialty || undefined,
+              })),
+            ]}
+          />
 
           {/* 4. Session Status */}
-          <div>
-            <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
-              وضعیت برگزاری جلسه:
-            </label>
-            <select
-              value={selectedSessionStatus}
-              onChange={(e) => setSelectedSessionStatus(e.target.value)}
-              className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium"
-            >
-              <option value="">همه وضعیت‌ها</option>
-              <option value="SCHEDULED">برنامه‌ریزی‌شده</option>
-              <option value="COMPLETED">برگزارشده</option>
-              <option value="CANCELLED">لغوشده</option>
-              <option value="MAKEUP">جلسه جبرانی</option>
-            </select>
-          </div>
+          <CustomSelect
+            label="وضعیت برگزاری جلسه:"
+            value={selectedSessionStatus}
+            onChange={(val) => setSelectedSessionStatus(val)}
+            icon={Clock}
+            placeholder="همه وضعیت‌ها"
+            clearable
+            size="sm"
+            options={[
+              { value: '', label: 'همه وضعیت‌ها' },
+              { value: 'SCHEDULED', label: 'برنامه‌ریزی‌شده', description: 'در انتظار تشکیل' },
+              { value: 'COMPLETED', label: 'برگزارشده', description: 'کلاس تشکیل شده' },
+              { value: 'CANCELLED', label: 'لغوشده', description: 'کلاس لغو شده' },
+              { value: 'MAKEUP', label: 'جلسه جبرانی', description: 'جلسه جبرانی فوق‌العاده' },
+            ]}
+          />
 
           {/* 5. Pool Location */}
-          <div>
-            <label className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 block mb-1">
-              محل استخر:
-            </label>
-            <select
-              value={selectedPool}
-              onChange={(e) => setSelectedPool(e.target.value)}
-              className="w-full text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500 font-medium"
-            >
-              <option value="">همه استخرها</option>
-              {poolLocations.map((pool) => (
-                <option key={pool} value={pool}>
-                  {pool}
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            label="محل استخر:"
+            value={selectedPool}
+            onChange={(val) => setSelectedPool(val)}
+            icon={MapPin}
+            placeholder="همه استخرها"
+            clearable
+            size="sm"
+            options={[
+              { value: '', label: 'همه استخرها' },
+              ...poolLocations.map((pool) => ({
+                value: pool,
+                label: pool,
+              })),
+            ]}
+          />
         </div>
 
         {/* Active Filters Summary & Reset Button */}

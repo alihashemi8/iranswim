@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
+import { CustomSelect } from '../../components/common/CustomSelect';
 import { LoadingState } from '../../components/common/LoadingState';
 import { useToast } from '../../context/ToastContext';
 
@@ -167,7 +168,7 @@ export const CoachAttendancePage = () => {
   return (
     <div className="space-y-6 pb-12">
       {/* 1. Header & Session Selection */}
-      <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-20">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
             <ClipboardCheck className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600" />
@@ -180,20 +181,20 @@ export const CoachAttendancePage = () => {
 
         {/* Session Selector */}
         <div className="w-full md:w-80">
-          <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-            انتخاب جلسه تمرینی:
-          </label>
-          <select
+          <CustomSelect
+            label="انتخاب جلسه تمرینی:"
             value={selectedSessionId}
-            onChange={(e) => setSelectedSessionId(e.target.value)}
-            className="w-full text-sm font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            {sessions.map((sess) => (
-              <option key={sess.id} value={sess.id}>
-                {sess.group_name} · {sess.session_date} ({sess.start_time?.slice(0, 5)})
-              </option>
-            ))}
-          </select>
+            onChange={(val) => setSelectedSessionId(val)}
+            icon={Calendar}
+            placeholder="انتخاب جلسه تمرینی..."
+            color="emerald"
+            searchable
+            options={sessions.map((sess) => ({
+              value: sess.id,
+              label: sess.group_name,
+              description: `${sess.session_date} · ساعت ${sess.start_time?.slice(0, 5)} تا ${sess.end_time?.slice(0, 5)}${sess.pool_location ? ` · ${sess.pool_location}` : ''}`,
+            }))}
+          />
         </div>
       </div>
 
