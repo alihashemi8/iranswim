@@ -159,7 +159,6 @@ export const AdminSwimmersPage = () => {
     const rows = swimmers.map((s) => ({
       name: s.full_name,
       phone: s.phone,
-      national_id: s.national_id || '—',
       level: s.level_name || 'بدون سطح',
       status: s.is_active ? 'فعال' : 'غیرفعال',
       date: new Date(s.created_at).toLocaleDateString('fa-IR'),
@@ -167,7 +166,6 @@ export const AdminSwimmersPage = () => {
     exportToCsv('IranSwim_Swimmers_List', rows, {
       name: 'نام و نام خانوادگی',
       phone: 'شماره همراه',
-      national_id: 'کد ملی',
       level: 'سطح مهارت',
       status: 'وضعیت',
       date: 'تاریخ ثبت',
@@ -306,7 +304,6 @@ export const AdminSwimmersPage = () => {
                 <tr>
                   <th className="px-4 py-3.5 rounded-r-xl">شناگر</th>
                   <th className="px-4 py-3.5">شماره تماس</th>
-                  <th className="px-4 py-3.5">کد ملی</th>
                   <th className="px-4 py-3.5">سطح مهارت فعلی</th>
                   <th className="px-4 py-3.5">مربی و کلاس</th>
                   <th className="px-4 py-3.5">وضعیت</th>
@@ -340,9 +337,6 @@ export const AdminSwimmersPage = () => {
                     </td>
                     <td className="px-4 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-300">
                       {swimmer.phone}
-                    </td>
-                    <td className="px-4 py-3.5 font-mono text-xs text-slate-500 dark:text-slate-400">
-                      {swimmer.national_id || '—'}
                     </td>
                     <td className="px-4 py-3.5">
                       {swimmer.level_name ? (
@@ -458,12 +452,6 @@ export const AdminSwimmersPage = () => {
                       {swimmer.phone}
                     </a>
                   </div>
-                  {swimmer.national_id && (
-                    <div>
-                      <span className="text-slate-400 block text-[10px]">کد ملی</span>
-                      <span className="font-mono text-slate-700 dark:text-slate-300">{swimmer.national_id}</span>
-                    </div>
-                  )}
                   <div>
                     <span className="text-slate-400 block text-[10px]">دوره فعلی</span>
                     <span className="font-semibold text-slate-700 dark:text-slate-200 truncate block">
