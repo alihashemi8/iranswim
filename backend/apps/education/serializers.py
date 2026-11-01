@@ -29,10 +29,24 @@ class GroupScheduleSerializer(serializers.ModelSerializer):
 
 class GroupCoachSerializer(serializers.ModelSerializer):
     coach_name = serializers.CharField(source='coach.full_name', read_only=True)
+    coach_phone = serializers.CharField(source='coach.user.phone', read_only=True)
+    group_name = serializers.CharField(source='group.name', read_only=True)
+    course_id = serializers.IntegerField(source='group.course.id', read_only=True, default=None)
+    course_name = serializers.CharField(source='group.course.name', read_only=True, default='')
+    level_name = serializers.CharField(source='group.skill_level.name', read_only=True, default='')
+    level_color = serializers.CharField(source='group.skill_level.color_badge', read_only=True, default='#0284c7')
+    pool_location = serializers.CharField(source='group.pool_location', read_only=True, default='')
+    capacity = serializers.IntegerField(source='group.capacity', read_only=True, default=0)
+    enrolled_count = serializers.IntegerField(source='group.current_enrollments_count', read_only=True, default=0)
+    schedules = GroupScheduleSerializer(source='group.schedules', many=True, read_only=True)
 
     class Meta:
         model = GroupCoach
-        fields = ['id', 'group', 'coach', 'coach_name', 'assigned_from', 'assigned_to', 'is_primary']
+        fields = [
+            'id', 'group', 'group_name', 'course_id', 'course_name', 'level_name',
+            'level_color', 'pool_location', 'capacity', 'enrolled_count', 'schedules',
+            'coach', 'coach_name', 'coach_phone', 'assigned_from', 'assigned_to', 'is_primary'
+        ]
 
 
 class SwimmerGroupSerializer(serializers.ModelSerializer):
@@ -183,11 +197,15 @@ class EnrollmentSerializer(serializers.ModelSerializer):
     swimmer_phone = serializers.CharField(source='swimmer.phone', read_only=True)
     swimmer_national_id = serializers.CharField(source='swimmer.national_id', read_only=True)
     swimmer_level_name = serializers.CharField(source='swimmer.current_level.name', read_only=True)
+    swimmer_gender = serializers.CharField(source='swimmer.gender', read_only=True)
+    swimmer_gender_display = serializers.CharField(source='swimmer.get_gender_display', read_only=True)
+    swimmer_level_id = serializers.IntegerField(source='swimmer.current_level_id', read_only=True)
 
     course_name = serializers.CharField(source='course.name', read_only=True)
     course_pool = serializers.CharField(source='course.pool_location', read_only=True)
     course_days = serializers.CharField(source='course.days_of_week', read_only=True)
     course_time = serializers.SerializerMethodField()
+    course_gender = serializers.CharField(source='course.gender', read_only=True)
 
     group_name = serializers.CharField(source='group.name', read_only=True)
     coach_name = serializers.CharField(source='coach.full_name', read_only=True)
@@ -201,8 +219,9 @@ class EnrollmentSerializer(serializers.ModelSerializer):
         model = Enrollment
         fields = [
             'id', 'swimmer', 'swimmer_name', 'swimmer_avatar', 'swimmer_phone',
-            'swimmer_national_id', 'swimmer_level_name',
-            'course', 'course_name', 'course_pool', 'course_days', 'course_time',
+            'swimmer_national_id', 'swimmer_level_name', 'swimmer_gender',
+            'swimmer_gender_display', 'swimmer_level_id',
+            'course', 'course_name', 'course_pool', 'course_days', 'course_time', 'course_gender',
             'group', 'group_name', 'coach', 'coach_name', 'coach_avatar',
             'course_coaches', 'status', 'status_display',
             'sessions_purchased', 'sessions_attended', 'remaining_sessions',

@@ -10,7 +10,7 @@ from .serializers import (
     CoachProfileSerializer, WorkoutPlanSerializer,
     CoachClassListSerializer, CoachSwimmerDetailSerializer
 )
-from apps.accounts.permissions import IsAdminOrCoach
+from apps.accounts.permissions import IsAdminOrCoach, IsAdminUserRole
 from apps.scheduling.models import ClassSession
 from apps.education.models import SwimmerGroup, Enrollment, Skill, SkillLevel
 from apps.attendance.models import AttendanceRecord
@@ -28,20 +28,54 @@ def get_coach_profile(user):
 class CoachListView(generics.ListCreateAPIView):
     queryset = CoachProfile.objects.all().select_related('user')
     serializer_class = CoachProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [IsAdminUserRole()]
 
     def get_queryset(self):
-        qs = CoachProfile.objects.all().select_related('user')
+        qs = CoachProfile.objects.all().select_related('user').order_by('display_order', 'user__last_name', 'user__first_name')
         status_param = self.request.query_params.get('status')
         if status_param:
             qs = qs.filter(employment_status=status_param)
+        gender_param = self.request.query_params.get('gender')
+        if gender_param:
+            qs = qs.filter(gender=gender_param)
+        landing_param = self.request.query_params.get('landing')
+        if landing_param and landing_param.lower() in ['true', '1']:
+            qs = qs.filter(show_on_landing=True, employment_status=CoachProfile.EmploymentStatus.ACTIVE)
         return qs
 
 
 class CoachDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = CoachProfile.objects.all().select_related('user')
     serializer_class = CoachProfileSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [IsAdminUserRole()]
+
+
+class CoachReorderView(APIView):
+    """
+    تنظیم گروهی ترتیب نمایش مربیان در صفحه لندینگ و پرتال
+    """
+    permission_classes = [IsAdminUserRole]
+
+    def post(self, request):
+        orders = request.data.get('orders', [])
+        if not isinstance(orders, list):
+            return Response({'detail': 'فرمت داده‌های ارسالی نامعتبر است.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        for item in orders:
+            coach_id = item.get('id')
+            order_val = item.get('display_order')
+            if coach_id is not None and order_val is not None:
+                CoachProfile.objects.filter(id=coach_id).update(display_order=int(order_val))
+
+        return Response({'status': 'success', 'message': 'ترتیب نمایش مربیان با موفقیت ذخیره شد.'})
 
 
 class CoachDashboardOverviewView(APIView):

@@ -3,7 +3,8 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Users, UserPlus, Search, Filter, Eye, BookOpen,
   CreditCard, Calendar, Award, Phone, CheckCircle2,
-  XCircle, FileSpreadsheet, PlusCircle, Activity, GraduationCap, MapPin
+  XCircle, FileSpreadsheet, PlusCircle, Activity, GraduationCap, MapPin,
+  AlertTriangle, ArrowLeft, ArrowDown, Loader2, Check, UserX
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -12,7 +13,7 @@ import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Pagination } from '../../components/common/Pagination';
-import { CoachSelectorDropdown } from '../../components/common/CoachSelectorDropdown';
+import { ClassSelectorDropdown } from '../../components/common/ClassSelectorDropdown';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
@@ -46,6 +47,10 @@ export const AdminSwimmersPage = () => {
     medical_notes: '',
   });
   const [submitting, setSubmitting] = useState(false);
+
+  // Swimmer Class Change Confirmation Modal State
+  const [pendingClassChange, setPendingClassChange] = useState(null);
+  const [confirmingClassChange, setConfirmingClassChange] = useState(false);
 
   const fetchSwimmers = async () => {
     try {
@@ -134,23 +139,91 @@ export const AdminSwimmersPage = () => {
     }
   };
 
-  // Coach Assignment Handler
-  const handleAssignCoach = async (swimmerId, coachId) => {
+  // Available classes helper for swimmer
+  const getSwimmerAvailableClasses = (swimmer) => {
+    if (swimmer.available_classes && swimmer.available_classes.length > 0) {
+      return swimmer.available_classes;
+    }
+    if (groups && groups.length > 0) {
+      return groups.map((g) => ({
+        id: `g_${g.id}`,
+        group_id: g.id,
+        coach_id: g.coach_assignments?.[0]?.coach || null,
+        name: g.name,
+        coach_name: g.coach_assignments?.[0]?.coach_name || null,
+        avatar: null,
+        course_id: g.course,
+        course_name: g.course_name || '',
+        is_current_course: Boolean(swimmer.course_id && g.course === swimmer.course_id),
+      }));
+    }
+    return [];
+  };
+
+  // Request Swimmer Class Change (triggers confirmation modal)
+  const handleRequestChangeClass = (swimmer, selectedClass) => {
+    const isCurrentlyInClass =
+      (selectedClass === null && !swimmer.coach_id && !swimmer.group_id) ||
+      (selectedClass && (
+        (selectedClass.group_id && swimmer.group_id && selectedClass.group_id === swimmer.group_id) ||
+        (selectedClass.coach_id && swimmer.coach_id && selectedClass.coach_id === swimmer.coach_id && (!selectedClass.group_id || selectedClass.group_id === swimmer.group_id))
+      ));
+
+    if (isCurrentlyInClass) {
+      toast.info('شناگر در حال حاضر در این کلاس حضور دارد.');
+      return;
+    }
+
+    const currentClass = (swimmer.coach_id || swimmer.group_id || swimmer.class_name)
+      ? {
+          id: swimmer.group_id || swimmer.coach_id,
+          group_id: swimmer.group_id,
+          coach_id: swimmer.coach_id,
+          name: swimmer.class_name || (swimmer.coach_name ? `کلاس ${swimmer.coach_name}` : 'کلاس فعلی'),
+          coach_name: swimmer.coach_name,
+          avatar: swimmer.coach_avatar,
+        }
+      : null;
+
+    setPendingClassChange({
+      swimmer,
+      currentClass,
+      newClass: selectedClass,
+    });
+  };
+
+  // Confirm Swimmer Class Change
+  const handleConfirmClassChange = async () => {
+    if (!pendingClassChange) return;
+    const { swimmer, newClass } = pendingClassChange;
+
     try {
-      const res = await api.post(`/swimmers/${swimmerId}/assign-coach/`, {
-        coach_id: coachId,
-      });
+      setConfirmingClassChange(true);
+      const payload = {
+        coach_id: newClass ? newClass.coach_id : null,
+        group_id: newClass ? newClass.group_id : null,
+      };
+
+      const res = await api.post(`/swimmers/${swimmer.id}/assign-coach/`, payload);
       setSwimmers((prev) =>
-        prev.map((s) => (s.id === swimmerId ? res.data : s))
+        prev.map((s) => (s.id === swimmer.id ? res.data : s))
       );
+
+      const targetName = newClass
+        ? (newClass.name || (newClass.coach_name ? `کلاس ${newClass.coach_name}` : 'کلاس انتخاب‌شده'))
+        : 'بدون کلاس';
+
       toast.success(
-        coachId && res.data.coach_name
-          ? `شناگر با موفقیت به کلاس مربی ${res.data.coach_name} تخصیص یافت.`
-          : 'تخصیص مربی با موفقیت حذف گردید.'
+        newClass
+          ? `کلاس شناگر «${swimmer.full_name}» با موفقیت به «${targetName}» تغییر یافت.`
+          : `تخصیص کلاس برای «${swimmer.full_name}» با موفقیت حذف گردید.`
       );
+      setPendingClassChange(null);
     } catch (err) {
       console.error(err);
-      toast.error('خطا در تخصیص مربی به شناگر');
+      toast.error(err.response?.data?.detail || 'خطا در تغییر کلاس شناگر');
+    } finally {
+      setConfirmingClassChange(false);
     }
   };
 
@@ -305,7 +378,7 @@ export const AdminSwimmersPage = () => {
                   <th className="px-4 py-3.5 rounded-r-xl">شناگر</th>
                   <th className="px-4 py-3.5">شماره تماس</th>
                   <th className="px-4 py-3.5">سطح مهارت فعلی</th>
-                  <th className="px-4 py-3.5">مربی و کلاس</th>
+                  <th className="px-4 py-3.5">کلاس</th>
                   <th className="px-4 py-3.5">وضعیت</th>
                   <th className="px-4 py-3.5">تاریخ ثبت</th>
                   <th className="px-4 py-3.5 text-center rounded-l-xl">عملیات پرونده</th>
@@ -349,18 +422,21 @@ export const AdminSwimmersPage = () => {
                       )}
                     </td>
                     <td className="px-4 py-3.5">
-                      <CoachSelectorDropdown
-                        currentCoach={
-                          swimmer.coach_id
+                      <ClassSelectorDropdown
+                        currentClass={
+                          (swimmer.coach_id || swimmer.group_id || swimmer.class_name)
                             ? {
-                                id: swimmer.coach_id,
-                                full_name: swimmer.coach_name,
+                                id: swimmer.group_id ? `g_${swimmer.group_id}` : `c_${swimmer.coach_id}`,
+                                group_id: swimmer.group_id,
+                                coach_id: swimmer.coach_id,
+                                name: swimmer.class_name || (swimmer.coach_name ? `کلاس ${swimmer.coach_name}` : 'کلاس فعلی'),
+                                coach_name: swimmer.coach_name,
                                 avatar: swimmer.coach_avatar,
                               }
                             : null
                         }
-                        availableCoaches={swimmer.course_coaches || []}
-                        onSelectCoach={(coachId) => handleAssignCoach(swimmer.id, coachId)}
+                        availableClasses={getSwimmerAvailableClasses(swimmer)}
+                        onSelectClass={(selectedClass) => handleRequestChangeClass(swimmer, selectedClass)}
                         placement="auto"
                         size="sm"
                       />
@@ -460,21 +536,24 @@ export const AdminSwimmersPage = () => {
                   </div>
                 </div>
 
-                {/* Bottom Left Coach Avatar / Selector */}
+                {/* Bottom Left Class Avatar / Selector */}
                 <div className="flex items-center justify-between pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
                   <div className="flex items-center">
-                    <CoachSelectorDropdown
-                      currentCoach={
-                        swimmer.coach_id
+                    <ClassSelectorDropdown
+                      currentClass={
+                        (swimmer.coach_id || swimmer.group_id || swimmer.class_name)
                           ? {
-                              id: swimmer.coach_id,
-                              full_name: swimmer.coach_name,
+                              id: swimmer.group_id ? `g_${swimmer.group_id}` : `c_${swimmer.coach_id}`,
+                              group_id: swimmer.group_id,
+                              coach_id: swimmer.coach_id,
+                              name: swimmer.class_name || (swimmer.coach_name ? `کلاس ${swimmer.coach_name}` : 'کلاس فعلی'),
+                              coach_name: swimmer.coach_name,
                               avatar: swimmer.coach_avatar,
                             }
                           : null
                       }
-                      availableCoaches={swimmer.course_coaches || []}
-                      onSelectCoach={(coachId) => handleAssignCoach(swimmer.id, coachId)}
+                      availableClasses={getSwimmerAvailableClasses(swimmer)}
+                      onSelectClass={(selectedClass) => handleRequestChangeClass(swimmer, selectedClass)}
                       placement="dropup"
                       size="sm"
                     />
@@ -662,6 +741,171 @@ export const AdminSwimmersPage = () => {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* 2. Modal: Confirm Swimmer Class Change */}
+      <Modal
+        isOpen={!!pendingClassChange}
+        onClose={() => !confirmingClassChange && setPendingClassChange(null)}
+        title={
+          pendingClassChange?.newClass === null
+            ? 'تأیید حذف شناگر از کلاس'
+            : pendingClassChange?.currentClass
+            ? 'تأیید تغییر کلاس شناگر'
+            : 'تأیید انتساب شناگر به کلاس'
+        }
+        maxWidth="max-w-lg"
+      >
+        {pendingClassChange && (
+          <div className="space-y-4">
+            {pendingClassChange.newClass === null ? (
+              // Case: Unassign / Remove from class
+              <div className="flex items-start gap-3 p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/60 rounded-2xl">
+                <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/60 flex items-center justify-center shrink-0 text-rose-600 dark:text-rose-400">
+                  <UserX className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100">
+                    آیا از حذف این شناگر از کلاس مطمئن هستید؟
+                  </h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                    با تأیید، شناگر از لیست این کلاس و برنامه کلاسی خارج خواهد شد و وضعیت آن به «بدون کلاس» تغییر می‌یابد.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              // Case: Add or Change class
+              <div className="flex items-start gap-3 p-3.5 bg-sky-50 dark:bg-sky-950/40 border border-sky-200/80 dark:border-sky-800/60 rounded-2xl">
+                <div className="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-900/60 flex items-center justify-center shrink-0 text-sky-600 dark:text-sky-400">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100">
+                    {pendingClassChange.currentClass
+                      ? 'آیا از انتقال این شناگر به کلاس جدید مطمئن هستید؟'
+                      : 'آیا از افزودن این شناگر به کلاس مطمئن هستید؟'}
+                  </h4>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
+                    با تأیید شما، این شناگر در کلاس انتخاب‌شده ثبت خواهد شد و امور آموزشی و حضور و غیاب دوره همگام‌سازی می‌گردد.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-4 space-y-3 overflow-hidden">
+              {/* Swimmer Info */}
+              <div className="flex items-center justify-between pb-2.5 border-b border-slate-200/60 dark:border-slate-700/60">
+                <span className="text-xs text-slate-400">شناگر:</span>
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center text-[10px] font-bold overflow-hidden shrink-0">
+                    {pendingClassChange.swimmer.avatar ? (
+                      <img src={pendingClassChange.swimmer.avatar} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      pendingClassChange.swimmer.first_name ? pendingClassChange.swimmer.first_name.charAt(0) : 'S'
+                    )}
+                  </div>
+                  <span className="font-bold text-xs text-slate-800 dark:text-slate-100">
+                    {pendingClassChange.swimmer.full_name}
+                  </span>
+                </div>
+              </div>
+
+              {/* Class Transition */}
+              {pendingClassChange.newClass === null ? (
+                // Case: Removal
+                <div className="space-y-2 pt-1">
+                  <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium shrink-0">کلاس فعلی:</span>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
+                      {pendingClassChange.currentClass?.name || 'بدون کلاس'}
+                    </span>
+                  </div>
+                  <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 flex items-center justify-between gap-2 text-rose-700 dark:text-rose-300">
+                    <span className="text-xs font-semibold shrink-0">وضعیت جدید:</span>
+                    <span className="text-xs font-bold flex items-center gap-1.5">
+                      <UserX className="w-3.5 h-3.5 text-rose-600" />
+                      بدون کلاس (لغو انتساب)
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                // Case: Add / Transfer
+                <div className="space-y-2 pt-1">
+                  {/* Current Class */}
+                  <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
+                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium shrink-0">کلاس فعلی:</span>
+                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 text-left truncate">
+                      {pendingClassChange.currentClass?.name || 'بدون کلاس'}
+                    </span>
+                  </div>
+
+                  {/* Down Transition Arrow */}
+                  <div className="flex items-center justify-center -my-1">
+                    <div className="w-7 h-7 rounded-full bg-sky-100 dark:bg-sky-900/60 border border-sky-200 dark:border-sky-800 flex items-center justify-center text-sky-600 dark:text-sky-300 shadow-2xs">
+                      <ArrowDown className="w-3.5 h-3.5" />
+                    </div>
+                  </div>
+
+                  {/* New Class Target */}
+                  <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/50 border border-sky-200/90 dark:border-sky-800/90 flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="text-xs font-bold text-sky-700 dark:text-sky-300">کلاس جدید:</span>
+                    </div>
+                    <div className="text-left min-w-0">
+                      <span className="text-xs font-bold text-sky-900 dark:text-sky-100 block truncate">
+                        {pendingClassChange.newClass.name || `کلاس ${pendingClassChange.newClass.coach_name}`}
+                      </span>
+                      {pendingClassChange.newClass.course_name && (
+                        <span className="text-[10px] text-sky-600 dark:text-sky-400 block mt-0.5 truncate">
+                          دوره: {pendingClassChange.newClass.course_name}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={confirmingClassChange}
+                onClick={() => setPendingClassChange(null)}
+                className="text-xs"
+              >
+                انصراف
+              </Button>
+              <Button
+                type="button"
+                disabled={confirmingClassChange}
+                onClick={handleConfirmClassChange}
+                className={`text-xs gap-1.5 ${
+                  pendingClassChange.newClass === null
+                    ? 'bg-rose-600 hover:bg-rose-700 text-white'
+                    : ''
+                }`}
+              >
+                {confirmingClassChange ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>در حال ثبت...</span>
+                  </>
+                ) : pendingClassChange.newClass === null ? (
+                  <>
+                    <UserX className="w-3.5 h-3.5" />
+                    <span>تأیید و حذف از کلاس</span>
+                  </>
+                ) : (
+                  <>
+                    <Check className="w-3.5 h-3.5" />
+                    <span>تأیید و ثبت در کلاس</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
       </Modal>
     </div>
   );

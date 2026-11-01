@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import api from '../../api/client';
 import { LoadingState } from '../../components/common/LoadingState';
+import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 
 export const CoachClassesPage = () => {
@@ -87,17 +88,18 @@ export const CoachClassesPage = () => {
           />
         </div>
 
-        <div className="flex items-center gap-2.5 w-full sm:w-auto">
-          <span className="text-sm text-slate-500 dark:text-slate-400 font-bold whitespace-nowrap">وضعیت:</span>
-          <select
+        <div className="w-full sm:w-56">
+          <CustomSelect
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-sm font-semibold rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 py-2.5 px-3.5 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          >
-            <option value="ALL">همه کلاس‌ها ({classes.length})</option>
-            <option value="ACTIVE">کلاس‌های جاری</option>
-            <option value="COMPLETED">کلاس‌های خاتمه‌یافته</option>
-          </select>
+            onChange={(val) => setStatusFilter(val)}
+            options={[
+              { value: 'ALL', label: `همه کلاس‌ها (${classes.length})` },
+              { value: 'ACTIVE', label: 'کلاس‌های جاری' },
+              { value: 'COMPLETED', label: 'کلاس‌های خاتمه‌یافته' },
+            ]}
+            color="emerald"
+            placeholder="فیلتر وضعیت..."
+          />
         </div>
       </div>
 

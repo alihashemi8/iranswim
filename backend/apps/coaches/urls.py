@@ -3,7 +3,7 @@ from .views import (
     CoachListView, CoachDetailView, CoachDashboardOverviewView,
     CoachMyClassesView, CoachClassDetailView, CoachSwimmerDossierView,
     CoachWorkoutPlanListView, CoachWorkoutPlanDetailView,
-    CoachAIAssistantView, CoachMessagesView
+    CoachAIAssistantView, CoachMessagesView, CoachReorderView
 )
 
 urlpatterns = [
@@ -16,6 +16,7 @@ urlpatterns = [
     path('workouts/<int:pk>/', CoachWorkoutPlanDetailView.as_view(), name='coach_workout_detail'),
     path('ai/assist/', CoachAIAssistantView.as_view(), name='coach_ai_assist'),
     path('messages/', CoachMessagesView.as_view(), name='coach_messages'),
+    path('reorder/', CoachReorderView.as_view(), name='coach_reorder'),
 
     # General / Admin endpoints
     path('', CoachListView.as_view(), name='coach_list'),

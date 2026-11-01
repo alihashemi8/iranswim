@@ -20,7 +20,7 @@ class NewsPost(models.Model):
     slug = models.SlugField(_('نامک (Slug)'), max_length=220, unique=True, allow_unicode=True)
     body = models.TextField(_('متن کامل خبر'))
     summary = models.TextField(_('خلاصه خبر'), max_length=400, blank=True)
-    image = models.ImageField(_('تصویر شاخص'), upload_to='news/', null=True, blank=True)
+    image = models.ImageField(_('عکس پوستر خبر'), upload_to='news/', null=True, blank=True)
     category = models.CharField(_('دسته‌بندی'), max_length=20, choices=Category.choices, default=Category.GENERAL)
     status = models.CharField(_('وضعیت انتشار'), max_length=20, choices=Status.choices, default=Status.PUBLISHED, db_index=True)
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name=_('نویسنده'))
@@ -35,6 +35,76 @@ class NewsPost(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class NewsImage(models.Model):
+    """تصاویر مربوط به شرح اخبار و گالری خبر"""
+    news_post = models.ForeignKey(
+        NewsPost,
+        on_delete=models.CASCADE,
+        related_name='detail_images',
+        verbose_name=_('خبر مرتبط')
+    )
+    image = models.ImageField(_('تصویر شرح خبر'), upload_to='news/details/')
+    caption = models.CharField(_('توضیح تصویر'), max_length=250, blank=True)
+    order = models.PositiveIntegerField(_('ترتیب'), default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('تصویر شرح خبر')
+        verbose_name_plural = _('تصاویر شرح خبر')
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f"تصویر {self.id} برای {self.news_post.title}"
+
+
+class SwimmingPool(models.Model):
+    """اطلاعات و تصاویر استخرهای تحت قرارداد و برگزاری کلاس‌ها در قزوین"""
+    name = models.CharField(_('نام استخر'), max_length=180)
+    slug = models.SlugField(_('نامک (Slug)'), max_length=200, unique=True, allow_unicode=True, blank=True)
+    poster_image = models.ImageField(_('عکس پوستر استخر'), upload_to='pools/posters/', null=True, blank=True)
+    location = models.CharField(_('آدرس و لوکیشن استخر'), max_length=300)
+    map_url = models.CharField(_('لینک نقشه یا نشان'), max_length=500, blank=True)
+    description = models.TextField(_('توضیحات و مشخصات استخر'))
+    facilities = models.CharField(_('امکانات استخر'), max_length=300, blank=True, default='سونا خشک و بخار، جکوزی، بوفه، پارکینگ، رختکن تمیز')
+    dimensions = models.CharField(_('ابعاد استخر'), max_length=100, blank=True, default='۵۰ در ۲۵ متر')
+    depth = models.CharField(_('عمق استخر'), max_length=100, blank=True, default='۱.۲۰ تا ۳.۸۰ متر')
+    phone = models.CharField(_('شماره تماس هماهنگی'), max_length=25, blank=True)
+    display_order = models.PositiveIntegerField(_('ترتیب نمایش'), default=0, db_index=True)
+    is_active = models.BooleanField(_('نمایش در سایت'), default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _('استخر و مجموعه ورزشی')
+        verbose_name_plural = _('استخرها و مجموعه‌های ورزشی')
+        ordering = ['display_order', '-id']
+
+    def __str__(self):
+        return self.name
+
+
+class PoolImage(models.Model):
+    """تصاویر بیشتر و جزئیات استخر جهت نمایش در مدال و گالری"""
+    pool = models.ForeignKey(
+        SwimmingPool,
+        on_delete=models.CASCADE,
+        related_name='gallery_images',
+        verbose_name=_('استخر مرتبط')
+    )
+    image = models.ImageField(_('عکس استخر'), upload_to='pools/gallery/')
+    caption = models.CharField(_('عنوان تصویر'), max_length=200, blank=True)
+    order = models.PositiveIntegerField(_('ترتیب'), default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('تصویر استخر')
+        verbose_name_plural = _('تصاویر استخر')
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f"عکس {self.id} برای استخر {self.pool.name}"
 
 
 class Announcement(models.Model):

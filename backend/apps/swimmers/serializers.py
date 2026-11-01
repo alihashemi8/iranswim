@@ -19,6 +19,10 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
     course_name = serializers.SerializerMethodField()
     course_id = serializers.SerializerMethodField()
     course_coaches = serializers.SerializerMethodField()
+    group_id = serializers.SerializerMethodField()
+    group_name = serializers.SerializerMethodField()
+    class_name = serializers.SerializerMethodField()
+    available_classes = serializers.SerializerMethodField()
 
     class Meta:
         model = SwimmerProfile
@@ -35,6 +39,7 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
             'is_profile_completed', 'has_required_info',
             'current_level', 'level_name', 'medical_notes', 'is_active',
             'current_enrollment', 'coach_name', 'coach_avatar', 'coach_id',
+            'group_id', 'group_name', 'class_name', 'available_classes',
             'course_name', 'course_id', 'course_coaches',
             'created_at', 'updated_at'
         ]
@@ -132,6 +137,66 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
                 'class_name': f"کلاس {c.full_name}"
             })
         return res
+
+    def get_group_id(self, obj):
+        enr = self.get_current_enrollment(obj)
+        return enr['group_id'] if enr else None
+
+    def get_group_name(self, obj):
+        enr = self.get_current_enrollment(obj)
+        return enr['group_name'] if enr else None
+
+    def get_class_name(self, obj):
+        enr = self.get_current_enrollment(obj)
+        if not enr:
+            return None
+        if enr.get('group_name'):
+            return enr['group_name']
+        if enr.get('coach_name'):
+            return f"کلاس {enr['coach_name']}"
+        return None
+
+    def get_available_classes(self, obj):
+        enr = self.get_current_enrollment(obj)
+        request = self.context.get('request')
+        from apps.education.models import SwimmerGroup
+
+        classes = []
+        current_course_id = enr.get('course_id') if enr else None
+
+        groups = SwimmerGroup.objects.all().select_related('course').prefetch_related('coach_assignments__coach__user')
+        for g in groups:
+            primary_coach = g.coach_assignments.filter(is_primary=True).first()
+            if not primary_coach:
+                primary_coach = g.coach_assignments.first()
+            c_avatar = None
+            coach_id = None
+            coach_name = None
+            if primary_coach and primary_coach.coach:
+                coach_id = primary_coach.coach.id
+                coach_name = primary_coach.coach.full_name
+                if primary_coach.coach.user and primary_coach.coach.user.avatar:
+                    c_avatar = request.build_absolute_uri(primary_coach.coach.user.avatar.url) if request else primary_coach.coach.user.avatar.url
+            
+            is_curr = bool(current_course_id and g.course_id == current_course_id)
+            classes.append({
+                'id': f"g_{g.id}",
+                'group_id': g.id,
+                'coach_id': coach_id,
+                'name': g.name,
+                'coach_name': coach_name,
+                'avatar': c_avatar,
+                'course_id': g.course_id,
+                'course_name': g.course.name if g.course else '',
+                'is_current_course': is_curr,
+                'capacity': g.capacity,
+                'remaining_capacity': g.remaining_capacity,
+            })
+
+        # Sort: current course classes first, then course name, then class name
+        classes.sort(key=lambda x: (0 if x['is_current_course'] else 1, x['course_name'], x['name']))
+
+        return classes
 
 
 class SwimmerGuardianRelationSerializer(serializers.ModelSerializer):

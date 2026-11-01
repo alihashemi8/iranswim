@@ -230,11 +230,21 @@ class SwimmerAssignCoachView(APIView):
             return Response({'detail': 'شناگر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
 
         coach_id = request.data.get('coach_id')
+        group_id = request.data.get('group_id')
         course_id = request.data.get('course_id')
 
         from apps.coaches.models import CoachProfile
         from apps.education.models import Enrollment, Course, SwimmerGroup, SkillLevel, GroupCoach
         from apps.supervisor.models import AuditLog
+
+        target_group = None
+        if group_id:
+            try:
+                target_group = SwimmerGroup.objects.select_related('course').get(pk=group_id)
+                if not course_id and target_group.course:
+                    course_id = target_group.course.id
+            except SwimmerGroup.DoesNotExist:
+                return Response({'detail': 'کلاس مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
 
         coach = None
         if coach_id:
@@ -242,52 +252,79 @@ class SwimmerAssignCoachView(APIView):
                 coach = CoachProfile.objects.get(pk=coach_id)
             except CoachProfile.DoesNotExist:
                 return Response({'detail': 'مربی مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+        elif target_group:
+            primary_gc = target_group.coach_assignments.filter(is_primary=True).first()
+            if primary_gc:
+                coach = primary_gc.coach
+            else:
+                gc = target_group.coach_assignments.first()
+                if gc:
+                    coach = gc.coach
+
+        target_course = None
+        if target_group and target_group.course:
+            target_course = target_group.course
+        elif course_id:
+            target_course = Course.objects.filter(pk=course_id).first()
 
         enrollment = None
-        if course_id:
-            enrollment = Enrollment.objects.filter(swimmer=swimmer, course_id=course_id).first()
+        if target_course:
+            enrollment = Enrollment.objects.filter(swimmer=swimmer, course=target_course).first()
         if not enrollment:
             enrollment = swimmer.enrollments.filter(status='ACTIVE').first()
         if not enrollment:
             enrollment = swimmer.enrollments.first()
 
         if not enrollment:
-            course = None
-            if course_id:
-                course = Course.objects.filter(pk=course_id).first()
-            if not course:
-                course = Course.objects.first()
-            if not course:
+            if not target_course:
+                target_course = Course.objects.first()
+            if not target_course:
                 return Response({'detail': 'دوره‌ای برای ثبت‌نام شناگر تعریف نشده است.'}, status=status.HTTP_400_BAD_REQUEST)
             enrollment = Enrollment.objects.create(
                 swimmer=swimmer,
-                course=course,
+                course=target_course,
                 status='ACTIVE'
             )
+        elif target_course and enrollment.course != target_course:
+            existing_target_enr = Enrollment.objects.filter(swimmer=swimmer, course=target_course).first()
+            if existing_target_enr:
+                enrollment = existing_target_enr
+            else:
+                enrollment.course = target_course
 
-        enrollment.coach = coach
-        if coach and enrollment.course:
-            target_group = SwimmerGroup.objects.filter(
-                course=enrollment.course,
-                coach_assignments__coach=coach
-            ).first()
-            if not target_group:
-                target_group, _ = SwimmerGroup.objects.get_or_create(
-                    course=enrollment.course,
-                    name=f"کلاس مربی {coach.full_name}",
-                    defaults={
-                        'skill_level': SkillLevel.objects.first(),
-                        'capacity': 15,
-                        'pool_location': enrollment.course.pool_location or 'استخر شهید رئیسی',
-                        'status': SwimmerGroup.Status.OPEN
-                    }
-                )
-                GroupCoach.objects.get_or_create(
-                    group=target_group,
-                    coach=coach,
-                    defaults={'is_primary': True, 'assigned_from': enrollment.course.start_date}
-                )
+        if target_group:
             enrollment.group = target_group
+            enrollment.coach = coach
+            enrollment.status = 'ACTIVE'
+        elif coach:
+            enrollment.coach = coach
+            enrollment.status = 'ACTIVE'
+            if enrollment.course:
+                target_group = SwimmerGroup.objects.filter(
+                    course=enrollment.course,
+                    coach_assignments__coach=coach
+                ).first()
+                if not target_group:
+                    target_group, _ = SwimmerGroup.objects.get_or_create(
+                        course=enrollment.course,
+                        name=f"کلاس مربی {coach.full_name}",
+                        defaults={
+                            'skill_level': SkillLevel.objects.first(),
+                            'capacity': 15,
+                            'pool_location': enrollment.course.pool_location or 'استخر شهید رئیسی',
+                            'status': SwimmerGroup.Status.OPEN
+                        }
+                    )
+                    GroupCoach.objects.get_or_create(
+                        group=target_group,
+                        coach=coach,
+                        defaults={'is_primary': True, 'assigned_from': enrollment.course.start_date}
+                    )
+                enrollment.group = target_group
+        else:
+            enrollment.coach = None
+            enrollment.group = None
+
         enrollment.save()
 
         AuditLog.objects.create(
@@ -298,7 +335,8 @@ class SwimmerAssignCoachView(APIView):
             details={
                 'swimmer': swimmer.full_name,
                 'course': enrollment.course.name if enrollment.course else '',
-                'coach': coach.full_name if coach else 'تعیین‌نشده'
+                'coach': coach.full_name if coach else 'تعیین‌نشده',
+                'group': enrollment.group.name if enrollment.group else 'تعیین‌نشده'
             }
         )
 

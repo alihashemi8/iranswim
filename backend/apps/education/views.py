@@ -342,7 +342,7 @@ class EnrollmentDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 class EnrollmentAssignCoachView(APIView):
     """
-    تخصیص یا تغییر مربی یک ثبت‌نام با انتساب مستقیم به کلاس آن مربی
+    تخصیص یا تغییر مربی، کلاس یا دوره ثبت‌نام شناگر توسط مدیر
     """
     permission_classes = [IsAdminUserRole]
 
@@ -352,41 +352,96 @@ class EnrollmentAssignCoachView(APIView):
         except Enrollment.DoesNotExist:
             return Response({'detail': 'ثبت‌نام یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
 
+        course_id = request.data.get('course_id')
+        group_id = request.data.get('group_id')
         coach_id = request.data.get('coach_id')
-        if coach_id:
-            from apps.coaches.models import CoachProfile
-            try:
-                coach = CoachProfile.objects.get(pk=coach_id)
-            except CoachProfile.DoesNotExist:
-                return Response({'detail': 'مربی مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+        reset_sessions = request.data.get('reset_sessions', False)
 
-            enrollment.coach = coach
-            # Find or assign group for this coach in this course
-            if enrollment.course:
-                target_group = SwimmerGroup.objects.filter(
-                    course=enrollment.course,
-                    coach_assignments__coach=coach
-                ).first()
-                if not target_group:
-                    # Create group if doesn't exist
-                    target_group, _ = SwimmerGroup.objects.get_or_create(
+        old_course_name = enrollment.course.name if enrollment.course else ''
+        old_coach_name = enrollment.coach.full_name if enrollment.coach else 'تعیین‌نشده'
+        old_group_name = enrollment.group.name if enrollment.group else ''
+
+        # 1. Handle course change if provided
+        if course_id and (not enrollment.course or str(enrollment.course.id) != str(course_id)):
+            try:
+                new_course = Course.objects.get(pk=course_id)
+            except Course.DoesNotExist:
+                return Response({'detail': 'دوره آموزشی مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Check if swimmer is already enrolled in this new course (unique constraint)
+            already_enrolled = Enrollment.objects.filter(
+                swimmer=enrollment.swimmer,
+                course=new_course
+            ).exclude(pk=enrollment.pk).exists()
+            if already_enrolled:
+                return Response({
+                    'detail': f'شناگر «{enrollment.swimmer.full_name}» در حال حاضر در دوره «{new_course.name}» ثبت‌نام قطعی دارد.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            enrollment.course = new_course
+            enrollment.sessions_purchased = new_course.sessions_count
+            if reset_sessions:
+                enrollment.sessions_attended = 0
+
+            # If current group does not belong to new course, reset it
+            if enrollment.group and enrollment.group.course_id != new_course.id:
+                enrollment.group = None
+
+        # 2. Handle group change if provided
+        if group_id:
+            try:
+                group = SwimmerGroup.objects.get(pk=group_id)
+                enrollment.group = group
+                if not enrollment.course or enrollment.course_id != group.course_id:
+                    enrollment.course = group.course
+                # If coach_id was not explicitly specified, adopt group's primary coach
+                if coach_id is None and not enrollment.coach:
+                    primary_gc = group.coach_assignments.filter(is_primary=True).first()
+                    if primary_gc:
+                        enrollment.coach = primary_gc.coach
+            except SwimmerGroup.DoesNotExist:
+                return Response({'detail': 'گروه/کلاس مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # 3. Handle coach change if provided
+        if coach_id is not None:
+            if coach_id:
+                from apps.coaches.models import CoachProfile
+                try:
+                    coach = CoachProfile.objects.get(pk=coach_id)
+                except CoachProfile.DoesNotExist:
+                    return Response({'detail': 'مربی مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+                enrollment.coach = coach
+                if enrollment.course and not enrollment.course.coaches.filter(id=coach.id).exists():
+                    enrollment.course.coaches.add(coach)
+
+                # Ensure enrollment.group matches this coach if group wasn't explicitly set or belongs to another coach
+                if enrollment.course and not group_id:
+                    target_group = SwimmerGroup.objects.filter(
                         course=enrollment.course,
-                        name=f"کلاس مربی {coach.full_name}",
-                        defaults={
-                            'skill_level': SkillLevel.objects.first(),
-                            'capacity': 15,
-                            'pool_location': enrollment.course.pool_location or 'استخر شهید رئیسی',
-                            'status': SwimmerGroup.Status.OPEN
-                        }
-                    )
-                    GroupCoach.objects.get_or_create(
-                        group=target_group,
-                        coach=coach,
-                        defaults={'is_primary': True, 'assigned_from': enrollment.course.start_date}
-                    )
-                enrollment.group = target_group
-        else:
-            enrollment.coach = None
+                        coach_assignments__coach=coach
+                    ).first()
+                    if not target_group:
+                        target_group, _ = SwimmerGroup.objects.get_or_create(
+                            course=enrollment.course,
+                            name=f"کلاس مربی {coach.full_name}",
+                            defaults={
+                                'skill_level': SkillLevel.objects.first(),
+                                'capacity': 15,
+                                'pool_location': enrollment.course.pool_location or 'استخر شهید رئیسی',
+                                'status': SwimmerGroup.Status.OPEN
+                            }
+                        )
+                        GroupCoach.objects.get_or_create(
+                            group=target_group,
+                            coach=coach,
+                            defaults={'is_primary': True, 'assigned_from': enrollment.course.start_date}
+                        )
+                    enrollment.group = target_group
+            else:
+                enrollment.coach = None
+                if not group_id:
+                    enrollment.group = None
 
         enrollment.save()
 
@@ -399,7 +454,10 @@ class EnrollmentAssignCoachView(APIView):
                 'swimmer': enrollment.swimmer.full_name,
                 'course': enrollment.course.name if enrollment.course else '',
                 'coach': enrollment.coach.full_name if enrollment.coach else 'تعیین‌نشده',
-                'group': enrollment.group.name if enrollment.group else ''
+                'group': enrollment.group.name if enrollment.group else '',
+                'old_course': old_course_name,
+                'old_coach': old_coach_name,
+                'old_group': old_group_name,
             }
         )
 
@@ -422,3 +480,31 @@ class GroupCoachListCreateView(generics.ListCreateAPIView):
         if group_id:
             qs = qs.filter(group_id=group_id)
         return qs
+
+    def perform_create(self, serializer):
+        coach = serializer.validated_data.get('coach')
+        group = serializer.validated_data.get('group')
+        ignore_conflict = self.request.data.get('ignore_conflict', False)
+
+        if coach and group and not ignore_conflict:
+            # Check for schedule conflicts with existing active assignments for this coach
+            existing_assignments = GroupCoach.objects.filter(coach=coach).exclude(group=group)
+            group_schedules = group.schedules.all()
+            for assign in existing_assignments:
+                for ex_sched in assign.group.schedules.all():
+                    for new_sched in group_schedules:
+                        if ex_sched.weekday == new_sched.weekday:
+                            # check time overlap: (start1 < end2) and (end1 > start2)
+                            if (new_sched.start_time < ex_sched.end_time and new_sched.end_time > ex_sched.start_time):
+                                from rest_framework.exceptions import ValidationError
+                                raise ValidationError({
+                                    'conflict': f"تداخل زمانی با گروه '{assign.group.name}' در روز {new_sched.get_weekday_display()} (ساعت {ex_sched.start_time.strftime('%H:%M')} تا {ex_sched.end_time.strftime('%H:%M')}) وجود دارد."
+                                })
+        serializer.save()
+
+
+class GroupCoachDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """مشاهده، ویرایش و حذف تخصیص مربی به گروه آموزشی"""
+    queryset = GroupCoach.objects.all().select_related('group', 'coach__user')
+    serializer_class = GroupCoachSerializer
+    permission_classes = [IsAdminUserRole]

@@ -1,18 +1,88 @@
 from rest_framework import serializers
-from .models import NewsPost, Announcement, Notification, SupportTicket
+from .models import (
+    NewsPost, NewsImage, SwimmingPool, PoolImage,
+    Announcement, Notification, SupportTicket
+)
+
+
+class NewsImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = NewsImage
+        fields = ['id', 'image', 'image_url', 'caption', 'order', 'created_at']
+
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
 
 
 class NewsPostSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source='author.full_name', read_only=True)
     category_display = serializers.CharField(source='get_category_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    image_url = serializers.SerializerMethodField()
+    detail_images = NewsImageSerializer(many=True, read_only=True)
 
     class Meta:
         model = NewsPost
         fields = [
-            'id', 'title', 'slug', 'body', 'summary', 'image', 'category',
-            'category_display', 'status', 'author_name', 'publish_at', 'created_at'
+            'id', 'title', 'slug', 'body', 'summary', 'image', 'image_url',
+            'category', 'category_display', 'status', 'status_display',
+            'author_name', 'detail_images', 'publish_at', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
+
+class PoolImageSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = PoolImage
+        fields = ['id', 'image', 'image_url', 'caption', 'order', 'created_at']
+
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
+
+class SwimmingPoolSerializer(serializers.ModelSerializer):
+    poster_image_url = serializers.SerializerMethodField()
+    gallery_images = PoolImageSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = SwimmingPool
+        fields = [
+            'id', 'name', 'slug', 'poster_image', 'poster_image_url',
+            'location', 'map_url', 'description', 'facilities',
+            'dimensions', 'depth', 'phone', 'display_order', 'is_active',
+            'gallery_images', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_poster_image_url(self, obj):
+        if obj.poster_image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.poster_image.url)
+            return obj.poster_image.url
+        return None
 
 
 class AnnouncementSerializer(serializers.ModelSerializer):

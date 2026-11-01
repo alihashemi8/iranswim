@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   UserCheck, Plus, Calendar, Clock, BookOpen,
-  Award, Shield, Phone, Edit, CheckCircle2, AlertTriangle, FileSpreadsheet
+  Award, Shield, Phone, Edit, CheckCircle2, AlertTriangle, FileSpreadsheet,
+  ChevronLeft, Sparkles, User, Hash, Lock, DollarSign
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -9,51 +11,46 @@ import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
-import { PersianDatePicker } from '../../components/common/PersianDatePicker';
+import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
 
 export const AdminCoachesPage = () => {
-  const [coaches, setCoaches] = useState([]);
-  const [groups, setGroups] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [statusFilter, setStatusFilter] = useState('');
+  const navigate = useNavigate();
   const toast = useToast();
 
-  // Assign Coach Modal
-  const [selectedCoach, setSelectedCoach] = useState(null);
-  const [assignGroupModalOpen, setAssignGroupModalOpen] = useState(false);
-  const [assignForm, setAssignForm] = useState({
-    group: '',
-    assigned_from: new Date().toISOString().split('T')[0],
-    assigned_to: '',
-    is_primary: true,
-  });
-  const [assigning, setAssigning] = useState(false);
+  const [coaches, setCoaches] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState('');
 
-  // Coach Profile & Workload Modal
-  const [viewCoach, setViewCoach] = useState(null);
-  const [coachSessions, setCoachSessions] = useState([]);
-  const [sessionsLoading, setSessionsLoading] = useState(false);
+  // Add Coach Modal State
+  const [isAddCoachModalOpen, setIsAddCoachModalOpen] = useState(false);
+  const [addCoachForm, setAddCoachForm] = useState({
+    first_name: '',
+    last_name: '',
+    phone: '',
+    national_id: '',
+    password: '',
+    specialties: '',
+    bio: '',
+    employment_status: 'ACTIVE',
+    hourly_rate: '',
+  });
+  const [addingCoach, setAddingCoach] = useState(false);
 
   // Edit Status Modal
   const [statusCoach, setStatusCoach] = useState(null);
   const [newStatus, setNewStatus] = useState('ACTIVE');
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
-  const fetchCoachesAndGroups = async () => {
+  const fetchCoaches = async () => {
     try {
       setLoading(true);
       const params = {};
       if (statusFilter) params.status = statusFilter;
 
-      const [coachesRes, groupsRes] = await Promise.all([
-        api.get('/coaches/', { params }),
-        api.get('/education/groups/'),
-      ]);
-
+      const coachesRes = await api.get('/coaches/', { params });
       setCoaches(coachesRes.data.results || coachesRes.data);
-      setGroups(groupsRes.data.results || groupsRes.data);
     } catch (err) {
       console.error(err);
       toast.error('خطا در دریافت اطلاعات مربیان');
@@ -63,56 +60,44 @@ export const AdminCoachesPage = () => {
   };
 
   useEffect(() => {
-    fetchCoachesAndGroups();
+    fetchCoaches();
   }, [statusFilter]);
 
-  // Open Coach Schedule & Workload
-  const handleOpenCoachSchedule = async (coach) => {
-    setViewCoach(coach);
-    setSessionsLoading(true);
-    try {
-      const res = await api.get(`/scheduling/sessions/?coach_id=${coach.id}`);
-      setCoachSessions(res.data.results || res.data);
-    } catch (err) {
-      console.error(err);
-      toast.error('خطا در دریافت برنامه کلاسی مربی');
-    } finally {
-      setSessionsLoading(false);
-    }
-  };
-
-  // Submit Coach Assignment to Group
-  const handleAssignSubmit = async (e) => {
+  // Handle Add Coach Submit
+  const handleAddCoachSubmit = async (e) => {
     e.preventDefault();
-    if (!selectedCoach || !assignForm.group) {
-      toast.error('لطفاً گروه آموزشی را انتخاب کنید.');
+    if (!addCoachForm.first_name || !addCoachForm.last_name || !addCoachForm.phone) {
+      toast.error('لطفاً نام، نام خانوادگی و شماره همراه مربی را وارد کنید.');
       return;
     }
 
     try {
-      setAssigning(true);
-      await api.post('/education/group-coaches/', {
-        coach: selectedCoach.id,
-        group: Number(assignForm.group),
-        assigned_from: assignForm.assigned_from,
-        assigned_to: assignForm.assigned_to || null,
-        is_primary: assignForm.is_primary,
+      setAddingCoach(true);
+      await api.post('/coaches/', {
+        ...addCoachForm,
+        hourly_rate: Number(addCoachForm.hourly_rate || 0),
       });
 
-      toast.success(`مربی ${selectedCoach.full_name} با موفقیت به گروه تخصیص داده شد.`);
-      setAssignGroupModalOpen(false);
-      setSelectedCoach(null);
-      setAssignForm({
-        group: '',
-        assigned_from: new Date().toISOString().split('T')[0],
-        assigned_to: '',
-        is_primary: true,
+      toast.success(`مربی جدید "${addCoachForm.first_name} ${addCoachForm.last_name}" با موفقیت ثبت شد.`);
+      setIsAddCoachModalOpen(false);
+      setAddCoachForm({
+        first_name: '',
+        last_name: '',
+        phone: '',
+        national_id: '',
+        password: '',
+        specialties: '',
+        bio: '',
+        employment_status: 'ACTIVE',
+        hourly_rate: '',
       });
-      fetchCoachesAndGroups();
+      fetchCoaches();
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'خطا در تخصیص مربی به گروه');
+      console.error(err);
+      const msg = err.response?.data?.phone || err.response?.data?.detail || 'خطا در ثبت مربی جدید';
+      toast.error(typeof msg === 'string' ? msg : JSON.stringify(msg));
     } finally {
-      setAssigning(false);
+      setAddingCoach(false);
     }
   };
 
@@ -128,7 +113,7 @@ export const AdminCoachesPage = () => {
       });
       toast.success(`وضعیت همکاری مربی ${statusCoach.full_name} با موفقیت به‌روزرسانی شد.`);
       setStatusCoach(null);
-      fetchCoachesAndGroups();
+      fetchCoaches();
     } catch (err) {
       toast.error(err.response?.data?.detail || 'خطا در تغییر وضعیت همکاری مربی');
     } finally {
@@ -140,6 +125,7 @@ export const AdminCoachesPage = () => {
     const rows = coaches.map((c) => ({
       name: c.full_name,
       phone: c.phone,
+      national_id: c.national_id || '—',
       specialties: c.specialties || '—',
       status: c.employment_status === 'ACTIVE' ? 'فعال' : c.employment_status === 'SUSPENDED' ? 'معلق' : 'غیرفعال',
       hourly_rate: Number(c.hourly_rate || 0).toLocaleString('fa-IR'),
@@ -147,6 +133,7 @@ export const AdminCoachesPage = () => {
     exportToCsv('IranSwim_Coaches_List', rows, {
       name: 'نام و نام خانوادگی',
       phone: 'شماره همراه',
+      national_id: 'کد ملی',
       specialties: 'تخصص‌ها',
       status: 'وضعیت همکاری',
       hourly_rate: 'نرخ ساعتی (تومان)',
@@ -155,34 +142,60 @@ export const AdminCoachesPage = () => {
 
   const formatPrice = (v) => Number(v || 0).toLocaleString('fa-IR');
 
+  const statusFilterOptions = [
+    { value: '', label: 'تمام وضعیت‌های کاری' },
+    { value: 'ACTIVE', label: 'فعال و مجاز' },
+    { value: 'SUSPENDED', label: 'معلق' },
+    { value: 'INACTIVE', label: 'غیرفعال' },
+  ];
+
+  const statusEditOptions = [
+    { value: 'ACTIVE', label: 'فعال و مجاز (Active)' },
+    { value: 'SUSPENDED', label: 'معلق موقت (Suspended)' },
+    { value: 'INACTIVE', label: 'پایان همکاری / غیرفعال (Inactive)' },
+  ];
+
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4 transition-colors">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <UserCheck className="w-5 h-5 text-sky-600" />
             مدیریت کادر مربیان، تخصص‌ها و برنامه هفتگی
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            بررسی پرونده حرفه‌ای مربیان، تخصیص کلاس با کنترل تداخل و نظارت بر جلسات برگزارشده
+            بررسی پرونده حرفه‌ای مربیان، تخصیص کلاس با کنترل تداخل و نظارت بر جلسات کلاسی
           </p>
         </div>
-        <div className="flex items-center gap-2">
+
+        <div className="flex flex-wrap items-center gap-2.5">
+          {/* Add Coach Button */}
+          <Button
+            onClick={() => setIsAddCoachModalOpen(true)}
+            className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-500 text-white shadow-xs"
+          >
+            <Plus className="w-4 h-4" />
+            <span>افزودن مربی جدید</span>
+          </Button>
+
+          {/* Export to Excel */}
           <Button variant="outline" onClick={handleExportCsv} className="gap-1.5 text-xs">
             <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span>خروجی اکسل مربیان</span>
+            <span>خروجی اکسل</span>
           </Button>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
-          >
-            <option value="">تمام وضعیت‌های کاری</option>
-            <option value="ACTIVE">فعال و مجاز</option>
-            <option value="SUSPENDED">معلق</option>
-            <option value="INACTIVE">غیرفعال</option>
-          </select>
+
+          {/* Status Filter using CustomSelect */}
+          <div className="w-48">
+            <CustomSelect
+              value={statusFilter}
+              onChange={(val) => setStatusFilter(val)}
+              options={statusFilterOptions}
+              size="sm"
+              color="sky"
+              placeholder="فیلتر وضعیت..."
+            />
+          </div>
         </div>
       </div>
 
@@ -192,46 +205,56 @@ export const AdminCoachesPage = () => {
       ) : coaches.length === 0 ? (
         <EmptyState
           title="مربی‌ای یافت نشد"
-          description="با تغییر فیلترها، اطلاعات مربیان ثبت‌شده نمایش داده می‌شود."
+          description="با تغییر فیلترها یا افزودن مربی جدید، مربیان ثبت‌شده نمایش داده خواهند شد."
         />
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {coaches.map((coach) => (
             <div
               key={coach.id}
-              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between transition-colors"
+              onClick={() => navigate(`/admin/coaches/${coach.id}`)}
+              className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:border-sky-400/80 dark:hover:border-sky-500/80 hover:shadow-md transition-all flex flex-col justify-between cursor-pointer"
             >
               <div>
                 {/* Header Profile */}
                 <div className="flex items-start justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-3">
-                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
-                      {coach.full_name ? coach.full_name.charAt(0) : 'C'}
+                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-xs group-hover:scale-105 transition-transform overflow-hidden shrink-0">
+                      {coach.avatar ? (
+                        <img src={coach.avatar} alt={coach.full_name} className="w-full h-full object-cover" />
+                      ) : (
+                        coach.full_name ? coach.full_name.charAt(0) : 'C'
+                      )}
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-900 dark:text-white text-sm">
-                        {coach.full_name}
-                      </h3>
+                      <div className="flex items-center gap-1.5">
+                        <h3 className="font-bold text-slate-900 dark:text-white text-sm group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                          {coach.full_name}
+                        </h3>
+                      </div>
                       <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
                         {coach.phone}
                       </span>
                     </div>
                   </div>
-                  <Badge
-                    variant={
-                      coach.employment_status === 'ACTIVE'
-                        ? 'success'
+
+                  <div className="flex flex-col items-end gap-1">
+                    <Badge
+                      variant={
+                        coach.employment_status === 'ACTIVE'
+                          ? 'success'
+                          : coach.employment_status === 'SUSPENDED'
+                          ? 'warning'
+                          : 'neutral'
+                      }
+                    >
+                      {coach.employment_status === 'ACTIVE'
+                        ? 'فعال و مجاز'
                         : coach.employment_status === 'SUSPENDED'
-                        ? 'warning'
-                        : 'neutral'
-                    }
-                  >
-                    {coach.employment_status === 'ACTIVE'
-                      ? 'فعال و مجاز'
-                      : coach.employment_status === 'SUSPENDED'
-                      ? 'معلق'
-                      : 'غیرفعال'}
-                  </Badge>
+                        ? 'معلق'
+                        : 'غیرفعال'}
+                    </Badge>
+                  </div>
                 </div>
 
                 {/* Specialties & Bio */}
@@ -250,7 +273,7 @@ export const AdminCoachesPage = () => {
                     </div>
                   )}
 
-                  <div className="pt-2 flex items-center justify-between text-slate-500">
+                  <div className="pt-2 flex items-center justify-between text-slate-500 border-t border-slate-100 dark:border-slate-800/60">
                     <span>حق‌التدریس ساعتی:</span>
                     <span className="font-bold font-mono text-slate-800 dark:text-slate-200">
                       {formatPrice(coach.hourly_rate)} تومان
@@ -261,34 +284,43 @@ export const AdminCoachesPage = () => {
 
               {/* Action Buttons */}
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                {/* 1. Navigate to Coach Schedule Page (Day-by-hour table) */}
                 <button
                   type="button"
-                  onClick={() => handleOpenCoachSchedule(coach)}
-                  className="flex-1 py-1.5 px-2 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/60 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold border border-slate-200/60 dark:border-slate-700 transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/admin/coaches/${coach.id}/schedule`);
+                  }}
+                  className="flex-1 py-1.5 px-2 bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950/50 hover:text-sky-600 dark:hover:text-sky-300 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-semibold border border-slate-200/60 dark:border-slate-700 transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  title="مشاهده برنامه کلاسی هفتگی (روز در ساعت)"
                 >
                   <Calendar className="w-3.5 h-3.5 text-sky-600" />
                   <span>برنامه کلاسی</span>
                 </button>
 
+                {/* 2. Navigate to Group Assignment Page */}
                 <button
                   type="button"
-                  onClick={() => {
-                    setSelectedCoach(coach);
-                    setAssignGroupModalOpen(true);
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate(`/admin/coaches/${coach.id}/assign`);
                   }}
                   className="flex-1 py-1.5 px-2 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 text-sky-700 dark:text-sky-300 rounded-xl text-xs font-semibold border border-sky-200 dark:border-sky-800 transition-colors flex items-center justify-center gap-1 cursor-pointer"
+                  title="تخصیص گروه آموزشی به این مربی"
                 >
                   <BookOpen className="w-3.5 h-3.5" />
                   <span>تخصیص گروه</span>
                 </button>
 
+                {/* 3. Quick Status Toggle */}
                 <button
                   type="button"
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     setStatusCoach(coach);
                     setNewStatus(coach.employment_status);
                   }}
-                  className="p-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-500 rounded-xl border border-slate-200/60 dark:border-slate-700 transition-colors cursor-pointer"
+                  className="p-1.5 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 rounded-xl border border-slate-200/60 dark:border-slate-700 transition-colors cursor-pointer"
                   title="تغییر وضعیت همکاری"
                 >
                   <Edit className="w-3.5 h-3.5" />
@@ -299,155 +331,177 @@ export const AdminCoachesPage = () => {
         </div>
       )}
 
-      {/* 1. Modal: Assign Coach to SwimmerGroup */}
+      {/* Modal: Add New Coach */}
       <Modal
-        isOpen={assignGroupModalOpen}
-        onClose={() => setAssignGroupModalOpen(false)}
-        title={`تخصیص مربی به گروه آموزشی: ${selectedCoach?.full_name}`}
+        isOpen={isAddCoachModalOpen}
+        onClose={() => setIsAddCoachModalOpen(false)}
+        title="افزودن مربی جدید به کادر آموزشی"
       >
-        <form onSubmit={handleAssignSubmit} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              انتخاب گروه آموزشی *
-            </label>
-            <select
-              required
-              value={assignForm.group}
-              onChange={(e) => setAssignForm({ ...assignForm, group: e.target.value })}
-              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-            >
-              <option value="">انتخاب کنید...</option>
-              {groups.map((grp) => (
-                <option key={grp.id} value={grp.id}>
-                  {grp.course_name} - {grp.name} ({grp.level_name}) - {grp.pool_location}
-                </option>
-              ))}
-            </select>
+        <form onSubmit={handleAddCoachSubmit} className="space-y-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                نام *
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="مثلاً علی"
+                value={addCoachForm.first_name}
+                onChange={(e) => setAddCoachForm({ ...addCoachForm, first_name: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                نام خانوادگی *
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="مثلاً رحمانی"
+                value={addCoachForm.last_name}
+                onChange={(e) => setAddCoachForm({ ...addCoachForm, last_name: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <PersianDatePicker
-                label="تاریخ شروع تخصیص *"
-                value={assignForm.assigned_from}
-                onChange={(jalaliStr, gDate, gIso) =>
-                  setAssignForm({ ...assignForm, assigned_from: gIso || jalaliStr })
-                }
-                placeholder="انتخاب تاریخ شروع..."
-                clearable={false}
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                شماره همراه (شناسه ورود) *
+              </label>
+              <input
+                type="text"
+                required
+                placeholder="0912..."
+                value={addCoachForm.phone}
+                onChange={(e) => setAddCoachForm({ ...addCoachForm, phone: e.target.value })}
+                className="w-full px-3 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
               />
             </div>
             <div>
-              <PersianDatePicker
-                label="تاریخ پایان تخصیص (اختیاری)"
-                value={assignForm.assigned_to}
-                onChange={(jalaliStr, gDate, gIso) =>
-                  setAssignForm({ ...assignForm, assigned_to: gIso || '' })
-                }
-                placeholder="انتخاب تاریخ پایان..."
-                clearable
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                کد ملی
+              </label>
+              <input
+                type="text"
+                placeholder="۱۰ رقمی"
+                value={addCoachForm.national_id}
+                onChange={(e) => setAddCoachForm({ ...addCoachForm, national_id: e.target.value })}
+                className="w-full px-3 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-2 pt-1">
-            <input
-              type="checkbox"
-              id="is_primary"
-              checked={assignForm.is_primary}
-              onChange={(e) => setAssignForm({ ...assignForm, is_primary: e.target.checked })}
-              className="rounded text-sky-600 focus:ring-sky-500"
-            />
-            <label htmlFor="is_primary" className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-              این مربی، مربی اصلی این گروه باشد (در غیر این صورت مربی کمکی/جایگزین)
-            </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                کلمه عبور ورود (اختیاری)
+              </label>
+              <input
+                type="password"
+                placeholder="پیش‌فرض: کد ملی یا شماره همراه"
+                value={addCoachForm.password}
+                onChange={(e) => setAddCoachForm({ ...addCoachForm, password: e.target.value })}
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                حق‌التدریس ساعتی (تومان)
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="10000"
+                placeholder="مثلاً 250000"
+                value={addCoachForm.hourly_rate}
+                onChange={(e) => setAddCoachForm({ ...addCoachForm, hourly_rate: e.target.value })}
+                className="w-full px-3 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
           </div>
 
-          <div className="p-3 bg-amber-50 dark:bg-amber-950/40 rounded-xl border border-amber-200 dark:border-amber-900 text-xs text-amber-800 dark:text-amber-300">
-            سیستم به صورت خودکار تداخل زمانی جلسات این گروه با سایر کلاس‌های همزمان این مربی را کنترل خواهد کرد.
+          <div>
+            <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              وضعیت شروع همکاری
+            </label>
+            <CustomSelect
+              value={addCoachForm.employment_status}
+              onChange={(val) => setAddCoachForm({ ...addCoachForm, employment_status: val })}
+              options={statusEditOptions}
+              color="sky"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              تخصص‌های آموزشی مربیگری
+            </label>
+            <input
+              type="text"
+              placeholder="مثلاً: کرال سینه، شنای قورباغه، نجات‌غریق، کودکان و نوجوانان"
+              value={addCoachForm.specialties}
+              onChange={(e) => setAddCoachForm({ ...addCoachForm, specialties: e.target.value })}
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+            />
+          </div>
+
+          <div>
+            <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              رزومه، بیوگرافی و مدارک فدراسیون
+            </label>
+            <textarea
+              rows={3}
+              placeholder="سوابق تدریس، رتبه‌های ورزشی و مدارک بین‌المللی یا ملی مربی..."
+              value={addCoachForm.bio}
+              onChange={(e) => setAddCoachForm({ ...addCoachForm, bio: e.target.value })}
+              className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500 leading-relaxed"
+            />
           </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <Button type="button" variant="outline" onClick={() => setAssignGroupModalOpen(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsAddCoachModalOpen(false)}
+            >
               انصراف
             </Button>
-            <Button type="submit" disabled={assigning}>
-              {assigning ? 'در حال تخصیص...' : 'تأیید تخصیص'}
+            <Button
+              type="submit"
+              disabled={addingCoach}
+              className="bg-sky-600 hover:bg-sky-500 text-white"
+            >
+              {addingCoach ? 'در حال ثبت...' : 'ثبت مربی جدید'}
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* 2. Modal: Coach Workload & Sessions Schedule */}
-      <Modal
-        isOpen={!!viewCoach}
-        onClose={() => setViewCoach(null)}
-        title={`برنامه کلاسی و جلسات مربی: ${viewCoach?.full_name}`}
-      >
-        <div className="space-y-4">
-          {sessionsLoading ? (
-            <LoadingState type="inline" message="در حال بارگذاری جلسات مربی..." />
-          ) : coachSessions.length === 0 ? (
-            <div className="text-center py-8 text-xs text-slate-400">
-              جلسه کلاسی برای این مربی در تقویم آموزشی یافت نشد.
-            </div>
-          ) : (
-            <div className="space-y-2 max-h-80 overflow-y-auto">
-              {coachSessions.map((s) => (
-                <div
-                  key={s.id}
-                  className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700 flex items-center justify-between text-xs"
-                >
-                  <div>
-                    <span className="font-bold text-slate-800 dark:text-slate-100 block">
-                      {s.group_name}
-                    </span>
-                    <span className="text-[11px] text-slate-400 font-mono">
-                      {new Date(s.session_date).toLocaleDateString('fa-IR')} | ساعت {s.start_time?.slice(0, 5)} تا {s.end_time?.slice(0, 5)}
-                    </span>
-                  </div>
-                  <div className="text-left">
-                    <Badge variant={s.status === 'COMPLETED' ? 'success' : s.status === 'CANCELLED' ? 'danger' : 'info'}>
-                      {s.status_display}
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          <div className="flex justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
-            <Button variant="outline" onClick={() => setViewCoach(null)}>
-              بستن
-            </Button>
-          </div>
-        </div>
-      </Modal>
-
-      {/* 3. Modal: Change Employment Status */}
+      {/* Modal: Change Employment Status */}
       <Modal
         isOpen={!!statusCoach}
         onClose={() => setStatusCoach(null)}
         title={`تغییر وضعیت همکاری: ${statusCoach?.full_name}`}
       >
-        <form onSubmit={handleUpdateStatus} className="space-y-4">
+        <form onSubmit={handleUpdateStatus} className="space-y-4 text-xs">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
               وضعیت همکاری جدید
             </label>
-            <select
+            <CustomSelect
               value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-            >
-              <option value="ACTIVE">فعال و مجاز (Active)</option>
-              <option value="SUSPENDED">معلق موقت (Suspended)</option>
-              <option value="INACTIVE">پایان همکاری / غیرفعال (Inactive)</option>
-            </select>
+              onChange={(val) => setNewStatus(val)}
+              options={statusEditOptions}
+              color="sky"
+            />
           </div>
 
-          <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl text-xs text-slate-600 dark:text-slate-300">
-            نکته معماری: تغییر وضعیت همکاری، سوابق تدریس، گروه‌های قبلی و کارنامه ثبت‌شده توسط مربی را حذف نخواهد کرد.
+          <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl text-slate-600 dark:text-slate-300 text-[11px] leading-relaxed">
+            تغییر وضعیت همکاری به معلق یا غیرفعال، سوابق قبلی، دوره‌های گذرانده‌شده و کلاس‌های ثبت‌شده توسط مربی را پاک نخواهد کرد.
           </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">

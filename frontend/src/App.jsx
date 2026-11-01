@@ -21,6 +21,9 @@ import { AdminSwimmersPage } from './pages/admin/AdminSwimmersPage';
 import { AdminSwimmerDetailPage } from './pages/admin/AdminSwimmerDetailPage';
 import { AdminDirectEnrollPage } from './pages/admin/AdminDirectEnrollPage';
 import { AdminCoachesPage } from './pages/admin/AdminCoachesPage';
+import { AdminCoachDetailPage } from './pages/admin/AdminCoachDetailPage';
+import { AdminCoachSchedulePage } from './pages/admin/AdminCoachSchedulePage';
+import { AdminCoachAssignGroupPage } from './pages/admin/AdminCoachAssignGroupPage';
 import { AdminCoursesPage } from './pages/admin/AdminCoursesPage';
 import { AdminCreateCoursePage } from './pages/admin/AdminCreateCoursePage';
 import { AdminAttendancePage } from './pages/admin/AdminAttendancePage';
@@ -152,6 +155,10 @@ export default function App() {
                 <Route path="swimmers/:id/enroll" element={<AdminDirectEnrollPage />} />
                 <Route path="swimmers/enroll" element={<AdminDirectEnrollPage />} />
                 <Route path="coaches" element={<AdminCoachesPage />} />
+                <Route path="coaches/:id" element={<AdminCoachDetailPage />} />
+                <Route path="coaches/:id/schedule" element={<AdminCoachSchedulePage />} />
+                <Route path="coaches/:id/assign" element={<AdminCoachAssignGroupPage />} />
+                <Route path="coaches/:id/assign-group" element={<AdminCoachAssignGroupPage />} />
                 <Route path="courses" element={<AdminCoursesPage />} />
                 <Route path="courses/new" element={<AdminCreateCoursePage />} />
                 <Route path="attendance" element={<AdminAttendancePage />} />

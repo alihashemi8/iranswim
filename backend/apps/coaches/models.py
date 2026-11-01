@@ -9,11 +9,32 @@ class CoachProfile(models.Model):
         SUSPENDED = 'SUSPENDED', _('معلق')
         INACTIVE = 'INACTIVE', _('غیرفعال')
 
+    class Gender(models.TextChoices):
+        MALE = 'MALE', _('آقا / مرد')
+        FEMALE = 'FEMALE', _('خانم / زن')
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='coach_profile',
         verbose_name=_('حساب کاربری مربی')
+    )
+    gender = models.CharField(
+        _('جنسیت مربی'),
+        max_length=10,
+        choices=Gender.choices,
+        default=Gender.MALE,
+        db_index=True
+    )
+    display_order = models.PositiveIntegerField(
+        _('ترتیب نمایش در سایت'),
+        default=0,
+        db_index=True
+    )
+    show_on_landing = models.BooleanField(
+        _('نمایش در صفحه لندینگ'),
+        default=True,
+        db_index=True
     )
     specialties = models.CharField(_('تخصص‌ها (کرال سینه، پروانه و...)'), max_length=255, blank=True)
     bio = models.TextField(_('رزومه و بیوگرافی'), blank=True)
@@ -31,7 +52,7 @@ class CoachProfile(models.Model):
     class Meta:
         verbose_name = _('پروفایل مربی')
         verbose_name_plural = _('مربیان')
-        ordering = ['user__last_name', 'user__first_name']
+        ordering = ['display_order', 'user__last_name', 'user__first_name']
 
     def __str__(self):
         return f"مربی {self.user.get_full_name() or self.user.phone}"
