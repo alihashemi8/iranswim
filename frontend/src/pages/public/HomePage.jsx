@@ -30,8 +30,7 @@ import { LoadingState } from '../../components/common/LoadingState';
 import { useAuth } from '../../context/AuthContext';
 import { AquaticPoolBackground } from '../../components/landing/AquaticPoolBackground';
 import { AquaticWaveDivider } from '../../components/landing/AquaticWaveDivider';
-import { FloatingAquaticHeroIcons } from '../../components/landing/FloatingAquaticHeroIcons';
-import { FloatingAquaticSectionIcons } from '../../components/landing/FloatingAquaticSectionIcons';
+import { FloatingLandingWaterIcons } from '../../components/landing/FloatingLandingWaterIcons';
 import { CoachProfileCard } from '../../components/common/CoachProfileCard';
 import './HomePage.css';
 
@@ -540,9 +539,6 @@ export const HomePage = () => {
             SECTION 1: CINEMATIC AQUATIC HERO & WATER ENTRY ARENA
             ========================================================================= */}
         <section className="landing-hero relative w-full pt-8 sm:pt-14 lg:pt-18 pb-12 sm:pb-16 min-w-0">
-          {/* Scattered Floating Aquatic Swimming Icons (excluding the mascot photo area) */}
-          <FloatingAquaticHeroIcons />
-
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
             <div className="landing-hero__panel relative w-full">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
@@ -643,7 +639,7 @@ export const HomePage = () => {
           SECTION 2: REAL CORE BENEFITS
           ========================================================================= */}
       <section id="about" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
-        <FloatingAquaticSectionIcons section="about" />
+        <FloatingLandingWaterIcons section="about" />
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-6 relative z-10">
           <div className="text-center max-w-2xl mx-auto space-y-3">
             <Badge variant="info">ویژگی‌های کلاس‌های ما</Badge>

@@ -2,13 +2,17 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LogIn, Menu, X,
-  Users2, Award, Building2, Newspaper, PhoneCall, ChevronLeft, BookOpen
+  Users2, Award, Building2, Newspaper, PhoneCall, ChevronLeft, BookOpen,
+  Sun, Moon
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
+import { NotificationDropdown } from './NotificationDropdown';
 import { ChildSwitcher } from './ChildSwitcher';
 
 export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
@@ -192,7 +196,27 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
 
           {/* User Account Controls (Left side in RTL) */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-nowrap">
-            {!isFullWidth && (
+            {isFullWidth ? (
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                {/* Messages Popover */}
+                <NotificationDropdown />
+
+                {/* Dark / Light Mode Toggle */}
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-slate-500 hover:text-amber-500 dark:text-slate-300 dark:hover:text-amber-400 bg-white dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-xl transition-colors border border-slate-200/80 dark:border-slate-700/80 shadow-2xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40"
+                  aria-label={theme === 'dark' ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
+                  title={theme === 'dark' ? 'حالت روز (روشن)' : 'حالت شب (تاریک)'}
+                >
+                  {theme === 'dark' ? (
+                    <Sun className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-amber-400 transition-transform hover:rotate-45" />
+                  ) : (
+                    <Moon className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-300 transition-transform hover:-rotate-12" />
+                  )}
+                </button>
+              </div>
+            ) : (
               <>
                 {/* Divider */}
                 <div className="h-5 w-px bg-slate-200 hidden sm:block shrink-0" />

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Bell, Check, CheckCheck, UserPlus, CreditCard,
-  Calendar, Pin, AlertCircle, RefreshCw, Loader2, ArrowLeft, LogIn
+  Check, CheckCheck, UserPlus, CreditCard,
+  Calendar, Pin, AlertCircle, RefreshCw, Loader2, ArrowLeft, LogIn,
+  MessageSquare
 } from 'lucide-react';
 import api from '../../api/client';
 import { formatPersianDate } from '../../utils/date';
@@ -190,20 +191,20 @@ export const NotificationDropdown = () => {
 
   return (
     <div className="relative inline-block" ref={containerRef} dir="rtl">
-      {/* Bell Trigger Button */}
+      {/* Messages Trigger Button */}
       <button
         type="button"
         onClick={toggleOpen}
-        className="relative w-9 h-9 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-sky-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors border border-slate-200/80 dark:border-slate-700/80 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40"
-        title="اعلان‌ها"
-        aria-label="مشاهده اعلان‌ها"
+        className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-slate-500 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 bg-white dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-xl transition-colors border border-slate-200/80 dark:border-slate-700/80 shadow-2xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40"
+        title="پیام‌ها"
+        aria-label="مشاهده پیام‌ها"
         aria-expanded={isOpen}
       >
-        <Bell className="w-6 h-6" />
+        <MessageSquare className="w-4.5 h-4.5 sm:w-5 sm:h-5" />
 
         {/* Unread Badge (hidden when count === 0) */}
         {unreadCount > 0 && (
-          <span className="absolute -top-1.5 -left-1.5 min-w-4.5 h-4.5 px-1 flex items-center justify-center text-[10px] font-bold font-mono text-white bg-rose-500 rounded-full shadow-xs ring-2 ring-white dark:ring-slate-900 animate-fade-in">
+          <span className="absolute -top-1 -left-1 min-w-4.5 h-4.5 px-1 flex items-center justify-center text-[10px] font-bold font-mono text-white bg-rose-500 rounded-full shadow-xs ring-2 ring-white dark:ring-slate-900 animate-fade-in">
             {unreadCount > 99 ? '99+' : unreadCount.toLocaleString('fa-IR')}
           </span>
         )}
@@ -220,14 +221,14 @@ export const NotificationDropdown = () => {
 
           <div
             role="dialog"
-            aria-label="جعبه اعلان‌ها"
+            aria-label="جعبه پیام‌ها"
             className="fixed sm:absolute top-[4.25rem] sm:top-full mt-0 sm:mt-2 left-3 sm:left-0 right-auto w-[calc(100vw-1.5rem)] max-w-xs sm:max-w-sm sm:w-96 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-xl z-50 flex flex-col max-h-[22rem] sm:max-h-[26rem] overflow-hidden animate-fade-in"
           >
             {/* Panel Header */}
             <div className="flex items-center justify-between px-3.5 py-2.5 sm:px-4 sm:py-3 border-b border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0">
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm text-slate-900 dark:text-white">
-                  اعلان‌ها
+                  پیام‌ها و اعلان‌ها
                 </span>
                 {unreadCount > 0 && (
                   <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300">
@@ -258,7 +259,7 @@ export const NotificationDropdown = () => {
                   onClick={() => fetchNotifications(true)}
                   disabled={loading}
                   className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-                  title="به‌روزرسانی اعلان‌ها"
+                  title="به‌روزرسانی پیام‌ها"
                 >
                   <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
                 </button>
@@ -270,7 +271,7 @@ export const NotificationDropdown = () => {
               {loading && notifications.length === 0 ? (
                 <div className="py-10 flex flex-col items-center justify-center text-slate-400 gap-2">
                   <Loader2 className="w-6 h-6 animate-spin text-sky-600" />
-                  <span className="text-xs">در حال بارگذاری اعلان‌ها...</span>
+                  <span className="text-xs">در حال بارگذاری پیام‌ها...</span>
                 </div>
               ) : error ? (
                 <div className="py-8 px-4 text-center space-y-3">
@@ -305,13 +306,13 @@ export const NotificationDropdown = () => {
               ) : notifications.length === 0 ? (
                 <div className="py-10 px-4 text-center space-y-2">
                   <div className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800/60 text-slate-400 flex items-center justify-center mx-auto">
-                    <Bell className="w-5 h-5" />
+                    <MessageSquare className="w-5 h-5" />
                   </div>
                   <p className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                    اعلانی برای نمایش وجود ندارد
+                    پیامی برای نمایش وجود ندارد
                   </p>
                   <p className="text-[11px] text-slate-400">
-                    رویدادها و گزارش‌های جدید آموزشگاه در اینجا نمایش داده خواهند شد.
+                    پیام‌ها و اطلاعیه‌های جدید آموزشگاه در اینجا نمایش داده خواهند شد.
                   </p>
                 </div>
               ) : (
@@ -398,9 +399,11 @@ export const NotificationDropdown = () => {
                   if (user?.role === 'ADMIN' || user?.is_superuser) {
                     navigate('/admin/announcements');
                   } else if (user?.role === 'COACH') {
-                    navigate('/coach');
+                    navigate('/coach/messages');
+                  } else if (user?.role === 'SWIMMER') {
+                    navigate('/swimmer/announcements');
                   } else {
-                    navigate('/swimmer');
+                    navigate('/supervisor');
                   }
                 }}
                 className="w-full py-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/50 rounded-xl transition-colors cursor-pointer"

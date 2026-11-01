@@ -525,3 +525,37 @@ export const SwimWhistleIcon = ({ className = 'w-6 h-6', ...props }) => (
   </svg>
 );
 
+// 21. Course Specs & Syllabus Clipboard (سرفصل‌ها و مشخصات دوره آموزشی شنا)
+export const SwimCourseSpecsIcon = ({ className = 'w-6 h-6', ...props }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...props}
+  >
+    {/* Clipboard Body */}
+    <path d="M16 4h2a2 2 0 0 1 2 2v7.5M8 4H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7" />
+    {/* Top Clip / Clamp */}
+    <rect x="8" y="2" width="8" height="4" rx="1" />
+    <circle cx="12" cy="4" r="0.6" fill="currentColor" />
+    {/* Swimmer on Waves */}
+    <circle cx="16" cy="8.5" r="1.2" fill="currentColor" />
+    <path d="M9.5 9.5c1.2-1.6 3.2-1.4 4.8.2" />
+    <path d="M6.5 12c1.2-.8 2.6.8 3.8 0s2.6.8 3.8 0" />
+    {/* Syllabus / Checklist Items */}
+    <circle cx="7" cy="15.5" r="0.6" fill="currentColor" />
+    <line x1="9.5" y1="15.5" x2="13.5" y2="15.5" />
+    <circle cx="7" cy="18.5" r="0.6" fill="currentColor" />
+    <line x1="9.5" y1="18.5" x2="12" y2="18.5" />
+    {/* Info Badge (i) on bottom-right */}
+    <circle cx="18" cy="18" r="3.5" />
+    <circle cx="18" cy="16.5" r="0.45" fill="currentColor" />
+    <path d="M18 18v2" />
+  </svg>
+);
+
+

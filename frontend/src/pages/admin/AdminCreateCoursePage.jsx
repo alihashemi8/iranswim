@@ -6,7 +6,7 @@ import {
   Sparkles, DollarSign, Layers, Search, User, ChevronLeft, AlertCircle,
   Whistle
 } from 'lucide-react';
-import { SwimmerCrawlIcon } from '../../components/common/AquaticIcons';
+import { SwimCourseSpecsIcon } from '../../components/common/AquaticIcons';
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
@@ -15,7 +15,7 @@ import { PersianDatePicker, toJalaliString, formatJalaliReadable } from '../../c
 import { useToast } from '../../context/ToastContext';
 
 const STEPS = [
-  { id: 1, title: 'مشخصات عمومی و سرفصل‌ها', subtitle: 'عنوان، جنسیت، رده سنی و توضیحات', icon: SwimmerCrawlIcon },
+  { id: 1, title: 'مشخصات عمومی و سرفصل‌ها', subtitle: 'عنوان، جنسیت، رده سنی و توضیحات', icon: SwimCourseSpecsIcon },
   { id: 2, title: 'محل برگزاری و زمان‌بندی', subtitle: 'استخر، روزهای هفته و ساعات جلسات', icon: MapPin },
   { id: 3, title: 'کادر مربیان دوره آموزشی', subtitle: 'تعیین مربیان و تفکیک خودکار کلاس‌ها', icon: Whistle },
   { id: 4, title: 'امور مالی و شهریه ثبت‌نام', subtitle: 'شهریه هر شناگر و مرور نهایی دوره', icon: DollarSign },
@@ -333,7 +333,7 @@ export const AdminCreateCoursePage = () => {
           </Link>
           <div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <SwimmerCrawlIcon className="w-5 h-5 text-sky-600" />
+              <SwimCourseSpecsIcon className="w-5 h-5 text-sky-600" />
               تعریف دوره آموزشی جدید
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
@@ -437,7 +437,7 @@ export const AdminCreateCoursePage = () => {
           <div className="p-6 sm:p-8 space-y-5 animate-in fade-in-50 duration-200">
             <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2.5">
               <div className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-900/60 text-sky-600 dark:text-sky-400 flex items-center justify-center">
-                <SwimmerCrawlIcon className="w-4 h-4" />
+                <SwimCourseSpecsIcon className="w-4 h-4" />
               </div>
               <div>
                 <h2 className="text-base font-bold text-slate-900 dark:text-white">
