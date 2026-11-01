@@ -407,6 +407,7 @@ export const AdminAttendancePage = () => {
               }}
               placeholder="فیلتر تقویم..."
               clearable
+              align="left"
             />
           </div>
         </div>

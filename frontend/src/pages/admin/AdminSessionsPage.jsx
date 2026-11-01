@@ -92,6 +92,7 @@ export const AdminSessionsPage = () => {
             }}
             placeholder="فیلتر بر اساس تقویم..."
             clearable
+            align="left"
           />
         </div>
       </div>

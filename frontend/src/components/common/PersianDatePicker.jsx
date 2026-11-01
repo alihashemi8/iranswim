@@ -84,9 +84,11 @@ export const PersianDatePicker = ({
   minYear = 1320,
   maxYear = 1415,
   placement = 'auto', // 'auto' | 'top' | 'bottom'
+  align = 'auto', // 'auto' | 'left' | 'right'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
+  const [horizontalAlign, setHorizontalAlign] = useState(align === 'left' ? 'left' : 'right');
   const containerRef = useRef(null);
   const triggerRef = useRef(null);
   const dropdownRef = useRef(null);
@@ -165,50 +167,103 @@ export const PersianDatePicker = ({
     };
   }, [isOpen]);
 
-  // Calculate whether calendar dropdown should open upwards or downwards
+  // Calculate whether calendar dropdown should open upwards or downwards and align left/right
   const checkPlacement = () => {
-    if (placement === 'top') {
-      setOpenUpward(true);
-      return;
-    }
-    if (placement === 'bottom') {
-      setOpenUpward(false);
-      return;
-    }
-
     const triggerEl = triggerRef.current || containerRef.current;
     if (!triggerEl) return;
 
     const rect = triggerEl.getBoundingClientRect();
-    const dropdownHeight = dropdownRef.current?.offsetHeight || 375;
 
-    let spaceBelow = window.innerHeight - rect.bottom;
-    let spaceAbove = rect.top;
+    // 1. Vertical placement (top vs bottom)
+    if (placement === 'top') {
+      setOpenUpward(true);
+    } else if (placement === 'bottom') {
+      setOpenUpward(false);
+    } else {
+      const dropdownHeight = dropdownRef.current?.offsetHeight || 375;
+      let spaceBelow = window.innerHeight - rect.bottom;
+      let spaceAbove = rect.top;
 
-    // Check parent containers that might clip with overflow (hidden/auto/scroll)
-    let parent = triggerEl.parentElement;
-    while (parent && parent !== document.body && parent !== document.documentElement) {
-      const style = window.getComputedStyle(parent);
-      const overflowY = style.overflowY;
-      if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'hidden') {
-        const parentRect = parent.getBoundingClientRect();
-        const parentSpaceBelow = parentRect.bottom - rect.bottom;
-        const parentSpaceAbove = rect.top - parentRect.top;
-        if (parentSpaceBelow < spaceBelow) {
-          spaceBelow = parentSpaceBelow;
+      // Check parent containers that might clip with overflow (hidden/auto/scroll)
+      let parent = triggerEl.parentElement;
+      while (parent && parent !== document.body && parent !== document.documentElement) {
+        const style = window.getComputedStyle(parent);
+        const overflowY = style.overflowY;
+        if (overflowY === 'auto' || overflowY === 'scroll' || overflowY === 'hidden') {
+          const parentRect = parent.getBoundingClientRect();
+          const parentSpaceBelow = parentRect.bottom - rect.bottom;
+          const parentSpaceAbove = rect.top - parentRect.top;
+          if (parentSpaceBelow < spaceBelow) {
+            spaceBelow = parentSpaceBelow;
+          }
+          if (parentSpaceAbove < spaceAbove) {
+            spaceAbove = parentSpaceAbove;
+          }
         }
-        if (parentSpaceAbove < spaceAbove) {
-          spaceAbove = parentSpaceAbove;
-        }
+        parent = parent.parentElement;
       }
-      parent = parent.parentElement;
+
+      // Open upward if space below is insufficient and space above is larger
+      if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+        setOpenUpward(true);
+      } else {
+        setOpenUpward(false);
+      }
     }
 
-    // Open upward if space below is insufficient and space above is larger
-    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
-      setOpenUpward(true);
+    // 2. Horizontal alignment (right vs left)
+    if (align === 'left') {
+      setHorizontalAlign('left');
+    } else if (align === 'right') {
+      setHorizontalAlign('right');
     } else {
-      setOpenUpward(false);
+      // Auto alignment:
+      // Dropdown width: fallback to 320 on sm/desktop, 288 on small screens
+      const dropdownWidth = dropdownRef.current?.offsetWidth || (window.innerWidth >= 640 ? 320 : 288);
+
+      let minLeft = 16;
+      let maxRight = window.innerWidth - 16;
+
+      // Check parent containers that might clip with overflow (hidden/auto/scroll)
+      let parent = triggerEl.parentElement;
+      while (parent && parent !== document.body && parent !== document.documentElement) {
+        const style = window.getComputedStyle(parent);
+        const overflowX = style.overflowX;
+        if (overflowX === 'auto' || overflowX === 'scroll' || overflowX === 'hidden') {
+          const parentRect = parent.getBoundingClientRect();
+          if (parentRect.left + 8 > minLeft) {
+            minLeft = parentRect.left + 8;
+          }
+          if (parentRect.right - 8 < maxRight) {
+            maxRight = parentRect.right - 8;
+          }
+        }
+        parent = parent.parentElement;
+      }
+
+      // In RTL, default alignment is right-aligned to trigger (right: 0).
+      // Dropdown extends to the left from rect.right to (rect.right - dropdownWidth).
+      const wouldOverflowLeft = (rect.right - dropdownWidth) < minLeft;
+
+      // With left-aligned to trigger (left: 0).
+      // Dropdown extends to the right from rect.left to (rect.left + dropdownWidth).
+      const wouldOverflowRight = (rect.left + dropdownWidth) > maxRight;
+
+      if (wouldOverflowLeft && !wouldOverflowRight) {
+        // Fits when aligned to left, but overflows window/container on left if aligned to right
+        setHorizontalAlign('left');
+      } else if (wouldOverflowRight && !wouldOverflowLeft) {
+        // Fits when aligned to right, but overflows window/container on right if aligned to left
+        setHorizontalAlign('right');
+      } else if (wouldOverflowLeft && wouldOverflowRight) {
+        // Narrow screen: align to side with more available space
+        const spaceOnRight = maxRight - rect.left;
+        const spaceOnLeft = rect.right - minLeft;
+        setHorizontalAlign(spaceOnRight >= spaceOnLeft ? 'left' : 'right');
+      } else {
+        // Default to RTL right alignment
+        setHorizontalAlign('right');
+      }
     }
   };
 
@@ -229,7 +284,7 @@ export const PersianDatePicker = ({
       window.removeEventListener('resize', handleScrollOrResize);
       window.removeEventListener('scroll', handleScrollOrResize, true);
     };
-  }, [isOpen, pickerMode, placement]);
+  }, [isOpen, pickerMode, placement, align]);
 
   // Scroll active year into center view when opening year picker mode
   useEffect(() => {
@@ -387,10 +442,12 @@ export const PersianDatePicker = ({
             ref={dropdownRef}
             role="dialog"
             aria-label="تقویم شمسی"
-            className={`absolute z-50 right-0 w-72 sm:w-80 max-w-[calc(100vw-2rem)] p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 select-none ${
+            className={`absolute z-50 ${
+              horizontalAlign === 'left' ? 'left-0 right-auto' : 'right-0 left-auto'
+            } w-72 sm:w-80 max-w-[calc(100vw-2rem)] p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl animate-in fade-in zoom-in-95 duration-150 select-none ${
               openUpward
-                ? 'bottom-full mb-1.5 origin-bottom'
-                : 'top-full mt-1.5 origin-top'
+                ? `bottom-full mb-1.5 ${horizontalAlign === 'left' ? 'origin-bottom-left' : 'origin-bottom-right'}`
+                : `top-full mt-1.5 ${horizontalAlign === 'left' ? 'origin-top-left' : 'origin-top-right'}`
             }`}
           >
           {/* Header: Month & Year navigation */}
