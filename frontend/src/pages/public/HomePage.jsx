@@ -1038,7 +1038,7 @@ export const HomePage = () => {
           SECTION 6: NEWS, ARTICLES & EVENTS
           ========================================================================= */}
       <section id="news" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
-        <FloatingAquaticSectionIcons section="news" />
+        <FloatingLandingWaterIcons section="news" />
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
             <div className="space-y-1.5">
@@ -1118,8 +1118,9 @@ export const HomePage = () => {
       {/* =========================================================================
           SECTION 7: FINAL REGISTRATION CALL TO ACTION
           ========================================================================= */}
-      <section className="landing-cta w-full py-14 sm:py-20 lg:py-24 min-w-0">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="landing-cta relative w-full py-14 sm:py-20 lg:py-24 min-w-0">
+        <FloatingLandingWaterIcons section="cta" />
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="landing-cta__panel relative w-full text-center space-y-6 py-8 sm:py-12 px-4 sm:px-8">
             <div className="relative max-w-3xl mx-auto space-y-5">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-white/90 rounded-full text-xs sm:text-sm font-bold text-cyan-900 border border-cyan-300/60 shadow-xs">
