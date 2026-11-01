@@ -11,6 +11,7 @@ import { useToast } from '../../context/ToastContext';
 import { Button } from '../../components/common/Button';
 import { LoadingState } from '../../components/common/LoadingState';
 import { MapLocationPicker } from '../../components/common/MapLocationPicker';
+import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 
 export const SwimmerCompleteProfilePage = () => {
   const { user, updateUserData } = useAuth();
@@ -448,19 +449,19 @@ export const SwimmerCompleteProfilePage = () => {
               </div>
 
               <div>
-                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-                  تاریخ تولد <span className="text-rose-500 font-bold">*</span>
-                </label>
-                <div className="relative">
-                  <Calendar className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
-                  <input
-                    type="date"
-                    required
-                    value={dateOfBirth}
-                    onChange={(e) => setDateOfBirth(e.target.value)}
-                    className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 font-mono font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
-                  />
-                </div>
+                <PersianDatePicker
+                  label="تاریخ تولد *"
+                  size="md"
+                  labelClassName="text-sm font-bold block mb-1.5"
+                  value={dateOfBirth}
+                  onChange={(jalaliStr, gDate, gIso) => {
+                    setDateOfBirth(gIso || '');
+                  }}
+                  placeholder="انتخاب تاریخ تولد..."
+                  minYear={1320}
+                  maxYear={1415}
+                  clearable={false}
+                />
               </div>
 
               <div>

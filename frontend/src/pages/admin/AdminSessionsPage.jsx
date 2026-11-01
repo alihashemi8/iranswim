@@ -7,11 +7,13 @@ import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Pagination } from '../../components/common/Pagination';
+import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { useToast } from '../../context/ToastContext';
 
 export const AdminSessionsPage = () => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [dateFilter, setDateFilter] = useState('');
   const [cancellingSession, setCancellingSession] = useState(null);
   const [reason, setReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -22,7 +24,9 @@ export const AdminSessionsPage = () => {
   const fetchSessions = async () => {
     try {
       setLoading(true);
-      const res = await api.get('/scheduling/sessions/');
+      const params = {};
+      if (dateFilter) params.date = dateFilter;
+      const res = await api.get('/scheduling/sessions/', { params });
       setSessions(res.data.results || res.data);
     } catch (err) {
       console.error(err);
@@ -34,7 +38,7 @@ export const AdminSessionsPage = () => {
 
   useEffect(() => {
     fetchSessions();
-  }, []);
+  }, [dateFilter]);
 
   const handleCancelSession = async () => {
     if (!cancellingSession) return;
@@ -78,6 +82,17 @@ export const AdminSessionsPage = () => {
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
             مشاهده زمان‌بندی روزانه، محل استخر، مربیان و مدیریت کنسلی و جبرانی جلسات
           </p>
+        </div>
+        <div className="w-full sm:w-60">
+          <PersianDatePicker
+            value={dateFilter}
+            onChange={(jalaliStr, gDate, gIso) => {
+              setDateFilter(gIso || '');
+              setCurrentPage(1);
+            }}
+            placeholder="فیلتر بر اساس تقویم..."
+            clearable
+          />
         </div>
       </div>
 

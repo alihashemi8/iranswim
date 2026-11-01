@@ -187,26 +187,26 @@ export const AdminEnrollmentsPage = () => {
           <button
             type="button"
             onClick={() => setActiveTab('ENROLLMENTS')}
-            className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap shrink-0 ${
               activeTab === 'ENROLLMENTS'
                 ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
             }`}
           >
-            <UserCheck className="w-4 h-4" />
-            <span>ثبت‌نام‌های دوره‌ها ({enrollments.length})</span>
+            <UserCheck className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap">ثبت‌نام‌های دوره‌ها ({enrollments.length})</span>
           </button>
           <button
             type="button"
             onClick={() => setActiveTab('REQUESTS')}
-            className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+            className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap shrink-0 ${
               activeTab === 'REQUESTS'
                 ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
             }`}
           >
-            <Clock className="w-4 h-4" />
-            <span>درخواست‌های آنلاین ({requests.filter((r) => r.status === 'PENDING').length})</span>
+            <Clock className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap">درخواست‌های آنلاین ({requests.filter((r) => r.status === 'PENDING').length})</span>
           </button>
         </div>
       </div>
@@ -248,28 +248,28 @@ export const AdminEnrollmentsPage = () => {
               <button
                 type="button"
                 onClick={() => setViewMode('cards')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
                   viewMode === 'cards'
                     ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs font-bold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                 }`}
-                title="نمای کارتی (عکس شناگر راست بالا، عکس مربی چپ پایین)"
+                title="نمای کارتی"
               >
-                <LayoutGrid className="w-4 h-4" />
-                <span>کارت‌ها</span>
+                <LayoutGrid className="w-4 h-4 shrink-0" />
+                <span className="whitespace-nowrap">کارت‌ها</span>
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode('table')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
                   viewMode === 'table'
                     ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs font-bold'
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                 }`}
                 title="نمای جدولی"
               >
-                <List className="w-4 h-4" />
-                <span>جدول</span>
+                <List className="w-4 h-4 shrink-0" />
+                <span className="whitespace-nowrap">جدول</span>
               </button>
             </div>
           </div>
@@ -284,7 +284,7 @@ export const AdminEnrollmentsPage = () => {
             />
           ) : viewMode === 'cards' ? (
             /* CARDS VIEW: Swimmer Avatar TOP-RIGHT, Coach Avatar BOTTOM-LEFT */
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
               {paginatedEnrollments.map((enr) => (
                 <SwimmerCourseCard
                   key={enr.id}
@@ -421,11 +421,11 @@ export const AdminEnrollmentsPage = () => {
                           <button
                             type="button"
                             onClick={() => navigate(`/admin/swimmers/${enr.swimmer}`)}
-                            className="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-sky-950/60 hover:text-sky-600 font-semibold text-xs transition-colors inline-flex items-center gap-1 cursor-pointer"
+                            className="px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-sky-50 dark:hover:bg-sky-950/60 hover:text-sky-600 font-semibold text-xs transition-colors inline-flex items-center gap-1 cursor-pointer whitespace-nowrap shrink-0"
                             title="مشاهده پرونده جامع"
                           >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>پرونده</span>
+                            <Eye className="w-3.5 h-3.5 shrink-0" />
+                            <span className="whitespace-nowrap">پرونده</span>
                           </button>
                         </td>
                       </tr>
@@ -510,12 +510,12 @@ export const AdminEnrollmentsPage = () => {
                               <button
                                 type="button"
                                 onClick={() => setSelectedReq(req)}
-                                className="px-3 py-1.5 bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 font-semibold text-xs rounded-xl border border-sky-200 dark:border-sky-800 transition-colors shadow-2xs cursor-pointer"
+                                className="px-3 py-1.5 bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 font-semibold text-xs rounded-xl border border-sky-200 dark:border-sky-800 transition-colors shadow-2xs cursor-pointer whitespace-nowrap shrink-0"
                               >
                                 بررسی و تصمیم
                               </button>
                             ) : (
-                              <span className="text-xs text-slate-400 dark:text-slate-500 italic">بررسی‌شده</span>
+                              <span className="text-xs text-slate-400 dark:text-slate-500 italic whitespace-nowrap">بررسی‌شده</span>
                             )}
                           </td>
                         </tr>

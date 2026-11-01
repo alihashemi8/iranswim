@@ -67,7 +67,7 @@ export const CoachSelectorDropdown = ({
           type="button"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
-          className={`group flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 hover:bg-sky-50/80 dark:hover:bg-sky-950/50 border border-slate-200/90 dark:border-slate-700/80 hover:border-sky-300 dark:hover:border-sky-600 transition-all cursor-pointer text-right shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed ${
+          className={`group inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 hover:bg-sky-50/80 dark:hover:bg-sky-950/50 border border-slate-200/90 dark:border-slate-700/80 hover:border-sky-300 dark:hover:border-sky-600 transition-all cursor-pointer text-right shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shrink-0 ${
             size === 'sm' ? 'text-[11px] py-1 px-2' : ''
           }`}
           title="کلیک برای تغییر مربی شناگر"
@@ -88,11 +88,11 @@ export const CoachSelectorDropdown = ({
             <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 border border-white dark:border-slate-900 rounded-full" />
           </div>
 
-          <div className="flex flex-col text-right min-w-[70px]">
-            <span className="text-[10px] text-slate-400 dark:text-slate-400 font-medium leading-none">
+          <div className="flex items-center gap-1 text-right min-w-0">
+            <span className="text-[10px] text-slate-400 dark:text-slate-400 font-medium whitespace-nowrap">
               مربی:
             </span>
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors mt-0.5 truncate max-w-[120px]">
+            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate max-w-[100px] whitespace-nowrap">
               {currentCoach.full_name}
             </span>
           </div>
@@ -110,13 +110,13 @@ export const CoachSelectorDropdown = ({
           type="button"
           onClick={() => !disabled && setIsOpen(!isOpen)}
           disabled={disabled}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50/90 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-dashed border-amber-300 dark:border-amber-700/60 font-bold text-xs transition-colors cursor-pointer shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed ${
+          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50/90 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-dashed border-amber-300 dark:border-amber-700/60 font-bold text-xs transition-colors cursor-pointer shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shrink-0 ${
             size === 'sm' ? 'text-[11px] py-1 px-2' : ''
           }`}
           title="کلیک جهت انتخاب مربی برای این شناگر"
         >
           <GraduationCap className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-          <span>تخصیص مربی</span>
+          <span className="whitespace-nowrap">تخصیص مربی</span>
           {loading ? (
             <Loader2 className="w-3 h-3 animate-spin text-amber-600 shrink-0" />
           ) : actualPlacement === 'dropup' && isOpen ? (

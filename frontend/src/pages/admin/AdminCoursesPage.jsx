@@ -341,7 +341,11 @@ export const AdminCoursesPage = () => {
                     <span className="text-lg font-bold text-slate-900 dark:text-slate-100 block">
                       {formatPrice(course.base_price)} تومان
                     </span>
-                    <span className="text-xs text-slate-400">شهریه هر شناگر ({course.sessions_count} جلسه)</span>
+                    <span className="text-xs text-slate-400">
+                      شهریه هر شناگر ({course.sessions_count} جلسه
+                      {course.installments_count && course.installments_count > 1 ? ` • ${course.installments_count} قسط` : ' • پرداخت یکجا'}
+                      )
+                    </span>
                   </div>
                 </div>
 

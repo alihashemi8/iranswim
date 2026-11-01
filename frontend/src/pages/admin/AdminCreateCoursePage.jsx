@@ -4,7 +4,7 @@ import {
   ArrowRight, ArrowLeft, MapPin, Clock, Calendar,
   Users, Check, CheckCircle2, Award,
   Sparkles, DollarSign, Layers, Search, User, ChevronLeft, AlertCircle,
-  Whistle
+  Whistle, CreditCard
 } from 'lucide-react';
 import { SwimCourseSpecsIcon } from '../../components/common/AquaticIcons';
 import api from '../../api/client';
@@ -18,7 +18,7 @@ const STEPS = [
   { id: 1, title: 'مشخصات عمومی و سرفصل‌ها', subtitle: 'عنوان، جنسیت، رده سنی و توضیحات', icon: SwimCourseSpecsIcon },
   { id: 2, title: 'محل برگزاری و زمان‌بندی', subtitle: 'استخر، روزهای هفته و ساعات جلسات', icon: MapPin },
   { id: 3, title: 'کادر مربیان دوره آموزشی', subtitle: 'تعیین مربیان و تفکیک خودکار کلاس‌ها', icon: Whistle },
-  { id: 4, title: 'امور مالی و شهریه ثبت‌نام', subtitle: 'شهریه هر شناگر و مرور نهایی دوره', icon: DollarSign },
+  { id: 4, title: 'امور مالی و اقساط شهریه', subtitle: 'شهریه، تعداد جلسات، اقساط و مرور نهایی', icon: DollarSign },
 ];
 
 export const AdminCreateCoursePage = () => {
@@ -46,6 +46,7 @@ export const AdminCreateCoursePage = () => {
     end_date: new Date(Date.now() + 60 * 86400000).toISOString().split('T')[0],
     base_price: '1500000',
     sessions_count: 12,
+    installments_count: 1,
     status: 'ACTIVE',
     what_you_learn: '',
     description: '',
@@ -248,6 +249,14 @@ export const AdminCreateCoursePage = () => {
         toast.error('تعداد جلسات دوره باید حداقل ۱ جلسه باشد.');
         return false;
       }
+      if (!formData.installments_count || Number(formData.installments_count) < 1) {
+        toast.error('تعداد اقساط شهریه باید حداقل ۱ قسط باشد.');
+        return false;
+      }
+      if (Number(formData.installments_count) > 24) {
+        toast.error('تعداد اقساط نمی‌تواند بیشتر از ۲۴ قسط باشد.');
+        return false;
+      }
       return true;
     }
 
@@ -297,6 +306,7 @@ export const AdminCreateCoursePage = () => {
         age_range: formData.age_range || (formData.age_min && formData.age_max ? `${formData.age_min} تا ${formData.age_max} سال` : formData.age_min ? `از ${formData.age_min} سال به بالا` : ''),
         base_price: Number(formData.base_price),
         sessions_count: Number(formData.sessions_count),
+        installments_count: Number(formData.installments_count || 1),
       };
       delete postPayload.age_min;
       delete postPayload.age_max;
@@ -959,24 +969,30 @@ export const AdminCreateCoursePage = () => {
         {/* Step 4: امور مالی و شهریه ثبت‌نام */}
         {currentStep === 4 && (
           <div className="p-6 sm:p-8 space-y-6 animate-in fade-in-50 duration-200">
-            <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
-                <DollarSign className="w-4 h-4" />
+            <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                  <DollarSign className="w-4 h-4" />
+                </div>
+                <div>
+                  <h2 className="text-base font-bold text-slate-900 dark:text-white">
+                    مرحله ۴: امور مالی و اقساط شهریه
+                  </h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                    شهریه ثبت‌نام، تعداد جلسات و شرایط اقساط را مشخص کرده و خلاصه دوره را بررسی نمایید
+                  </p>
+                </div>
               </div>
-              <div>
-                <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                  مرحله ۴: امور مالی و شهریه ثبت‌نام
-                </h2>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  شهریه ثبت‌نام و تعداد جلسات را نهایی کرده و خلاصه دوره را بررسی نمایید
-                </p>
-              </div>
+
+              <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 px-3.5 py-1.5 rounded-xl self-start sm:self-auto">
+                {Number(formData.installments_count) > 1 ? `${formData.installments_count} قسط مساوی` : 'پرداخت یکجا (نقدی)'}
+              </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  شهریه پایه هر شناگر (تومان) *
+                  شهریه کل هر شناگر (تومان) *
                 </label>
                 <div className="relative">
                   <input
@@ -1010,6 +1026,73 @@ export const AdminCreateCoursePage = () => {
                   onChange={(e) => setFormData({ ...formData, sessions_count: Number(e.target.value) })}
                   className="w-full px-3.5 py-2.5 text-xs font-mono font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
                 />
+                <span className="text-[11px] text-slate-400 block mt-1">
+                  تعداد جلسات مجاز شناگر در طول دوره
+                </span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                  تعداد اقساط شهریه *
+                </label>
+                <input
+                  type="number"
+                  required
+                  min="1"
+                  max="24"
+                  value={formData.installments_count}
+                  onChange={(e) => {
+                    const raw = e.target.value;
+                    const val = raw === '' ? '' : Math.max(1, parseInt(raw, 10) || 1);
+                    setFormData({ ...formData, installments_count: val });
+                  }}
+                  className="w-full px-3.5 py-2.5 text-xs font-mono font-bold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
+                />
+                <div className="flex flex-wrap items-center gap-1.5 mt-2">
+                  <span className="text-[10px] text-slate-400 select-none">پیشنهاد:</span>
+                  {[
+                    { label: 'یکجا (۱ قسط)', count: 1 },
+                    { label: '۲ قسط', count: 2 },
+                    { label: '۳ قسط', count: 3 },
+                    { label: '۴ قسط', count: 4 },
+                  ].map((preset) => (
+                    <button
+                      key={preset.count}
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, installments_count: preset.count }))}
+                      className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all cursor-pointer ${
+                        Number(formData.installments_count) === preset.count
+                          ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 font-bold'
+                          : 'bg-slate-100/70 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200/60 dark:border-slate-700 hover:bg-slate-200/60 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Installments calculation preview banner */}
+            <div className="p-4 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200/70 dark:border-emerald-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="flex items-center gap-2.5">
+                <CreditCard className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <div>
+                  <span className="font-bold text-emerald-900 dark:text-emerald-200 block">
+                    نحوه پرداخت شهریه: {Number(formData.installments_count) > 1 ? `${formData.installments_count} قسط مساوی` : 'پرداخت یکجا (نقدی)'}
+                  </span>
+                  <p className="text-[11px] text-emerald-700/90 dark:text-emerald-400 mt-0.5">
+                    {Number(formData.installments_count) > 1
+                      ? `سررسید اقساط به صورت متوازن از تاریخ شروع دوره تا پایان دوره توزیع می‌شود.`
+                      : 'شهریه به صورت کامل همزمان با شروع دوره توسط شناگر پرداخت خواهد شد.'}
+                  </p>
+                </div>
+              </div>
+              <div className="text-left sm:text-right shrink-0">
+                <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block font-semibold">مبلغ هر قسط:</span>
+                <span className="text-sm font-mono font-black text-emerald-800 dark:text-emerald-200">
+                  {formatPrice(Math.round(Number(formData.base_price || 0) / (Number(formData.installments_count) || 1)))} تومان
+                </span>
               </div>
             </div>
 
@@ -1074,6 +1157,15 @@ export const AdminCreateCoursePage = () => {
                     {selectedCoachObjects.length > 0
                       ? `${selectedCoachObjects.length} مربی (${selectedCoachObjects.map(c => c.full_name).join('، ')})`
                       : 'بدون انتخاب مربی (نامعتبر)'}
+                  </span>
+                </div>
+
+                <div>
+                  <span className="text-slate-400 block text-[11px]">برنامه پرداخت و اقساط:</span>
+                  <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                    {Number(formData.installments_count) > 1
+                      ? `${formData.installments_count} قسط (هر قسط ~ ${formatPrice(Math.round(Number(formData.base_price || 0) / Number(formData.installments_count)))} تومان)`
+                      : 'پرداخت یکجا (نقدی)'}
                   </span>
                 </div>
               </div>

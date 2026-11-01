@@ -9,6 +9,7 @@ import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
+import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
 
@@ -326,26 +327,25 @@ export const AdminCoachesPage = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                تاریخ شروع تخصیص *
-              </label>
-              <input
-                type="date"
-                required
+              <PersianDatePicker
+                label="تاریخ شروع تخصیص *"
                 value={assignForm.assigned_from}
-                onChange={(e) => setAssignForm({ ...assignForm, assigned_from: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                onChange={(jalaliStr, gDate, gIso) =>
+                  setAssignForm({ ...assignForm, assigned_from: gIso || jalaliStr })
+                }
+                placeholder="انتخاب تاریخ شروع..."
+                clearable={false}
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                تاریخ پایان تخصیص (اختیاری)
-              </label>
-              <input
-                type="date"
+              <PersianDatePicker
+                label="تاریخ پایان تخصیص (اختیاری)"
                 value={assignForm.assigned_to}
-                onChange={(e) => setAssignForm({ ...assignForm, assigned_to: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                onChange={(jalaliStr, gDate, gIso) =>
+                  setAssignForm({ ...assignForm, assigned_to: gIso || '' })
+                }
+                placeholder="انتخاب تاریخ پایان..."
+                clearable
               />
             </div>
           </div>

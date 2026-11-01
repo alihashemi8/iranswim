@@ -67,6 +67,11 @@ class Course(models.Model):
     end_date = models.DateField(_('تاریخ پایان'))
     base_price = models.DecimalField(_('شهریه پایه (تومان)'), max_digits=12, decimal_places=2)
     sessions_count = models.PositiveIntegerField(_('تعداد جلسات کل دوره'), default=12)
+    installments_count = models.PositiveIntegerField(
+        _('تعداد اقساط شهریه'),
+        default=1,
+        help_text=_('تعداد اقساط برای پرداخت شهریه این دوره (۱ قسط یعنی پرداخت یکجا)')
+    )
     age_range = models.CharField(_('رده سنی'), max_length=120, blank=True, default='')
     gender = models.CharField(
         _('جنسیت مجاز'),

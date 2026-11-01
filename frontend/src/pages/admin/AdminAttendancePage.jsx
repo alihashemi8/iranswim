@@ -10,6 +10,7 @@ import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
+import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
 
@@ -17,6 +18,7 @@ export const AdminAttendancePage = () => {
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filterType, setFilterType] = useState('ALL'); // ALL, UNRECORDED, TODAY, COMPLETED
+  const [dateFilter, setDateFilter] = useState('');
   const [searchParams] = useSearchParams();
   const toast = useToast();
 
@@ -33,6 +35,7 @@ export const AdminAttendancePage = () => {
       const params = {};
       if (filterType === 'UNRECORDED') params.unrecorded = 'true';
       if (filterType === 'TODAY') params.date = new Date().toISOString().split('T')[0];
+      if (dateFilter) params.date = dateFilter;
 
       const res = await api.get('/scheduling/sessions/', { params });
       let list = res.data.results || res.data;
@@ -50,7 +53,7 @@ export const AdminAttendancePage = () => {
 
   useEffect(() => {
     fetchSessions();
-  }, [filterType]);
+  }, [filterType, dateFilter]);
 
   // Open Attendance Sheet for a Session
   const handleOpenAttendanceSheet = async (session) => {
@@ -206,9 +209,9 @@ export const AdminAttendancePage = () => {
           <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200/60 dark:border-slate-700 text-xs">
             <button
               type="button"
-              onClick={() => setFilterType('ALL')}
+              onClick={() => { setFilterType('ALL'); setDateFilter(''); }}
               className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
-                filterType === 'ALL'
+                filterType === 'ALL' && !dateFilter
                   ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
               }`}
@@ -217,9 +220,9 @@ export const AdminAttendancePage = () => {
             </button>
             <button
               type="button"
-              onClick={() => setFilterType('UNRECORDED')}
+              onClick={() => { setFilterType('UNRECORDED'); setDateFilter(''); }}
               className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
-                filterType === 'UNRECORDED'
+                filterType === 'UNRECORDED' && !dateFilter
                   ? 'bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-300 shadow-2xs font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
               }`}
@@ -228,15 +231,28 @@ export const AdminAttendancePage = () => {
             </button>
             <button
               type="button"
-              onClick={() => setFilterType('TODAY')}
+              onClick={() => { setFilterType('TODAY'); setDateFilter(''); }}
               className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
-                filterType === 'TODAY'
+                filterType === 'TODAY' && !dateFilter
                   ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-2xs font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
               }`}
             >
               جلسات امروز
             </button>
+          </div>
+
+          {/* Persian Calendar Filter */}
+          <div className="w-48">
+            <PersianDatePicker
+              value={dateFilter}
+              onChange={(jalaliStr, gDate, gIso) => {
+                setDateFilter(gIso || '');
+                if (gIso) setFilterType('ALL');
+              }}
+              placeholder="فیلتر تقویم..."
+              clearable
+            />
           </div>
         </div>
       </div>

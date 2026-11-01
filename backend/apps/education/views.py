@@ -1,3 +1,5 @@
+import datetime
+from decimal import Decimal
 from django.db import transaction
 from django.utils import timezone
 from rest_framework import generics, status, permissions
@@ -165,20 +167,41 @@ class EnrollmentRequestReviewView(APIView):
                         quantity=1,
                         total_price=req.course.base_price
                     )
-                    # Create two default installments (50% upfront, 50% midterm)
-                    half_price = req.course.base_price / 2
-                    Installment.objects.create(
-                        invoice=invoice,
-                        installment_number=1,
-                        amount=half_price,
-                        due_date=req.course.start_date
-                    )
-                    Installment.objects.create(
-                        invoice=invoice,
-                        installment_number=2,
-                        amount=half_price,
-                        due_date=req.course.end_date
-                    )
+                    # Generate Installments based on course.installments_count
+                    inst_count = max(1, getattr(req.course, 'installments_count', 1) or 1)
+                    total_amount = Decimal(str(req.course.base_price))
+
+                    if inst_count <= 1:
+                        Installment.objects.create(
+                            invoice=invoice,
+                            installment_number=1,
+                            amount=total_amount,
+                            due_date=req.course.start_date
+                        )
+                    else:
+                        base_installment_amount = (total_amount / inst_count).quantize(Decimal('1.00'))
+                        start_d = req.course.start_date
+                        end_d = req.course.end_date
+                        total_days = max(1, (end_d - start_d).days)
+                        step_days = total_days / (inst_count - 1)
+
+                        allocated_sum = Decimal('0.00')
+                        for i in range(1, inst_count + 1):
+                            if i == inst_count:
+                                inst_amount = total_amount - allocated_sum
+                                inst_due = end_d
+                            else:
+                                inst_amount = base_installment_amount
+                                allocated_sum += inst_amount
+                                days_offset = int(round((i - 1) * step_days))
+                                inst_due = start_d + datetime.timedelta(days=days_offset)
+
+                            Installment.objects.create(
+                                invoice=invoice,
+                                installment_number=i,
+                                amount=inst_amount,
+                                due_date=inst_due
+                            )
 
                 req.status = EnrollmentRequest.Status.APPROVED
                 req.reviewed_by = request.user

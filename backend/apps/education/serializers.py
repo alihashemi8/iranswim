@@ -68,7 +68,7 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'description', 'pool_location', 'days_of_week',
             'start_time', 'end_time', 'time_display', 'coaches', 'coach_ids',
-            'start_date', 'end_date', 'base_price', 'sessions_count', 'status',
+            'start_date', 'end_date', 'base_price', 'sessions_count', 'installments_count', 'status',
             'groups', 'age_range', 'gender', 'gender_display', 'what_you_learn',
             'created_at'
         ]
@@ -115,6 +115,13 @@ class CourseSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({
                     'coach_ids': 'حداقل یک مربی برای دوره آموزشی باید انتخاب شود.'
                 })
+
+        inst_count = attrs.get('installments_count')
+        if inst_count is not None and inst_count < 1:
+            raise serializers.ValidationError({
+                'installments_count': 'تعداد اقساط باید حداقل ۱ قسط باشد.'
+            })
+
         return super().validate(attrs)
 
     def create(self, validated_data):

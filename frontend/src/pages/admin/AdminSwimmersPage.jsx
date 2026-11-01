@@ -13,6 +13,7 @@ import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Pagination } from '../../components/common/Pagination';
 import { CoachSelectorDropdown } from '../../components/common/CoachSelectorDropdown';
+import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
 
@@ -618,14 +619,16 @@ export const AdminSwimmersPage = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                تاریخ تولد
-              </label>
-              <input
-                type="date"
+              <PersianDatePicker
+                label="تاریخ تولد"
                 value={createForm.date_of_birth}
-                onChange={(e) => setCreateForm({ ...createForm, date_of_birth: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                onChange={(jalaliStr, gDate, gIso) => {
+                  setCreateForm({ ...createForm, date_of_birth: gIso || '' });
+                }}
+                placeholder="انتخاب تاریخ تولد..."
+                minYear={1320}
+                maxYear={1415}
+                clearable
               />
             </div>
             <div>
