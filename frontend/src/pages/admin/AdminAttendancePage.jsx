@@ -452,50 +452,56 @@ export const AdminAttendancePage = () => {
           </div>
 
           {/* Attendance Status Quick Pills */}
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700 text-xs shrink-0 overflow-x-auto">
+          <div className="w-full grid grid-cols-4 sm:flex sm:w-auto bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700 text-xs sm:shrink-0 select-none">
             <button
               type="button"
               onClick={() => { setFilterType('ALL'); setDateFilter(''); }}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap ${
+              className={`px-1.5 sm:px-3 py-1.5 rounded-lg font-medium transition-colors text-center flex items-center justify-center whitespace-nowrap text-[11px] sm:text-xs cursor-pointer ${
                 filterType === 'ALL' && !dateFilter
                   ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              همه جلسات
+              <span>همه</span>
+              <span className="hidden min-[420px]:inline">&nbsp;جلسات</span>
             </button>
+
             <button
               type="button"
               onClick={() => { setFilterType('UNRECORDED'); setDateFilter(''); }}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap ${
+              className={`px-1.5 sm:px-3 py-1.5 rounded-lg transition-colors text-center flex items-center justify-center gap-1.5 whitespace-nowrap text-[11px] sm:text-xs cursor-pointer ${
                 filterType === 'UNRECORDED' && !dateFilter
-                  ? 'bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-300 shadow-2xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-2xs font-bold ring-1 ring-rose-300 dark:ring-rose-800'
+                  : 'text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50/50 dark:hover:bg-rose-950/30 font-semibold'
               }`}
             >
-              ثبت‌نشده‌ها ⚠️
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block shrink-0"></span>
+              <span>ثبت‌نشده‌ها</span>
             </button>
+
             <button
               type="button"
               onClick={() => { setFilterType('RECORDED'); setDateFilter(''); }}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap ${
+              className={`px-1.5 sm:px-3 py-1.5 rounded-lg font-medium transition-colors text-center flex items-center justify-center whitespace-nowrap text-[11px] sm:text-xs cursor-pointer ${
                 filterType === 'RECORDED' && !dateFilter
-                  ? 'bg-white dark:bg-slate-900 text-teal-700 dark:text-teal-300 shadow-2xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-2xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              ثبت‌شده‌ها
+              <span>ثبت‌شده‌ها</span>
             </button>
+
             <button
               type="button"
               onClick={() => { setFilterType('TODAY'); setDateFilter(''); }}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap ${
+              className={`px-1.5 sm:px-3 py-1.5 rounded-lg font-medium transition-colors text-center flex items-center justify-center whitespace-nowrap text-[11px] sm:text-xs cursor-pointer ${
                 filterType === 'TODAY' && !dateFilter
-                  ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-2xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              جلسات امروز
+              <span className="hidden min-[420px]:inline">جلسات&nbsp;</span>
+              <span>امروز</span>
             </button>
           </div>
         </div>
