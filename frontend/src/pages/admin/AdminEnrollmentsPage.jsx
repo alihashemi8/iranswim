@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import {
   Users, UserCheck, Search, Filter, BookOpen,
   MapPin, Clock, LayoutGrid, List, Award, Eye,
-  GraduationCap, CheckCircle2, AlertTriangle, ArrowUpDown
+  GraduationCap, CheckCircle2, AlertTriangle, ArrowUpDown, PlusCircle
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -184,32 +184,42 @@ export const AdminEnrollmentsPage = () => {
           </p>
         </div>
 
-        {/* Tab Buttons */}
-        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-xs shrink-0">
-          <button
-            type="button"
-            onClick={() => setActiveTab('ENROLLMENTS')}
-            className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap shrink-0 ${
-              activeTab === 'ENROLLMENTS'
-                ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-            }`}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+          <Button
+            onClick={() => navigate('/admin/enrollments/new')}
+            className="gap-1.5 text-xs font-bold"
           >
-            <UserCheck className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">ثبت‌نام‌های دوره‌ها ({enrollments.length})</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('REQUESTS')}
-            className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap shrink-0 ${
-              activeTab === 'REQUESTS'
-                ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-            }`}
-          >
-            <Clock className="w-4 h-4 shrink-0" />
-            <span className="whitespace-nowrap">درخواست‌های آنلاین ({requests.filter((r) => r.status === 'PENDING').length})</span>
-          </button>
+            <PlusCircle className="w-4 h-4" />
+            <span>ثبت‌نام مستقیم جدید</span>
+          </Button>
+
+          {/* Tab Buttons */}
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-xs shrink-0">
+            <button
+              type="button"
+              onClick={() => setActiveTab('ENROLLMENTS')}
+              className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap shrink-0 ${
+                activeTab === 'ENROLLMENTS'
+                  ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              }`}
+            >
+              <UserCheck className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">ثبت‌نام‌های دوره‌ها ({enrollments.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('REQUESTS')}
+              className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap shrink-0 ${
+                activeTab === 'REQUESTS'
+                  ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              }`}
+            >
+              <Clock className="w-4 h-4 shrink-0" />
+              <span className="whitespace-nowrap">درخواست‌های آنلاین ({requests.filter((r) => r.status === 'PENDING').length})</span>
+            </button>
+          </div>
         </div>
       </div>
 

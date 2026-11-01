@@ -10,12 +10,14 @@ export const CustomSelect = ({
   placeholder = 'انتخاب کنید...',
   icon: Icon,
   className = '',
+  menuClassName = '',
   searchable = false,
   disabled = false,
   clearable = false,
   size = 'md', // 'sm' | 'md'
   color = 'sky', // 'sky' | 'emerald'
   align = 'auto', // 'auto' | 'left' | 'right'
+  placement = 'auto', // 'auto' | 'top' | 'bottom'
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
@@ -40,7 +42,8 @@ export const CustomSelect = ({
     const q = searchTerm.trim().toLowerCase();
     const l = opt.label?.toLowerCase() || '';
     const d = opt.description?.toLowerCase() || '';
-    return l.includes(q) || d.includes(q);
+    const b = opt.badge?.toLowerCase() || '';
+    return l.includes(q) || d.includes(q) || b.includes(q);
   });
 
   // Close on outside click
@@ -106,7 +109,11 @@ export const CustomSelect = ({
       parent = parent.parentElement;
     }
 
-    if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
+    if (placement === 'top') {
+      setOpenUpward(true);
+    } else if (placement === 'bottom') {
+      setOpenUpward(false);
+    } else if (spaceBelow < dropdownHeight && spaceAbove > spaceBelow) {
       setOpenUpward(true);
     } else {
       setOpenUpward(false);
@@ -287,7 +294,15 @@ export const CustomSelect = ({
       {/* Custom Dropdown Menu */}
       {isOpen && (
         <div
-          className={`absolute z-50 ${alignLeft ? 'left-0' : 'right-0'} min-w-full w-max max-w-[min(340px,calc(100vw-2rem))] py-1.5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/90 rounded-2xl shadow-xl overflow-hidden animate-in fade-in-50 zoom-in-95 ${
+          className={`absolute z-50 ${
+            menuClassName?.includes('w-full')
+              ? 'left-0 right-0'
+              : alignLeft
+              ? 'left-0'
+              : 'right-0'
+          } ${
+            menuClassName ? menuClassName : 'min-w-full w-max max-w-[min(380px,calc(100vw-2rem))]'
+          } py-1.5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/90 rounded-2xl shadow-xl overflow-hidden animate-in fade-in-50 zoom-in-95 ${
             openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
           }`}
           role="listbox"
@@ -328,18 +343,25 @@ export const CustomSelect = ({
               filteredOptions.map((opt) => {
                 const isSelected = String(opt.value) === String(value);
                 const OptIcon = opt.icon;
+                const isDisabled = opt.disabled;
                 return (
                   <button
                     key={String(opt.value)}
                     type="button"
-                    onClick={() => handleSelect(opt.value)}
-                    className={`w-full text-right px-3 py-2 rounded-xl text-xs transition-colors flex items-center justify-between gap-2.5 cursor-pointer ${
-                      isSelected
-                        ? colorStyles.selectedItem
-                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 border border-transparent'
+                    disabled={isDisabled}
+                    onClick={() => {
+                      if (!isDisabled) handleSelect(opt.value);
+                    }}
+                    className={`w-full text-right px-3 py-2 rounded-xl text-xs transition-colors flex items-center justify-between gap-2.5 ${
+                      isDisabled
+                        ? 'opacity-50 cursor-not-allowed bg-slate-50/50 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500'
+                        : isSelected
+                        ? `${colorStyles.selectedItem} cursor-pointer`
+                        : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100/80 dark:hover:bg-slate-800/80 border border-transparent cursor-pointer'
                     }`}
                     role="option"
                     aria-selected={isSelected}
+                    aria-disabled={isDisabled}
                   >
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       {OptIcon && (
@@ -363,9 +385,21 @@ export const CustomSelect = ({
                       </div>
                     </div>
 
-                    {isSelected && (
-                      <Check className={`w-4 h-4 shrink-0 mr-1.5 ${colorStyles.checkIcon}`} />
-                    )}
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {opt.badge && (
+                        <span
+                          className={`text-[10px] px-2 py-0.5 rounded-md font-bold shrink-0 ${
+                            opt.badgeClassName ||
+                            'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                          }`}
+                        >
+                          {opt.badge}
+                        </span>
+                      )}
+                      {isSelected && (
+                        <Check className={`w-4 h-4 shrink-0 mr-1 ${colorStyles.checkIcon}`} />
+                      )}
+                    </div>
                   </button>
                 );
               })

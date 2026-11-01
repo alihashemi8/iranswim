@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Users, UserPlus, Search, Filter, Eye, BookOpen,
   CreditCard, Calendar, Award, Phone, CheckCircle2,
-  XCircle, FileSpreadsheet, PlusCircle, Activity, GraduationCap
+  XCircle, FileSpreadsheet, PlusCircle, Activity, GraduationCap, MapPin
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -14,6 +14,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { Pagination } from '../../components/common/Pagination';
 import { CoachSelectorDropdown } from '../../components/common/CoachSelectorDropdown';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
+import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
 
@@ -45,13 +46,6 @@ export const AdminSwimmersPage = () => {
     medical_notes: '',
   });
   const [submitting, setSubmitting] = useState(false);
-
-  // Direct Enrollment Modal
-  const [enrollModalSwimmer, setEnrollModalSwimmer] = useState(null);
-  const [selectedGroup, setSelectedGroup] = useState('');
-  const [enrollSessions, setEnrollSessions] = useState(12);
-  const [enrollInstallments, setEnrollInstallments] = useState(1);
-  const [enrolling, setEnrolling] = useState(false);
 
   const fetchSwimmers = async () => {
     try {
@@ -140,36 +134,6 @@ export const AdminSwimmersPage = () => {
     }
   };
 
-  // Direct Group Enrollment
-  const handleDirectEnroll = async (e) => {
-    e.preventDefault();
-    if (!enrollModalSwimmer || !selectedGroup) return;
-
-    const groupObj = groups.find((g) => g.id === Number(selectedGroup));
-    if (!groupObj) return;
-
-    try {
-      setEnrolling(true);
-      await api.post('/education/enrollments/', {
-        swimmer: enrollModalSwimmer.id,
-        group: groupObj.id,
-        course: groupObj.course,
-        status: 'ACTIVE',
-        sessions_purchased: Number(enrollSessions) || 12,
-        selected_installments: Number(enrollInstallments) || 1,
-      });
-      toast.success(`شناگر با موفقیت در گروه ${groupObj.name} ثبت‌نام شد.`);
-      setEnrollModalSwimmer(null);
-      setSelectedGroup('');
-      setEnrollInstallments(1);
-      fetchSwimmers();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || 'خطا در ثبت‌نام مستقیم شناگر');
-    } finally {
-      setEnrolling(false);
-    }
-  };
-
   // Coach Assignment Handler
   const handleAssignCoach = async (swimmerId, coachId) => {
     try {
@@ -248,7 +212,7 @@ export const AdminSwimmersPage = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 transition-colors">
+      <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 transition-colors relative z-20">
         <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center gap-2">
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
@@ -265,20 +229,26 @@ export const AdminSwimmersPage = () => {
           </Button>
         </form>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 lg:pb-0">
+        <div className="flex flex-wrap items-center gap-2">
           {/* Level Filter */}
-          <select
-            value={selectedLevel}
-            onChange={(e) => setSelectedLevel(e.target.value)}
-            className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
-          >
-            <option value="">همه سطوح مهارت</option>
-            {levels.map((lvl) => (
-              <option key={lvl.id} value={lvl.id}>
-                سطح {lvl.order}: {lvl.name}
-              </option>
-            ))}
-          </select>
+          <div className="w-full sm:w-52 shrink-0">
+            <CustomSelect
+              value={selectedLevel}
+              onChange={(val) => setSelectedLevel(val)}
+              placeholder="همه سطوح مهارت"
+              icon={Award}
+              size="sm"
+              clearable
+              options={[
+                { value: '', label: 'همه سطوح مهارت' },
+                ...levels.map((lvl) => ({
+                  value: lvl.id,
+                  label: `سطح ${lvl.order}: ${lvl.name}`,
+                  icon: Award,
+                })),
+              ]}
+            />
+          </div>
 
           {/* Status Tab buttons */}
           <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200/60 dark:border-slate-700 text-xs shrink-0">
@@ -422,7 +392,7 @@ export const AdminSwimmersPage = () => {
                         </button>
                         <button
                           type="button"
-                          onClick={() => setEnrollModalSwimmer(swimmer)}
+                          onClick={() => navigate(`/admin/swimmers/${swimmer.id}/enroll`)}
                           className="px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 font-semibold text-xs border border-emerald-200 dark:border-emerald-800 transition-colors inline-flex items-center gap-1 cursor-pointer"
                           title="ثبت‌نام مستقیم در کلاس"
                         >
@@ -533,7 +503,7 @@ export const AdminSwimmersPage = () => {
                     </button>
                     <button
                       type="button"
-                      onClick={() => setEnrollModalSwimmer(swimmer)}
+                      onClick={() => navigate(`/admin/swimmers/${swimmer.id}/enroll`)}
                       className="px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 font-semibold border border-emerald-200 dark:border-emerald-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
                     >
                       <PlusCircle className="w-3.5 h-3.5" />
@@ -635,21 +605,23 @@ export const AdminSwimmersPage = () => {
               />
             </div>
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                سطح مهارت اولیه
-              </label>
-              <select
+              <CustomSelect
+                label="سطح مهارت اولیه"
+                icon={Award}
                 value={createForm.current_level}
-                onChange={(e) => setCreateForm({ ...createForm, current_level: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-              >
-                <option value="">بدون سطح / نیاز به تعیین سطح</option>
-                {levels.map((lvl) => (
-                  <option key={lvl.id} value={lvl.id}>
-                    سطح {lvl.order}: {lvl.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(val) => setCreateForm({ ...createForm, current_level: val })}
+                placeholder="بدون سطح / نیاز به تعیین سطح"
+                clearable
+                menuClassName="w-full"
+                options={[
+                  { value: '', label: 'بدون سطح / نیاز به تعیین سطح' },
+                  ...levels.map((lvl) => ({
+                    value: lvl.id,
+                    label: `سطح ${lvl.order}: ${lvl.name}`,
+                    icon: Award,
+                  })),
+                ]}
+              />
             </div>
           </div>
 
@@ -699,95 +671,6 @@ export const AdminSwimmersPage = () => {
             </Button>
             <Button type="submit" disabled={submitting}>
               {submitting ? 'در حال ثبت...' : 'ثبت قطعی پرونده'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* 2. Modal: Direct Group Enrollment */}
-      <Modal
-        isOpen={!!enrollModalSwimmer}
-        onClose={() => setEnrollModalSwimmer(null)}
-        title={`ثبت‌نام مستقیم در کلاس: ${enrollModalSwimmer?.full_name}`}
-      >
-        <form onSubmit={handleDirectEnroll} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              انتخاب گروه و دوره آموزشی *
-            </label>
-            <select
-              required
-              value={selectedGroup}
-              onChange={(e) => setSelectedGroup(e.target.value)}
-              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-            >
-              <option value="">یک گروه را انتخاب کنید...</option>
-              {groups.map((grp) => (
-                <option key={grp.id} value={grp.id}>
-                  {grp.course_name} - {grp.name} ({grp.level_name}) - ظرفیت خالی: {grp.remaining_capacity} نفر
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              تعداد جلسات خریداری‌شده
-            </label>
-            <input
-              type="number"
-              min="1"
-              max="48"
-              value={enrollSessions}
-              onChange={(e) => setEnrollSessions(e.target.value)}
-              className="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-            />
-          </div>
-
-          {(() => {
-            const currentGroupObj = groups.find((g) => g.id === Number(selectedGroup));
-            if (!currentGroupObj) return null;
-            const maxInst = currentGroupObj.course_max_installments || 1;
-            return (
-              <div className="p-3 bg-emerald-50/60 dark:bg-emerald-950/30 rounded-xl border border-emerald-200/70 dark:border-emerald-800/60 space-y-2">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-emerald-900 dark:text-emerald-200">
-                    تعداد اقساط توافق‌شده:
-                  </span>
-                  <span className="font-mono font-bold text-emerald-700 dark:text-emerald-300">
-                    {enrollInstallments > 1 ? `${enrollInstallments} قسط` : 'یکجا'}
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {Array.from({ length: Math.max(1, maxInst) }, (_, i) => i + 1).map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => setEnrollInstallments(num)}
-                      className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        enrollInstallments === num
-                          ? 'bg-emerald-600 text-white shadow-2xs'
-                          : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
-                      }`}
-                    >
-                      {num === 1 ? 'یکجا (۱ قسط)' : `${num} قسط`}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            );
-          })()}
-
-          <div className="p-3 bg-sky-50 dark:bg-sky-950/40 rounded-xl border border-sky-200 dark:border-sky-800 text-xs text-sky-800 dark:text-sky-300">
-            با تأیید ثبت‌نام، شناگر مستقیماً به لیست شاگردان این گروه اضافه شده و سهمیه جلسات و صورتحساب مربوطه صادر خواهد شد.
-          </div>
-
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <Button type="button" variant="outline" onClick={() => setEnrollModalSwimmer(null)}>
-              انصراف
-            </Button>
-            <Button type="submit" disabled={enrolling}>
-              {enrolling ? 'در حال ثبت‌نام...' : 'تأیید و ثبت‌نام'}
             </Button>
           </div>
         </form>

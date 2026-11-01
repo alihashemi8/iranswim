@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   ArrowRight, User, Phone, Calendar, CreditCard, Award,
   BookOpen, Clock, ShieldAlert, CheckCircle2, AlertCircle,
-  FileText, ShieldCheck, Mail, Activity, ChevronLeft, MapPin
+  FileText, ShieldCheck, Mail, Activity, ChevronLeft, MapPin, PlusCircle
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -185,6 +185,13 @@ export const AdminSwimmerDetailPage = () => {
             >
               <CreditCard className="w-3.5 h-3.5 text-sky-600" />
               <span>فاکتورها و پرداخت‌ها</span>
+            </Link>
+            <Link
+              to={`/admin/swimmers/${id}/enroll`}
+              className="px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 border border-emerald-200 dark:border-emerald-800 text-xs font-semibold inline-flex items-center gap-1.5 transition-colors"
+            >
+              <PlusCircle className="w-3.5 h-3.5 text-emerald-600" />
+              <span>ثبت‌نام در کلاس جدید</span>
             </Link>
           </div>
         </div>
@@ -489,9 +496,32 @@ export const AdminSwimmerDetailPage = () => {
         {/* Tab 2: ENROLLMENTS */}
         {activeTab === 'ENROLLMENTS' && (
           <div className="space-y-4">
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+              <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                سوابق دوره‌ها و کلاس‌های شناگر:
+              </span>
+              <Button
+                size="sm"
+                onClick={() => navigate(`/admin/swimmers/${id}/enroll`)}
+                className="gap-1.5 text-xs font-bold cursor-pointer"
+              >
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>ثبت‌نام مستقیم در کلاس جدید</span>
+              </Button>
+            </div>
+
             {enrollments.length === 0 ? (
-              <div className="text-center py-12 text-slate-400 text-xs">
-                هیچ دوره آموزشی فعالی برای این شناگر ثبت نشده است.
+              <div className="text-center py-12 text-slate-400 text-xs space-y-3">
+                <p>هیچ دوره آموزشی فعالی برای این شناگر ثبت نشده است.</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/admin/swimmers/${id}/enroll`)}
+                  className="gap-1.5 text-xs font-bold cursor-pointer"
+                >
+                  <PlusCircle className="w-3.5 h-3.5" />
+                  <span>ثبت‌نام در اولین دوره</span>
+                </Button>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
