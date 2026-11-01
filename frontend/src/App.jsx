@@ -19,10 +19,12 @@ import { SupervisorTestTriggerPage } from './pages/supervisor/SupervisorTestTrig
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminSwimmersPage } from './pages/admin/AdminSwimmersPage';
 import { AdminSwimmerDetailPage } from './pages/admin/AdminSwimmerDetailPage';
+import { AdminDirectEnrollPage } from './pages/admin/AdminDirectEnrollPage';
 import { AdminCoachesPage } from './pages/admin/AdminCoachesPage';
 import { AdminCoursesPage } from './pages/admin/AdminCoursesPage';
 import { AdminCreateCoursePage } from './pages/admin/AdminCreateCoursePage';
 import { AdminAttendancePage } from './pages/admin/AdminAttendancePage';
+import { AdminAttendanceDetailPage } from './pages/admin/AdminAttendanceDetailPage';
 import { AdminAssessmentsPage } from './pages/admin/AdminAssessmentsPage';
 import { AdminLeaguesPage } from './pages/admin/AdminLeaguesPage';
 import { AdminFinancePage } from './pages/admin/AdminFinancePage';
@@ -147,10 +149,13 @@ export default function App() {
                 {/* 2. Educational Management */}
                 <Route path="swimmers" element={<AdminSwimmersPage />} />
                 <Route path="swimmers/:id" element={<AdminSwimmerDetailPage />} />
+                <Route path="swimmers/:id/enroll" element={<AdminDirectEnrollPage />} />
+                <Route path="swimmers/enroll" element={<AdminDirectEnrollPage />} />
                 <Route path="coaches" element={<AdminCoachesPage />} />
                 <Route path="courses" element={<AdminCoursesPage />} />
                 <Route path="courses/new" element={<AdminCreateCoursePage />} />
                 <Route path="attendance" element={<AdminAttendancePage />} />
+                <Route path="attendance/:sessionId" element={<AdminAttendanceDetailPage />} />
 
                 {/* 3. Performance & Competitions */}
                 <Route path="assessments" element={<AdminAssessmentsPage />} />
@@ -173,6 +178,7 @@ export default function App() {
 
                 {/* Auxiliary direct routes */}
                 <Route path="enrollments" element={<AdminEnrollmentsPage />} />
+                <Route path="enrollments/new" element={<AdminDirectEnrollPage />} />
                 <Route path="sessions" element={<AdminSessionsPage />} />
               </Route>
 

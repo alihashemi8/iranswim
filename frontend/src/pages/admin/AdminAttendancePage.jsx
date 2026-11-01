@@ -1,14 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
-  ClipboardCheck, Calendar, Clock, Users, CheckCircle,
-  XCircle, AlertCircle, Save, Filter, FileSpreadsheet,
-  Search, X, CheckCheck, RotateCcw, Award, MapPin, UserCheck, BookOpen
+  ClipboardCheck, Calendar, Clock, CheckCircle,
+  AlertCircle, FileSpreadsheet,
+  Search, X, RotateCcw, Award, MapPin, UserCheck, BookOpen
 } from 'lucide-react';
 import api from '../../api/client';
-import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
-import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Pagination } from '../../components/common/Pagination';
@@ -18,6 +16,7 @@ import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
 
 export const AdminAttendancePage = () => {
+  const navigate = useNavigate();
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -40,15 +39,6 @@ export const AdminAttendancePage = () => {
 
   const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast();
-
-  // Active Attendance Registering Modal
-  const [activeSession, setActiveSession] = useState(null);
-  const [groupEnrollments, setGroupEnrollments] = useState([]);
-  const [existingAttendance, setExistingAttendance] = useState({});
-  const [modalLoading, setModalLoading] = useState(false);
-  const [savingAttendance, setSavingAttendance] = useState(false);
-  const [modalSearchSwimmer, setModalSearchSwimmer] = useState('');
-  const [modalStatusFilter, setModalStatusFilter] = useState('ALL');
 
   // 1. Fetch Categories Metadata from Real Database Endpoints
   useEffect(() => {
@@ -140,16 +130,13 @@ export const AdminAttendancePage = () => {
     selectedPool,
   ]);
 
-  // Auto-open modal if session_id is in query params
+  // Redirect if session_id is in query params
   useEffect(() => {
     const sessionId = searchParams.get('session_id');
-    if (sessionId && sessions.length > 0 && !activeSession) {
-      const target = sessions.find((s) => s.id === Number(sessionId));
-      if (target) {
-        handleOpenAttendanceSheet(target);
-      }
+    if (sessionId) {
+      navigate(`/admin/attendance/${sessionId}`);
     }
-  }, [searchParams, sessions, activeSession]);
+  }, [searchParams, navigate]);
 
   // Filtered Sessions List (Guarantees Instant Client-Side Responsiveness)
   const filteredSessions = useMemo(() => {
@@ -212,115 +199,6 @@ export const AdminAttendancePage = () => {
     setCurrentPage(1);
   };
 
-  // Open Attendance Sheet for a Session
-  const handleOpenAttendanceSheet = async (session) => {
-    setActiveSession(session);
-    setModalLoading(true);
-    setModalSearchSwimmer('');
-    setModalStatusFilter('ALL');
-    try {
-      const [enrollRes, attRes] = await Promise.all([
-        api.get(`/education/enrollments/?group_id=${session.group}`),
-        api.get(`/attendance/?session_id=${session.id}`),
-      ]);
-
-      const enrollments = enrollRes.data.results || enrollRes.data || [];
-      const records = attRes.data.results || attRes.data || [];
-
-      // Map existing records by swimmer id
-      const attMap = {};
-      records.forEach((r) => {
-        attMap[r.swimmer] = {
-          status: r.status,
-          note: r.note || '',
-        };
-      });
-
-      // Default to 'PRESENT' for enrolled swimmers without existing record
-      enrollments.forEach((e) => {
-        if (!attMap[e.swimmer]) {
-          attMap[e.swimmer] = {
-            status: 'PRESENT',
-            note: '',
-          };
-        }
-      });
-
-      setGroupEnrollments(enrollments);
-      setExistingAttendance(attMap);
-    } catch (err) {
-      console.error(err);
-      toast.error('خطا در بارگذاری دفتر حضور و غیاب جلسه');
-    } finally {
-      setModalLoading(false);
-    }
-  };
-
-  // Status Change in Attendance Sheet
-  const handleStatusChange = (swimmerId, status) => {
-    setExistingAttendance((prev) => ({
-      ...prev,
-      [swimmerId]: {
-        ...(prev[swimmerId] || {}),
-        status,
-      },
-    }));
-  };
-
-  // Note Change in Attendance Sheet
-  const handleNoteChange = (swimmerId, note) => {
-    setExistingAttendance((prev) => ({
-      ...prev,
-      [swimmerId]: {
-        ...(prev[swimmerId] || {}),
-        note,
-      },
-    }));
-  };
-
-  // Mark all enrolled swimmers present in modal
-  const handleMarkAllPresentInModal = () => {
-    setExistingAttendance((prev) => {
-      const updated = { ...prev };
-      groupEnrollments.forEach((enr) => {
-        updated[enr.swimmer] = {
-          ...(updated[enr.swimmer] || {}),
-          status: 'PRESENT',
-        };
-      });
-      return updated;
-    });
-    toast.success('تمامی شناگران این جلسه به عنوان «حاضر» مشخص شدند.');
-  };
-
-  // Save Attendance Sheet
-  const handleSaveAttendance = async (e) => {
-    e.preventDefault();
-    if (!activeSession) return;
-
-    const records = Object.entries(existingAttendance).map(([swimmerId, data]) => ({
-      swimmer_id: Number(swimmerId),
-      status: data.status,
-      note: data.note,
-    }));
-
-    try {
-      setSavingAttendance(true);
-      await api.post('/attendance/bulk-save/', {
-        session_id: activeSession.id,
-        records,
-      });
-
-      toast.success('دفتر حضور و غیاب ثبت و سهمیه شناگران با موفقیت به‌روزرسانی شد.');
-      setActiveSession(null);
-      fetchSessions();
-    } catch (err) {
-      toast.error(err.response?.data?.detail || 'خطا در ثبت حضور و غیاب');
-    } finally {
-      setSavingAttendance(false);
-    }
-  };
-
   // Export to CSV with full category information
   const handleExportCsv = () => {
     const rows = filteredSessions.map((s) => ({
@@ -345,37 +223,6 @@ export const AdminAttendancePage = () => {
       session_status: 'وضعیت جلسه',
       attendance_status: 'وضعیت حضور و غیاب',
     });
-  };
-
-  // Filtered swimmers inside the attendance modal
-  const filteredModalEnrollments = useMemo(() => {
-    return groupEnrollments.filter((enr) => {
-      const q = modalSearchSwimmer.trim().toLowerCase();
-      const matchesSearch = !q || enr.swimmer_name?.toLowerCase().includes(q);
-      const currentStatus = existingAttendance[enr.swimmer]?.status || 'PRESENT';
-      const matchesStatus = modalStatusFilter === 'ALL' || currentStatus === modalStatusFilter;
-      return matchesSearch && matchesStatus;
-    });
-  }, [groupEnrollments, existingAttendance, modalSearchSwimmer, modalStatusFilter]);
-
-  // Counts of swimmers by status in modal
-  const modalCounts = useMemo(() => {
-    const counts = { ALL: groupEnrollments.length, PRESENT: 0, LATE: 0, EXCUSED: 0, ABSENT: 0 };
-    groupEnrollments.forEach((enr) => {
-      const st = existingAttendance[enr.swimmer]?.status || 'PRESENT';
-      if (counts[st] !== undefined) counts[st]++;
-    });
-    return counts;
-  }, [groupEnrollments, existingAttendance]);
-
-  // Status Badge Helper
-  const getSessionStatusBadgeVariant = (st) => {
-    switch (st) {
-      case 'COMPLETED': return 'success';
-      case 'CANCELLED': return 'danger';
-      case 'MAKEUP': return 'warning';
-      default: return 'info';
-    }
   };
 
   // Session Date & Weekday Helper
@@ -784,13 +631,18 @@ export const AdminAttendancePage = () => {
                       {session.attendance_recorded ? (
                         <span
                           className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold shadow-2xs whitespace-nowrap"
-                          title={`${session.attendance_count || 0} نفر حاضر`}
+                          title={`${session.attendance_count ?? 0} از ${session.enrolled_count ?? 0} نفر حاضر`}
                         >
                           <CheckCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                          <span className="font-mono font-bold">{session.attendance_count || 0}</span>
+                          <span className="font-mono font-bold" dir="rtl">
+                            {session.attendance_count ?? 0} از {session.enrolled_count ?? 0}
+                          </span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[11px] font-bold shadow-2xs whitespace-nowrap">
+                        <span
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[11px] font-bold shadow-2xs whitespace-nowrap"
+                          title={`هنوز ثبت نشده است (${session.enrolled_count ?? 0} شناگر)`}
+                        >
                           <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                           <span>ثبت‌نشده</span>
                         </span>
@@ -802,16 +654,16 @@ export const AdminAttendancePage = () => {
                       {session.attendance_recorded ? (
                         <button
                           type="button"
-                          onClick={() => handleOpenAttendanceSheet(session)}
+                          onClick={() => navigate(`/admin/attendance/${session.id}`)}
                           className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/90 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-all cursor-pointer active:scale-95 whitespace-nowrap shadow-2xs"
                         >
                           <ClipboardCheck className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-                          <span>بازبینی حضور</span>
+                          <span>بازبینی</span>
                         </button>
                       ) : (
                         <button
                           type="button"
-                          onClick={() => handleOpenAttendanceSheet(session)}
+                          onClick={() => navigate(`/admin/attendance/${session.id}`)}
                           className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-xs hover:shadow transition-all cursor-pointer active:scale-95 whitespace-nowrap"
                         >
                           <ClipboardCheck className="w-3.5 h-3.5" />
@@ -855,10 +707,12 @@ export const AdminAttendancePage = () => {
                   {session.attendance_recorded ? (
                     <span
                       className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold"
-                      title={`${session.attendance_count || 0} نفر حاضر`}
+                      title={`${session.attendance_count ?? 0} از ${session.enrolled_count ?? 0} نفر حاضر`}
                     >
                       <CheckCircle className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                      <span className="font-mono font-bold">{session.attendance_count || 0}</span>
+                      <span className="font-mono font-bold" dir="rtl">
+                        {session.attendance_count ?? 0} از {session.enrolled_count ?? 0}
+                      </span>
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[10px] font-bold">
@@ -902,20 +756,20 @@ export const AdminAttendancePage = () => {
                   {session.attendance_recorded ? (
                     <button
                       type="button"
-                      onClick={() => handleOpenAttendanceSheet(session)}
+                      onClick={() => navigate(`/admin/attendance/${session.id}`)}
                       className="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold border border-slate-200 dark:border-slate-700 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
                     >
                       <ClipboardCheck className="w-4 h-4 text-sky-600" />
-                      <span>بازبینی حضور و غیاب</span>
+                      <span>بازبینی</span>
                     </button>
                   ) : (
                     <button
                       type="button"
-                      onClick={() => handleOpenAttendanceSheet(session)}
+                      onClick={() => navigate(`/admin/attendance/${session.id}`)}
                       className="w-full py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold transition-all inline-flex items-center justify-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
                     >
                       <ClipboardCheck className="w-4 h-4" />
-                      <span>ثبت حضور و غیاب</span>
+                      <span>ثبت حضور</span>
                     </button>
                   )}
                 </div>
@@ -933,192 +787,6 @@ export const AdminAttendancePage = () => {
           />
         </div>
       )}
-
-      {/* 4. Modal: Live Attendance Sheet Register & Review */}
-      <Modal
-        isOpen={!!activeSession}
-        onClose={() => setActiveSession(null)}
-        title={`دفتر حضور و غیاب: ${activeSession?.group_name || ''}`}
-        size="lg"
-      >
-        <form onSubmit={handleSaveAttendance} className="space-y-4">
-          {/* Session Overview Card */}
-          <div className="bg-gradient-to-r from-sky-50/80 to-blue-50/60 dark:from-sky-950/40 dark:to-blue-950/30 p-3.5 rounded-2xl border border-sky-200 dark:border-sky-800 text-xs text-sky-900 dark:text-sky-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-sm text-slate-900 dark:text-white">
-                  {activeSession?.group_name}
-                </span>
-                {activeSession?.course_name && (
-                  <span className="text-[11px] text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/60 px-2 py-0.5 rounded-md font-medium">
-                    {activeSession?.course_name}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-3 text-slate-600 dark:text-slate-300 text-[11px]">
-                <span>مربی: <strong>{activeSession?.coach_name || 'نامشخص'}</strong></span>
-                <span>•</span>
-                <span>محل: <strong>{activeSession?.pool_location || 'استخر اصلی'}</strong></span>
-              </div>
-            </div>
-
-            <div className="text-left font-mono font-bold text-xs bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-sky-200 dark:border-sky-800 shrink-0">
-              <div>{activeSession?.session_date}</div>
-              <div className="text-[11px] text-slate-500 dark:text-slate-400">
-                {activeSession?.start_time?.slice(0, 5)} تا {activeSession?.end_time?.slice(0, 5)}
-              </div>
-            </div>
-          </div>
-
-          {/* Quick Actions & Swimmer Search Inside Modal */}
-          {groupEnrollments.length > 0 && (
-            <div className="space-y-2.5">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-                {/* Search Swimmer */}
-                <div className="relative flex-1">
-                  <Search className="w-3.5 h-3.5 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="text"
-                    value={modalSearchSwimmer}
-                    onChange={(e) => setModalSearchSwimmer(e.target.value)}
-                    placeholder="جستجوی نام شناگر در این کلاس..."
-                    className="w-full pl-8 pr-9 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-1 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
-                  />
-                  {modalSearchSwimmer && (
-                    <button
-                      type="button"
-                      onClick={() => setModalSearchSwimmer('')}
-                      className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Mark All Present Button */}
-                <button
-                  type="button"
-                  onClick={handleMarkAllPresentInModal}
-                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900 text-xs font-bold border border-emerald-200 dark:border-emerald-800 transition-colors shrink-0 shadow-2xs active:scale-95 cursor-pointer"
-                >
-                  <CheckCheck className="w-4 h-4 text-emerald-600" />
-                  حاضر کردن همه
-                </button>
-              </div>
-
-              {/* Status Filter Pills Inside Modal */}
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-                {[
-                  { key: 'ALL', label: `همه (${modalCounts.ALL})` },
-                  { key: 'PRESENT', label: `حاضر (${modalCounts.PRESENT})`, color: 'text-emerald-700 dark:text-emerald-300' },
-                  { key: 'LATE', label: `تأخیر (${modalCounts.LATE})`, color: 'text-amber-700 dark:text-amber-300' },
-                  { key: 'EXCUSED', label: `موجه (${modalCounts.EXCUSED})`, color: 'text-sky-700 dark:text-sky-300' },
-                  { key: 'ABSENT', label: `غایب (${modalCounts.ABSENT})`, color: 'text-rose-700 dark:text-rose-300' },
-                ].map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    onClick={() => setModalStatusFilter(item.key)}
-                    className={`px-2.5 py-1 rounded-lg font-medium transition-colors whitespace-nowrap text-[11px] ${
-                      modalStatusFilter === item.key
-                        ? 'bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900 font-bold'
-                        : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                    }`}
-                  >
-                    {item.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Swimmer Rows List */}
-          {modalLoading ? (
-            <LoadingState type="inline" message="در حال بارگذاری لیست شاگردان این کلاس..." />
-          ) : groupEnrollments.length === 0 ? (
-            <div className="text-center py-8 text-xs text-slate-400">
-              هیچ شناگری در این گروه ثبت‌نام قطعی ندارد.
-            </div>
-          ) : filteredModalEnrollments.length === 0 ? (
-            <div className="text-center py-6 text-xs text-slate-400">
-              شناگری با فیلتر انتخابی یافت نشد.
-            </div>
-          ) : (
-            <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
-              {filteredModalEnrollments.map((enr) => {
-                const currentStatus = existingAttendance[enr.swimmer]?.status || 'PRESENT';
-                const currentNote = existingAttendance[enr.swimmer]?.note || '';
-
-                return (
-                  <div
-                    key={enr.id}
-                    className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs transition-colors"
-                  >
-                    {/* Swimmer Info */}
-                    <div className="min-w-[140px]">
-                      <span className="font-bold text-slate-900 dark:text-slate-100 block text-xs">
-                        {enr.swimmer_name}
-                      </span>
-                      <span className="text-[10px] text-slate-400 font-mono mt-0.5 block">
-                        {enr.remaining_sessions} جلسه باقی‌مانده از {enr.sessions_purchased}
-                      </span>
-                    </div>
-
-                    {/* Status Select Buttons */}
-                    <div className="flex items-center gap-1.5 flex-wrap">
-                      {[
-                        { key: 'PRESENT', label: 'حاضر', color: 'bg-emerald-600 text-white' },
-                        { key: 'LATE', label: 'تأخیر', color: 'bg-amber-600 text-white' },
-                        { key: 'EXCUSED', label: 'موجه (بدون کسر)', color: 'bg-sky-600 text-white' },
-                        { key: 'ABSENT', label: 'غایب', color: 'bg-rose-600 text-white' },
-                      ].map((st) => (
-                        <button
-                          key={st.key}
-                          type="button"
-                          onClick={() => handleStatusChange(enr.swimmer, st.key)}
-                          className={`px-2.5 py-1 rounded-lg font-semibold transition-all cursor-pointer text-[11px] ${
-                            currentStatus === st.key
-                              ? `${st.color} shadow-2xs scale-105`
-                              : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200/80 dark:border-slate-600 hover:bg-slate-100'
-                          }`}
-                        >
-                          {st.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {/* Note Input */}
-                    <div className="w-full sm:w-44">
-                      <input
-                        type="text"
-                        placeholder="یادداشت مربی یا علت غیبت..."
-                        value={currentNote}
-                        onChange={(e) => handleNoteChange(enr.swimmer, e.target.value)}
-                        className="w-full px-2.5 py-1 text-[11px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-1 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
-                      />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* Business Rule Notice */}
-          <div className="p-3 bg-slate-50 dark:bg-slate-800/40 rounded-xl text-[11px] text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-800">
-            💡 <strong>قانون هوشمند سهمیه:</strong> وضعیت‌های «حاضر»، «تأخیر» و «غایب» یک جلسه از سهمیه شناگر کسر می‌کنند؛ وضعیت «غایب موجه» سهمیه‌ای کسر نمی‌کند.
-          </div>
-
-          {/* Modal Actions */}
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <Button type="button" variant="outline" onClick={() => setActiveSession(null)}>
-              انصراف
-            </Button>
-            <Button type="submit" disabled={savingAttendance || groupEnrollments.length === 0}>
-              {savingAttendance ? 'در حال ثبت...' : 'ثبت و نهایی‌سازی حضور و غیاب'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
     </div>
   );
 };
