@@ -469,13 +469,12 @@ export const AdminAttendancePage = () => {
             <button
               type="button"
               onClick={() => { setFilterType('UNRECORDED'); setDateFilter(''); }}
-              className={`px-1.5 sm:px-3 py-1.5 rounded-lg transition-colors text-center flex items-center justify-center gap-1.5 whitespace-nowrap text-[11px] sm:text-xs cursor-pointer ${
+              className={`px-1.5 sm:px-3 py-1.5 rounded-lg font-medium transition-colors text-center flex items-center justify-center whitespace-nowrap text-[11px] sm:text-xs cursor-pointer ${
                 filterType === 'UNRECORDED' && !dateFilter
-                  ? 'bg-white dark:bg-slate-900 text-rose-600 dark:text-rose-400 shadow-2xs font-bold ring-1 ring-rose-300 dark:ring-rose-800'
-                  : 'text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50/50 dark:hover:bg-rose-950/30 font-semibold'
+                  ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block shrink-0"></span>
               <span>ثبت‌نشده‌ها</span>
             </button>
 
@@ -484,7 +483,7 @@ export const AdminAttendancePage = () => {
               onClick={() => { setFilterType('RECORDED'); setDateFilter(''); }}
               className={`px-1.5 sm:px-3 py-1.5 rounded-lg font-medium transition-colors text-center flex items-center justify-center whitespace-nowrap text-[11px] sm:text-xs cursor-pointer ${
                 filterType === 'RECORDED' && !dateFilter
-                  ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-2xs font-bold'
+                  ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
