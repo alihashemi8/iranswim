@@ -756,7 +756,7 @@ export const HomePage = () => {
           SECTION 3: LIVE COURSES
           ========================================================================= */}
       <section id="courses" className="landing-section relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
-        <FloatingAquaticSectionIcons section="courses" />
+        <FloatingLandingWaterIcons section="courses" />
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
           <div className="landing-section__heading flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
             <div className="space-y-1.5">
@@ -874,7 +874,7 @@ export const HomePage = () => {
           SECTION 4: ACADEMY FACILITIES & INFRASTRUCTURE
           ========================================================================= */}
       <section id="facilities" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
-        <FloatingAquaticSectionIcons section="facilities" />
+        <FloatingLandingWaterIcons section="facilities" />
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
           <div className="text-center max-w-2xl mx-auto space-y-2.5">
             <Badge variant="info">محیط استخر و بهداشت آب</Badge>
@@ -998,7 +998,7 @@ export const HomePage = () => {
           SECTION 5: CERTIFIED FEDERATION COACHES
           ========================================================================= */}
       <section id="coaches" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
-        <FloatingAquaticSectionIcons section="coaches" />
+        <FloatingLandingWaterIcons section="coaches" />
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
             <div className="space-y-1.5">
