@@ -705,156 +705,143 @@ export const AdminAttendancePage = () => {
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors space-y-4">
           {/* Desktop Table View */}
           <div className="hidden md:block overflow-hidden rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm text-right min-w-[1050px] border-collapse">
-                <thead className="bg-slate-50 dark:bg-slate-800/80 text-xs font-bold text-slate-700 dark:text-slate-200 border-b border-slate-200/80 dark:border-slate-700/80 select-none">
-                  <tr>
-                    <th className="px-4 py-3.5 min-w-[230px]">گروه و دوره آموزشی</th>
-                    <th className="px-3.5 py-3.5 min-w-[130px]">سطح مهارت</th>
-                    <th className="px-3.5 py-3.5 min-w-[130px]">مربی مسئول</th>
-                    <th className="px-3.5 py-3.5 min-w-[170px]">تاریخ و زمان سانس</th>
-                    <th className="px-3.5 py-3.5 min-w-[140px]">محل استخر</th>
-                    <th className="px-3.5 py-3.5 text-center min-w-[110px]">وضعیت جلسه</th>
-                    <th className="px-3.5 py-3.5 text-center min-w-[140px]">وضعیت حضور</th>
-                    <th className="px-4 py-3.5 text-center min-w-[120px]">عملیات</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 bg-white dark:bg-slate-900">
-                  {paginatedSessions.map((session) => (
-                    <tr
-                      key={session.id}
-                      className={`transition-colors border-b border-slate-100 dark:border-slate-800/80 last:border-b-0 ${
-                        !session.attendance_recorded
-                          ? 'bg-amber-50/20 dark:bg-amber-950/10 hover:bg-amber-50/40 dark:hover:bg-amber-950/20'
-                          : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/40'
-                      }`}
-                    >
-                      {/* Group & Course */}
-                      <td className="px-4 py-4 align-middle">
-                        <div className="flex items-start gap-2.5">
-                          <div className="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200/60 dark:border-sky-800 flex items-center justify-center shrink-0 mt-0.5 text-sky-600 dark:text-sky-400">
-                            <Users className="w-4 h-4" />
+            <table className="w-full text-sm text-right border-collapse">
+              <thead className="bg-slate-50 dark:bg-slate-800/80 text-xs font-bold text-slate-700 dark:text-slate-200 border-b border-slate-200/80 dark:border-slate-700/80 select-none">
+                <tr>
+                  <th className="px-3.5 py-3.5 text-right w-[32%]">گروه، دوره و سطح مهارت</th>
+                  <th className="px-3 py-3.5 text-right w-[21%]">مربی و محل استخر</th>
+                  <th className="px-3 py-3.5 text-right w-[20%]">تاریخ و زمان سانس</th>
+                  <th className="px-3 py-3.5 text-center w-[15%]">وضعیت جلسه و حضور</th>
+                  <th className="px-3 py-3.5 text-center w-[12%]">عملیات</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80 bg-white dark:bg-slate-900">
+                {paginatedSessions.map((session) => (
+                  <tr
+                    key={session.id}
+                    className={`transition-colors border-b border-slate-100 dark:border-slate-800/80 last:border-b-0 ${
+                      !session.attendance_recorded
+                        ? 'bg-amber-50/20 dark:bg-amber-950/10 hover:bg-amber-50/40 dark:hover:bg-amber-950/20'
+                        : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/40'
+                    }`}
+                  >
+                    {/* 1. Group, Course & Skill Level */}
+                    <td className="px-3.5 py-3.5 align-middle">
+                      <div className="flex items-start gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200/60 dark:border-sky-800 flex items-center justify-center shrink-0 mt-0.5 text-sky-600 dark:text-sky-400">
+                          <Users className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm leading-tight truncate">
+                            {session.group_name}
                           </div>
-                          <div className="min-w-0">
-                            <div className="font-bold text-slate-900 dark:text-slate-100 text-xs sm:text-sm leading-tight">
-                              {session.group_name}
-                            </div>
+                          <div className="flex items-center gap-1.5 flex-wrap mt-1 text-[11px]">
                             {session.course_name && (
-                              <div className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
+                              <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1 truncate max-w-[170px]">
                                 <BookOpen className="w-3 h-3 text-sky-500 shrink-0" />
                                 <span className="truncate">{session.course_name}</span>
-                              </div>
+                              </span>
+                            )}
+                            {session.skill_level_name && (
+                              <Badge
+                                variant="info"
+                                className="text-[10px] px-1.5 py-0 gap-1 font-semibold"
+                                style={{
+                                  borderColor: session.skill_level_badge ? `${session.skill_level_badge}40` : undefined,
+                                  color: session.skill_level_badge || undefined,
+                                }}
+                              >
+                                <Award className="w-2.5 h-2.5 shrink-0" />
+                                <span>{session.skill_level_name}</span>
+                              </Badge>
                             )}
                           </div>
                         </div>
-                      </td>
+                      </div>
+                    </td>
 
-                      {/* Skill Level */}
-                      <td className="px-3.5 py-4 align-middle">
-                        {session.skill_level_name ? (
-                          <Badge
-                            variant="info"
-                            className="text-[11px] gap-1 font-semibold"
-                            style={{
-                              borderColor: session.skill_level_badge ? `${session.skill_level_badge}40` : undefined,
-                              color: session.skill_level_badge || undefined,
-                            }}
-                          >
-                            <Award className="w-3 h-3 shrink-0" />
-                            <span>{session.skill_level_name}</span>
-                          </Badge>
-                        ) : (
-                          <span className="text-slate-400 text-xs">—</span>
-                        )}
-                      </td>
-
-                      {/* Coach */}
-                      <td className="px-3.5 py-4 align-middle">
-                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700 dark:text-slate-300">
-                          <div className="w-6 h-6 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
-                            <UserCheck className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                    {/* 2. Coach & Pool Location */}
+                    <td className="px-3 py-3.5 align-middle">
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 truncate">
+                          <div className="w-5 h-5 rounded-md bg-slate-100 dark:bg-slate-800 flex items-center justify-center shrink-0">
+                            <UserCheck className="w-3 h-3 text-sky-600 dark:text-sky-400" />
                           </div>
                           <span className="truncate">{session.coach_name || 'نامشخص'}</span>
                         </div>
-                      </td>
-
-                      {/* Date & Time */}
-                      <td className="px-3.5 py-4 align-middle">
-                        {(() => {
-                          const { weekday, dateFormatted } = formatSessionDate(session.session_date);
-                          return (
-                            <div>
-                              <div className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-100 text-xs">
-                                <Calendar className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
-                                <span>{weekday}</span>
-                                <span className="font-mono text-slate-600 dark:text-slate-300 font-semibold">{dateFormatted}</span>
-                              </div>
-                              <div className="font-mono text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1.5">
-                                <Clock className="w-3 h-3 text-slate-400 shrink-0" />
-                                <span>{session.start_time?.slice(0, 5)} تا {session.end_time?.slice(0, 5)}</span>
-                              </div>
-                            </div>
-                          );
-                        })()}
-                      </td>
-
-                      {/* Pool Location */}
-                      <td className="px-3.5 py-4 align-middle">
-                        <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
-                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-500 dark:text-slate-400 truncate pr-0.5">
+                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
                           <span className="truncate font-medium">{session.pool_location || 'استخر اصلی'}</span>
                         </div>
-                      </td>
+                      </div>
+                    </td>
 
-                      {/* Session Status */}
-                      <td className="px-3.5 py-4 align-middle text-center">
-                        <Badge variant={getSessionStatusBadgeVariant(session.status)} className="text-[11px] font-bold">
-                          {session.status_display}
-                        </Badge>
-                      </td>
+                    {/* 3. Date & Time */}
+                    <td className="px-3 py-3.5 align-middle">
+                      {(() => {
+                        const { weekday, dateFormatted } = formatSessionDate(session.session_date);
+                        return (
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-100 text-xs whitespace-nowrap">
+                              <Calendar className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
+                              <span>{weekday}</span>
+                              <span className="font-mono text-slate-600 dark:text-slate-300 font-semibold">{dateFormatted}</span>
+                            </div>
+                            <div className="font-mono text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 whitespace-nowrap">
+                              <Clock className="w-3 h-3 text-slate-400 shrink-0" />
+                              <span>{session.start_time?.slice(0, 5)} تا {session.end_time?.slice(0, 5)}</span>
+                            </div>
+                          </div>
+                        );
+                      })()}
+                    </td>
 
-                      {/* Attendance Recorded Status */}
-                      <td className="px-3.5 py-4 align-middle text-center">
+                    {/* 4. Session Status & Attendance Status */}
+                    <td className="px-3 py-3.5 align-middle text-center">
+                      <div className="flex flex-col items-center justify-center gap-1">
                         {session.attendance_recorded ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold shadow-2xs whitespace-nowrap">
-                            <CheckCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-bold shadow-2xs whitespace-nowrap">
+                            <CheckCircle className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
                             <span>ثبت‌شده ({session.attendance_count || 0} نفر)</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[11px] font-bold shadow-2xs whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-[11px] font-bold shadow-2xs whitespace-nowrap">
                             <AlertCircle className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
                             <span>ثبت‌نشده</span>
                           </span>
                         )}
-                      </td>
+                        <Badge variant={getSessionStatusBadgeVariant(session.status)} className="text-[10px] font-bold px-2 py-0.5">
+                          {session.status_display}
+                        </Badge>
+                      </div>
+                    </td>
 
-                      {/* Action Button */}
-                      <td className="px-4 py-4 align-middle text-center">
-                        {session.attendance_recorded ? (
-                          <button
-                            type="button"
-                            onClick={() => handleOpenAttendanceSheet(session)}
-                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/90 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-all cursor-pointer active:scale-95 whitespace-nowrap shadow-2xs"
-                          >
-                            <ClipboardCheck className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
-                            <span>بازبینی حضور</span>
-                          </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleOpenAttendanceSheet(session)}
-                            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-xs hover:shadow transition-all cursor-pointer active:scale-95 whitespace-nowrap"
-                          >
-                            <ClipboardCheck className="w-3.5 h-3.5" />
-                            <span>ثبت حضور</span>
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                    {/* 5. Action Button */}
+                    <td className="px-3 py-3.5 align-middle text-center">
+                      {session.attendance_recorded ? (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenAttendanceSheet(session)}
+                          className="inline-flex items-center justify-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200/90 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-xs border border-slate-200 dark:border-slate-700 transition-all cursor-pointer active:scale-95 whitespace-nowrap shadow-2xs"
+                        >
+                          <ClipboardCheck className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                          <span>بازبینی</span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => handleOpenAttendanceSheet(session)}
+                          className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-xs hover:shadow transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+                        >
+                          <ClipboardCheck className="w-3.5 h-3.5" />
+                          <span>ثبت حضور</span>
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
 
           {/* Mobile Cards View */}
