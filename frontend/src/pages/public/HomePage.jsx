@@ -186,6 +186,72 @@ const INITIAL_NEWS = [
   },
 ];
 
+const INITIAL_POOLS = [
+  {
+    id: 1,
+    name: 'استخر ۵۰ متری المپیک قزوین',
+    slug: 'olympic-pool-qazvin',
+    poster_image: 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=800&q=80',
+    location: 'قزوین، شهرک کوثر، مجتمع ورزشی المپیک',
+    description: 'مجموعه آبی المپیک مجهز به استخر مسابقاتی ۵۰ متری با ۱۰ خط، استاندارد برگزاری مسابقات رسمی فدراسیون شنا، سیستم پیشرفته گندزدایی ترکیبی ازن و کلر با کمترین میزان بوی گاز، آب زلال و مطبوع با عمق استاندارد.',
+    facilities: 'استخر ۵۰ متری المپیک، سونای خشک و بخار فنلاندی، جکوزی ماساژوردار، حوضچه آب سرد، رختکن الکترونیک و پارکینگ اختصاصی',
+    dimensions: '۵۰ در ۲۵ متر (۱۰ لاین مسابقاتی)',
+    depth: '۱.۴۰ الی ۳.۸۰ متر',
+    phone: '۰۲۸-۳۳۶۵۲۰۰۱',
+    gallery_images: [
+      { id: 101, image: 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=800&q=80' },
+      { id: 102, image: 'https://images.unsplash.com/photo-1519315901367-f34ff9154487?auto=format&fit=crop&w=800&q=80' },
+      { id: 103, image: 'https://images.unsplash.com/photo-1584824486509-112e4181ff6b?auto=format&fit=crop&w=800&q=80' }
+    ]
+  },
+  {
+    id: 2,
+    name: 'استخر نیلگون انقلاب',
+    slug: 'nilgoon-enghelab-pool',
+    poster_image: 'https://images.unsplash.com/photo-1519315901367-f34ff9154487?auto=format&fit=crop&w=800&q=80',
+    location: 'قزوین، میدان میرعماد، خیابان نادری شمالی',
+    description: 'مرکز تخصصی آموزش ۴ شنا و رفع ترس کودکان با محیط بسیار تمیز و آب زلال و مطبوع ۳۰ درجه. محیطی آرام و استاندارد ویژه بانوان، کودکان و نوآموزان.',
+    facilities: 'کاسه آموزشی اختصاصی، سونای بخار گیاهی، جکوزی ماساژوردار، بوفه سلامت و نجات غریق‌های مقیم فدراسیون',
+    dimensions: '۲۵ در ۱۲.۵ متر (۶ لاین)',
+    depth: '۰.۹۰ الی ۲.۲۰ متر',
+    phone: '۰۲۸-۳۳۳۴۱۰۰۲',
+    gallery_images: [
+      { id: 201, image: 'https://images.unsplash.com/photo-1519315901367-f34ff9154487?auto=format&fit=crop&w=800&q=80' },
+      { id: 202, image: 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=800&q=80' }
+    ]
+  },
+  {
+    id: 3,
+    name: 'استخر قهرمانی آزادی',
+    slug: 'azadi-championship-pool',
+    poster_image: 'https://images.unsplash.com/photo-1584824486509-112e4181ff6b?auto=format&fit=crop&w=800&q=80',
+    location: 'قزوین، سبزه میدان، مجموعه ورزشی جهان پهلوان تختی',
+    description: 'پایگاه استعدادیابی و تمرینات تیم‌های منتخب شنای استان قزوین، مجهز به تجهیزات پیشرفته ثبت رکورد و تایم‌گیری دیجیتال و خطوط مجهز به طناب موج‌گیر.',
+    facilities: 'لاین‌های اختصاصی تمرین سرعتی، تخته‌های شنا و فین، سالن بدنسازی خشک ویژه شناگران، سونای خشک',
+    dimensions: '۳۳ در ۱۵ متر',
+    depth: '۱.۲۰ الی ۲.۸۰ متر',
+    phone: '۰۲۸-۳۳۲۲۳۳۴۴',
+    gallery_images: [
+      { id: 301, image: 'https://images.unsplash.com/photo-1584824486509-112e4181ff6b?auto=format&fit=crop&w=800&q=80' }
+    ]
+  },
+  {
+    id: 4,
+    name: 'استخر آموزشی سرپوشیده نونهالان (آب‌پری)',
+    slug: 'abpari-kids-pool',
+    poster_image: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=800&q=80',
+    location: 'قزوین، بلوار دانشگاه، مجتمع آموزشی ورزشی دانشگاه',
+    description: 'استخر ویژه کودکان و نونهالان با دمای کنترل‌شده ۳۱ درجه و سیستم بدون کلر شیمیایی جهت جلوگیری از هرگونه سوزش چشم یا حساسیت تنفسی نوآموزان.',
+    facilities: 'کاسه شیب‌دار ایمن کودکان، بازوبند و نودل‌های فومی آلمانی، دوش‌های آبگرم اختصاصی کودکان و اتاق انتظار شیشه‌ای والدین',
+    dimensions: '۱۶ در ۸ متر',
+    depth: '۰.۷۰ الی ۱.۲۰ متر',
+    phone: '۰۲۸-۳۳۵۵۶۶۷۷',
+    gallery_images: [
+      { id: 401, image: 'https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=800&q=80' }
+    ]
+  }
+];
+
 const getCourseDetails = (course) => {
   // 1. Age Range (رده سنی)
   let ageRange = course.age_range;
@@ -269,8 +335,11 @@ export const HomePage = () => {
   const [courses, setCourses] = useState(INITIAL_COURSES);
   const [coursesLoading, setCoursesLoading] = useState(false);
   const [coaches, setCoaches] = useState(INITIAL_COACHES);
+  const [coachGenderTab, setCoachGenderTab] = useState('ALL'); // 'ALL' | 'MALE' | 'FEMALE'
   const [news, setNews] = useState(INITIAL_NEWS);
   const [selectedNews, setSelectedNews] = useState(null);
+  const [pools, setPools] = useState(INITIAL_POOLS);
+  const [selectedPool, setSelectedPool] = useState(null);
 
   // Course Enrollment Request State
   const [enrollingCourse, setEnrollingCourse] = useState(null);
@@ -430,10 +499,11 @@ export const HomePage = () => {
   useEffect(() => {
     const fetchLandingData = async () => {
       try {
-        const [courseRes, coachRes, nRes] = await Promise.allSettled([
+        const [courseRes, coachRes, nRes, poolRes] = await Promise.allSettled([
           api.get('/education/courses/'),
           api.get('/coaches/'),
           api.get('/content/news/'),
+          api.get('/content/pools/'),
         ]);
         if (courseRes.status === 'fulfilled' && courseRes.value?.data) {
           const courseData = courseRes.value.data.results || courseRes.value.data;
@@ -441,11 +511,18 @@ export const HomePage = () => {
         }
         if (coachRes.status === 'fulfilled' && coachRes.value?.data) {
           const cData = coachRes.value.data.results || coachRes.value.data;
-          if (Array.isArray(cData) && cData.length > 0) setCoaches(cData);
+          if (Array.isArray(cData) && cData.length > 0) {
+            const sorted = [...cData].sort((a, b) => (a.display_order ?? 999) - (b.display_order ?? 999));
+            setCoaches(sorted);
+          }
         }
         if (nRes.status === 'fulfilled' && nRes.value?.data) {
           const nData = nRes.value.data.results || nRes.value.data;
           if (Array.isArray(nData) && nData.length > 0) setNews(nData);
+        }
+        if (poolRes.status === 'fulfilled' && poolRes.value?.data) {
+          const pData = poolRes.value.data.results || poolRes.value.data;
+          if (Array.isArray(pData) && pData.length > 0) setPools(pData);
         }
       } catch (err) {
         console.error('Error updating live landing data:', err);
@@ -493,7 +570,26 @@ export const HomePage = () => {
     return SwimmerCrawlIcon;
   };
 
+  const isFemaleCoach = (c) => {
+    if (c.gender === 'FEMALE') return true;
+    if (c.gender === 'MALE') return false;
+    const name = c.full_name || '';
+    return name.includes('سارا') || name.includes('مریم') || name.includes('زهرا') || name.includes('خانم');
+  };
+
+  const isMaleCoach = (c) => !isFemaleCoach(c);
+
+  const filteredCoaches = coaches
+    .filter((c) => {
+      if (coachGenderTab === 'MALE') return isMaleCoach(c);
+      if (coachGenderTab === 'FEMALE') return isFemaleCoach(c);
+      return true;
+    })
+    .sort((a, b) => (a.display_order ?? 999) - (b.display_order ?? 999));
+
   const getNewsImage = (item, index) => {
+    if (item?.image_url) return item.image_url;
+    if (item?.image) return item.image;
     const cat = item?.category;
     if (cat === 'COMPETITIONS') {
       return 'https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=800&q=80';
@@ -920,8 +1016,101 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* Organic Wave Transition: Courses to Facilities */}
-      <AquaticWaveDivider topColor="#c4ecf2" bottomColor="#c2ecf1" flip={false} />
+      {/* Organic Wave Transition: Courses to Pools */}
+      <AquaticWaveDivider topColor="#c4ecf2" bottomColor="#bfe9f0" flip={false} />
+
+      {/* =========================================================================
+          SECTION: SWIMMING POOLS & AQUATIC COMPLEXES (استخرها و مجموعه‌های ورزشی قزوین)
+          ========================================================================= */}
+      <section id="pools" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
+        <FloatingLandingWaterIcons section="pools" />
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
+          <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
+            <div className="space-y-1.5">
+              <Badge variant="info">استخرهای طرف قرارداد در قزوین</Badge>
+              <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+                مجموعه‌های آبی و استخرهای استاندارد قزوین
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-700 font-medium">
+                برگزاری کلاس‌های شنا در تمیزترین و مجهزترین استخرهای استان قزوین با امکانات بهداشتی و رفاهی کامل
+              </p>
+            </div>
+            <span className="text-xs font-mono font-bold text-cyan-900 bg-white/90 px-3.5 py-1.5 rounded-xl border border-cyan-300/60 shrink-0 self-start sm:self-auto shadow-xs">
+              {pools.length} استخر استاندارد
+            </span>
+          </div>
+
+          <Carousel
+            items={pools}
+            className="landing-carousel"
+            ariaLabel="گردونه استخرهای قزوین"
+            visibleItems={{ mobile: 1, tablet: 2, desktop: 3 }}
+            interval={5000}
+            renderItem={(pool) => {
+              const poster = pool.poster_image_url || pool.poster_image || 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=800&q=80';
+              return (
+                <article className="landing-news-card group bg-white/95 rounded-3xl border-2 border-cyan-100 overflow-hidden shadow-sm hover:shadow-cyan-500/10 hover:border-cyan-400/50 transition-all duration-300 flex flex-col justify-between h-full">
+                  <div>
+                    {/* Primary Card: Poster Photo */}
+                    <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-slate-900">
+                      <img
+                        src={poster}
+                        alt={pool.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                      <div className="absolute top-3.5 right-3.5 z-20">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/90 backdrop-blur-md text-cyan-900 text-[11px] font-bold rounded-lg border border-cyan-200 shadow-xs">
+                          <Waves className="w-3.5 h-3.5 text-cyan-600 shrink-0" />
+                          <span>استخر استاندارد</span>
+                        </span>
+                      </div>
+                      {pool.dimensions && (
+                        <div className="absolute bottom-3 right-3 z-20">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-mono font-bold rounded-md border border-white/20">
+                            {pool.dimensions}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Primary Card: Pool Name & Location */}
+                    <div className="p-5 sm:p-6 space-y-3">
+                      <h3 className="text-base sm:text-lg font-bold text-slate-900 leading-snug group-hover:text-cyan-700 transition-colors">
+                        {pool.name}
+                      </h3>
+
+                      <div className="flex items-start gap-2 text-xs text-slate-600 font-medium">
+                        <MapPin className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                        <span className="line-clamp-2 leading-relaxed">{pool.location}</span>
+                      </div>
+
+                      <p className="text-xs text-slate-600 leading-relaxed line-clamp-2 text-justify font-medium">
+                        {pool.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Button to open detail modal */}
+                  <div className="p-5 sm:p-6 pt-0">
+                    <button
+                      type="button"
+                      onClick={() => setSelectedPool(pool)}
+                      className="w-full text-center py-2.5 px-4 text-xs font-bold text-cyan-900 hover:text-white bg-cyan-50/90 hover:bg-cyan-600 rounded-xl border border-cyan-200/90 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <span>مشاهده تصاویر و جزئیات استخر</span>
+                      <ArrowLeft className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </article>
+              );
+            }}
+          />
+        </div>
+      </section>
+
+      {/* Organic Wave Transition: Pools to Facilities */}
+      <AquaticWaveDivider topColor="#bfe9f0" bottomColor="#c2ecf1" flip={true} />
 
       {/* =========================================================================
           SECTION 4: ACADEMY FACILITIES & INFRASTRUCTURE
@@ -1064,12 +1253,49 @@ export const HomePage = () => {
               </p>
             </div>
             <span className="text-xs font-mono font-bold text-cyan-900 bg-white/90 px-3.5 py-1.5 rounded-xl border border-cyan-300/60 shrink-0 self-start sm:self-auto shadow-xs">
-              {coaches.length} مربی فعال و مجاز
+              {filteredCoaches.length} مربی فعال و مجاز
             </span>
           </div>
 
+          {/* Gender Filter Tabs: مربیان مرد / مربیان زن */}
+          <div className="flex items-center gap-2 p-1.5 bg-white/90 dark:bg-slate-900/90 rounded-2xl border border-cyan-200/80 shadow-xs w-fit">
+            <button
+              type="button"
+              onClick={() => setCoachGenderTab('ALL')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                coachGenderTab === 'ALL'
+                  ? 'bg-cyan-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              همه مربیان ({coaches.length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setCoachGenderTab('MALE')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                coachGenderTab === 'MALE'
+                  ? 'bg-cyan-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              مربیان مرد ({coaches.filter(isMaleCoach).length})
+            </button>
+            <button
+              type="button"
+              onClick={() => setCoachGenderTab('FEMALE')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                coachGenderTab === 'FEMALE'
+                  ? 'bg-pink-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              مربیان زن ({coaches.filter(isFemaleCoach).length})
+            </button>
+          </div>
+
           <Carousel
-            items={coaches}
+            items={filteredCoaches}
             className="landing-carousel"
             ariaLabel="اسلایدر کادر مربیان آموزشگاه"
             visibleItems={{ mobile: 1, tablet: 2, desktop: 3 }}
@@ -1253,6 +1479,11 @@ export const HomePage = () => {
                     </a>
                   </li>
                   <li>
+                    <a href="#pools" className="hover:text-cyan-300 transition-colors">
+                      استخرهای تحت پوشش قزوین
+                    </a>
+                  </li>
+                  <li>
                     <a href="#facilities" className="hover:text-cyan-300 transition-colors">
                       امکانات و شرایط استخرها
                     </a>
@@ -1372,8 +1603,130 @@ export const HomePage = () => {
               {selectedNews.body}
             </div>
 
+            {/* Additional Description Images (عکس‌های مربوط به شرح خبر) */}
+            {selectedNews.detail_images && selectedNews.detail_images.length > 0 && (
+              <div className="space-y-3 pt-3 border-t border-slate-800">
+                <h4 className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <span>تصاویر و شرح تصویری رویداد:</span>
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {selectedNews.detail_images.map((imgObj, i) => {
+                    const src = imgObj.image_url || imgObj.image;
+                    return (
+                      <div key={imgObj.id || i} className="group relative rounded-xl overflow-hidden bg-slate-950 border border-cyan-500/20 aspect-video">
+                        <img
+                          src={src}
+                          alt={imgObj.caption || `تصویر شرح ${i + 1}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        />
+                        {imgObj.caption && (
+                          <span className="absolute bottom-0 inset-x-0 p-1.5 bg-black/70 text-[10px] text-slate-200 truncate">
+                            {imgObj.caption}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
             <div className="pt-4 border-t border-slate-800 flex justify-end">
               <Button size="sm" onClick={() => setSelectedNews(null)}>
+                بستن پنجره
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* =========================================================================
+          POOL DETAIL MODAL (جزئیات استخر همراه با عکس‌های بیشتر و مشخصات کامل)
+          ========================================================================= */}
+      <Modal
+        isOpen={!!selectedPool}
+        onClose={() => setSelectedPool(null)}
+        title={selectedPool?.name || 'جزئیات استخر'}
+        maxWidth="max-w-4xl"
+      >
+        {selectedPool && (
+          <div className="space-y-5 text-right">
+            {/* Main Poster */}
+            <div className="relative h-60 sm:h-72 w-full rounded-2xl overflow-hidden bg-slate-950 shadow-md">
+              <img
+                src={selectedPool.poster_image_url || selectedPool.poster_image || 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=800&q=80'}
+                alt={selectedPool.name}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute top-3 right-3 flex items-center gap-2">
+                <span className="px-3 py-1 bg-slate-900/90 backdrop-blur-md text-cyan-300 text-xs font-bold rounded-lg border border-cyan-400/30">
+                  {selectedPool.dimensions || 'استخر استاندارد'}
+                </span>
+                {selectedPool.depth && (
+                  <span className="px-3 py-1 bg-slate-900/90 backdrop-blur-md text-teal-300 text-xs font-bold rounded-lg border border-teal-400/30">
+                    عمق: {selectedPool.depth}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Title & Location */}
+            <div className="space-y-2 pb-2 border-b border-slate-800">
+              <h3 className="text-xl sm:text-2xl font-black text-slate-100">{selectedPool.name}</h3>
+              <p className="flex items-center gap-2 text-xs sm:text-sm text-cyan-300 font-medium">
+                <MapPin className="w-4 h-4 text-teal-400 shrink-0" />
+                <span>{selectedPool.location}</span>
+              </p>
+              {selectedPool.phone && (
+                <p className="flex items-center gap-2 text-xs text-slate-400 font-mono">
+                  <PhoneCall className="w-3.5 h-3.5 text-teal-400 shrink-0" />
+                  <span>تلفن هماهنگی: {selectedPool.phone}</span>
+                </p>
+              )}
+            </div>
+
+            {/* Description & specs */}
+            <div className="p-4 bg-slate-800/70 rounded-2xl border border-cyan-500/20 text-xs sm:text-sm text-slate-300 leading-relaxed whitespace-pre-wrap text-justify">
+              {selectedPool.description}
+            </div>
+
+            {/* Facilities */}
+            {selectedPool.facilities && (
+              <div className="space-y-2">
+                <span className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                  <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                  <span>امکانات رفاهی و بهداشتی استخر:</span>
+                </span>
+                <p className="text-xs text-slate-300 leading-relaxed bg-slate-800/40 p-3 rounded-xl border border-slate-700/60">
+                  {selectedPool.facilities}
+                </p>
+              </div>
+            )}
+
+            {/* Gallery: More photos of the pool (عکس‌های بیشتر مربوط به استخر) */}
+            {selectedPool.gallery_images && selectedPool.gallery_images.length > 0 && (
+              <div className="space-y-2.5 pt-3 border-t border-slate-800">
+                <span className="text-xs font-bold text-cyan-300 flex items-center gap-1.5">
+                  <Waves className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>عکس‌های بیشتر از بخش‌های مختلف استخر:</span>
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                  {selectedPool.gallery_images.map((imgObj, idx) => (
+                    <div key={imgObj.id || idx} className="rounded-xl overflow-hidden aspect-video bg-slate-900 border border-slate-700 shadow-sm">
+                      <img
+                        src={imgObj.image_url || imgObj.image}
+                        alt={`تصویر ${idx + 1} از ${selectedPool.name}`}
+                        className="w-full h-full object-cover hover:scale-105 transition-transform"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="pt-4 border-t border-slate-800 flex justify-end">
+              <Button size="sm" onClick={() => setSelectedPool(null)}>
                 بستن پنجره
               </Button>
             </div>

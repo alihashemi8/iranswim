@@ -32,6 +32,7 @@ import { AdminAssessmentsPage } from './pages/admin/AdminAssessmentsPage';
 import { AdminLeaguesPage } from './pages/admin/AdminLeaguesPage';
 import { AdminFinancePage } from './pages/admin/AdminFinancePage';
 import { AdminNewsPage } from './pages/admin/AdminNewsPage';
+import { AdminWebsiteManagerPage } from './pages/admin/AdminWebsiteManagerPage';
 import { AdminAnnouncementsPage } from './pages/admin/AdminAnnouncementsPage';
 import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
@@ -172,6 +173,7 @@ export default function App() {
                 <Route path="finance" element={<AdminFinancePage />} />
 
                 {/* 5. Content & Communications */}
+                <Route path="website" element={<AdminWebsiteManagerPage />} />
                 <Route path="news" element={<AdminNewsPage />} />
                 <Route path="announcements" element={<AdminAnnouncementsPage />} />
 

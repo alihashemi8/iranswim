@@ -1,17 +1,25 @@
 from django.db import models
 from django.utils import timezone
+from django.utils.text import slugify
 from rest_framework import generics, permissions, views, status
+from rest_framework.views import APIView
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
-from .models import NewsPost, Announcement, Notification, SupportTicket
+from .models import (
+    NewsPost, NewsImage, SwimmingPool, PoolImage,
+    Announcement, Notification, SupportTicket
+)
 from .serializers import (
-    NewsPostSerializer, AnnouncementSerializer, NotificationSerializer,
-    SupportTicketSerializer
+    NewsPostSerializer, NewsImageSerializer,
+    SwimmingPoolSerializer, PoolImageSerializer,
+    AnnouncementSerializer, NotificationSerializer, SupportTicketSerializer
 )
 from apps.accounts.permissions import IsAdminUserRole
 
 
 class NewsPostListView(generics.ListCreateAPIView):
     serializer_class = NewsPostSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_permissions(self):
         if self.request.method == 'GET':
@@ -25,18 +33,172 @@ class NewsPostListView(generics.ListCreateAPIView):
         return NewsPost.objects.filter(status=NewsPost.Status.PUBLISHED).order_by('-publish_at')
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        author_val = self.request.user if self.request.user and self.request.user.is_authenticated else None
+        
+        # Auto slug if empty
+        validated_data = serializer.validated_data
+        title = validated_data.get('title', 'news')
+        slug = validated_data.get('slug')
+        if not slug:
+            base_slug = slugify(title, allow_unicode=True) or 'news'
+            validated_data['slug'] = f"{base_slug[:50]}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+
+        post = serializer.save(author=author_val)
+
+        # Handle multiple description images
+        detail_files = self.request.FILES.getlist('detail_images')
+        for idx, file in enumerate(detail_files):
+            NewsImage.objects.create(news_post=post, image=file, order=idx)
 
 
 class NewsPostDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = NewsPost.objects.all()
     serializer_class = NewsPostSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
     lookup_field = 'slug'
 
     def get_permissions(self):
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
         return [IsAdminUserRole()]
+
+    def perform_update(self, serializer):
+        post = serializer.save()
+        detail_files = self.request.FILES.getlist('detail_images')
+        if detail_files:
+            current_max = post.detail_images.aggregate(models.Max('order'))['order__max'] or 0
+            for idx, file in enumerate(detail_files):
+                NewsImage.objects.create(news_post=post, image=file, order=current_max + idx + 1)
+
+
+class NewsImageDeleteView(generics.DestroyAPIView):
+    """حذف یک تصویر شرح خبر به صورت تفکیک‌شده"""
+    queryset = NewsImage.objects.all()
+    permission_classes = [IsAdminUserRole]
+
+
+def _ensure_initial_pools():
+    """ثبت استخرهای شاخص قزوین در صورت عدم وجود رکورد در سیستم"""
+    if SwimmingPool.objects.count() == 0:
+        SwimmingPool.objects.bulk_create([
+            SwimmingPool(
+                name='استخر ۵۰ متری المپیک قزوین',
+                slug='olympic-pool-qazvin',
+                location='قزوین، شهرک کوثر، مجتمع ورزشی المپیک',
+                description='مجموعه آبی المپیک مجهز به استخر مسابقاتی ۵۰ متری با ۱۰ خط، استاندارد برگزاری مسابقات رسمی فدراسیون شنا، سیستم پیشرفته گندزدایی ترکیبی ازن و کلر با کمترین میزان بوی گاز، آب زلال و مطبوع با عمق استاندارد.',
+                facilities='استخر ۵۰ متری المپیک، سونای خشک و بخار فنلاندی، جکوزی ماساژوردار، حوضچه آب سرد، رختکن الکترونیک و پارکینگ اختصاصی',
+                dimensions='۵۰ در ۲۵ متر (۱۰ لاین مسابقاتی)',
+                depth='۱.۴۰ الی ۳.۸۰ متر',
+                phone='۰۲۸-۳۳۶۵۲۰۰۱',
+                display_order=1,
+                is_active=True,
+            ),
+            SwimmingPool(
+                name='استخر نیلگون انقلاب',
+                slug='nilgoon-enghelab-pool',
+                location='قزوین، میدان میرعماد، خیابان نادری شمالی',
+                description='مرکز تخصصی آموزش ۴ شنا و رفع ترس کودکان با محیط بسیار تمیز و آب زلال و مطبوع ۳۰ درجه. محیطی آرام و استاندارد ویژه بانوان، کودکان و نوآموزان.',
+                facilities='کاسه آموزشی اختصاصی، سونای بخار گیاهی، جکوزی ماساژوردار، بوفه سلامت و نجات غریق‌های مقیم فدراسیون',
+                dimensions='۲۵ در ۱۲.۵ متر (۶ لاین)',
+                depth='۰.۹۰ الی ۲.۲۰ متر',
+                phone='۰۲۸-۳۳۳۴۱۰۰۲',
+                display_order=2,
+                is_active=True,
+            ),
+            SwimmingPool(
+                name='استخر قهرمانی آزادی',
+                slug='azadi-championship-pool',
+                location='قزوین، سبزه میدان، مجموعه ورزشی جهان پهلوان تختی',
+                description='پایگاه استعدادیابی و تمرینات تیم‌های منتخب شنای استان قزوین، مجهز به تجهیزات پیشرفته ثبت رکورد و تایم‌گیری دیجیتال و خطوط مجهز به طناب موج‌گیر.',
+                facilities='لاین‌های اختصاصی تمرین سرعتی، تخته‌های شنا و فین، سالن بدنسازی خشک ویژه شناگران، سونای خشک',
+                dimensions='۳۳ در ۱۵ متر',
+                depth='۱.۲۰ الی ۲.۸۰ متر',
+                phone='۰۲۸-۳۳۲۲۳۳۴۴',
+                display_order=3,
+                is_active=True,
+            ),
+            SwimmingPool(
+                name='استخر آموزشی سرپوشیده نونهالان (آب‌پری)',
+                slug='abpari-kids-pool',
+                location='قزوین، بلوار دانشگاه، مجتمع آموزشی ورزشی دانشگاه',
+                description='استخر ویژه کودکان و نونهالان با دمای کنترل‌شده ۳۱ درجه و سیستم بدون کلر شیمیایی جهت جلوگیری از هرگونه سوزش چشم یا حساسیت تنفسی نوآموزان.',
+                facilities='کاسه شیب‌دار ایمن کودکان، بازوبند و نودل‌های فومی آلمانی، دوش‌های آبگرم اختصاصی کودکان و اتاق انتظار شیشه‌ای والدین',
+                dimensions='۱۶ در ۸ متر',
+                depth='۰.۷۰ الی ۱.۲۰ متر',
+                phone='۰۲۸-۳۳۵۵۶۶۷۷',
+                display_order=4,
+                is_active=True,
+            ),
+        ])
+
+
+class SwimmingPoolListView(generics.ListCreateAPIView):
+    serializer_class = SwimmingPoolSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [IsAdminUserRole()]
+
+    def get_queryset(self):
+        _ensure_initial_pools()
+        user = self.request.user
+        if user and (getattr(user, 'role', '') in ['ADMIN', 'SUPERVISOR'] or getattr(user, 'is_superuser', False)):
+            return SwimmingPool.objects.all().order_by('display_order', '-id')
+        return SwimmingPool.objects.filter(is_active=True).order_by('display_order', '-id')
+
+    def perform_create(self, serializer):
+        name = serializer.validated_data.get('name', 'استخر')
+        slug = serializer.validated_data.get('slug')
+        if not slug:
+            base_slug = slugify(name, allow_unicode=True) or 'pool'
+            serializer.validated_data['slug'] = f"{base_slug[:50]}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+
+        pool = serializer.save()
+        gallery_files = self.request.FILES.getlist('gallery_images')
+        for idx, file in enumerate(gallery_files):
+            PoolImage.objects.create(pool=pool, image=file, order=idx)
+
+
+class SwimmingPoolDetailView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = SwimmingPool.objects.all()
+    serializer_class = SwimmingPoolSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    lookup_field = 'slug'
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [IsAdminUserRole()]
+
+    def perform_update(self, serializer):
+        pool = serializer.save()
+        gallery_files = self.request.FILES.getlist('gallery_images')
+        if gallery_files:
+            current_max = pool.gallery_images.aggregate(models.Max('order'))['order__max'] or 0
+            for idx, file in enumerate(gallery_files):
+                PoolImage.objects.create(pool=pool, image=file, order=current_max + idx + 1)
+
+
+class PoolImageDeleteView(generics.DestroyAPIView):
+    """حذف تصویر گالری استخر به صورت مستقل"""
+    queryset = PoolImage.objects.all()
+    permission_classes = [IsAdminUserRole]
+
+
+class PoolReorderView(APIView):
+    """تنظیم گروهی ترتیب نمایش استخرها در سایت"""
+    permission_classes = [IsAdminUserRole]
+
+    def post(self, request):
+        orders = request.data.get('orders', [])
+        for item in orders:
+            pool_id = item.get('id')
+            order_val = item.get('display_order')
+            if pool_id is not None and order_val is not None:
+                SwimmingPool.objects.filter(id=pool_id).update(display_order=int(order_val))
+        return Response({'status': 'success', 'message': 'ترتیب نمایش استخرها با موفقیت به‌روزرسانی شد.'})
 
 
 def _ensure_initial_announcements():

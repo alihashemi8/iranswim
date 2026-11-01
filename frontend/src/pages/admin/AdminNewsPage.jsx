@@ -27,6 +27,9 @@ export const AdminNewsPage = () => {
     summary: '',
     body: '',
   });
+  const [posterFile, setPosterFile] = useState(null);
+  const [posterPreview, setPosterPreview] = useState(null);
+  const [detailFiles, setDetailFiles] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
   // Preview Modal
@@ -59,6 +62,9 @@ export const AdminNewsPage = () => {
       summary: '',
       body: '',
     });
+    setPosterFile(null);
+    setPosterPreview(null);
+    setDetailFiles([]);
     setIsModalOpen(true);
   };
 
@@ -72,7 +78,26 @@ export const AdminNewsPage = () => {
       summary: post.summary || '',
       body: post.body,
     });
+    setPosterFile(null);
+    setPosterPreview(post.image_url || post.image || null);
+    setDetailFiles([]);
     setIsModalOpen(true);
+  };
+
+  const handleDeleteDetailImage = async (imageId) => {
+    try {
+      await api.delete(`/content/news/images/${imageId}/`);
+      toast.success('تصویر شرح خبر حذف گردید.');
+      if (editingPost) {
+        setEditingPost({
+          ...editingPost,
+          detail_images: editingPost.detail_images.filter((img) => img.id !== imageId),
+        });
+      }
+      fetchNews();
+    } catch {
+      toast.error('خطا در حذف تصویر');
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -89,16 +114,30 @@ export const AdminNewsPage = () => {
 
     try {
       setSubmitting(true);
-      const payload = {
-        ...form,
-        slug: slugVal,
-      };
+      const formData = new FormData();
+      formData.append('title', form.title);
+      formData.append('slug', slugVal);
+      formData.append('category', form.category);
+      formData.append('status', form.status);
+      formData.append('summary', form.summary);
+      formData.append('body', form.body);
+
+      if (posterFile) {
+        formData.append('image', posterFile);
+      }
+      detailFiles.forEach((f) => {
+        formData.append('detail_images', f);
+      });
 
       if (editingPost) {
-        await api.put(`/content/news/${editingPost.slug}/`, payload);
+        await api.put(`/content/news/${editingPost.slug}/`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
         toast.success('خبر با موفقیت ویرایش شد.');
       } else {
-        await api.post('/content/news/', payload);
+        await api.post('/content/news/', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
         toast.success('خبر جدید با موفقیت منتشر گردید.');
       }
 
@@ -239,6 +278,32 @@ export const AdminNewsPage = () => {
             />
           </div>
 
+          {/* Poster Image */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              عکس پوستر خبر (نمایش در کارت خبر)
+            </label>
+            <div className="flex items-center gap-4">
+              {posterPreview && (
+                <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 border shrink-0">
+                  <img src={posterPreview} alt="پوستر خبر" className="w-full h-full object-cover" />
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (file) {
+                    setPosterFile(file);
+                    setPosterPreview(URL.createObjectURL(file));
+                  }
+                }}
+                className="text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100"
+              />
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
@@ -289,13 +354,57 @@ export const AdminNewsPage = () => {
               متن کامل خبر *
             </label>
             <textarea
-              rows={6}
+              rows={5}
               required
               value={form.body}
               onChange={(e) => setForm({ ...form, body: e.target.value })}
               placeholder="متن کامل گزارش یا اطلاعیه..."
               className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
             />
+          </div>
+
+          {/* Description Images (عکس‌های مربوط به شرح خبر) */}
+          <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
+              عکس‌های مربوط به شرح خبر (نمایش در جزئیات خبر)
+            </label>
+            <input
+              type="file"
+              multiple
+              accept="image/*"
+              onChange={(e) => {
+                const files = Array.from(e.target.files);
+                setDetailFiles(files);
+              }}
+              className="text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-sky-50 file:text-sky-700 hover:file:bg-sky-100"
+            />
+            {detailFiles.length > 0 && (
+              <p className="text-[11px] text-sky-600 font-bold">
+                {detailFiles.length} عکس برای شرح خبر انتخاب شد.
+              </p>
+            )}
+
+            {/* Existing detail images */}
+            {editingPost?.detail_images && editingPost.detail_images.length > 0 && (
+              <div className="pt-2">
+                <span className="text-[11px] text-slate-500">عکس‌های ذخیره‌شده قبلی:</span>
+                <div className="flex flex-wrap gap-2 pt-1.5">
+                  {editingPost.detail_images.map((img) => (
+                    <div key={img.id} className="relative w-14 h-14 rounded-lg overflow-hidden border">
+                      <img src={img.image_url || img.image} alt="تصویر شرح" className="w-full h-full object-cover" />
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteDetailImage(img.id)}
+                        className="absolute top-0.5 right-0.5 bg-red-600 text-white p-0.5 rounded-full hover:bg-red-700"
+                        title="حذف این تصویر"
+                      >
+                        <Trash2 className="w-2.5 h-2.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
@@ -325,6 +434,16 @@ export const AdminNewsPage = () => {
             </span>
           </div>
 
+          {(previewPost?.image_url || previewPost?.image) && (
+            <div className="h-44 w-full rounded-xl overflow-hidden border">
+              <img
+                src={previewPost.image_url || previewPost.image}
+                alt={previewPost.title}
+                className="w-full h-full object-cover"
+              />
+            </div>
+          )}
+
           <h2 className="text-base font-bold text-slate-900 dark:text-white leading-relaxed">
             {previewPost?.title}
           </h2>
@@ -332,6 +451,19 @@ export const AdminNewsPage = () => {
           <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/60 dark:border-slate-700 text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
             {previewPost?.body}
           </div>
+
+          {previewPost?.detail_images && previewPost.detail_images.length > 0 && (
+            <div className="space-y-2 pt-2 border-t">
+              <span className="font-bold text-slate-700 dark:text-slate-300">عکس‌های مربوط به شرح خبر:</span>
+              <div className="grid grid-cols-3 gap-2">
+                {previewPost.detail_images.map((img) => (
+                  <div key={img.id} className="h-20 rounded-lg overflow-hidden border">
+                    <img src={img.image_url || img.image} alt="تصویر شرح" className="w-full h-full object-cover" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="flex justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
             <Button variant="outline" onClick={() => setPreviewPost(null)}>

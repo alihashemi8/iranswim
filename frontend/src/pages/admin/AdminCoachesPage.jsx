@@ -22,6 +22,7 @@ export const AdminCoachesPage = () => {
   const [coaches, setCoaches] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
+  const [genderFilter, setGenderFilter] = useState(''); // '' | 'MALE' | 'FEMALE'
 
   // Add Coach Modal State
   const [isAddCoachModalOpen, setIsAddCoachModalOpen] = useState(false);
@@ -31,6 +32,8 @@ export const AdminCoachesPage = () => {
     phone: '',
     national_id: '',
     password: '',
+    gender: 'MALE',
+    display_order: 1,
     specialties: '',
     bio: '',
     employment_status: 'ACTIVE',
@@ -48,6 +51,7 @@ export const AdminCoachesPage = () => {
       setLoading(true);
       const params = {};
       if (statusFilter) params.status = statusFilter;
+      if (genderFilter) params.gender = genderFilter;
 
       const coachesRes = await api.get('/coaches/', { params });
       setCoaches(coachesRes.data.results || coachesRes.data);
@@ -61,7 +65,7 @@ export const AdminCoachesPage = () => {
 
   useEffect(() => {
     fetchCoaches();
-  }, [statusFilter]);
+  }, [statusFilter, genderFilter]);
 
   // Handle Add Coach Submit
   const handleAddCoachSubmit = async (e) => {
@@ -197,6 +201,43 @@ export const AdminCoachesPage = () => {
             />
           </div>
         </div>
+      </div>
+
+      {/* Gender Filter Pills */}
+      <div className="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl w-fit">
+        <button
+          type="button"
+          onClick={() => setGenderFilter('')}
+          className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            genderFilter === ''
+              ? 'bg-white dark:bg-slate-700 text-sky-700 dark:text-sky-300 shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+          }`}
+        >
+          همه مربیان
+        </button>
+        <button
+          type="button"
+          onClick={() => setGenderFilter('MALE')}
+          className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            genderFilter === 'MALE'
+              ? 'bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+          }`}
+        >
+          مربیان مرد (آقایان)
+        </button>
+        <button
+          type="button"
+          onClick={() => setGenderFilter('FEMALE')}
+          className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            genderFilter === 'FEMALE'
+              ? 'bg-white dark:bg-slate-700 text-pink-700 dark:text-pink-300 shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+          }`}
+        >
+          مربیان زن (بانوان)
+        </button>
       </div>
 
       {/* Grid of Coaches */}
@@ -420,6 +461,34 @@ export const AdminCoachesPage = () => {
                 value={addCoachForm.hourly_rate}
                 onChange={(e) => setAddCoachForm({ ...addCoachForm, hourly_rate: e.target.value })}
                 className="w-full px-3 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                جنسیت مربی *
+              </label>
+              <select
+                value={addCoachForm.gender}
+                onChange={(e) => setAddCoachForm({ ...addCoachForm, gender: e.target.value })}
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
+              >
+                <option value="MALE">مربی مرد (آقا)</option>
+                <option value="FEMALE">مربی زن (خانم)</option>
+              </select>
+            </div>
+            <div>
+              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                ترتیب نمایش در سایت
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={addCoachForm.display_order}
+                onChange={(e) => setAddCoachForm({ ...addCoachForm, display_order: Number(e.target.value) })}
+                className="w-full px-3 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
               />
             </div>
           </div>

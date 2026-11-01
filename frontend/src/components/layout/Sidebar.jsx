@@ -6,7 +6,7 @@ import {
   ClipboardCheck, Award, Trophy, Newspaper, Bell, BarChart3,
   UserCheck, X, LogOut, ChevronLeft, ChevronRight,
   TrendingUp, MessageSquareQuote, FileText, Settings,
-  MessageSquare
+  MessageSquare, Globe
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -130,7 +130,8 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     {
       groupTitle: 'محتوا و ارتباطات',
       items: [
-        { to: '/admin/news', label: 'وب‌سایت و اخبار', icon: Newspaper },
+        { to: '/admin/website', label: 'مدیریت وبسایت و لندینگ', icon: Globe },
+        { to: '/admin/news', label: 'اخبار و مقالات', icon: Newspaper },
         { to: '/admin/announcements', label: 'پیام‌ها و اعلان‌ها', icon: Bell },
       ],
     },

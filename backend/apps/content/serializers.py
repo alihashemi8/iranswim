@@ -26,6 +26,7 @@ class NewsPostSerializer(serializers.ModelSerializer):
     category_display = serializers.CharField(source='get_category_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     image_url = serializers.SerializerMethodField()
+    slug = serializers.SlugField(required=False, allow_blank=True)
     detail_images = NewsImageSerializer(many=True, read_only=True)
 
     class Meta:
@@ -36,6 +37,14 @@ class NewsPostSerializer(serializers.ModelSerializer):
             'author_name', 'detail_images', 'publish_at', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
+    def validate(self, attrs):
+        if not attrs.get('slug'):
+            from django.utils.text import slugify
+            from django.utils import timezone
+            title = attrs.get('title', 'news')
+            attrs['slug'] = f"{slugify(title, allow_unicode=True)[:50]}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+        return attrs
 
     def get_image_url(self, obj):
         if obj.image:
@@ -63,6 +72,8 @@ class PoolImageSerializer(serializers.ModelSerializer):
 
 
 class SwimmingPoolSerializer(serializers.ModelSerializer):
+    slug = serializers.SlugField(required=False, allow_blank=True)
+    is_active = serializers.BooleanField(required=False, default=True)
     poster_image_url = serializers.SerializerMethodField()
     gallery_images = PoolImageSerializer(many=True, read_only=True)
 
@@ -75,6 +86,14 @@ class SwimmingPoolSerializer(serializers.ModelSerializer):
             'gallery_images', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def validate(self, attrs):
+        if not attrs.get('slug'):
+            from django.utils.text import slugify
+            from django.utils import timezone
+            name = attrs.get('name', 'pool')
+            attrs['slug'] = f"{slugify(name, allow_unicode=True)[:50]}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
+        return attrs
 
     def get_poster_image_url(self, obj):
         if obj.poster_image:
