@@ -108,6 +108,13 @@ if DB_NAME:
             'PORT': os.environ.get('POSTGRES_PORT', '5432'),
         }
     }
+elif Path('/app/media').exists():
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': Path('/app/media/db.sqlite3'),
+        }
+    }
 else:
     DATABASES = {
         'default': {
@@ -134,7 +141,13 @@ STATICFILES_DIRS = [
     BASE_DIR / 'frontend_dist',
 ]
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+custom_media = os.environ.get('DJANGO_MEDIA_ROOT')
+if custom_media:
+    MEDIA_ROOT = Path(custom_media)
+elif Path('/app/media').exists():
+    MEDIA_ROOT = Path('/app/media')
+else:
+    MEDIA_ROOT = BASE_DIR / 'media'
 
 STORAGES = {
     "default": {
