@@ -77,10 +77,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            BASE_DIR / 'templates',
-            BASE_DIR / 'frontend_dist',
-        ],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -108,13 +105,6 @@ if DB_NAME:
             'PORT': os.environ.get('POSTGRES_PORT', '5432'),
         }
     }
-elif Path('/app/media').exists():
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': Path('/app/media/db.sqlite3'),
-        }
-    }
 else:
     DATABASES = {
         'default': {
@@ -137,17 +127,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_DIRS = [
-    BASE_DIR / 'frontend_dist',
-]
 MEDIA_URL = '/media/'
-custom_media = os.environ.get('DJANGO_MEDIA_ROOT')
-if custom_media:
-    MEDIA_ROOT = Path(custom_media)
-elif Path('/app/media').exists():
-    MEDIA_ROOT = Path('/app/media')
-else:
-    MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 STORAGES = {
     "default": {
