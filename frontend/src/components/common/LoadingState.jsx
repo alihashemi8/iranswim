@@ -29,6 +29,8 @@ export const LoadingState = ({
   rows = 5,
   count = 6,
   className = '',
+  showFilters = true,
+  showStats = false,
 }) => {
   return (
     <div className={`w-full transition-opacity duration-200 ${className}`}>
@@ -44,7 +46,7 @@ export const LoadingState = ({
       {type === 'list' && <ListSkeleton count={count} />}
       {type === 'detail' && <DetailSkeleton />}
       {type === 'stats' && <StatsCardsSkeleton count={count || 4} />}
-      {type === 'table' && <TableSkeleton rows={rows} />}
+      {type === 'table' && <TableSkeleton rows={rows} showFilters={showFilters} showStats={showStats} />}
       {type === 'inline' && (
         <div className="p-6 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
           <Skeleton className="h-5 w-48 rounded-lg" />

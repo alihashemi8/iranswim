@@ -10,7 +10,7 @@ import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
-import { LoadingState } from '../../components/common/LoadingState';
+import { LoadingState, StatsCardsSkeleton } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { StatsCard } from '../../components/common/StatsCard';
 import { Pagination } from '../../components/common/Pagination';
@@ -653,36 +653,40 @@ export const AdminFinancePage = () => {
   return (
     <div className="space-y-6">
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <StatsCard
-          title="مجموع فاکتورهای صادرشده"
-          value={`${formatPrice(summary?.total_invoiced)} تومان`}
-          subtitle="تعهدات مالی ثبت‌شده شناگران"
-          icon={FileText}
-          color="indigo"
-        />
-        <StatsCard
-          title="درآمد واقعاً وصول‌شده"
-          value={`${formatPrice(summary?.total_paid)} تومان`}
-          subtitle="تراکنش‌های قطعی کارتخوان و نقدی"
-          icon={CheckCircle2}
-          color="emerald"
-        />
-        <StatsCard
-          title="مانده مطالبات معوق (بدهکاران)"
-          value={`${formatPrice(summary?.receivables)} تومان`}
-          subtitle="نیازمند پیگیری وصول شهریه"
-          icon={AlertCircle}
-          color={Number(summary?.receivables || 0) > 0 ? 'amber' : 'emerald'}
-        />
-        <StatsCard
-          title="اقساط سررسید گذشته"
-          value={`${(summary?.overdue_installments_count ?? 0).toLocaleString('fa-IR')} مورد`}
-          subtitle="اقساط معوق پرداخت‌نشده"
-          icon={AlertCircle}
-          color={(summary?.overdue_installments_count || 0) > 0 ? 'rose' : 'emerald'}
-        />
-      </div>
+      {loading && !summary ? (
+        <StatsCardsSkeleton count={4} />
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <StatsCard
+            title="مجموع فاکتورهای صادرشده"
+            value={`${formatPrice(summary?.total_invoiced)} تومان`}
+            subtitle="تعهدات مالی ثبت‌شده شناگران"
+            icon={FileText}
+            color="indigo"
+          />
+          <StatsCard
+            title="درآمد واقعاً وصول‌شده"
+            value={`${formatPrice(summary?.total_paid)} تومان`}
+            subtitle="تراکنش‌های قطعی کارتخوان و نقدی"
+            icon={CheckCircle2}
+            color="emerald"
+          />
+          <StatsCard
+            title="مانده مطالبات معوق (بدهکاران)"
+            value={`${formatPrice(summary?.receivables)} تومان`}
+            subtitle="نیازمند پیگیری وصول شهریه"
+            icon={AlertCircle}
+            color={Number(summary?.receivables || 0) > 0 ? 'amber' : 'emerald'}
+          />
+          <StatsCard
+            title="اقساط سررسید گذشته"
+            value={`${(summary?.overdue_installments_count ?? 0).toLocaleString('fa-IR')} مورد`}
+            subtitle="اقساط معوق پرداخت‌نشده"
+            icon={AlertCircle}
+            color={(summary?.overdue_installments_count || 0) > 0 ? 'rose' : 'emerald'}
+          />
+        </div>
+      )}
 
       {/* Row 1: Category Tabs */}
       <div className="flex w-full bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-xs gap-1">
@@ -915,7 +919,7 @@ export const AdminFinancePage = () => {
       </div>
 
       {loading ? (
-        <LoadingState type="table" rows={6} message="در حال دریافت اطلاعات مالی..." />
+        <LoadingState type="table" rows={6} showFilters={false} message="در حال دریافت اطلاعات مالی..." />
       ) : activeTab === 'INVOICES' ? (
         /* TAB 1: INVOICES */
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">

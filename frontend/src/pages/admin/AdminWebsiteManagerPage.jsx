@@ -587,27 +587,27 @@ export const AdminWebsiteManagerPage = () => {
     const isToggling = togglingKey === sectionKey;
     return (
       <div
-        className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors ${
+        className={`p-4 sm:p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
           isEnabled
             ? 'bg-emerald-50/90 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40 text-emerald-950 dark:text-emerald-100'
             : 'bg-amber-50/90 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/40 text-amber-950 dark:text-amber-100'
         }`}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3.5">
           <div
-            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-2xs ${
+            className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-2xs ${
               isEnabled
                 ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300'
                 : 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300'
             }`}
           >
-            {isEnabled ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+            {isEnabled ? <Eye className="w-6 h-6" /> : <EyeOff className="w-6 h-6" />}
           </div>
           <div>
-            <div className="flex items-center gap-2">
-              <span className="font-extrabold text-sm">وضعیت بخش «{sectionTitle}» در صفحه لندینگ:</span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-black text-base sm:text-lg">وضعیت بخش «{sectionTitle}» در صفحه لندینگ:</span>
               <span
-                className={`text-[11px] px-2.5 py-0.5 rounded-full font-black ${
+                className={`text-xs sm:text-sm px-3.5 py-1 rounded-full font-black ${
                   isEnabled
                     ? 'bg-emerald-200/80 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200'
                     : 'bg-amber-200/80 text-amber-900 dark:bg-amber-900 dark:text-amber-200'
@@ -616,7 +616,7 @@ export const AdminWebsiteManagerPage = () => {
                 {isEnabled ? '● در حال نمایش در صفحه اصلی' : '○ غیرفعال (مخفی از دید کاربران)'}
               </span>
             </div>
-            <p className="text-xs opacity-80 mt-0.5 font-medium">
+            <p className="text-xs sm:text-sm opacity-90 mt-1 font-semibold leading-relaxed">
               {isEnabled
                 ? 'این بخش هم‌اکنون در صفحه اصلی وبسایت به تمام بازدیدکنندگان نمایش داده می‌شود.'
                 : 'این بخش موقتاً خاموش شده و در صفحه اصلی برای بازدیدکنندگان پنهان است.'}
@@ -628,7 +628,7 @@ export const AdminWebsiteManagerPage = () => {
           type="button"
           onClick={() => handleToggleSection(sectionKey)}
           disabled={isToggling}
-          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer ${
+          className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer ${
             isEnabled
               ? 'bg-rose-100 hover:bg-rose-200 text-rose-800 dark:bg-rose-950 dark:text-rose-200 border border-rose-300/60'
               : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
@@ -636,17 +636,17 @@ export const AdminWebsiteManagerPage = () => {
         >
           {isToggling ? (
             <>
-              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              <RefreshCw className="w-4 h-4 animate-spin" />
               <span>در حال تغییر...</span>
             </>
           ) : isEnabled ? (
             <>
-              <EyeOff className="w-4 h-4" />
+              <EyeOff className="w-4.5 h-4.5" />
               <span>غیرفعال کردن (مخفی در لندینگ)</span>
             </>
           ) : (
             <>
-              <Eye className="w-4 h-4" />
+              <Eye className="w-4.5 h-4.5" />
               <span>فعال کردن (نمایش در لندینگ)</span>
             </>
           )}
@@ -659,15 +659,15 @@ export const AdminWebsiteManagerPage = () => {
     <div className="space-y-6">
       {/* Top Banner */}
       <div className="bg-gradient-to-r from-cyan-900 via-sky-900 to-teal-900 text-white p-6 sm:p-8 rounded-3xl shadow-lg border border-cyan-800/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="space-y-2">
-          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full text-xs font-bold text-cyan-200 border border-white/15">
-            <Globe className="w-3.5 h-3.5 text-cyan-400" />
+        <div className="space-y-2.5">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/10 rounded-full text-xs sm:text-sm font-black text-cyan-200 border border-white/15">
+            <Globe className="w-4 h-4 text-cyan-400" />
             <span>سامانه یکپارچه مدیریت محتوای وبسایت و صفحه لندینگ</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight">
             مدیریت وبسایت، استخرها، مربیان و اخبار
           </h1>
-          <p className="text-xs sm:text-sm text-cyan-100/90 max-w-2xl font-medium leading-relaxed">
+          <p className="text-sm sm:text-base text-cyan-100/95 max-w-2xl font-medium leading-relaxed">
             مدیریت زنده بخش‌های صفحه اصلی با همان استانداردهای گرافیکی: کارت استخرها و تصاویر تکمیلی، ترتیب کادر مربیان (آقا و خانم)، ارسال اخبار به همراه پوستر و تصاویر شرح خبر.
           </p>
         </div>
@@ -675,25 +675,25 @@ export const AdminWebsiteManagerPage = () => {
         <Button
           onClick={fetchAllData}
           variant="outline"
-          className="bg-white/10 text-white hover:bg-white/20 border-white/20 text-xs shrink-0 gap-1.5"
+          className="bg-white/10 text-white hover:bg-white/20 border-white/20 text-xs sm:text-sm font-bold shrink-0 gap-2 py-2.5 px-4"
         >
-          <RefreshCw className="w-3.5 h-3.5" />
+          <RefreshCw className="w-4 h-4" />
           <span>به‌روزرسانی داده‌ها</span>
         </Button>
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex overflow-x-auto gap-2 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+      <div className="flex overflow-x-auto gap-2 p-2 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
         <button
           type="button"
           onClick={() => setActiveTab('sections')}
-          className={`px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+          className={`px-4 sm:px-6 py-3 rounded-xl text-xs sm:text-sm lg:text-base font-black transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'sections'
               ? 'bg-white dark:bg-slate-800 text-cyan-700 dark:text-cyan-400 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
           }`}
         >
-          <LayoutTemplate className="w-4 h-4 text-cyan-600" />
+          <LayoutTemplate className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600" />
           <span>
             بخش‌های لندینگ ({landingSections.filter((s) => s.is_enabled).length} از {landingSections.length} فعال)
           </span>
@@ -702,52 +702,52 @@ export const AdminWebsiteManagerPage = () => {
         <button
           type="button"
           onClick={() => setActiveTab('pools')}
-          className={`px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+          className={`px-4 sm:px-6 py-3 rounded-xl text-xs sm:text-sm lg:text-base font-black transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'pools'
               ? 'bg-white dark:bg-slate-800 text-cyan-700 dark:text-cyan-400 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
           }`}
         >
-          <Waves className="w-4 h-4 text-cyan-600" />
+          <Waves className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600" />
           <span>استخرها و مجموعه‌های آبی ({pools.length})</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('coaches')}
-          className={`px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+          className={`px-4 sm:px-6 py-3 rounded-xl text-xs sm:text-sm lg:text-base font-black transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'coaches'
               ? 'bg-white dark:bg-slate-800 text-teal-700 dark:text-teal-400 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
           }`}
         >
-          <Users2 className="w-4 h-4 text-teal-600" />
+          <Users2 className="w-4 h-4 sm:w-5 sm:h-5 text-teal-600" />
           <span>کادر مربیان و چینش ({coaches.length})</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('news')}
-          className={`px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+          className={`px-4 sm:px-6 py-3 rounded-xl text-xs sm:text-sm lg:text-base font-black transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'news'
               ? 'bg-white dark:bg-slate-800 text-amber-700 dark:text-amber-400 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
           }`}
         >
-          <Newspaper className="w-4 h-4 text-amber-600" />
+          <Newspaper className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
           <span>اخبار و رویدادها ({news.length})</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('courses')}
-          className={`px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+          className={`px-4 sm:px-6 py-3 rounded-xl text-xs sm:text-sm lg:text-base font-black transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'courses'
               ? 'bg-white dark:bg-slate-800 text-sky-700 dark:text-sky-400 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
           }`}
         >
-          <BookOpen className="w-4 h-4 text-sky-600" />
+          <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-sky-600" />
           <span>دوره‌های لندینگ ({courses.length})</span>
         </button>
       </div>
@@ -762,25 +762,25 @@ export const AdminWebsiteManagerPage = () => {
           {activeTab === 'sections' && (
             <div className="space-y-6">
               {/* Header Box */}
-              <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <LayoutTemplate className="w-5 h-5 text-cyan-600" />
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
+                <div className="space-y-1.5">
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+                    <LayoutTemplate className="w-6 h-6 text-cyan-600 shrink-0" />
                     <span>مدیریت و فعال/غیرفعال‌سازی بخش‌های صفحه اصلی (Landing)</span>
                   </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-3xl">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium max-w-3xl">
                     هر بخشی از صفحه لندینگ را که تمایل ندارید به عموم کاربران نمایش داده شود، با کلیک روی کلید سوئیچ خاموش کنید. بخش غیرفعال بلافاصله از صفحه اصلی و منوی ناوبری بالایی حذف می‌شود.
                   </p>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2.5">
+                <div className="flex flex-wrap items-center gap-3">
                   <Button
                     onClick={() => handleSetAllSections(true)}
                     disabled={bulkUpdating}
                     variant="outline"
-                    className="gap-1.5 text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer"
+                    className="gap-2 text-xs sm:text-sm font-black py-2.5 px-4 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer shadow-xs"
                   >
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
                     <span>فعال‌سازی همه بخش‌ها</span>
                   </Button>
 
@@ -788,47 +788,47 @@ export const AdminWebsiteManagerPage = () => {
                     href="/"
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-cyan-50 dark:bg-cyan-950/40 text-cyan-800 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 hover:bg-cyan-100 transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-cyan-50 dark:bg-cyan-950/40 text-cyan-800 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 hover:bg-cyan-100 transition-colors cursor-pointer shadow-xs"
                   >
                     <span>مشاهده زنده لندینگ</span>
-                    <ExternalLink className="w-3.5 h-3.5" />
+                    <ExternalLink className="w-4 h-4" />
                   </a>
                 </div>
               </div>
 
               {/* Statistics Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/70 dark:border-slate-800 flex items-center gap-3.5 shadow-2xs">
-                  <div className="w-11 h-11 rounded-xl bg-cyan-50 dark:bg-cyan-950/50 text-cyan-600 flex items-center justify-center border border-cyan-200/60">
-                    <LayoutTemplate className="w-5 h-5" />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4.5">
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/70 dark:border-slate-800 flex items-center gap-4 shadow-2xs">
+                  <div className="w-13 h-13 rounded-2xl bg-cyan-50 dark:bg-cyan-950/50 text-cyan-600 flex items-center justify-center border border-cyan-200/60 shrink-0">
+                    <LayoutTemplate className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">کل بخش‌های صفحه اصلی</div>
-                    <div className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
+                    <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-bold">کل بخش‌های صفحه اصلی</div>
+                    <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">
                       {landingSections.length} بخش ساختاری
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-emerald-200/70 dark:border-emerald-900/40 flex items-center gap-3.5 shadow-2xs">
-                  <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center border border-emerald-200/60">
-                    <Eye className="w-5 h-5" />
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-emerald-200/70 dark:border-emerald-900/40 flex items-center gap-4 shadow-2xs">
+                  <div className="w-13 h-13 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center border border-emerald-200/60 shrink-0">
+                    <Eye className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">بخش‌های فعال و در حال نمایش</div>
-                    <div className="text-lg font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                    <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-bold">بخش‌های فعال و در حال نمایش</div>
+                    <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
                       {landingSections.filter((s) => s.is_enabled).length} بخش نمایان
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-amber-200/70 dark:border-amber-900/40 flex items-center gap-3.5 shadow-2xs">
-                  <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 flex items-center justify-center border border-amber-200/60">
-                    <EyeOff className="w-5 h-5" />
+                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-amber-200/70 dark:border-amber-900/40 flex items-center gap-4 shadow-2xs">
+                  <div className="w-13 h-13 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 flex items-center justify-center border border-amber-200/60 shrink-0">
+                    <EyeOff className="w-6 h-6" />
                   </div>
                   <div>
-                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">بخش‌های غیرفعال (مخفی در لندینگ)</div>
-                    <div className="text-lg font-black text-amber-600 dark:text-amber-400 mt-0.5">
+                    <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-bold">بخش‌های غیرفعال (مخفی در لندینگ)</div>
+                    <div className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
                       {landingSections.filter((s) => !s.is_enabled).length} بخش مخفی‌شده
                     </div>
                   </div>
@@ -836,7 +836,7 @@ export const AdminWebsiteManagerPage = () => {
               </div>
 
               {/* Sections Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                 {landingSections.map((sec) => {
                   const meta = SECTION_METAS[sec.key] || {
                     icon: LayoutTemplate,
@@ -851,7 +851,7 @@ export const AdminWebsiteManagerPage = () => {
                   return (
                     <div
                       key={sec.key}
-                      className={`p-6 rounded-3xl border-2 transition-all flex flex-col justify-between gap-5 ${
+                      className={`p-6 sm:p-7 rounded-3xl border-2 transition-all flex flex-col justify-between gap-5 sm:gap-6 ${
                         sec.is_enabled
                           ? 'bg-white dark:bg-slate-900 border-emerald-200/80 dark:border-emerald-800/60 shadow-xs hover:border-emerald-400 dark:hover:border-emerald-700'
                           : 'bg-slate-50/80 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800/80 opacity-85 hover:opacity-100'
@@ -862,20 +862,20 @@ export const AdminWebsiteManagerPage = () => {
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-3.5">
                             <div
-                              className={`w-12 h-12 rounded-2xl flex items-center justify-center border shrink-0 shadow-2xs ${meta.colorClass}`}
+                              className={`w-13 h-13 rounded-2xl flex items-center justify-center border shrink-0 shadow-2xs ${meta.colorClass}`}
                             >
-                              <Icon className="w-6 h-6" />
+                              <Icon className="w-6 h-6 sm:w-7 sm:h-7" />
                             </div>
                             <div>
                               <div className="flex items-center gap-2">
-                                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                                <span className="text-xs sm:text-sm font-black text-slate-700 dark:text-slate-200">
                                   {meta.badge}
                                 </span>
-                                <code className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold border border-slate-200 dark:border-slate-700">
+                                <code className="text-xs font-mono px-2.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-black border border-slate-200 dark:border-slate-700">
                                   {sec.key}
                                 </code>
                               </div>
-                              <h3 className="text-base font-extrabold text-slate-900 dark:text-white mt-1">
+                              <h3 className="text-lg sm:text-xl lg:text-[1.35rem] font-black text-slate-900 dark:text-white mt-1.5">
                                 {sec.title}
                               </h3>
                             </div>
@@ -883,51 +883,51 @@ export const AdminWebsiteManagerPage = () => {
 
                           {/* Status Badge */}
                           {sec.is_enabled ? (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300/80 shrink-0">
-                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-black bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300/80 shrink-0">
+                              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
                               <span>فعال و نمایان</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border border-slate-300 dark:border-slate-700 shrink-0">
-                              <EyeOff className="w-3.5 h-3.5 text-slate-500" />
+                            <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-black bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border border-slate-300 dark:border-slate-700 shrink-0">
+                              <EyeOff className="w-4 h-4 text-slate-500" />
                               <span>غیرفعال (مخفی)</span>
                             </span>
                           )}
                         </div>
 
                         {sec.subtitle && (
-                          <div className="text-xs font-bold text-cyan-800 dark:text-cyan-400">
+                          <div className="text-sm sm:text-base font-black text-cyan-800 dark:text-cyan-400">
                             {sec.subtitle}
                           </div>
                         )}
 
-                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium text-justify">
+                        <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-semibold text-justify">
                           {sec.description}
                         </p>
                       </div>
 
                       {/* Card Bottom Controls */}
-                      <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                      <div className="space-y-3.5 pt-4 border-t border-slate-100 dark:border-slate-800">
                         {/* Big Interactive Switch Button */}
                         <button
                           type="button"
                           onClick={() => handleToggleSection(sec.key)}
                           disabled={isToggling}
-                          className={`w-full py-3 px-4 rounded-2xl text-xs font-extrabold transition-all flex items-center justify-between cursor-pointer border shadow-2xs active:scale-[0.99] ${
+                          className={`w-full py-3.5 px-4.5 rounded-2xl transition-all flex items-center justify-between cursor-pointer border shadow-2xs active:scale-[0.99] ${
                             sec.is_enabled
                               ? 'bg-emerald-50 hover:bg-emerald-100/80 text-emerald-900 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/70 dark:text-emerald-200 border-emerald-300/80 dark:border-emerald-800'
                               : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700 dark:bg-slate-800/80 dark:hover:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700'
                           }`}
                         >
-                          <div className="flex items-center gap-2.5">
+                          <div className="flex items-center gap-3">
                             {isToggling ? (
-                              <RefreshCw className="w-5 h-5 animate-spin text-cyan-600" />
+                              <RefreshCw className="w-5 h-5 sm:w-6 sm:h-6 animate-spin text-cyan-600" />
                             ) : sec.is_enabled ? (
-                              <ToggleRight className="w-7 h-7 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                              <ToggleRight className="w-8 h-8 text-emerald-600 dark:text-emerald-400 shrink-0" />
                             ) : (
-                              <ToggleLeft className="w-7 h-7 text-slate-400 dark:text-slate-500 shrink-0" />
+                              <ToggleLeft className="w-8 h-8 text-slate-400 dark:text-slate-500 shrink-0" />
                             )}
-                            <span className="text-xs font-black">
+                            <span className="text-xs sm:text-sm font-black">
                               {isToggling
                                 ? 'در حال ثبت تغییر وضعیت...'
                                 : sec.is_enabled
@@ -937,7 +937,7 @@ export const AdminWebsiteManagerPage = () => {
                           </div>
 
                           <span
-                            className={`text-[10px] px-2.5 py-1 rounded-lg font-black transition-colors ${
+                            className={`text-xs font-black px-3 py-1.5 rounded-lg transition-colors ${
                               sec.is_enabled
                                 ? 'bg-rose-100 text-rose-800 hover:bg-rose-200 dark:bg-rose-950 dark:text-rose-200'
                                 : 'bg-emerald-600 text-white hover:bg-emerald-700'
@@ -948,28 +948,28 @@ export const AdminWebsiteManagerPage = () => {
                         </button>
 
                         {/* Navigation / Action Sub-bar */}
-                        <div className="flex items-center justify-between gap-2 text-xs">
+                        <div className="flex items-center justify-between gap-2 text-xs sm:text-sm">
                           {meta.actionTab ? (
                             <button
                               type="button"
                               onClick={() => setActiveTab(meta.actionTab)}
-                              className="text-cyan-700 dark:text-cyan-400 hover:underline font-bold inline-flex items-center gap-1 cursor-pointer"
+                              className="text-cyan-700 dark:text-cyan-400 hover:underline font-black inline-flex items-center gap-1.5 cursor-pointer"
                             >
                               <span>مدیریت و ویرایش محتوای این بخش</span>
-                              <ArrowLeft className="w-3.5 h-3.5" />
+                              <ArrowLeft className="w-4 h-4" />
                             </button>
                           ) : (
-                            <span className="text-slate-400 text-[11px] font-medium">بخش ساختاری لندینگ</span>
+                            <span className="text-slate-500 text-xs font-bold">بخش ساختاری لندینگ</span>
                           )}
 
                           <a
                             href={`/${meta.previewAnchor}`}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-slate-500 hover:text-slate-800 dark:hover:text-white font-bold inline-flex items-center gap-1 text-[11px] transition-colors"
+                            className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white font-bold inline-flex items-center gap-1.5 text-xs sm:text-sm transition-colors"
                           >
                             <span>پیش‌نمایش بخش در سایت</span>
-                            <ExternalLink className="w-3 h-3" />
+                            <ExternalLink className="w-3.5 h-3.5" />
                           </a>
                         </div>
                       </div>
@@ -987,18 +987,18 @@ export const AdminWebsiteManagerPage = () => {
             <div className="space-y-6">
               {renderSectionStatusBanner('pools', 'استخرهای طرف قرارداد در قزوین')}
 
-              <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-5">
                 <div>
-                  <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <Waves className="w-5 h-5 text-cyan-600" />
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+                    <Waves className="w-6 h-6 text-cyan-600 shrink-0" />
                     <span>مدیریت استخرهای صفحه لندینگ</span>
                   </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium leading-relaxed">
                     در کارت اولیه: عکس پوستر، اسم استخر و لوکیشن نمایش داده می‌شود. در جزئیات بیشتر: عکس‌های تکمیلی، ابعاد و توضیحات کامل استخر قرار می‌گیرد.
                   </p>
                 </div>
-                <Button onClick={handleOpenCreatePool} className="gap-1.5 text-xs">
-                  <Plus className="w-4 h-4" />
+                <Button onClick={handleOpenCreatePool} className="gap-2 text-xs sm:text-sm font-black py-2.5 px-4 shadow-xs shrink-0">
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>افزودن استخر جدید</span>
                 </Button>
               </div>
@@ -1028,23 +1028,23 @@ export const AdminWebsiteManagerPage = () => {
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
                             <div className="absolute top-3 right-3 flex items-center gap-2">
-                              <span className="px-2.5 py-1 bg-white/90 dark:bg-slate-900/90 text-cyan-900 dark:text-cyan-300 text-[10px] font-bold rounded-lg border border-cyan-200 dark:border-slate-700 shadow-xs">
+                              <span className="px-3 py-1 bg-white/95 dark:bg-slate-900/90 text-cyan-900 dark:text-cyan-300 text-xs font-black rounded-lg border border-cyan-200 dark:border-slate-700 shadow-xs">
                                 اولویت {pool.display_order}
                               </span>
                               {pool.is_active ? (
-                                <span className="px-2 py-0.5 bg-emerald-500/90 text-white text-[10px] font-bold rounded-md">
+                                <span className="px-2.5 py-1 bg-emerald-500/90 text-white text-xs font-black rounded-md">
                                   فعال
                                 </span>
                               ) : (
-                                <span className="px-2 py-0.5 bg-amber-500/90 text-white text-[10px] font-bold rounded-md">
+                                <span className="px-2.5 py-1 bg-amber-500/90 text-white text-xs font-black rounded-md">
                                   عدم نمایش
                                 </span>
                               )}
                             </div>
                             {pool.gallery_images && pool.gallery_images.length > 0 && (
                               <div className="absolute bottom-3 left-3">
-                                <span className="px-2 py-1 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold rounded-lg border border-white/20 flex items-center gap-1">
-                                  <ImageIcon className="w-3 h-3 text-cyan-400" />
+                                <span className="px-2.5 py-1 bg-slate-900/80 backdrop-blur-md text-white text-xs font-black rounded-lg border border-white/20 flex items-center gap-1.5">
+                                  <ImageIcon className="w-3.5 h-3.5 text-cyan-400" />
                                   <span>{pool.gallery_images.length} عکس بیشتر</span>
                                 </span>
                               </div>
@@ -1052,22 +1052,22 @@ export const AdminWebsiteManagerPage = () => {
                           </div>
 
                           {/* Content */}
-                          <div className="p-5 space-y-3">
-                            <h3 className="font-extrabold text-base text-slate-900 dark:text-white leading-snug">
+                          <div className="p-5 sm:p-6 space-y-3">
+                            <h3 className="font-black text-lg sm:text-xl text-slate-900 dark:text-white leading-snug">
                               {pool.name}
                             </h3>
 
-                            <div className="flex items-start gap-2 text-xs text-slate-600 dark:text-slate-400 font-medium">
+                            <div className="flex items-start gap-2 text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-bold">
                               <MapPin className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
-                              <span className="line-clamp-2">{pool.location}</span>
+                              <span className="line-clamp-2 leading-relaxed">{pool.location}</span>
                             </div>
 
-                            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">
+                            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-2 leading-relaxed font-medium">
                               {pool.description}
                             </p>
 
                             {pool.dimensions && (
-                              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400 flex items-center justify-between">
+                              <div className="pt-2.5 border-t border-slate-100 dark:border-slate-800 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
                                 <span>ابعاد: {pool.dimensions}</span>
                                 <span>عمق: {pool.depth || 'استاندارد'}</span>
                               </div>
@@ -1076,31 +1076,31 @@ export const AdminWebsiteManagerPage = () => {
                         </div>
 
                         {/* Actions */}
-                        <div className="p-5 pt-0 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800">
+                        <div className="p-5 sm:p-6 pt-0 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800">
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => setPreviewPool(pool)}
-                            className="flex-1 text-xs gap-1"
+                            className="flex-1 text-xs sm:text-sm font-bold gap-1.5 py-2"
                           >
-                            <Eye className="w-3.5 h-3.5" />
+                            <Eye className="w-4 h-4" />
                             <span>پیش‌نمایش جزئیات</span>
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleOpenEditPool(pool)}
-                            className="text-xs"
+                            className="text-xs sm:text-sm font-bold py-2"
                           >
-                            <Edit className="w-3.5 h-3.5" />
+                            <Edit className="w-4 h-4" />
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleDeletePool(pool.slug)}
-                            className="text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
+                            className="text-xs sm:text-sm font-bold py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </article>
@@ -1118,13 +1118,13 @@ export const AdminWebsiteManagerPage = () => {
             <div className="space-y-6">
               {renderSectionStatusBanner('coaches', 'کادر مربیان رسمی فدراسیون')}
 
-              <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
                 <div>
-                  <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <Users2 className="w-5 h-5 text-teal-600" />
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+                    <Users2 className="w-6 h-6 text-teal-600 shrink-0" />
                     <span>کادر مربیان و چینش ترتیب نمایش در لندینگ</span>
                   </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium leading-relaxed">
                     ترتیب نمایش مربیان در صفحه اصلی را مشخص کنید. مربیان به تفکیک دو تب مربیان مرد و مربیان زن دسته‌بندی می‌شوند.
                   </p>
                 </div>
@@ -1132,9 +1132,9 @@ export const AdminWebsiteManagerPage = () => {
                 <Button
                   onClick={handleSaveCoachOrders}
                   disabled={coachSavingOrder}
-                  className="gap-1.5 text-xs bg-teal-600 hover:bg-teal-700"
+                  className="gap-2 text-xs sm:text-sm font-black py-2.5 px-5 bg-teal-600 hover:bg-teal-700 shadow-xs shrink-0"
                 >
-                  <Save className="w-4 h-4" />
+                  <Save className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>{coachSavingOrder ? 'در حال ذخیره...' : 'ذخیره ترتیب چینش مربیان'}</span>
                 </Button>
               </div>
@@ -1144,14 +1144,14 @@ export const AdminWebsiteManagerPage = () => {
                 <button
                   type="button"
                   onClick={() => setCoachGenderTab('MALE')}
-                  className={`px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
                     coachGenderTab === 'MALE'
                       ? 'bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-xs'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                   }`}
                 >
                   <span>مربیان مرد (آقایان)</span>
-                  <span className="mr-1.5 px-2 py-0.5 rounded-full text-[10px] bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300">
+                  <span className="mr-1.5 px-2.5 py-0.5 rounded-full text-xs font-black bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300">
                     {coachOrderList.filter(isMaleCoach).length}
                   </span>
                 </button>
@@ -1159,23 +1159,23 @@ export const AdminWebsiteManagerPage = () => {
                 <button
                   type="button"
                   onClick={() => setCoachGenderTab('FEMALE')}
-                  className={`px-5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
                     coachGenderTab === 'FEMALE'
                       ? 'bg-white dark:bg-slate-700 text-pink-700 dark:text-pink-300 shadow-xs'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                   }`}
                 >
                   <span>مربیان زن (بانوان)</span>
-                  <span className="mr-1.5 px-2 py-0.5 rounded-full text-[10px] bg-pink-100 dark:bg-pink-950 text-pink-800 dark:text-pink-300">
+                  <span className="mr-1.5 px-2.5 py-0.5 rounded-full text-xs font-black bg-pink-100 dark:bg-pink-950 text-pink-800 dark:text-pink-300">
                     {coachOrderList.filter(isFemaleCoach).length}
                   </span>
                 </button>
               </div>
 
               {/* Coach Reorder Cards */}
-              <div className="space-y-3">
+              <div className="space-y-3.5">
                 {filteredCoaches.length === 0 ? (
-                  <p className="text-center py-12 text-xs text-slate-500">
+                  <p className="text-center py-12 text-sm text-slate-500 font-semibold">
                     مربی در این دسته‌بندی ثبت نشده است.
                   </p>
                 ) : (
@@ -1186,12 +1186,12 @@ export const AdminWebsiteManagerPage = () => {
                     >
                       <div className="flex items-center gap-4">
                         {/* Display Order Badge */}
-                        <div className="w-10 h-10 rounded-xl bg-cyan-50 dark:bg-cyan-950/60 text-cyan-800 dark:text-cyan-300 font-bold flex items-center justify-center border border-cyan-200/70 text-sm shrink-0">
+                        <div className="w-11 h-11 rounded-xl bg-cyan-50 dark:bg-cyan-950/60 text-cyan-800 dark:text-cyan-300 font-black flex items-center justify-center border border-cyan-200/70 text-base shrink-0">
                           #{index + 1}
                         </div>
 
                         {/* Avatar */}
-                        <div className="w-12 h-12 rounded-full overflow-hidden bg-slate-100 border-2 border-teal-400/50 shrink-0">
+                        <div className="w-13 h-13 rounded-full overflow-hidden bg-slate-100 border-2 border-teal-400/50 shrink-0">
                           <img
                             src={
                               coach.avatar ||
@@ -1207,14 +1207,14 @@ export const AdminWebsiteManagerPage = () => {
                         {/* Information */}
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-extrabold text-slate-900 dark:text-white text-sm">
+                            <h3 className="font-black text-slate-900 dark:text-white text-base sm:text-lg">
                               {coach.full_name}
                             </h3>
                             <Badge variant={isFemaleCoach(coach) ? 'warning' : 'info'}>
                               {isFemaleCoach(coach) ? 'مربی خانم' : 'مربی آقا'}
                             </Badge>
                           </div>
-                          <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
+                          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-semibold line-clamp-1">
                             {coach.specialties || 'کرال سینه، شنای پروانه، نجات غریق'}
                           </p>
                         </div>
@@ -1228,9 +1228,9 @@ export const AdminWebsiteManagerPage = () => {
                           disabled={index === 0}
                           onClick={() => handleMoveCoach(index, -1)}
                           title="انتقال به ردیف بالاتر"
-                          className="h-8 w-8 p-0"
+                          className="h-9 w-9 p-0"
                         >
-                          <ArrowUp className="w-3.5 h-3.5" />
+                          <ArrowUp className="w-4 h-4" />
                         </Button>
                         <Button
                           size="sm"
@@ -1238,17 +1238,17 @@ export const AdminWebsiteManagerPage = () => {
                           disabled={index === filteredCoaches.length - 1}
                           onClick={() => handleMoveCoach(index, 1)}
                           title="انتقال به ردیف پایین‌تر"
-                          className="h-8 w-8 p-0"
+                          className="h-9 w-9 p-0"
                         >
-                          <ArrowDown className="w-3.5 h-3.5" />
+                          <ArrowDown className="w-4 h-4" />
                         </Button>
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => handleOpenEditCoach(coach)}
-                          className="gap-1 text-xs"
+                          className="gap-1.5 text-xs sm:text-sm font-bold py-2 px-3"
                         >
-                          <Edit className="w-3.5 h-3.5" />
+                          <Edit className="w-4 h-4" />
                           <span>ویرایش مشخصات</span>
                         </Button>
                       </div>
@@ -1266,18 +1266,18 @@ export const AdminWebsiteManagerPage = () => {
             <div className="space-y-6">
               {renderSectionStatusBanner('news', 'اخبار، رویدادها و اطلاعیه‌ها')}
 
-              <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-5">
                 <div>
-                  <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <Newspaper className="w-5 h-5 text-amber-600" />
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+                    <Newspaper className="w-6 h-6 text-amber-600 shrink-0" />
                     <span>مدیریت اخبار، پوستر و تصاویر شرح خبر</span>
                   </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium leading-relaxed">
                     امکان بارگذاری عکس پوستر خبر، عکس‌های مرتبط با شرح خبر در مدال، و متن کامل اطلاعیه با قالب‌بندی مرتب.
                   </p>
                 </div>
-                <Button onClick={handleOpenCreateNews} className="gap-1.5 text-xs">
-                  <Plus className="w-4 h-4" />
+                <Button onClick={handleOpenCreateNews} className="gap-2 text-xs sm:text-sm font-black py-2.5 px-4 shadow-xs shrink-0">
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>انتشار خبر جدید</span>
                 </Button>
               </div>
@@ -1307,59 +1307,59 @@ export const AdminWebsiteManagerPage = () => {
                               className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                             />
                             <div className="absolute top-3 right-3">
-                              <span className="px-2.5 py-1 bg-white/90 dark:bg-slate-900/90 text-cyan-900 dark:text-cyan-300 text-[10px] font-bold rounded-lg border border-cyan-200 dark:border-slate-700 shadow-xs">
+                              <span className="px-3 py-1 bg-white/95 dark:bg-slate-900/90 text-cyan-900 dark:text-cyan-300 text-xs font-black rounded-lg border border-cyan-200 dark:border-slate-700 shadow-xs">
                                 {categoryLabels[item.category] || 'اطلاعیه'}
                               </span>
                             </div>
                             {item.detail_images && item.detail_images.length > 0 && (
                               <div className="absolute bottom-3 left-3">
-                                <span className="px-2 py-1 bg-slate-900/80 backdrop-blur-md text-white text-[10px] font-bold rounded-lg border border-white/20 flex items-center gap-1">
-                                  <ImageIcon className="w-3 h-3 text-cyan-400" />
+                                <span className="px-2.5 py-1 bg-slate-900/80 backdrop-blur-md text-white text-xs font-black rounded-lg border border-white/20 flex items-center gap-1.5">
+                                  <ImageIcon className="w-3.5 h-3.5 text-cyan-400" />
                                   <span>{item.detail_images.length} تصویر شرح</span>
                                 </span>
                               </div>
                             )}
                           </div>
 
-                          <div className="p-5 space-y-2.5">
-                            <div className="flex items-center gap-1.5 text-[11px] text-cyan-800 dark:text-cyan-300 font-mono font-bold">
-                              <Clock className="w-3.5 h-3.5 text-teal-600" />
+                          <div className="p-5 sm:p-6 space-y-3">
+                            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-cyan-800 dark:text-cyan-300 font-mono font-bold">
+                              <Clock className="w-4 h-4 text-teal-600" />
                               <span>{new Date(item.publish_at).toLocaleDateString('fa-IR')}</span>
                             </div>
-                            <h3 className="font-bold text-base text-slate-900 dark:text-white leading-snug group-hover:text-cyan-600 transition-colors">
+                            <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white leading-snug group-hover:text-cyan-600 transition-colors">
                               {item.title}
                             </h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-3 leading-relaxed">
+                            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 line-clamp-3 leading-relaxed font-medium">
                               {item.summary || item.body}
                             </p>
                           </div>
                         </div>
 
-                        <div className="p-5 pt-0 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800">
+                        <div className="p-5 sm:p-6 pt-0 flex items-center gap-2 border-t border-slate-100 dark:border-slate-800">
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => setPreviewNews(item)}
-                            className="flex-1 text-xs gap-1"
+                            className="flex-1 text-xs sm:text-sm font-bold gap-1.5 py-2"
                           >
-                            <Eye className="w-3.5 h-3.5" />
+                            <Eye className="w-4 h-4" />
                             <span>مشاهده متن و تصاویر</span>
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleOpenEditNews(item)}
-                            className="text-xs"
+                            className="text-xs sm:text-sm font-bold py-2"
                           >
-                            <Edit className="w-3.5 h-3.5" />
+                            <Edit className="w-4 h-4" />
                           </Button>
                           <Button
                             size="sm"
                             variant="outline"
                             onClick={() => handleDeleteNews(item.slug)}
-                            className="text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
+                            className="text-xs sm:text-sm font-bold py-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
                           >
-                            <Trash2 className="w-3.5 h-3.5" />
+                            <Trash2 className="w-4 h-4" />
                           </Button>
                         </div>
                       </article>
@@ -1377,21 +1377,21 @@ export const AdminWebsiteManagerPage = () => {
             <div className="space-y-6">
               {renderSectionStatusBanner('courses', 'دوره‌ها و کلاس‌های آموزشی شنا')}
 
-              <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-5">
                 <div>
-                  <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-sky-600" />
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+                    <BookOpen className="w-6 h-6 text-sky-600 shrink-0" />
                     <span>دوره‌های فعال در صفحه لندینگ</span>
                   </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium leading-relaxed">
                     این دوره‌ها مستقیماً در گردونه کلاس‌های صفحه اصلی سایت همراه با ظرفیت باقی‌مانده و سرفصل‌ها به نمایش درمی‌آیند.
                   </p>
                 </div>
                 <Button
                   onClick={() => window.location.href = '/admin/courses'}
-                  className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-700"
+                  className="gap-2 text-xs sm:text-sm font-black py-2.5 px-4 bg-sky-600 hover:bg-sky-700 shadow-xs shrink-0"
                 >
-                  <Plus className="w-4 h-4" />
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
                   <span>مدیریت کامل دوره‌ها</span>
                 </Button>
               </div>
@@ -1400,26 +1400,28 @@ export const AdminWebsiteManagerPage = () => {
                 {courses.map((course) => (
                   <div
                     key={course.id}
-                    className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-4"
+                    className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-4 flex flex-col justify-between"
                   >
-                    <div className="flex items-start justify-between">
-                      <span className="px-2.5 py-1 text-[11px] font-bold text-teal-800 bg-teal-50 dark:bg-teal-950/60 rounded-lg">
-                        {course.status === 'ACTIVE' ? 'ثبت‌نام فعال' : 'پیش‌نویس'}
-                      </span>
-                      <span className="text-xs font-mono font-bold text-slate-500">
-                        {course.sessions_count} جلسه
-                      </span>
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <span className="px-3 py-1 text-xs font-black text-teal-800 bg-teal-50 dark:bg-teal-950/60 rounded-lg border border-teal-200/60">
+                          {course.status === 'ACTIVE' ? 'ثبت‌نام فعال' : 'پیش‌نویس'}
+                        </span>
+                        <span className="text-xs sm:text-sm font-mono font-black text-slate-600 dark:text-slate-400">
+                          {course.sessions_count} جلسه
+                        </span>
+                      </div>
+
+                      <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white">
+                        {course.name}
+                      </h3>
+
+                      <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium line-clamp-3">
+                        {course.what_you_learn || course.description || 'آموزش ۴ شنا، اصلاح تکنیک، تنفس و آمادگی مسابقات'}
+                      </p>
                     </div>
 
-                    <h3 className="font-bold text-base text-slate-900 dark:text-white">
-                      {course.name}
-                    </h3>
-
-                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed line-clamp-3">
-                      {course.what_you_learn || course.description || 'آموزش ۴ شنا، اصلاح تکنیک، تنفس و آمادگی مسابقات'}
-                    </p>
-
-                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs font-bold text-sky-700 dark:text-sky-300">
+                    <div className="pt-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs sm:text-sm font-black text-sky-700 dark:text-sky-300">
                       <span>شهریه: {Number(course.base_price || 0).toLocaleString('fa-IR')} تومان</span>
                       <span>سقف اقساط: {course.installments_count || 1} قسط</span>
                     </div>
@@ -1913,35 +1915,35 @@ export const AdminWebsiteManagerPage = () => {
                 className="w-full h-full object-cover"
               />
               <div className="absolute top-3 right-3">
-                <span className="px-3 py-1 bg-slate-900/90 text-cyan-300 text-xs font-bold rounded-lg border border-cyan-400/30">
+                <span className="px-3.5 py-1.5 bg-slate-900/90 text-cyan-300 text-xs sm:text-sm font-black rounded-lg border border-cyan-400/30">
                   {previewPool.dimensions || 'استخر استاندارد'}
                 </span>
               </div>
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white">{previewPool.name}</h3>
-              <p className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300 font-medium">
+              <h3 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{previewPool.name}</h3>
+              <p className="flex items-center gap-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-bold">
                 <MapPin className="w-4 h-4 text-teal-600 shrink-0" />
                 <span>{previewPool.location}</span>
               </p>
             </div>
 
-            <div className="p-4 bg-cyan-50/60 dark:bg-slate-800/60 rounded-xl border border-cyan-100 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+            <div className="p-4.5 bg-cyan-50/60 dark:bg-slate-800/60 rounded-xl border border-cyan-100 dark:border-slate-700 text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed whitespace-pre-wrap font-semibold">
               {previewPool.description}
             </div>
 
             {previewPool.facilities && (
               <div className="space-y-1.5">
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">امکانات و ویژگی‌ها:</span>
-                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">{previewPool.facilities}</p>
+                <span className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-200">امکانات و ویژگی‌ها:</span>
+                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">{previewPool.facilities}</p>
               </div>
             )}
 
             {/* Gallery of more photos */}
             {previewPool.gallery_images && previewPool.gallery_images.length > 0 && (
-              <div className="space-y-2 pt-3 border-t">
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">عکس‌های بیشتر مربوط به استخر:</span>
+              <div className="space-y-2.5 pt-3 border-t">
+                <span className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-200">عکس‌های بیشتر مربوط به استخر:</span>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {previewPool.gallery_images.map((img) => (
                     <div key={img.id} className="rounded-xl overflow-hidden aspect-video bg-slate-100 border">
@@ -1979,35 +1981,35 @@ export const AdminWebsiteManagerPage = () => {
                 className="w-full h-full object-cover"
               />
               <div className="absolute top-3 right-3">
-                <span className="px-3 py-1 bg-slate-900/90 text-amber-300 text-xs font-bold rounded-lg border border-amber-400/30">
+                <span className="px-3.5 py-1.5 bg-slate-900/90 text-amber-300 text-xs sm:text-sm font-black rounded-lg border border-amber-400/30">
                   {categoryLabels[previewNews.category]}
                 </span>
               </div>
             </div>
 
             <div className="space-y-2">
-              <h3 className="text-xl font-bold text-slate-900 dark:text-white leading-snug">
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white leading-snug">
                 {previewNews.title}
               </h3>
-              <p className="text-xs text-slate-400 font-mono">
+              <p className="text-xs sm:text-sm text-slate-400 font-mono font-bold">
                 تاریخ انتشار: {new Date(previewNews.publish_at).toLocaleDateString('fa-IR')}
               </p>
             </div>
 
             {previewNews.summary && (
-              <p className="p-3 bg-amber-50/60 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800 text-xs text-slate-700 dark:text-slate-300 font-medium">
+              <p className="p-3.5 bg-amber-50/60 dark:bg-amber-950/30 rounded-xl border border-amber-200 dark:border-amber-800 text-xs sm:text-sm text-slate-700 dark:text-slate-200 font-bold leading-relaxed">
                 {previewNews.summary}
               </p>
             )}
 
-            <div className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+            <div className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed sm:leading-loose whitespace-pre-wrap font-medium">
               {previewNews.body}
             </div>
 
             {/* Gallery of description images */}
             {previewNews.detail_images && previewNews.detail_images.length > 0 && (
-              <div className="space-y-2 pt-3 border-t">
-                <span className="text-xs font-bold text-slate-800 dark:text-slate-200">عکس‌های مربوط به شرح خبر:</span>
+              <div className="space-y-2.5 pt-3 border-t">
+                <span className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-200">عکس‌های مربوط به شرح خبر:</span>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {previewNews.detail_images.map((img) => (
                     <div key={img.id} className="rounded-xl overflow-hidden aspect-video bg-slate-100 border">

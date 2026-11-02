@@ -15,13 +15,13 @@ export const Skeleton = ({ className = '', rounded = 'rounded-xl', ...props }) =
 /**
  * Skeleton for Stats Cards Grid (like top dashboard counters)
  */
-export const StatsCardsSkeleton = ({ count = 4 }) => {
+export const StatsCardsSkeleton = ({ count = 4, className = 'grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4' }) => {
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
+    <div className={className}>
       {Array.from({ length: count }).map((_, idx) => (
         <div
           key={idx}
-          className="bg-white dark:bg-slate-900 rounded-2xl p-3.5 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between"
+          className="bg-white dark:bg-slate-900 rounded-2xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between"
         >
           <div className="flex items-start justify-between gap-2">
             <Skeleton className="h-4 w-24 sm:w-28 rounded-md" />

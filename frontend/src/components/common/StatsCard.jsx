@@ -1,4 +1,5 @@
 import React from 'react';
+import { Skeleton } from './Skeleton';
 
 export const StatsCard = ({
   title,
@@ -8,6 +9,7 @@ export const StatsCard = ({
   color = 'blue',
   badge,
   className = '',
+  loading = false,
 }) => {
   const colorMap = {
     blue: {
@@ -77,10 +79,14 @@ export const StatsCard = ({
           )}
         </div>
         <div className="mt-2.5 sm:mt-3 flex items-baseline gap-2 flex-wrap">
-          <div className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-            {value}
-          </div>
-          {badge && (
+          {loading ? (
+            <Skeleton className="h-7 sm:h-8 w-24 sm:w-28 rounded-lg" />
+          ) : (
+            <div className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+              {value}
+            </div>
+          )}
+          {badge && !loading && (
             <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
               {badge}
             </span>
