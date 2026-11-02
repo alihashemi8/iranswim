@@ -79,11 +79,36 @@ npm run dev
 
 ---
 
-## 🐳 اجرای یکپارچه با Docker Compose
+## 🐳 دیپلوی و اجرای یکپارچه با Docker Compose (آماده پروداکشن)
 
+برای اجرای کل سامانه (PostgreSQL + Django با Gunicorn و WhiteNoise + React با Nginx):
+
+### ۱. تنظیم متغیرهای محیطی:
+یک کپی از فایل `.env.example` با نام `.env` بسازید و مقادیر مورد نظر را تنظیم کنید:
+```bash
+cp .env.example .env
+```
+
+### ۲. بیلد و اجرای کانتینرها:
 ```bash
 docker compose up -d --build
 ```
-- بک‌اند روی پورت `8001`
-- فرانت‌اند روی پورت `3001`
-- دیتابیس PostgreSQL روی پورت `5433`
+- **فرانت‌اند و پنل وب:** پورت `80` (یا پورت تنظیم‌شده در `PORT` فایل `.env`)
+- **پنل ادمین جنگو:** `http://YOUR_DOMAIN/admin/`
+- **مستندات API:** `http://YOUR_DOMAIN/api/docs/`
+- **پایگاه داده:** ایزوله داخل شبکه داکر و فقط در لوکال‌هاست سرور `127.0.0.1:5432`
+
+### ۳. ایجاد داده‌های اولیه یا کاربر ادمین (فقط یک‌بار پس از نصب اولیه):
+```bash
+# ایجاد داده‌های پایه پیش‌فرض و کاربران نمونه:
+docker compose exec backend python manage.py seed_data
+
+# یا ساخت کاربر ادمین اختصاصی خودتان:
+docker compose exec backend python manage.py createsuperuser
+```
+
+### ۴. مشاهده لاگ‌ها و وضعیت کانتینرها:
+```bash
+docker compose ps
+docker compose logs -f backend
+```
