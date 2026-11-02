@@ -3,10 +3,11 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   LogIn, Menu, X,
   Users2, Award, Building2, Newspaper, PhoneCall, ChevronLeft, BookOpen,
-  Sun, Moon
+  Sun, Moon, Waves
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
+import { useLandingSections } from '../../context/LandingSectionsContext';
 import { NotificationDropdown } from './NotificationDropdown';
 import { ChildSwitcher } from './ChildSwitcher';
 
@@ -80,13 +81,20 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
     }
   };
 
-  const publicNavLinks = [
-    { label: 'اصول و مزایا', href: '/#about', icon: Award },
-    { label: 'دوره‌ها و کلاس‌ها', href: '/#courses', icon: BookOpen },
-    { label: 'امکانات استخر', href: '/#facilities', icon: Building2 },
-    { label: 'کادر مربیان', href: '/#coaches', icon: Users2 },
-    { label: 'اخبار و رویدادها', href: '/#news', icon: Newspaper },
+  const { isSectionEnabled } = useLandingSections();
+
+  const allPublicNavLinks = [
+    { label: 'اصول و مزایا', href: '/#about', icon: Award, sectionKey: 'about' },
+    { label: 'دوره‌ها و کلاس‌ها', href: '/#courses', icon: BookOpen, sectionKey: 'courses' },
+    { label: 'استخرهای قزوین', href: '/#pools', icon: Waves, sectionKey: 'pools' },
+    { label: 'امکانات استخر', href: '/#facilities', icon: Building2, sectionKey: 'facilities' },
+    { label: 'کادر مربیان', href: '/#coaches', icon: Users2, sectionKey: 'coaches' },
+    { label: 'اخبار و رویدادها', href: '/#news', icon: Newspaper, sectionKey: 'news' },
   ];
+
+  const publicNavLinks = allPublicNavLinks.filter(
+    (link) => !link.sectionKey || isSectionEnabled(link.sectionKey)
+  );
 
   const isPublicPage = !isFullWidth && (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register');
 

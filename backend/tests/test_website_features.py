@@ -140,3 +140,60 @@ def test_coaches_gender_and_reorder(admin_client):
     assert female_res.status_code == 200
     females = female_res.data.get('results') or female_res.data
     assert all(f['gender'] == 'FEMALE' for f in females)
+
+
+@pytest.mark.django_db
+def test_landing_sections_public_list_and_admin_toggle(admin_client):
+    """تست مشاهده بخش‌های لندینگ و سوئیچ فعال/غیرفعال کردن بخش‌ها توسط مدیر"""
+    pub_client = APIClient()
+    res = pub_client.get('/api/content/landing-sections/')
+    assert res.status_code == 200
+    sections = res.data
+    assert len(sections) == 8
+    
+    # Keys should include coaches, pools, news, courses, hero, about, facilities, cta
+    keys = [s['key'] for s in sections]
+    assert 'hero' in keys
+    assert 'about' in keys
+    assert 'courses' in keys
+    assert 'pools' in keys
+    assert 'facilities' in keys
+    assert 'coaches' in keys
+    assert 'news' in keys
+    assert 'cta' in keys
+
+    # Initially all are enabled
+    coaches_sec = next(s for s in sections if s['key'] == 'coaches')
+    assert coaches_sec['is_enabled'] is True
+
+    # Anonymous user CANNOT toggle
+    anon_toggle = pub_client.post('/api/content/landing-sections/coaches/toggle/')
+    assert anon_toggle.status_code in [401, 403]
+
+    # Admin toggles coaches off
+    toggle_res = admin_client.post('/api/content/landing-sections/coaches/toggle/')
+    assert toggle_res.status_code == 200
+    assert toggle_res.data['is_enabled'] is False
+
+    # Public list now shows coaches is disabled
+    res_after = pub_client.get('/api/content/landing-sections/')
+    assert res_after.status_code == 200
+    updated_coaches = next(s for s in res_after.data if s['key'] == 'coaches')
+    assert updated_coaches['is_enabled'] is False
+
+    # Admin bulk updates (e.g. disable news and about)
+    bulk_res = admin_client.put('/api/content/landing-sections/', {
+        'sections': [
+            {'key': 'news', 'is_enabled': False},
+            {'key': 'about', 'is_enabled': False},
+            {'key': 'coaches', 'is_enabled': True},
+        ]
+    }, format='json')
+    assert bulk_res.status_code == 200
+    
+    res_final = pub_client.get('/api/content/landing-sections/')
+    state_map = {s['key']: s['is_enabled'] for s in res_final.data}
+    assert state_map['news'] is False
+    assert state_map['about'] is False
+    assert state_map['coaches'] is True
+

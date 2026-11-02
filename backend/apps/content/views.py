@@ -7,12 +7,13 @@ from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from .models import (
     NewsPost, NewsImage, SwimmingPool, PoolImage,
-    Announcement, Notification, SupportTicket
+    Announcement, Notification, SupportTicket, LandingSection
 )
 from .serializers import (
     NewsPostSerializer, NewsImageSerializer,
     SwimmingPoolSerializer, PoolImageSerializer,
-    AnnouncementSerializer, NotificationSerializer, SupportTicketSerializer
+    AnnouncementSerializer, NotificationSerializer, SupportTicketSerializer,
+    LandingSectionSerializer
 )
 from apps.accounts.permissions import IsAdminUserRole
 
@@ -424,5 +425,159 @@ class SupportTicketDetailView(generics.RetrieveUpdateAPIView):
             )
         else:
             serializer.save()
+
+
+DEFAULT_LANDING_SECTIONS = [
+    {
+        'key': 'hero',
+        'title': 'بنر اصلی و ورودی لندینگ',
+        'subtitle': 'آموزش اصولی شنا از مبتدی تا پیشرفته در قزوین',
+        'description': 'سربرگ لندینگ، تیتر اصلی، دکمه‌های ثبت‌نام، شماره تماس و جلوه بصری شناگر.',
+        'display_order': 1,
+        'is_enabled': True,
+    },
+    {
+        'key': 'about',
+        'title': 'ویژگی‌ها و مزایای آموزشگاه',
+        'subtitle': 'چرا مدرسه شنای ایران؟',
+        'description': 'کارت‌های سه‌گانه متد آموزش بدون ترس، اصلاح قامت، ساختار تنفس و استانداردهای فدراسیون.',
+        'display_order': 2,
+        'is_enabled': True,
+    },
+    {
+        'key': 'courses',
+        'title': 'دوره‌ها و کلاس‌های آموزشی شنا',
+        'subtitle': 'برنامه آموزشی ترم جاری',
+        'description': 'کاروسل دوره‌های فعال، ظرفیت‌های باقی‌مانده، رده سنی و شهریه ثبت‌نام.',
+        'display_order': 3,
+        'is_enabled': True,
+    },
+    {
+        'key': 'pools',
+        'title': 'استخرهای طرف قرارداد در قزوین',
+        'subtitle': 'مجموعه‌های آبی و استخرهای استاندارد قزوین',
+        'description': 'لیست استخرهای تحت پوشش قزوین، تصاویر گالری، ابعاد، عمق، مشخصات و آدرس دقیق.',
+        'display_order': 4,
+        'is_enabled': True,
+    },
+    {
+        'key': 'facilities',
+        'title': 'امکانات و شرایط بهداشتی استخرها',
+        'subtitle': 'محیط استخر و بهداشت آب',
+        'description': 'کارت‌های تصفیه مداوم، وسایل کمک‌آموزشی استاندارد، سونا و جکوزی و سانس‌های تفکیک‌شده.',
+        'display_order': 5,
+        'is_enabled': True,
+    },
+    {
+        'key': 'coaches',
+        'title': 'کادر مربیان رسمی فدراسیون',
+        'subtitle': 'مربیان باسابقه و رسمی مدرسه شنای ایران',
+        'description': 'کارت‌های پروفایل مربیان، فیلتر مربیان خانم و آقا، مدارک رسمی و سوابق ورزشی.',
+        'display_order': 6,
+        'is_enabled': True,
+    },
+    {
+        'key': 'news',
+        'title': 'اخبار، رویدادها و اطلاعیه‌ها',
+        'subtitle': 'تازه‌ترین رویدادها و اطلاعیه‌های مدرسه شنای ایران',
+        'description': 'اطلاعیه‌ها، تقویم زمان‌بندی ترم‌ها، آزمون‌های استعدادیابی و اخبار آموزشگاه.',
+        'display_order': 7,
+        'is_enabled': True,
+    },
+    {
+        'key': 'cta',
+        'title': 'بخش دعوت به اقدام و ثبت‌نام (CTA)',
+        'subtitle': 'آماده‌اید شنا را اصولی و استاندارد شروع کنید؟',
+        'description': 'باکس بنر انتهای صفحه، دکمه سریع ثبت‌نام در دوره‌ها و تماس با پذیرش آموزشگاه.',
+        'display_order': 8,
+        'is_enabled': True,
+    },
+]
+
+
+def _ensure_initial_landing_sections():
+    """ثبت یا به‌روزرسانی بخش‌های استاندارد صفحه لندینگ در صورت نبود رکورد"""
+    existing_keys = set(LandingSection.objects.values_list('key', flat=True))
+    to_create = []
+    for item in DEFAULT_LANDING_SECTIONS:
+        if item['key'] not in existing_keys:
+            to_create.append(LandingSection(
+                key=item['key'],
+                title=item['title'],
+                subtitle=item['subtitle'],
+                description=item['description'],
+                display_order=item['display_order'],
+                is_enabled=item['is_enabled'],
+            ))
+    if to_create:
+        LandingSection.objects.bulk_create(to_create)
+
+
+class LandingSectionListView(generics.ListCreateAPIView):
+    """لیست بخش‌های لندینگ جهت استعلام وضعیت نمایش یا ویرایش بخش‌ها"""
+    serializer_class = LandingSectionSerializer
+    pagination_class = None
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [IsAdminUserRole()]
+
+    def get_queryset(self):
+        _ensure_initial_landing_sections()
+        return LandingSection.objects.all().order_by('display_order', 'id')
+
+    def put(self, request, *args, **kwargs):
+        """به‌روزرسانی گروهی وضعیت بخش‌ها"""
+        sections_data = request.data.get('sections', [])
+        if not isinstance(sections_data, list):
+            return Response({'detail': 'فرمت داده نامعتبر است.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        updated_items = []
+        for item in sections_data:
+            key = item.get('key')
+            if key and 'is_enabled' in item:
+                section = LandingSection.objects.filter(key=key).first()
+                if section:
+                    section.is_enabled = bool(item['is_enabled'])
+                    section.save(update_fields=['is_enabled', 'updated_at'])
+                    updated_items.append(section)
+
+        serializer = self.get_serializer(LandingSection.objects.all().order_by('display_order'), many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class LandingSectionDetailView(generics.RetrieveUpdateAPIView):
+    """مشاهده یا تغییر وضعیت فعال/غیرفعال یک بخش مشخص بر اساس key"""
+    serializer_class = LandingSectionSerializer
+    lookup_field = 'key'
+    queryset = LandingSection.objects.all()
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [IsAdminUserRole()]
+
+
+class LandingSectionToggleView(APIView):
+    """سوئیچ سریع وضعیت فعال/غیرفعال بخش لندینگ توسط مدیر"""
+    permission_classes = [IsAdminUserRole]
+
+    def post(self, request, key):
+        _ensure_initial_landing_sections()
+        section = LandingSection.objects.filter(key=key).first()
+        if not section:
+            return Response({'detail': 'بخش مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # Toggle or set explicit value if provided
+        if 'is_enabled' in request.data:
+            section.is_enabled = bool(request.data['is_enabled'])
+        else:
+            section.is_enabled = not section.is_enabled
+
+        section.save(update_fields=['is_enabled', 'updated_at'])
+        serializer = LandingSectionSerializer(section)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 

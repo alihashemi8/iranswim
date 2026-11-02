@@ -4,10 +4,16 @@ from .views import (
     SwimmingPoolListView, SwimmingPoolDetailView, PoolImageDeleteView, PoolReorderView,
     AnnouncementListView, AnnouncementDetailView,
     NotificationListView, NotificationMarkReadView, NotificationMarkAllReadView,
-    SupportTicketListView, SupportTicketDetailView
+    SupportTicketListView, SupportTicketDetailView,
+    LandingSectionListView, LandingSectionDetailView, LandingSectionToggleView
 )
 
 urlpatterns = [
+    # Landing Sections Management
+    path('landing-sections/', LandingSectionListView.as_view(), name='landing_section_list'),
+    path('landing-sections/<str:key>/', LandingSectionDetailView.as_view(), name='landing_section_detail'),
+    path('landing-sections/<str:key>/toggle/', LandingSectionToggleView.as_view(), name='landing_section_toggle'),
+
     # News & Articles
     path('news/', NewsPostListView.as_view(), name='news_list'),
     path('news/<str:slug>/', NewsPostDetailView.as_view(), name='news_detail'),

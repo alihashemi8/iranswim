@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import {
   Globe, Waves, Users2, Newspaper, BookOpen, Plus, Edit, Trash2,
-  MapPin, Eye, ArrowUpDown, Save, Check, CheckCircle2, Clock,
-  Upload, Image as ImageIcon, X, Sparkles, Phone, Award, Shield,
-  ArrowUp, ArrowDown, RefreshCw
+  MapPin, Eye, EyeOff, ArrowUpDown, Save, Check, CheckCircle2, Clock,
+  Upload, Image as ImageIcon, X, Sparkles, Phone, PhoneCall, Award, Shield,
+  ArrowUp, ArrowDown, ArrowLeft, RefreshCw, LayoutTemplate, ExternalLink, Building2,
+  ToggleLeft, ToggleRight
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -12,14 +13,64 @@ import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { useToast } from '../../context/ToastContext';
+import { useLandingSections } from '../../context/LandingSectionsContext';
 import { SwimmerCrawlIcon, OlympicPoolLaneIcon } from '../../components/common/AquaticIcons';
 
 export const AdminWebsiteManagerPage = () => {
   const toast = useToast();
-  const [activeTab, setActiveTab] = useState('pools'); // 'pools' | 'coaches' | 'news' | 'courses'
+  const {
+    sections: landingSections,
+    isSectionEnabled,
+    toggleSection,
+    setAllSections,
+    reloadSections,
+  } = useLandingSections();
+  const [activeTab, setActiveTab] = useState('sections'); // 'sections' | 'pools' | 'coaches' | 'news' | 'courses'
+  const [togglingKey, setTogglingKey] = useState(null);
+  const [bulkUpdating, setBulkUpdating] = useState(false);
 
   // Loading states
   const [loading, setLoading] = useState(true);
+
+  const handleToggleSection = async (key) => {
+    try {
+      setTogglingKey(key);
+      const targetSec = landingSections.find((s) => s.key === key);
+      const willEnable = !targetSec?.is_enabled;
+      const res = await toggleSection(key);
+      if (res.success) {
+        toast.success(
+          `بخش «${targetSec?.title || key}» با موفقیت ${willEnable ? 'فعال شد و در صفحه لندینگ نمایش داده می‌شود' : 'غیرفعال شد و از صفحه لندینگ مخفی گردید'}.`
+        );
+      } else {
+        toast.error(res.error || 'خطا در تغییر وضعیت بخش');
+      }
+    } catch {
+      toast.error('خطای غیرمنتظره در تغییر وضعیت بخش');
+    } finally {
+      setTogglingKey(null);
+    }
+  };
+
+  const handleSetAllSections = async (enabled) => {
+    try {
+      setBulkUpdating(true);
+      const res = await setAllSections(enabled);
+      if (res.success) {
+        toast.success(
+          enabled
+            ? 'تمامی ۸ بخش صفحه لندینگ با موفقیت فعال و نمایان شدند.'
+            : 'تمامی بخش‌های اختیاری صفحه لندینگ غیرفعال و مخفی شدند.'
+        );
+      } else {
+        toast.error(res.error || 'خطا در به‌روزرسانی گروهی بخش‌ها');
+      }
+    } catch {
+      toast.error('خطای غیرمنتظره در تغییر گروهی بخش‌ها');
+    } finally {
+      setBulkUpdating(false);
+    }
+  };
 
   // =========================================================================
   // 1. POOLS STATE
@@ -122,6 +173,7 @@ export const AdminWebsiteManagerPage = () => {
         const crList = coursesRes.value.data.results || coursesRes.value.data;
         setCourses(crList);
       }
+      reloadSections();
     } catch (err) {
       console.error(err);
       toast.error('خطا در بارگذاری محتوای وبسایت');
@@ -471,6 +523,138 @@ export const AdminWebsiteManagerPage = () => {
     HEALTH: 'آموزش و بهداشت استخر',
   };
 
+  const SECTION_METAS = {
+    hero: {
+      icon: Sparkles,
+      colorClass: 'text-cyan-600 bg-cyan-50 dark:bg-cyan-950/40 dark:text-cyan-400 border-cyan-200 dark:border-cyan-800',
+      badge: 'بخش ۱ • ورودی اصلی',
+      actionTab: null,
+      previewAnchor: '#',
+    },
+    about: {
+      icon: Award,
+      colorClass: 'text-purple-600 bg-purple-50 dark:bg-purple-950/40 dark:text-purple-400 border-purple-200 dark:border-purple-800',
+      badge: 'بخش ۲ • متد و ویژگی‌ها',
+      actionTab: null,
+      previewAnchor: '#about',
+    },
+    courses: {
+      icon: BookOpen,
+      colorClass: 'text-sky-600 bg-sky-50 dark:bg-sky-950/40 dark:text-sky-400 border-sky-200 dark:border-sky-800',
+      badge: 'بخش ۳ • دوره‌های جاری',
+      actionTab: 'courses',
+      previewAnchor: '#courses',
+    },
+    pools: {
+      icon: Waves,
+      colorClass: 'text-teal-600 bg-teal-50 dark:bg-teal-950/40 dark:text-teal-400 border-teal-200 dark:border-teal-800',
+      badge: 'بخش ۴ • استخرهای قزوین',
+      actionTab: 'pools',
+      previewAnchor: '#pools',
+    },
+    facilities: {
+      icon: Building2,
+      colorClass: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
+      badge: 'بخش ۵ • امکانات و بهداشت',
+      actionTab: null,
+      previewAnchor: '#facilities',
+    },
+    coaches: {
+      icon: Users2,
+      colorClass: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800',
+      badge: 'بخش ۶ • کادر مربیان',
+      actionTab: 'coaches',
+      previewAnchor: '#coaches',
+    },
+    news: {
+      icon: Newspaper,
+      colorClass: 'text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-400 border-amber-200 dark:border-amber-800',
+      badge: 'بخش ۷ • اخبار و اطلاعیه‌ها',
+      actionTab: 'news',
+      previewAnchor: '#news',
+    },
+    cta: {
+      icon: PhoneCall,
+      colorClass: 'text-rose-600 bg-rose-50 dark:bg-rose-950/40 dark:text-rose-400 border-rose-200 dark:border-rose-800',
+      badge: 'بخش ۸ • ثبت‌نام و مشاوره',
+      actionTab: null,
+      previewAnchor: '#',
+    },
+  };
+
+  const renderSectionStatusBanner = (sectionKey, sectionTitle) => {
+    const isEnabled = isSectionEnabled(sectionKey);
+    const isToggling = togglingKey === sectionKey;
+    return (
+      <div
+        className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors ${
+          isEnabled
+            ? 'bg-emerald-50/90 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40 text-emerald-950 dark:text-emerald-100'
+            : 'bg-amber-50/90 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/40 text-amber-950 dark:text-amber-100'
+        }`}
+      >
+        <div className="flex items-center gap-3">
+          <div
+            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-2xs ${
+              isEnabled
+                ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300'
+                : 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300'
+            }`}
+          >
+            {isEnabled ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-sm">وضعیت بخش «{sectionTitle}» در صفحه لندینگ:</span>
+              <span
+                className={`text-[11px] px-2.5 py-0.5 rounded-full font-black ${
+                  isEnabled
+                    ? 'bg-emerald-200/80 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200'
+                    : 'bg-amber-200/80 text-amber-900 dark:bg-amber-900 dark:text-amber-200'
+                }`}
+              >
+                {isEnabled ? '● در حال نمایش در صفحه اصلی' : '○ غیرفعال (مخفی از دید کاربران)'}
+              </span>
+            </div>
+            <p className="text-xs opacity-80 mt-0.5 font-medium">
+              {isEnabled
+                ? 'این بخش هم‌اکنون در صفحه اصلی وبسایت به تمام بازدیدکنندگان نمایش داده می‌شود.'
+                : 'این بخش موقتاً خاموش شده و در صفحه اصلی برای بازدیدکنندگان پنهان است.'}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => handleToggleSection(sectionKey)}
+          disabled={isToggling}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer ${
+            isEnabled
+              ? 'bg-rose-100 hover:bg-rose-200 text-rose-800 dark:bg-rose-950 dark:text-rose-200 border border-rose-300/60'
+              : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
+          }`}
+        >
+          {isToggling ? (
+            <>
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              <span>در حال تغییر...</span>
+            </>
+          ) : isEnabled ? (
+            <>
+              <EyeOff className="w-4 h-4" />
+              <span>غیرفعال کردن (مخفی در لندینگ)</span>
+            </>
+          ) : (
+            <>
+              <Eye className="w-4 h-4" />
+              <span>فعال کردن (نمایش در لندینگ)</span>
+            </>
+          )}
+        </button>
+      </div>
+    );
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Banner */}
@@ -500,6 +684,21 @@ export const AdminWebsiteManagerPage = () => {
 
       {/* Tabs Navigation */}
       <div className="flex overflow-x-auto gap-2 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+        <button
+          type="button"
+          onClick={() => setActiveTab('sections')}
+          className={`px-4 sm:px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+            activeTab === 'sections'
+              ? 'bg-white dark:bg-slate-800 text-cyan-700 dark:text-cyan-400 shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+          }`}
+        >
+          <LayoutTemplate className="w-4 h-4 text-cyan-600" />
+          <span>
+            بخش‌های لندینگ ({landingSections.filter((s) => s.is_enabled).length} از {landingSections.length} فعال)
+          </span>
+        </button>
+
         <button
           type="button"
           onClick={() => setActiveTab('pools')}
@@ -558,10 +757,236 @@ export const AdminWebsiteManagerPage = () => {
       ) : (
         <>
           {/* =========================================================================
+              TAB 0: LANDING SECTIONS (مدیریت بخش‌های صفحه اصلی و فعال/غیرفعال‌سازی)
+              ========================================================================= */}
+          {activeTab === 'sections' && (
+            <div className="space-y-6">
+              {/* Header Box */}
+              <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <LayoutTemplate className="w-5 h-5 text-cyan-600" />
+                    <span>مدیریت و فعال/غیرفعال‌سازی بخش‌های صفحه اصلی (Landing)</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-3xl">
+                    هر بخشی از صفحه لندینگ را که تمایل ندارید به عموم کاربران نمایش داده شود، با کلیک روی کلید سوئیچ خاموش کنید. بخش غیرفعال بلافاصله از صفحه اصلی و منوی ناوبری بالایی حذف می‌شود.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5">
+                  <Button
+                    onClick={() => handleSetAllSections(true)}
+                    disabled={bulkUpdating}
+                    variant="outline"
+                    className="gap-1.5 text-xs text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>فعال‌سازی همه بخش‌ها</span>
+                  </Button>
+
+                  <a
+                    href="/"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-cyan-50 dark:bg-cyan-950/40 text-cyan-800 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 hover:bg-cyan-100 transition-colors cursor-pointer"
+                  >
+                    <span>مشاهده زنده لندینگ</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Statistics Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/70 dark:border-slate-800 flex items-center gap-3.5 shadow-2xs">
+                  <div className="w-11 h-11 rounded-xl bg-cyan-50 dark:bg-cyan-950/50 text-cyan-600 flex items-center justify-center border border-cyan-200/60">
+                    <LayoutTemplate className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">کل بخش‌های صفحه اصلی</div>
+                    <div className="text-lg font-black text-slate-900 dark:text-white mt-0.5">
+                      {landingSections.length} بخش ساختاری
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-emerald-200/70 dark:border-emerald-900/40 flex items-center gap-3.5 shadow-2xs">
+                  <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center border border-emerald-200/60">
+                    <Eye className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">بخش‌های فعال و در حال نمایش</div>
+                    <div className="text-lg font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                      {landingSections.filter((s) => s.is_enabled).length} بخش نمایان
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-amber-200/70 dark:border-amber-900/40 flex items-center gap-3.5 shadow-2xs">
+                  <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 flex items-center justify-center border border-amber-200/60">
+                    <EyeOff className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">بخش‌های غیرفعال (مخفی در لندینگ)</div>
+                    <div className="text-lg font-black text-amber-600 dark:text-amber-400 mt-0.5">
+                      {landingSections.filter((s) => !s.is_enabled).length} بخش مخفی‌شده
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sections Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {landingSections.map((sec) => {
+                  const meta = SECTION_METAS[sec.key] || {
+                    icon: LayoutTemplate,
+                    colorClass: 'text-cyan-600 bg-cyan-50 border-cyan-200',
+                    badge: `بخش ${sec.display_order}`,
+                    actionTab: null,
+                    previewAnchor: '#',
+                  };
+                  const Icon = meta.icon;
+                  const isToggling = togglingKey === sec.key;
+
+                  return (
+                    <div
+                      key={sec.key}
+                      className={`p-6 rounded-3xl border-2 transition-all flex flex-col justify-between gap-5 ${
+                        sec.is_enabled
+                          ? 'bg-white dark:bg-slate-900 border-emerald-200/80 dark:border-emerald-800/60 shadow-xs hover:border-emerald-400 dark:hover:border-emerald-700'
+                          : 'bg-slate-50/80 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800/80 opacity-85 hover:opacity-100'
+                      }`}
+                    >
+                      {/* Card Top */}
+                      <div className="space-y-4">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3.5">
+                            <div
+                              className={`w-12 h-12 rounded-2xl flex items-center justify-center border shrink-0 shadow-2xs ${meta.colorClass}`}
+                            >
+                              <Icon className="w-6 h-6" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-[11px] font-bold text-slate-600 dark:text-slate-300">
+                                  {meta.badge}
+                                </span>
+                                <code className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold border border-slate-200 dark:border-slate-700">
+                                  {sec.key}
+                                </code>
+                              </div>
+                              <h3 className="text-base font-extrabold text-slate-900 dark:text-white mt-1">
+                                {sec.title}
+                              </h3>
+                            </div>
+                          </div>
+
+                          {/* Status Badge */}
+                          {sec.is_enabled ? (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300/80 shrink-0">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                              <span>فعال و نمایان</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-extrabold bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-400 border border-slate-300 dark:border-slate-700 shrink-0">
+                              <EyeOff className="w-3.5 h-3.5 text-slate-500" />
+                              <span>غیرفعال (مخفی)</span>
+                            </span>
+                          )}
+                        </div>
+
+                        {sec.subtitle && (
+                          <div className="text-xs font-bold text-cyan-800 dark:text-cyan-400">
+                            {sec.subtitle}
+                          </div>
+                        )}
+
+                        <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium text-justify">
+                          {sec.description}
+                        </p>
+                      </div>
+
+                      {/* Card Bottom Controls */}
+                      <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                        {/* Big Interactive Switch Button */}
+                        <button
+                          type="button"
+                          onClick={() => handleToggleSection(sec.key)}
+                          disabled={isToggling}
+                          className={`w-full py-3 px-4 rounded-2xl text-xs font-extrabold transition-all flex items-center justify-between cursor-pointer border shadow-2xs active:scale-[0.99] ${
+                            sec.is_enabled
+                              ? 'bg-emerald-50 hover:bg-emerald-100/80 text-emerald-900 dark:bg-emerald-950/40 dark:hover:bg-emerald-950/70 dark:text-emerald-200 border-emerald-300/80 dark:border-emerald-800'
+                              : 'bg-slate-100 hover:bg-slate-200/80 text-slate-700 dark:bg-slate-800/80 dark:hover:bg-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-700'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2.5">
+                            {isToggling ? (
+                              <RefreshCw className="w-5 h-5 animate-spin text-cyan-600" />
+                            ) : sec.is_enabled ? (
+                              <ToggleRight className="w-7 h-7 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                            ) : (
+                              <ToggleLeft className="w-7 h-7 text-slate-400 dark:text-slate-500 shrink-0" />
+                            )}
+                            <span className="text-xs font-black">
+                              {isToggling
+                                ? 'در حال ثبت تغییر وضعیت...'
+                                : sec.is_enabled
+                                ? 'وضعیت در لندینگ: روشن (در حال نمایش)'
+                                : 'وضعیت در لندینگ: خاموش (مخفی از دید کاربران)'}
+                            </span>
+                          </div>
+
+                          <span
+                            className={`text-[10px] px-2.5 py-1 rounded-lg font-black transition-colors ${
+                              sec.is_enabled
+                                ? 'bg-rose-100 text-rose-800 hover:bg-rose-200 dark:bg-rose-950 dark:text-rose-200'
+                                : 'bg-emerald-600 text-white hover:bg-emerald-700'
+                            }`}
+                          >
+                            {sec.is_enabled ? 'کلیک جهت غیرفعال‌سازی' : 'کلیک جهت فعال‌سازی'}
+                          </span>
+                        </button>
+
+                        {/* Navigation / Action Sub-bar */}
+                        <div className="flex items-center justify-between gap-2 text-xs">
+                          {meta.actionTab ? (
+                            <button
+                              type="button"
+                              onClick={() => setActiveTab(meta.actionTab)}
+                              className="text-cyan-700 dark:text-cyan-400 hover:underline font-bold inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <span>مدیریت و ویرایش محتوای این بخش</span>
+                              <ArrowLeft className="w-3.5 h-3.5" />
+                            </button>
+                          ) : (
+                            <span className="text-slate-400 text-[11px] font-medium">بخش ساختاری لندینگ</span>
+                          )}
+
+                          <a
+                            href={`/${meta.previewAnchor}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-slate-500 hover:text-slate-800 dark:hover:text-white font-bold inline-flex items-center gap-1 text-[11px] transition-colors"
+                          >
+                            <span>پیش‌نمایش بخش در سایت</span>
+                            <ExternalLink className="w-3 h-3" />
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* =========================================================================
               TAB 1: POOLS (استخرها و مجموعه‌های آبی)
               ========================================================================= */}
           {activeTab === 'pools' && (
             <div className="space-y-6">
+              {renderSectionStatusBanner('pools', 'استخرهای طرف قرارداد در قزوین')}
+
               <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -691,6 +1116,8 @@ export const AdminWebsiteManagerPage = () => {
               ========================================================================= */}
           {activeTab === 'coaches' && (
             <div className="space-y-6">
+              {renderSectionStatusBanner('coaches', 'کادر مربیان رسمی فدراسیون')}
+
               <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -837,6 +1264,8 @@ export const AdminWebsiteManagerPage = () => {
               ========================================================================= */}
           {activeTab === 'news' && (
             <div className="space-y-6">
+              {renderSectionStatusBanner('news', 'اخبار، رویدادها و اطلاعیه‌ها')}
+
               <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
@@ -946,6 +1375,8 @@ export const AdminWebsiteManagerPage = () => {
               ========================================================================= */}
           {activeTab === 'courses' && (
             <div className="space-y-6">
+              {renderSectionStatusBanner('courses', 'دوره‌ها و کلاس‌های آموزشی شنا')}
+
               <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">

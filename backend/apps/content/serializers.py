@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     NewsPost, NewsImage, SwimmingPool, PoolImage,
-    Announcement, Notification, SupportTicket
+    Announcement, Notification, SupportTicket, LandingSection
 )
 
 
@@ -144,5 +144,16 @@ class SupportTicketSerializer(serializers.ModelSerializer):
             'responded_at', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'user', 'status', 'response', 'responded_at', 'created_at', 'updated_at']
+
+
+class LandingSectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LandingSection
+        fields = [
+            'id', 'key', 'title', 'subtitle', 'description',
+            'is_enabled', 'display_order', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
 
 

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SwimmerProvider } from './context/SwimmerContext';
+import { LandingSectionsProvider } from './context/LandingSectionsContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
 import { Navbar } from './components/layout/Navbar';
@@ -86,7 +87,8 @@ export default function App() {
       <ToastProvider>
         <AuthProvider>
           <SwimmerProvider>
-            <BrowserRouter>
+            <LandingSectionsProvider>
+              <BrowserRouter>
             <Routes>
               {/* Public Website */}
               <Route
@@ -265,8 +267,9 @@ export default function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>
-        </SwimmerProvider>
-      </AuthProvider>
+        </LandingSectionsProvider>
+      </SwimmerProvider>
+    </AuthProvider>
     </ToastProvider>
     </ThemeProvider>
   );

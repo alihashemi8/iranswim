@@ -242,3 +242,24 @@ class SupportTicket(models.Model):
         return f"[{self.get_status_display()}] {self.subject}"
 
 
+class LandingSection(models.Model):
+    """بخش‌های صفحه اصلی (لندینگ) و وضعیت فعال/غیرفعال بودن هر بخش برای مدیریت سایت"""
+    key = models.CharField(_('شناسه انگلیسی بخش'), max_length=50, unique=True, db_index=True)
+    title = models.CharField(_('عنوان بخش'), max_length=150)
+    subtitle = models.CharField(_('زیرعنوان یا برچسب'), max_length=250, blank=True)
+    description = models.TextField(_('توضیحات و محتوای بخش'), blank=True)
+    is_enabled = models.BooleanField(_('وضعیت نمایش در لندینگ'), default=True, db_index=True)
+    display_order = models.PositiveIntegerField(_('ترتیب نمایش'), default=0, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _('بخش صفحه لندینگ')
+        verbose_name_plural = _('بخش‌های صفحه لندینگ')
+        ordering = ['display_order', 'id']
+
+    def __str__(self):
+        status_txt = "فعال" if self.is_enabled else "غیرفعال"
+        return f"{self.title} ({self.key}) - {status_txt}"
+
+

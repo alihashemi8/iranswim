@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Activity, Bug, ShieldCheck, Zap,
   LayoutDashboard, BookOpen, Users, CreditCard, Calendar,
-  ClipboardCheck, Award, Trophy, Newspaper, Bell, BarChart3,
+  ClipboardCheck, Award, Trophy, Bell, BarChart3,
   UserCheck, X, LogOut, ChevronLeft, ChevronRight,
   TrendingUp, MessageSquareQuote, FileText, Settings,
   MessageSquare, Globe
@@ -130,8 +130,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     {
       groupTitle: 'محتوا و ارتباطات',
       items: [
-        { to: '/admin/website', label: 'مدیریت وبسایت و لندینگ', icon: Globe },
-        { to: '/admin/news', label: 'اخبار و مقالات', icon: Newspaper },
+        { to: '/admin/website', label: 'مدیریت وبسایت', icon: Globe },
         { to: '/admin/announcements', label: 'پیام‌ها و اعلان‌ها', icon: Bell },
       ],
     },

@@ -33,6 +33,7 @@ import { AquaticPoolBackground } from '../../components/landing/AquaticPoolBackg
 import { AquaticWaveDivider } from '../../components/landing/AquaticWaveDivider';
 import { FloatingLandingWaterIcons } from '../../components/landing/FloatingLandingWaterIcons';
 import { CoachProfileCard } from '../../components/common/CoachProfileCard';
+import { useLandingSections } from '../../context/LandingSectionsContext';
 import './HomePage.css';
 
 // Verified real database records for coaches and news in Qazvin
@@ -332,6 +333,7 @@ const getCourseScheduleAndCapacity = (course) => {
 export const HomePage = () => {
   const { user } = useAuth();
   const toast = useToast();
+  const { isSectionEnabled, sections: landingSections } = useLandingSections();
   const [courses, setCourses] = useState(INITIAL_COURSES);
   const [coursesLoading, setCoursesLoading] = useState(false);
   const [coaches, setCoaches] = useState(INITIAL_COACHES);
@@ -686,8 +688,10 @@ export const HomePage = () => {
         {/* =========================================================================
             SECTION 1: CINEMATIC AQUATIC HERO & WATER ENTRY ARENA
             ========================================================================= */}
-        <section className="landing-hero relative w-full pt-8 sm:pt-14 lg:pt-18 pb-12 sm:pb-16 min-w-0">
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
+        {isSectionEnabled('hero') && (
+          <>
+            <section className="landing-hero relative w-full pt-8 sm:pt-14 lg:pt-18 pb-12 sm:pb-16 min-w-0">
+              <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
             <div className="landing-hero__panel relative w-full">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
               {/* Text & Primary Actions */}
@@ -778,15 +782,19 @@ export const HomePage = () => {
             </div>
           </div>
         </div>
-      </section>
+        </section>
 
-      {/* Organic Wave Transition: Hero to Benefits */}
-      <AquaticWaveDivider topColor="#cbeff5" bottomColor="#d4f4eb" flip={false} />
+        {/* Organic Wave Transition: Hero to Benefits */}
+        <AquaticWaveDivider topColor="#cbeff5" bottomColor="#d4f4eb" flip={false} />
+      </>
+    )}
 
       {/* =========================================================================
           SECTION 2: REAL CORE BENEFITS
           ========================================================================= */}
-      <section id="about" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
+      {isSectionEnabled('about') && (
+        <>
+          <section id="about" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
         <FloatingLandingWaterIcons section="about" />
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-5 sm:space-y-6 relative z-10">
           <div className="text-center max-w-2xl mx-auto space-y-3">
@@ -895,15 +903,19 @@ export const HomePage = () => {
             ))}
           </div>
         </div>
-      </section>
+        </section>
 
-      {/* Organic Wave Transition: Benefits to Courses */}
-      <AquaticWaveDivider topColor="#ccebf5" bottomColor="#c5e3f5" flip={true} />
+        {/* Organic Wave Transition: Benefits to Courses */}
+        <AquaticWaveDivider topColor="#ccebf5" bottomColor="#c5e3f5" flip={true} />
+      </>
+    )}
 
       {/* =========================================================================
           SECTION 3: LIVE COURSES
           ========================================================================= */}
-      <section id="courses" className="landing-section relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
+      {isSectionEnabled('courses') && (
+        <>
+          <section id="courses" className="landing-section relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
         <FloatingLandingWaterIcons section="courses" />
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
           <div className="landing-section__heading flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
@@ -1014,15 +1026,19 @@ export const HomePage = () => {
             <p className="landing-empty-state">در حال حاضر دوره‌ای برای نمایش ثبت نشده است. برای اطلاع از ثبت‌نام با پذیرش تماس بگیرید.</p>
           )}
         </div>
-      </section>
+        </section>
 
-      {/* Organic Wave Transition: Courses to Pools */}
-      <AquaticWaveDivider topColor="#c4ecf2" bottomColor="#bfe9f0" flip={false} />
+        {/* Organic Wave Transition: Courses to Pools */}
+        <AquaticWaveDivider topColor="#c4ecf2" bottomColor="#bfe9f0" flip={false} />
+      </>
+    )}
 
       {/* =========================================================================
           SECTION: SWIMMING POOLS & AQUATIC COMPLEXES (استخرها و مجموعه‌های ورزشی قزوین)
           ========================================================================= */}
-      <section id="pools" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
+      {isSectionEnabled('pools') && (
+        <>
+          <section id="pools" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
         <FloatingLandingWaterIcons section="pools" />
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
@@ -1107,15 +1123,19 @@ export const HomePage = () => {
             }}
           />
         </div>
-      </section>
+        </section>
 
-      {/* Organic Wave Transition: Pools to Facilities */}
-      <AquaticWaveDivider topColor="#bfe9f0" bottomColor="#c2ecf1" flip={true} />
+        {/* Organic Wave Transition: Pools to Facilities */}
+        <AquaticWaveDivider topColor="#bfe9f0" bottomColor="#c2ecf1" flip={true} />
+      </>
+    )}
 
       {/* =========================================================================
           SECTION 4: ACADEMY FACILITIES & INFRASTRUCTURE
           ========================================================================= */}
-      <section id="facilities" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
+      {isSectionEnabled('facilities') && (
+        <>
+          <section id="facilities" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
         <FloatingLandingWaterIcons section="facilities" />
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
           <div className="text-center max-w-2xl mx-auto space-y-2.5">
@@ -1231,15 +1251,19 @@ export const HomePage = () => {
             </div>
           </div>
         </div>
-      </section>
+        </section>
 
-      {/* Organic Wave Transition: Facilities to Coaches */}
-      <AquaticWaveDivider topColor="#c9efe5" bottomColor="#cef0e6" flip={true} />
+        {/* Organic Wave Transition: Facilities to Coaches */}
+        <AquaticWaveDivider topColor="#c9efe5" bottomColor="#cef0e6" flip={true} />
+      </>
+    )}
 
       {/* =========================================================================
           SECTION 5: CERTIFIED FEDERATION COACHES
           ========================================================================= */}
-      <section id="coaches" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
+      {isSectionEnabled('coaches') && (
+        <>
+          <section id="coaches" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
         <FloatingLandingWaterIcons section="coaches" />
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
@@ -1308,15 +1332,19 @@ export const HomePage = () => {
             )}
           />
         </div>
-      </section>
+        </section>
 
-      {/* Organic Wave Transition: Coaches to News */}
-      <AquaticWaveDivider topColor="#cbe6f6" bottomColor="#cee5f5" flip={false} />
+        {/* Organic Wave Transition: Coaches to News */}
+        <AquaticWaveDivider topColor="#cbe6f6" bottomColor="#cee5f5" flip={false} />
+      </>
+    )}
 
       {/* =========================================================================
           SECTION 6: NEWS, ARTICLES & EVENTS
           ========================================================================= */}
-      <section id="news" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
+      {isSectionEnabled('news') && (
+        <>
+          <section id="news" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
         <FloatingLandingWaterIcons section="news" />
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
@@ -1389,15 +1417,19 @@ export const HomePage = () => {
             }}
           />
         </div>
-      </section>
+        </section>
 
-      {/* Organic Wave Transition: News to Call to Action */}
-      <AquaticWaveDivider topColor="#9cdfee" bottomColor="#8ad4e8" flip={true} />
+        {/* Organic Wave Transition: News to Call to Action */}
+        <AquaticWaveDivider topColor="#9cdfee" bottomColor="#8ad4e8" flip={true} />
+      </>
+    )}
 
       {/* =========================================================================
           SECTION 7: FINAL REGISTRATION CALL TO ACTION
           ========================================================================= */}
-      <section className="landing-cta relative w-full py-14 sm:py-20 lg:py-24 min-w-0">
+      {isSectionEnabled('cta') && (
+        <>
+          <section className="landing-cta relative w-full py-14 sm:py-20 lg:py-24 min-w-0">
         <FloatingLandingWaterIcons section="cta" />
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="landing-cta__panel relative w-full text-center space-y-6 py-8 sm:py-12 px-4 sm:px-8">
@@ -1435,7 +1467,24 @@ export const HomePage = () => {
             </div>
           </div>
         </div>
-      </section>
+        </section>
+      </>
+    )}
+
+      {/* Message if all landing sections were disabled by admin */}
+      {!landingSections?.some((s) => s.is_enabled) && (
+        <section className="py-24 px-4 text-center max-w-xl mx-auto space-y-4">
+          <div className="w-16 h-16 rounded-full bg-cyan-100 dark:bg-cyan-900/50 flex items-center justify-center mx-auto text-cyan-700 dark:text-cyan-300">
+            <Waves className="w-8 h-8" />
+          </div>
+          <h2 className="text-xl sm:text-2xl font-black text-slate-800 dark:text-slate-100">
+            صفحه اصلی در حال به‌روزرسانی است
+          </h2>
+          <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+            بخش‌های محتوایی وبسایت موقتاً توسط مدیریت آموزشگاه غیرفعال شده‌اند. برای کسب اطلاعات بیشتر می‌توانید با شماره پذیرش تماس بگیرید.
+          </p>
+        </section>
+      )}
 
       {/* Organic Deep-Dive Wave Transition: CTA to Footer */}
       <AquaticWaveDivider topColor="#58bfd9" bottomColor="#0d3849" crestColor="rgba(255, 255, 255, 0.75)" flip={false} />
@@ -1468,36 +1517,48 @@ export const HomePage = () => {
               <div className="space-y-3">
                 <h4 className="font-bold text-sm text-white">بخش‌های وبسایت</h4>
                 <ul className="space-y-2 text-xs text-slate-300">
-                  <li>
-                    <a href="#about" className="hover:text-cyan-300 transition-colors">
-                      ویژگی‌ها و مزایای کلاس‌ها
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#courses" className="hover:text-cyan-300 transition-colors">
-                      برنامه دوره‌ها و ثبت‌نام
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#pools" className="hover:text-cyan-300 transition-colors">
-                      استخرهای تحت پوشش قزوین
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#facilities" className="hover:text-cyan-300 transition-colors">
-                      امکانات و شرایط استخرها
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#coaches" className="hover:text-cyan-300 transition-colors">
-                      کادر مربیان قزوین
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#news" className="hover:text-cyan-300 transition-colors">
-                      اخبار و اطلاعیه‌ها
-                    </a>
-                  </li>
+                  {isSectionEnabled('about') && (
+                    <li>
+                      <a href="#about" className="hover:text-cyan-300 transition-colors">
+                        ویژگی‌ها و مزایای کلاس‌ها
+                      </a>
+                    </li>
+                  )}
+                  {isSectionEnabled('courses') && (
+                    <li>
+                      <a href="#courses" className="hover:text-cyan-300 transition-colors">
+                        برنامه دوره‌ها و ثبت‌نام
+                      </a>
+                    </li>
+                  )}
+                  {isSectionEnabled('pools') && (
+                    <li>
+                      <a href="#pools" className="hover:text-cyan-300 transition-colors">
+                        استخرهای تحت پوشش قزوین
+                      </a>
+                    </li>
+                  )}
+                  {isSectionEnabled('facilities') && (
+                    <li>
+                      <a href="#facilities" className="hover:text-cyan-300 transition-colors">
+                        امکانات و شرایط استخرها
+                      </a>
+                    </li>
+                  )}
+                  {isSectionEnabled('coaches') && (
+                    <li>
+                      <a href="#coaches" className="hover:text-cyan-300 transition-colors">
+                        کادر مربیان قزوین
+                      </a>
+                    </li>
+                  )}
+                  {isSectionEnabled('news') && (
+                    <li>
+                      <a href="#news" className="hover:text-cyan-300 transition-colors">
+                        اخبار و اطلاعیه‌ها
+                      </a>
+                    </li>
+                  )}
                 </ul>
               </div>
 
