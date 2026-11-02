@@ -249,16 +249,16 @@ export const AdminCoachesPage = () => {
           description="با تغییر فیلترها یا افزودن مربی جدید، مربیان ثبت‌شده نمایش داده خواهند شد."
         />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 items-stretch">
           {coaches.map((coach) => (
             <div
               key={coach.id}
               onClick={() => navigate(`/admin/coaches/${coach.id}`)}
-              className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:border-sky-400/80 dark:hover:border-sky-500/80 hover:shadow-md transition-all flex flex-col justify-between cursor-pointer"
+              className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:border-sky-400/80 dark:hover:border-sky-500/80 hover:shadow-md transition-all flex flex-col justify-between cursor-pointer h-full"
             >
-              <div>
+              <div className="flex flex-col flex-1">
                 {/* Header Profile */}
-                <div className="flex items-start justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-start justify-between pb-3 border-b border-slate-100 dark:border-slate-800 h-16 shrink-0">
                   <div className="flex items-center gap-3">
                     <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white flex items-center justify-center font-bold text-sm shadow-xs group-hover:scale-105 transition-transform overflow-hidden shrink-0">
                       {coach.avatar ? (
@@ -269,7 +269,7 @@ export const AdminCoachesPage = () => {
                     </div>
                     <div>
                       <div className="flex items-center gap-1.5">
-                        <h3 className="font-bold text-slate-900 dark:text-white text-sm group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                        <h3 className="font-bold text-slate-900 dark:text-white text-sm group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate max-w-[150px]">
                           {coach.full_name}
                         </h3>
                       </div>
@@ -279,7 +279,7 @@ export const AdminCoachesPage = () => {
                     </div>
                   </div>
 
-                  <div className="flex flex-col items-end gap-1">
+                  <div className="flex flex-col items-end gap-1 shrink-0">
                     <Badge
                       variant={
                         coach.employment_status === 'ACTIVE'
@@ -299,22 +299,22 @@ export const AdminCoachesPage = () => {
                 </div>
 
                 {/* Specialties & Bio */}
-                <div className="py-3 space-y-2 text-xs">
+                <div className="py-3 space-y-2.5 text-xs flex-1 flex flex-col justify-between">
                   <div>
                     <span className="text-slate-400 block mb-0.5">تخصص‌های آموزشی:</span>
-                    <span className="font-semibold text-slate-700 dark:text-slate-300">
+                    <span className="font-semibold text-slate-700 dark:text-slate-300 line-clamp-1 block h-5">
                       {coach.specialties || 'شنای عمومی و مقدماتی'}
                     </span>
                   </div>
 
-                  {coach.bio && (
-                    <div>
-                      <span className="text-slate-400 block mb-0.5">بیوگرافی و مدارک:</span>
-                      <p className="text-slate-600 dark:text-slate-400 line-clamp-2">{coach.bio}</p>
-                    </div>
-                  )}
+                  <div>
+                    <span className="text-slate-400 block mb-0.5">بیوگرافی و مدارک:</span>
+                    <p className="text-slate-600 dark:text-slate-400 line-clamp-2 h-9">
+                      {coach.bio || 'مربی رسمی و باسابقه آموزش شنا'}
+                    </p>
+                  </div>
 
-                  <div className="pt-2 flex items-center justify-between text-slate-500 border-t border-slate-100 dark:border-slate-800/60">
+                  <div className="pt-2 flex items-center justify-between text-slate-500 border-t border-slate-100 dark:border-slate-800/60 h-8 shrink-0">
                     <span>حق‌التدریس ساعتی:</span>
                     <span className="font-bold font-mono text-slate-800 dark:text-slate-200">
                       {formatPrice(coach.hourly_rate)} تومان

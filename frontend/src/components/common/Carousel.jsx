@@ -61,12 +61,16 @@ export const Carousel = ({
     return false;
   });
 
+  const getItemsPerView = useCallback((width) => {
+    if (width >= 1280) return visibleItems.desktop || 3;
+    if (width >= 1024) return visibleItems.laptop || visibleItems.desktop || 3;
+    if (width >= 768) return visibleItems.tablet || 2;
+    return visibleItems.mobile || 1;
+  }, [visibleItems]);
+
   const [itemsPerView, setItemsPerView] = useState(() => {
     if (typeof window !== 'undefined') {
-      const width = window.innerWidth;
-      if (width >= 1024) return visibleItems.desktop || 3;
-      if (width >= 768) return visibleItems.tablet || 2;
-      return visibleItems.mobile || 1;
+      return getItemsPerView(window.innerWidth);
     }
     return visibleItems.desktop || 3;
   });
@@ -82,13 +86,11 @@ export const Carousel = ({
   useEffect(() => {
     const handleResize = () => {
       const width = window.innerWidth;
-      if (width >= 1024) setItemsPerView(visibleItems.desktop || 3);
-      else if (width >= 768) setItemsPerView(visibleItems.tablet || 2);
-      else setItemsPerView(visibleItems.mobile || 1);
+      setItemsPerView(getItemsPerView(width));
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [visibleItems]);
+  }, [getItemsPerView]);
 
   const totalItems = items.length;
   const maxIndex = Math.max(0, totalItems - itemsPerView);
@@ -253,7 +255,7 @@ export const Carousel = ({
         {/* Overflow Track Viewport */}
         <div className="carousel-viewport w-full max-w-full min-w-0 overflow-hidden rounded-2xl sm:rounded-3xl p-1 -m-1">
           <div
-            className={`flex min-w-0 ${isReducedMotion ? '' : 'transition-transform duration-500 ease-out'}`}
+            className={`flex min-w-0 items-stretch ${isReducedMotion ? '' : 'transition-transform duration-500 ease-out'}`}
             style={{
               transform: `translateX(${translatePercent}%)`,
             }}
@@ -261,7 +263,7 @@ export const Carousel = ({
             {items.map((item, index) => (
               <div
                 key={item.id || index}
-                className={`shrink-0 px-2 sm:px-3 min-w-0 ${itemClassName}`}
+                className={`shrink-0 px-2 sm:px-3 min-w-0 flex flex-col items-stretch h-full ${itemClassName}`}
                 style={{ width: `${itemWidthPercent}%` }}
                 role="group"
                 aria-roledescription="slide"

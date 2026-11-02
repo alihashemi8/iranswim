@@ -1322,7 +1322,7 @@ export const HomePage = () => {
             items={filteredCoaches}
             className="landing-carousel"
             ariaLabel="اسلایدر کادر مربیان آموزشگاه"
-            visibleItems={{ mobile: 1, tablet: 2, desktop: 3 }}
+            visibleItems={{ mobile: 1, tablet: 2, laptop: 3, desktop: 3 }}
             interval={6000}
             renderItem={(coach) => (
               <CoachProfileCard

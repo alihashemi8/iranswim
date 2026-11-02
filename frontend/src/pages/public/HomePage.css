@@ -503,11 +503,18 @@
 
 .coach-profile-card-wrapper {
   overflow: visible;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
 }
 
 .coach-card-body-shell {
   filter: drop-shadow(0 12px 24px rgba(13, 148, 136, 0.09)) drop-shadow(0 3px 8px rgba(13, 148, 136, 0.04));
   transition: filter 300ms ease, transform 300ms ease;
+  flex: 1 1 0%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
 
 .coach-profile-card-wrapper:hover .coach-card-body-shell {

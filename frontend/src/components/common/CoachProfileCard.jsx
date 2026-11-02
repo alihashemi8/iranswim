@@ -85,7 +85,7 @@ export const CoachProfileCard = ({
 
   return (
     <div
-      className={`coach-profile-card-wrapper relative pt-[84px] pb-2 w-full max-w-[430px] mx-auto group select-none ${className}`}
+      className={`coach-profile-card-wrapper relative pt-[84px] pb-2 w-full max-w-[420px] mx-auto group select-none flex flex-col h-full ${className}`}
       dir="rtl"
     >
       {/* =========================================================================
@@ -112,10 +112,10 @@ export const CoachProfileCard = ({
       {/* =========================================================================
           2. Unified Card Container with Concentric Curved Top Edge & Powdery Gradient
           ========================================================================= */}
-      <div className="coach-card-body-shell flex flex-col w-full transition-all duration-300 group-hover:-translate-y-1">
+      <div className="coach-card-body-shell flex flex-col flex-1 w-full h-full transition-all duration-300 group-hover:-translate-y-1">
         
         {/* Top Boundary with Exact Concentric Circular Arc & Smooth Tangent Fillets */}
-        <div className="flex items-stretch h-[98px] w-full -mb-[1px]">
+        <div className="flex items-stretch h-[98px] w-full shrink-0 -mb-[1px]">
           {/* Right Shoulder (RTL right) with powdery gradient */}
           <div className="flex-1 bg-gradient-to-b from-[#edfbf9] to-[#def5f3] border-t-[1.5px] border-r-[1.5px] border-[#7de0d6] rounded-tr-2xl sm:rounded-tr-3xl transition-colors duration-300 group-hover:border-[#4ed3c5]" />
 
@@ -153,67 +153,75 @@ export const CoachProfileCard = ({
           <div className="flex-1 bg-gradient-to-b from-[#edfbf9] to-[#def5f3] border-t-[1.5px] border-l-[1.5px] border-[#7de0d6] rounded-tl-2xl sm:rounded-tl-3xl transition-colors duration-300 group-hover:border-[#4ed3c5]" />
         </div>
 
-        {/* Card Main Body with Powdery Aquatic Gradient */}
-        <div className="bg-gradient-to-b from-[#def5f3] via-[#d5f2f0] to-[#e0f7f5] border-b-[1.5px] border-x-[1.5px] border-[#7de0d6] rounded-b-2xl sm:rounded-b-3xl px-5 sm:px-6 pt-5 pb-6 text-center space-y-3.5 transition-colors duration-300 group-hover:border-[#4ed3c5] flex flex-col justify-between h-full">
-          <div>
-            {/* 1. Coach Name */}
-            <h3 className="text-2xl sm:text-[1.65rem] font-black text-[#093734] tracking-tight">
-              {coach.full_name}
-            </h3>
+        {/* Card Main Body with Powdery Aquatic Gradient (Flex-1 & Equal Height) */}
+        <div className="bg-gradient-to-b from-[#def5f3] via-[#d5f2f0] to-[#e0f7f5] border-b-[1.5px] border-x-[1.5px] border-[#7de0d6] rounded-b-2xl sm:rounded-b-3xl px-4 sm:px-6 pt-4 sm:pt-5 pb-5 sm:pb-6 text-center transition-colors duration-300 group-hover:border-[#4ed3c5] flex flex-col justify-between flex-1 h-full">
+          <div className="flex flex-col flex-1">
+            {/* 1. Coach Name (Normalized height) */}
+            <div className="h-8 sm:h-9 flex items-center justify-center">
+              <h3
+                className="text-xl sm:text-2xl font-black text-[#093734] tracking-tight truncate max-w-full px-1"
+                title={coach.full_name}
+              >
+                {coach.full_name}
+              </h3>
+            </div>
 
-            {/* 2. Professional Role */}
-            <div className="mt-2 flex items-center justify-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#baf0ea] text-[#06544f] text-xs sm:text-sm font-extrabold border border-[#6cd9cc] shadow-2xs">
+            {/* 2. Professional Role (Normalized height) */}
+            <div className="mt-1.5 h-7 sm:h-8 flex items-center justify-center">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#baf0ea] text-[#06544f] text-xs sm:text-sm font-extrabold border border-[#6cd9cc] shadow-2xs whitespace-nowrap">
                 <span className="w-2 h-2 rounded-full bg-[#0d9488] animate-pulse" />
                 مربی رسمی فدراسیون شنا
               </span>
             </div>
 
-            {/* 3. Metadata Row */}
-            <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 text-xs sm:text-sm text-[#215450] border-y border-[#7de0d6]/50 py-3 my-3.5 font-bold">
-              <span className="flex items-center gap-1.5">
-                <Award className="w-4 h-4 text-[#0d9488] shrink-0" />
-                {getExperienceText()}
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#0d9488]/40 inline-block" />
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-[#0d9488] shrink-0" />
-                {getCertificationText()}
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-[#0d9488]/40 inline-block" />
-              <span className="flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
-                قزوین
-              </span>
+            {/* 3. Metadata Row (Normalized height, strictly balanced) */}
+            <div className="my-3 py-2 border-y border-[#7de0d6]/50 h-11 sm:h-12 flex items-center justify-center">
+              <div className="flex items-center justify-center gap-2 sm:gap-3 text-xs sm:text-sm text-[#215450] font-bold whitespace-nowrap overflow-hidden">
+                <span className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                  <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#0d9488] shrink-0" />
+                  {getExperienceText()}
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#0d9488]/40 shrink-0 inline-block" />
+                <span className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                  <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#0d9488] shrink-0" />
+                  {getCertificationText()}
+                </span>
+                <span className="w-1.5 h-1.5 rounded-full bg-[#0d9488]/40 shrink-0 inline-block" />
+                <span className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+                  <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-500 shrink-0" />
+                  قزوین
+                </span>
+              </div>
             </div>
 
-            {/* 4. Readable Persian Biography */}
-            <p className="text-xs sm:text-sm text-[#215450] leading-relaxed line-clamp-3 font-semibold text-justify">
-              {coach.bio || 'مدرس باسابقه دوره‌های تخصصی شنای پایه و قهرمانی با سابقه درخشان در آموزش شناگران استان قزوین'}
-            </p>
-          </div>
+            {/* 4. Readable Persian Biography (Normalized height) */}
+            <div className="h-14 sm:h-16 flex items-center justify-center px-1 overflow-hidden my-auto">
+              <p className="text-xs sm:text-sm text-[#215450] leading-relaxed line-clamp-3 font-semibold text-center">
+                {coach.bio || 'مدرس باسابقه دوره‌های تخصصی شنای پایه و قهرمانی با سابقه درخشان در آموزش شناگران استان قزوین'}
+              </p>
+            </div>
 
-          {/* 5. Supported Specialties Section */}
-          {specialtiesList.length > 0 && (
-            <div className="mt-2.5 bg-[#bbf0eb]/60 border border-[#7de0d6]/70 rounded-2xl p-2.5 flex flex-wrap items-center justify-center gap-2">
-              {specialtiesList.map((spec, idx) => (
+            {/* 5. Supported Specialties Section (Uniform height on all cards) */}
+            <div className="mt-3 h-16 sm:h-[4.25rem] bg-[#bbf0eb]/60 border border-[#7de0d6]/70 rounded-2xl px-2.5 py-1.5 flex items-center justify-center gap-1.5 sm:gap-2 overflow-hidden shrink-0">
+              {(specialtiesList.length > 0 ? specialtiesList.slice(0, 3) : ['شنای تخصصی', 'اصلاح تکنیک']).map((spec, idx) => (
                 <span
                   key={idx}
-                  className="px-3 py-1 bg-white/95 rounded-lg text-xs sm:text-sm font-black text-[#06544f] shadow-2xs border border-[#7de0d6]/60"
+                  className="px-2.5 py-1 bg-white/95 rounded-lg text-xs sm:text-sm font-black text-[#06544f] shadow-2xs border border-[#7de0d6]/60 truncate max-w-[125px] sm:max-w-[140px]"
+                  title={spec}
                 >
                   {spec}
                 </span>
               ))}
             </div>
-          )}
+          </div>
 
-          {/* Bottom Card Footer: Status & Badge */}
-          <div className="pt-2.5 border-t border-[#7de0d6]/50 flex items-center justify-between text-xs sm:text-[13px] text-[#215450] font-bold">
-            <span className="flex items-center gap-1.5 font-black text-[#0d9488]">
-              <CheckCircle2 className="w-4 h-4 text-[#0d9488]" />
+          {/* Bottom Card Footer: Status & Badge (Uniform fixed height pinned to bottom) */}
+          <div className="mt-3.5 pt-2.5 border-t border-[#7de0d6]/50 flex items-center justify-between text-xs sm:text-[13px] text-[#215450] font-bold h-10 shrink-0">
+            <span className="flex items-center gap-1.5 font-black text-[#0d9488] whitespace-nowrap">
+              <CheckCircle2 className="w-4 h-4 text-[#0d9488] shrink-0" />
               وضعیت: فعال و مجاز
             </span>
-            <span className="font-mono text-[#06544f] bg-white/80 px-2.5 py-1 rounded-md border border-[#7de0d6]/50 font-bold">
+            <span className="font-mono text-[#06544f] bg-white/80 px-2 sm:px-2.5 py-1 rounded-md border border-[#7de0d6]/50 font-bold whitespace-nowrap text-xs">
               تأییدیه فدراسیون ✓
             </span>
           </div>
