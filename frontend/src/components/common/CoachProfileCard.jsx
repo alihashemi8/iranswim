@@ -157,49 +157,49 @@ export const CoachProfileCard = ({
         <div className="bg-gradient-to-b from-[#def5f3] via-[#d5f2f0] to-[#e0f7f5] border-b-[1.5px] border-x-[1.5px] border-[#7de0d6] rounded-b-2xl sm:rounded-b-3xl px-5 sm:px-6 pt-5 pb-6 text-center space-y-3.5 transition-colors duration-300 group-hover:border-[#4ed3c5] flex flex-col justify-between h-full">
           <div>
             {/* 1. Coach Name */}
-            <h3 className="text-xl sm:text-2xl font-black text-[#093734] tracking-tight">
+            <h3 className="text-2xl sm:text-[1.65rem] font-black text-[#093734] tracking-tight">
               {coach.full_name}
             </h3>
 
             {/* 2. Professional Role */}
-            <div className="mt-1.5 flex items-center justify-center gap-2">
-              <span className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-[#baf0ea] text-[#06544f] text-xs font-bold border border-[#6cd9cc] shadow-2xs">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#0d9488] animate-pulse" />
+            <div className="mt-2 flex items-center justify-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-[#baf0ea] text-[#06544f] text-xs sm:text-sm font-extrabold border border-[#6cd9cc] shadow-2xs">
+                <span className="w-2 h-2 rounded-full bg-[#0d9488] animate-pulse" />
                 مربی رسمی فدراسیون شنا
               </span>
             </div>
 
             {/* 3. Metadata Row */}
-            <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 text-xs text-[#215450] border-y border-[#7de0d6]/50 py-2.5 my-3.5">
-              <span className="flex items-center gap-1 font-semibold">
-                <Award className="w-3.5 h-3.5 text-[#0d9488] shrink-0" />
+            <div className="flex flex-wrap items-center justify-center gap-2.5 sm:gap-3 text-xs sm:text-sm text-[#215450] border-y border-[#7de0d6]/50 py-3 my-3.5 font-bold">
+              <span className="flex items-center gap-1.5">
+                <Award className="w-4 h-4 text-[#0d9488] shrink-0" />
                 {getExperienceText()}
               </span>
-              <span className="w-1 h-1 rounded-full bg-[#0d9488]/40 inline-block" />
-              <span className="flex items-center gap-1 font-semibold">
-                <ShieldCheck className="w-3.5 h-3.5 text-[#0d9488] shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#0d9488]/40 inline-block" />
+              <span className="flex items-center gap-1.5">
+                <ShieldCheck className="w-4 h-4 text-[#0d9488] shrink-0" />
                 {getCertificationText()}
               </span>
-              <span className="w-1 h-1 rounded-full bg-[#0d9488]/40 inline-block" />
-              <span className="flex items-center gap-1 font-semibold">
-                <MapPin className="w-3.5 h-3.5 text-rose-500 shrink-0" />
+              <span className="w-1.5 h-1.5 rounded-full bg-[#0d9488]/40 inline-block" />
+              <span className="flex items-center gap-1.5">
+                <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
                 قزوین
               </span>
             </div>
 
             {/* 4. Readable Persian Biography */}
-            <p className="text-xs text-[#215450] leading-relaxed line-clamp-3 font-medium">
+            <p className="text-xs sm:text-sm text-[#215450] leading-relaxed line-clamp-3 font-semibold text-justify">
               {coach.bio || 'مدرس باسابقه دوره‌های تخصصی شنای پایه و قهرمانی با سابقه درخشان در آموزش شناگران استان قزوین'}
             </p>
           </div>
 
           {/* 5. Supported Specialties Section */}
           {specialtiesList.length > 0 && (
-            <div className="mt-2 bg-[#bbf0eb]/60 border border-[#7de0d6]/70 rounded-2xl p-2.5 flex flex-wrap items-center justify-center gap-1.5">
+            <div className="mt-2.5 bg-[#bbf0eb]/60 border border-[#7de0d6]/70 rounded-2xl p-2.5 flex flex-wrap items-center justify-center gap-2">
               {specialtiesList.map((spec, idx) => (
                 <span
                   key={idx}
-                  className="px-2.5 py-1 bg-white/95 rounded-lg text-xs font-bold text-[#06544f] shadow-2xs border border-[#7de0d6]/60"
+                  className="px-3 py-1 bg-white/95 rounded-lg text-xs sm:text-sm font-black text-[#06544f] shadow-2xs border border-[#7de0d6]/60"
                 >
                   {spec}
                 </span>
@@ -208,12 +208,12 @@ export const CoachProfileCard = ({
           )}
 
           {/* Bottom Card Footer: Status & Badge */}
-          <div className="pt-2 border-t border-[#7de0d6]/50 flex items-center justify-between text-[11px] text-[#215450]">
-            <span className="flex items-center gap-1.5 font-bold text-[#0d9488]">
-              <CheckCircle2 className="w-3.5 h-3.5 text-[#0d9488]" />
+          <div className="pt-2.5 border-t border-[#7de0d6]/50 flex items-center justify-between text-xs sm:text-[13px] text-[#215450] font-bold">
+            <span className="flex items-center gap-1.5 font-black text-[#0d9488]">
+              <CheckCircle2 className="w-4 h-4 text-[#0d9488]" />
               وضعیت: فعال و مجاز
             </span>
-            <span className="font-mono text-[#06544f] bg-white/70 px-2 py-0.5 rounded-md border border-[#7de0d6]/50">
+            <span className="font-mono text-[#06544f] bg-white/80 px-2.5 py-1 rounded-md border border-[#7de0d6]/50 font-bold">
               تأییدیه فدراسیون ✓
             </span>
           </div>
