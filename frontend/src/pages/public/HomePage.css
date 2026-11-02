@@ -461,8 +461,8 @@
 
 .landing-course__eyebrow {
   color: #157a78;
-  font-size: 0.7rem;
-  font-weight: 700;
+  font-size: 0.85rem;
+  font-weight: 800;
 }
 
 .landing-course p {
@@ -486,8 +486,8 @@
 
 .landing-course__link {
   color: #087e91;
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 0.975rem;
+  font-weight: 800;
 }
 
 .landing-empty-state {
@@ -907,7 +907,7 @@
 
 .landing-experience .landing-hero__panel h1 {
   color: #ffffff !important;
-  font-size: clamp(2rem, 4.2vw, 4.25rem) !important;
+  font-size: clamp(2.25rem, 4.8vw, 4.65rem) !important;
   font-weight: 900 !important;
   line-height: 1.22 !important;
   letter-spacing: -0.02em !important;
@@ -916,7 +916,7 @@
 
 @media (min-width: 768px) and (max-width: 1023px) {
   .landing-experience .landing-hero__panel h1 {
-    font-size: clamp(1.6rem, 3.4vw, 2.15rem) !important;
+    font-size: clamp(1.75rem, 3.8vw, 2.45rem) !important;
     white-space: nowrap !important;
     line-height: 1.3 !important;
   }
@@ -1058,8 +1058,8 @@
 .landing-experience .landing-hero__panel .hero-feature-card .hero-feature-desc {
   color: #1e293b !important;
   text-shadow: none !important;
-  font-weight: 600 !important;
-  font-size: 0.825rem !important;
+  font-weight: 700 !important;
+  font-size: 0.925rem !important;
   line-height: 1.45 !important;
   min-height: 2.75rem !important;
   margin: 0 !important;
@@ -1072,7 +1072,7 @@
 
   .landing-experience .landing-hero__panel .hero-feature-card p,
   .landing-experience .landing-hero__panel .hero-feature-card .hero-feature-desc {
-    font-size: 0.775rem !important;
+    font-size: 0.85rem !important;
     line-height: 1.4 !important;
     min-height: 2.35rem !important;
   }
@@ -1215,7 +1215,7 @@
 
 .landing-cta h2 {
   color: #0b3446 !important;
-  font-size: clamp(1.85rem, 4vw, 3.25rem) !important;
+  font-size: clamp(2.15rem, 4.6vw, 3.85rem) !important;
   font-weight: 900 !important;
   line-height: 1.25 !important;
   text-shadow: none !important;
@@ -1223,7 +1223,8 @@
 
 .landing-cta p {
   color: #2b5363 !important;
-  font-weight: 600 !important;
+  font-size: 1.25rem !important;
+  font-weight: 700 !important;
   text-shadow: none !important;
 }
 
