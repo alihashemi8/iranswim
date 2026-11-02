@@ -9,8 +9,6 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-iranswim}
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-    ports:
-      - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -53,7 +51,7 @@ services:
     container_name: iranswim_frontend
     restart: unless-stopped
     ports:
-      - "${PORT:-80}:80"
+      - "${PORT:-8080}:8080"
     volumes:
       - media_data:/usr/share/nginx/media:ro
     depends_on:
