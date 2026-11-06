@@ -1,13 +1,21 @@
-name: Build and Publish Docker Images to GHCR
+
+name: Build and Deploy Iran Swim
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
   workflow_dispatch:
+
+concurrency:
+  group: iranswim-production
+  cancel-in-progress: false
 
 jobs:
   build-and-push:
+    name: Build and Push Docker Images
     runs-on: ubuntu-latest
+
     permissions:
       contents: read
       packages: write
@@ -28,10 +36,9 @@ jobs:
 
       - name: Set lowercase repository owner
         run: |
-          echo "IMAGE_OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> $GITHUB_ENV
+          echo "IMAGE_OWNER=${GITHUB_REPOSITORY_OWNER,,}" >> "$GITHUB_ENV"
 
-      # Build & Push Backend
-      - name: Build and push Backend Image
+      - name: Build and push Backend
         uses: docker/build-push-action@v6
         with:
           context: ./backend
@@ -43,8 +50,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # Build & Push Frontend
-      - name: Build and push Frontend Image
+      - name: Build and push Frontend
         uses: docker/build-push-action@v6
         with:
           context: ./frontend
@@ -55,3 +61,65 @@ jobs:
             ghcr.io/${{ env.IMAGE_OWNER }}/iranswim-frontend:${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to ParsPack VPS
+    runs-on: ubuntu-latest
+    needs: build-and-push
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Configure SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.VPS_SSH_KEY }}
+
+      - name: Add VPS to known hosts
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -p "$VPS_PORT" -H "$VPS_HOST" >> ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/known_hosts
+
+      - name: Log in to GHCR on VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          printf '%s' "$GHCR_TOKEN" | ssh \
+            -p "$VPS_PORT" \
+            "$VPS_USER@$VPS_HOST" \
+            "docker login ghcr.io --username '$GHCR_USERNAME' --password-stdin"
+
+      - name: Pull and deploy on VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+        run: |
+          ssh -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" '
+            set -e
+
+            cd /var/www/iranswim
+
+            echo "Pulling latest Docker images..."
+            docker compose pull backend frontend
+
+            echo "Starting updated services..."
+            docker compose up -d --no-build --remove-orphans
+
+            echo "Checking running containers..."
+            docker compose ps
+
+            echo "Cleaning unused Docker images..."
+            docker image prune -f
+
+            echo "Deployment commands completed successfully."
+          '
