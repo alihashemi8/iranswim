@@ -7,7 +7,7 @@ import {
   ClipboardCheck, Award, Trophy, Bell, BarChart3,
   UserCheck, X, LogOut, ChevronLeft, ChevronRight,
   TrendingUp, MessageSquareQuote, FileText, Settings,
-  MessageSquare, Globe, Server, Radio, GitBranch, Database, Sliders, ShieldAlert
+  MessageSquare, Globe, Server, Radio, GitBranch, Database, Sliders
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -131,13 +131,6 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       groupTitle: 'گزارش‌ها و تحلیل',
       items: [
         { to: '/admin/reports', label: 'گزارش‌های جامع', icon: BarChart3 },
-      ],
-    },
-    {
-      groupTitle: 'پیکربندی و سامانه',
-      items: [
-        { to: '/admin/profile?tab=users', label: 'کاربران و امنیت', icon: ShieldAlert },
-        { to: '/admin/profile?tab=settings', label: 'تنظیمات آموزشگاه', icon: Settings },
       ],
     },
   ];

@@ -878,6 +878,70 @@ def test_admin_user_management_crud_and_access_restrictions(api_client, admin_us
     assert not User.objects.filter(id=new_swimmer_id).exists()
 
 
+@pytest.mark.django_db
+def test_admin_swimmer_document_review_and_notifications(api_client, admin_user, swimmer_user):
+    from apps.content.models import Notification
+    from apps.swimmers.models import SwimmerProfile, DocumentStatus
+
+    # Get swimmer profile
+    swimmer = swimmer_user.swimmer_profile
+
+    # Swimmer cannot review own documents (Forbidden)
+    api_client.force_authenticate(user=swimmer_user)
+    fail_res = api_client.post(f'/api/swimmers/{swimmer.id}/review-documents/', {
+        'action': 'APPROVE'
+    })
+    assert fail_res.status_code == 403
+
+    # Authenticate as Admin
+    api_client.force_authenticate(user=admin_user)
+
+    # 1. Reject without reason should fail
+    reject_fail = api_client.post(f'/api/swimmers/{swimmer.id}/review-documents/', {
+        'action': 'REJECT',
+        'reason': ''
+    })
+    assert reject_fail.status_code == 400
+
+    # 2. Reject with reason
+    reason_text = 'تصویر کارت ملی تار است، لطفاً تصویر باکیفیت بارگذاری فرمایید.'
+    reject_res = api_client.post(f'/api/swimmers/{swimmer.id}/review-documents/', {
+        'action': 'REJECT',
+        'reason': reason_text
+    })
+    assert reject_res.status_code == 200
+    swimmer.refresh_from_db()
+    assert swimmer.birth_certificate_status == DocumentStatus.REVISION_REQUIRED
+    assert swimmer.national_card_status == DocumentStatus.REVISION_REQUIRED
+    assert swimmer.sports_insurance_status == DocumentStatus.REVISION_REQUIRED
+    assert swimmer.documents_rejection_reason == reason_text
+    assert swimmer.is_profile_completed is False
+
+    # Check that notification was created for swimmer
+    notif = Notification.objects.filter(recipient=swimmer_user).latest('created_at')
+    assert 'نقص در مدارک هویتی شناگر' in notif.title
+    assert reason_text in notif.message
+    assert notif.link == '/swimmer/complete-profile'
+
+    # 3. Approve documents
+    approve_res = api_client.post(f'/api/swimmers/{swimmer.id}/review-documents/', {
+        'action': 'APPROVE'
+    })
+    assert approve_res.status_code == 200
+    swimmer.refresh_from_db()
+    assert swimmer.birth_certificate_status == DocumentStatus.APPROVED
+    assert swimmer.national_card_status == DocumentStatus.APPROVED
+    assert swimmer.sports_insurance_status == DocumentStatus.APPROVED
+    assert swimmer.documents_rejection_reason == ''
+    assert swimmer.is_profile_completed is True
+
+    # Check approval notification
+    notif_appr = Notification.objects.filter(recipient=swimmer_user).latest('created_at')
+    assert 'تأیید مدارک هویتی شناگر' in notif_appr.title
+    assert notif_appr.link == '/swimmer/documents'
+
+
+
 
 
 

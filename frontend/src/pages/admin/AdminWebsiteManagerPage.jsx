@@ -683,71 +683,71 @@ export const AdminWebsiteManagerPage = () => {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex overflow-x-auto gap-2 p-2 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800">
+      <div className="flex overflow-x-auto gap-1.5 sm:gap-2 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 no-scrollbar">
         <button
           type="button"
           onClick={() => setActiveTab('sections')}
-          className={`px-4 sm:px-6 py-3 rounded-xl text-xs sm:text-sm lg:text-base font-black transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+          className={`px-2.5 sm:px-3 lg:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs lg:text-[13px] 2xl:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer shrink-0 ${
             activeTab === 'sections'
               ? 'bg-white dark:bg-slate-800 text-cyan-700 dark:text-cyan-400 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
           }`}
         >
-          <LayoutTemplate className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600" />
+          <LayoutTemplate className="w-4 h-4 text-cyan-600 shrink-0" />
           <span>
-            بخش‌های لندینگ ({landingSections.filter((s) => s.is_enabled).length} از {landingSections.length} فعال)
+            بخش‌های لندینگ ({landingSections.filter((s) => s.is_enabled).length} از {landingSections.length}<span className="hidden 2xl:inline"> فعال</span>)
           </span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('pools')}
-          className={`px-4 sm:px-6 py-3 rounded-xl text-xs sm:text-sm lg:text-base font-black transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+          className={`px-2.5 sm:px-3 lg:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs lg:text-[13px] 2xl:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer shrink-0 ${
             activeTab === 'pools'
               ? 'bg-white dark:bg-slate-800 text-cyan-700 dark:text-cyan-400 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
           }`}
         >
-          <Waves className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600" />
+          <Waves className="w-4 h-4 text-cyan-600 shrink-0" />
           <span>استخرها و مجموعه‌های آبی ({pools.length})</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('coaches')}
-          className={`px-4 sm:px-6 py-3 rounded-xl text-xs sm:text-sm lg:text-base font-black transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+          className={`px-2.5 sm:px-3 lg:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs lg:text-[13px] 2xl:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer shrink-0 ${
             activeTab === 'coaches'
               ? 'bg-white dark:bg-slate-800 text-teal-700 dark:text-teal-400 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
           }`}
         >
-          <Users2 className="w-4 h-4 sm:w-5 sm:h-5 text-teal-600" />
+          <Users2 className="w-4 h-4 text-teal-600 shrink-0" />
           <span>کادر مربیان و چینش ({coaches.length})</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('news')}
-          className={`px-4 sm:px-6 py-3 rounded-xl text-xs sm:text-sm lg:text-base font-black transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+          className={`px-2.5 sm:px-3 lg:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs lg:text-[13px] 2xl:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer shrink-0 ${
             activeTab === 'news'
               ? 'bg-white dark:bg-slate-800 text-amber-700 dark:text-amber-400 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
           }`}
         >
-          <Newspaper className="w-4 h-4 sm:w-5 sm:h-5 text-amber-600" />
+          <Newspaper className="w-4 h-4 text-amber-600 shrink-0" />
           <span>اخبار و رویدادها ({news.length})</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('courses')}
-          className={`px-4 sm:px-6 py-3 rounded-xl text-xs sm:text-sm lg:text-base font-black transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer ${
+          className={`px-2.5 sm:px-3 lg:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs lg:text-[13px] 2xl:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer shrink-0 ${
             activeTab === 'courses'
               ? 'bg-white dark:bg-slate-800 text-sky-700 dark:text-sky-400 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
           }`}
         >
-          <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-sky-600" />
+          <BookOpen className="w-4 h-4 text-sky-600 shrink-0" />
           <span>دوره‌های لندینگ ({courses.length})</span>
         </button>
       </div>

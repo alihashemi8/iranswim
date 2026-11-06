@@ -4,7 +4,7 @@ import {
   Users, UserPlus, Search, Filter, Eye, BookOpen,
   CreditCard, Calendar, Award, Phone, CheckCircle2,
   XCircle, FileSpreadsheet, PlusCircle, Activity, GraduationCap, MapPin,
-  AlertTriangle, ArrowLeft, ArrowDown, Loader2, Check, UserX
+  AlertTriangle, ArrowLeft, ArrowDown, Loader2, Check, UserX, ShieldCheck, Clock
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -245,10 +245,26 @@ export const AdminSwimmersPage = () => {
     });
   };
 
+  const pendingDocsCount = swimmers.filter(
+    (s) =>
+      s.birth_certificate_status === 'PENDING' ||
+      s.national_card_status === 'PENDING' ||
+      s.sports_insurance_status === 'PENDING' ||
+      (!s.is_profile_completed && (s.birth_certificate_image || s.national_card_image || s.sports_insurance_image))
+  ).length;
+
   // Filtered Swimmers List
   const filteredSwimmers = swimmers.filter((s) => {
     if (statusFilter === 'ACTIVE') return s.is_active;
     if (statusFilter === 'INACTIVE') return !s.is_active;
+    if (statusFilter === 'DOCS_PENDING') {
+      return (
+        s.birth_certificate_status === 'PENDING' ||
+        s.national_card_status === 'PENDING' ||
+        s.sports_insurance_status === 'PENDING' ||
+        (!s.is_profile_completed && (s.birth_certificate_image || s.national_card_image || s.sports_insurance_image))
+      );
+    }
     return true;
   });
 
@@ -336,6 +352,18 @@ export const AdminSwimmersPage = () => {
             </button>
             <button
               type="button"
+              onClick={() => setStatusFilter('DOCS_PENDING')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors inline-flex items-center gap-1.5 ${
+                statusFilter === 'DOCS_PENDING'
+                  ? 'bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-300 shadow-2xs font-bold'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              }`}
+            >
+              <Clock className="w-3.5 h-3.5 text-amber-500" />
+              <span>بررسی مدارک ({pendingDocsCount})</span>
+            </button>
+            <button
+              type="button"
               onClick={() => setStatusFilter('ACTIVE')}
               className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
                 statusFilter === 'ACTIVE'
@@ -379,100 +407,138 @@ export const AdminSwimmersPage = () => {
                   <th className="px-4 py-3.5">شماره تماس</th>
                   <th className="px-4 py-3.5">سطح مهارت فعلی</th>
                   <th className="px-4 py-3.5">کلاس</th>
-                  <th className="px-4 py-3.5">وضعیت</th>
+                  <th className="px-4 py-3.5">وضعیت کاربری</th>
+                  <th className="px-4 py-3.5">وضعیت مدارک (گام ۳)</th>
                   <th className="px-4 py-3.5">تاریخ ثبت</th>
                   <th className="px-4 py-3.5 text-center rounded-l-xl">عملیات پرونده</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
-                {paginatedSwimmers.map((swimmer) => (
-                  <tr key={swimmer.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="px-4 py-3.5 cursor-pointer" onClick={() => handleOpenDossier(swimmer)}>
-                      <div className="flex items-center gap-3 group">
-                        <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden">
-                          {swimmer.avatar ? (
-                            <img src={swimmer.avatar} alt={swimmer.full_name} className="w-full h-full object-cover" />
-                          ) : (
-                            swimmer.first_name ? swimmer.first_name.charAt(0) : 'S'
-                          )}
-                        </div>
-                        <div>
-                          <span className="font-bold text-slate-800 dark:text-slate-100 block group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
-                            {swimmer.full_name}
-                          </span>
-                          {swimmer.emergency_contact_name && (
-                            <span className="text-[11px] text-slate-400">
-                              ولی/رابط: {swimmer.emergency_contact_name}
+                {paginatedSwimmers.map((swimmer) => {
+                  const isDocsApproved =
+                    swimmer.birth_certificate_status === 'APPROVED' &&
+                    swimmer.national_card_status === 'APPROVED' &&
+                    swimmer.sports_insurance_status === 'APPROVED';
+
+                  const isDocsRejected =
+                    swimmer.birth_certificate_status === 'REVISION_REQUIRED' ||
+                    swimmer.national_card_status === 'REVISION_REQUIRED' ||
+                    swimmer.sports_insurance_status === 'REVISION_REQUIRED';
+
+                  const hasAnyDocUploaded =
+                    Boolean(swimmer.birth_certificate_image || swimmer.national_card_image || swimmer.sports_insurance_image);
+
+                  return (
+                    <tr key={swimmer.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                      <td className="px-4 py-3.5 cursor-pointer" onClick={() => handleOpenDossier(swimmer)}>
+                        <div className="flex items-center gap-3 group">
+                          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden">
+                            {swimmer.avatar ? (
+                              <img src={swimmer.avatar} alt={swimmer.full_name} className="w-full h-full object-cover" />
+                            ) : (
+                              swimmer.first_name ? swimmer.first_name.charAt(0) : 'S'
+                            )}
+                          </div>
+                          <div>
+                            <span className="font-bold text-slate-800 dark:text-slate-100 block group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                              {swimmer.full_name}
                             </span>
-                          )}
+                            {swimmer.emergency_contact_name && (
+                              <span className="text-[11px] text-slate-400">
+                                ولی/رابط: {swimmer.emergency_contact_name}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-300">
-                      {swimmer.phone}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      {swimmer.level_name ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800">
-                          <Award className="w-3.5 h-3.5 text-sky-500" />
-                          {swimmer.level_name}
-                        </span>
-                      ) : (
-                        <span className="text-xs text-slate-400">تعیین سطح نشده</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <ClassSelectorDropdown
-                        currentClass={
-                          (swimmer.coach_id || swimmer.group_id || swimmer.class_name)
-                            ? {
-                                id: swimmer.group_id ? `g_${swimmer.group_id}` : `c_${swimmer.coach_id}`,
-                                group_id: swimmer.group_id,
-                                coach_id: swimmer.coach_id,
-                                name: swimmer.class_name || (swimmer.coach_name ? `کلاس ${swimmer.coach_name}` : 'کلاس فعلی'),
-                                coach_name: swimmer.coach_name,
-                                avatar: swimmer.coach_avatar,
-                              }
-                            : null
-                        }
-                        availableClasses={getSwimmerAvailableClasses(swimmer)}
-                        onSelectClass={(selectedClass) => handleRequestChangeClass(swimmer, selectedClass)}
-                        placement="auto"
-                        size="sm"
-                      />
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <Badge variant={swimmer.is_active ? 'success' : 'neutral'}>
-                        {swimmer.is_active ? 'فعال' : 'غیرفعال'}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-3.5 text-xs font-mono text-slate-500 dark:text-slate-400">
-                      {new Date(swimmer.created_at).toLocaleDateString('fa-IR')}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <div className="flex items-center justify-center gap-2">
-                        <button
-                          type="button"
-                          onClick={() => handleOpenDossier(swimmer)}
-                          className="px-2.5 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 font-semibold text-xs border border-sky-200 dark:border-sky-800 transition-colors inline-flex items-center gap-1 cursor-pointer"
-                          title="مشاهده پرونده جامع"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>پرونده</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => navigate(`/admin/swimmers/${swimmer.id}/enroll`)}
-                          className="px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 font-semibold text-xs border border-emerald-200 dark:border-emerald-800 transition-colors inline-flex items-center gap-1 cursor-pointer"
-                          title="ثبت‌نام مستقیم در کلاس"
-                        >
-                          <PlusCircle className="w-3.5 h-3.5" />
-                          <span>ثبت‌نام</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-4 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-300">
+                        {swimmer.phone}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        {swimmer.level_name ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800">
+                            <Award className="w-3.5 h-3.5 text-sky-500" />
+                            {swimmer.level_name}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-slate-400">تعیین سطح نشده</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <ClassSelectorDropdown
+                          currentClass={
+                            (swimmer.coach_id || swimmer.group_id || swimmer.class_name)
+                              ? {
+                                  id: swimmer.group_id ? `g_${swimmer.group_id}` : `c_${swimmer.coach_id}`,
+                                  group_id: swimmer.group_id,
+                                  coach_id: swimmer.coach_id,
+                                  name: swimmer.class_name || (swimmer.coach_name ? `کلاس ${swimmer.coach_name}` : 'کلاس فعلی'),
+                                  coach_name: swimmer.coach_name,
+                                  avatar: swimmer.coach_avatar,
+                                }
+                              : null
+                          }
+                          availableClasses={getSwimmerAvailableClasses(swimmer)}
+                          onSelectClass={(selectedClass) => handleRequestChangeClass(swimmer, selectedClass)}
+                          placement="auto"
+                          size="sm"
+                        />
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <Badge variant={swimmer.is_active ? 'success' : 'neutral'}>
+                          {swimmer.is_active ? 'فعال' : 'غیرفعال'}
+                        </Badge>
+                      </td>
+                      <td className="px-4 py-3.5">
+                        {isDocsApproved ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            تأییدشده
+                          </span>
+                        ) : isDocsRejected ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800">
+                            <XCircle className="w-3.5 h-3.5" />
+                            رد شده / نقص
+                          </span>
+                        ) : hasAnyDocUploaded ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-800">
+                            <Clock className="w-3.5 h-3.5" />
+                            در انتظار بررسی
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-slate-400">
+                            ارسال‌نشده
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3.5 text-xs font-mono text-slate-500 dark:text-slate-400">
+                        {new Date(swimmer.created_at).toLocaleDateString('fa-IR')}
+                      </td>
+                      <td className="px-4 py-3.5">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenDossier(swimmer)}
+                            className="px-2.5 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 font-semibold text-xs border border-sky-200 dark:border-sky-800 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                            title="مشاهده پرونده جامع و بررسی مدارک"
+                          >
+                            <ShieldCheck className="w-3.5 h-3.5 text-sky-600" />
+                            <span>پرونده و مدارک</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/admin/swimmers/${swimmer.id}/enroll`)}
+                            className="px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 font-semibold text-xs border border-emerald-200 dark:border-emerald-800 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                            title="ثبت‌نام مستقیم در کلاس"
+                          >
+                            <PlusCircle className="w-3.5 h-3.5" />
+                            <span>ثبت‌نام</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
