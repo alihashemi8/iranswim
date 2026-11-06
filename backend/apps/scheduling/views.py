@@ -52,7 +52,7 @@ class ClassSessionListView(generics.ListCreateAPIView):
         # Attendance status filter
         att_status = self.request.query_params.get('attendance_status')
         if att_status == 'UNRECORDED' or self.request.query_params.get('unrecorded') == 'true':
-            qs = qs.filter(session_date__lte=timezone.now().date(), attendance_records__isnull=True)
+            qs = qs.filter(session_date__lte=timezone.localdate(), attendance_records__isnull=True)
         elif att_status == 'RECORDED':
             qs = qs.filter(attendance_records__isnull=False).distinct()
 

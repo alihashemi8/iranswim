@@ -181,6 +181,37 @@ class SwimmerCompleteProfileView(APIView):
         profile.is_profile_completed = True
         profile.save()
 
+        # Send notification to admins about newly submitted/updated documents
+        from apps.accounts.models import User
+        from apps.content.models import Notification
+
+        admin_users = list(User.objects.filter(role__in=['ADMIN', 'SUPERVISOR'], is_active=True))
+        notification_title = f'ارسال مدارک هویتی توسط شناگر: {profile.full_name}'
+        notification_msg = f'شناگر «{profile.full_name}» مدارک هویتی خود (شناسنامه، کارت ملی، بیمه ورزشی) را ارسال نموده و در انتظار بررسی و تأیید مدیریت است.'
+        notification_link = f'/admin/swimmers/{profile.id}#documents'
+
+        if admin_users:
+            Notification.objects.bulk_create([
+                Notification(
+                    recipient=admin,
+                    category=Notification.Category.REGISTRATION,
+                    title=notification_title,
+                    message=notification_msg,
+                    link=notification_link,
+                    is_read=False,
+                )
+                for admin in admin_users
+            ])
+        else:
+            Notification.objects.create(
+                recipient=None,
+                category=Notification.Category.REGISTRATION,
+                title=notification_title,
+                message=notification_msg,
+                link=notification_link,
+                is_read=False,
+            )
+
         return Response({
             'detail': 'پرونده هویتی و مدارک شناگر با موفقیت تکمیل و ثبت نهایی شد.',
             'profile': SwimmerProfileSerializer(profile).data

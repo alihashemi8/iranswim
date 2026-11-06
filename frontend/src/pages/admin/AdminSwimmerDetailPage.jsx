@@ -159,6 +159,19 @@ export const AdminSwimmerDetailPage = () => {
     fetchDossier();
   }, [id]);
 
+  // Smooth scroll to documents section if hash is present
+  useEffect(() => {
+    if (!loading && swimmer && window.location.hash.includes('documents')) {
+      setActiveTab('INFO');
+      setTimeout(() => {
+        const el = document.getElementById('documents-section');
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 300);
+    }
+  }, [loading, swimmer]);
+
   const formatPrice = (val) => Number(val || 0).toLocaleString('fa-IR');
 
   const totalRemainingBalance = invoices.reduce(
@@ -472,7 +485,7 @@ export const AdminSwimmerDetailPage = () => {
             </div>
 
             {/* Uploaded Documents Gallery & Verification Controls (Step 3 Review) */}
-            <div className="bg-slate-50/70 dark:bg-slate-800/40 rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 space-y-4">
+            <div id="documents-section" className="bg-slate-50/70 dark:bg-slate-800/40 rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 space-y-4">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-700/80">
                 <div>
                   <div className="flex items-center gap-2">

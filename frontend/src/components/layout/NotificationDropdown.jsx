@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   Check, CheckCheck, UserPlus, CreditCard,
   Calendar, Pin, AlertCircle, RefreshCw, Loader2, ArrowLeft, LogIn,
-  MessageSquare
+  MessageSquare, ShieldCheck
 } from 'lucide-react';
 import api from '../../api/client';
 import { formatPersianDate } from '../../utils/date';
@@ -360,9 +360,26 @@ export const NotificationDropdown = () => {
                         </p>
 
                         {notif.link && (
-                          <div className="pt-0.5 flex items-center gap-1 text-[10px] sm:text-[11px] text-sky-600 dark:text-sky-400 font-semibold group-hover:underline">
-                            <span>مشاهده جزئیات</span>
-                            <ArrowLeft className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                          <div className="pt-1.5 flex items-center gap-2">
+                            {notif.link.includes('/admin/swimmers/') || notif.title?.includes('مدارک') ? (
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleItemClick(notif);
+                                }}
+                                className="px-2.5 py-1 bg-sky-600 hover:bg-sky-700 text-white rounded-lg text-[11px] font-bold inline-flex items-center gap-1.5 transition-colors shadow-2xs cursor-pointer"
+                              >
+                                <ShieldCheck className="w-3.5 h-3.5" />
+                                <span>بررسی مدارک شناگر</span>
+                                <ArrowLeft className="w-3 h-3" />
+                              </button>
+                            ) : (
+                              <div className="flex items-center gap-1 text-[10px] sm:text-[11px] text-sky-600 dark:text-sky-400 font-semibold group-hover:underline">
+                                <span>مشاهده جزئیات</span>
+                                <ArrowLeft className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
