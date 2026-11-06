@@ -75,11 +75,11 @@ class SwimmerProfile(models.Model):
 
     @property
     def has_required_info(self):
-        has_parent_phone = bool(self.father_phone or self.mother_phone or self.emergency_contact_phone)
+        has_parents_phone = bool(self.father_phone and self.mother_phone)
         return bool(
             self.first_name and self.last_name and self.date_of_birth and
-            self.father_name and self.national_id and self.address and
-            has_parent_phone and self.gender and
+            self.father_name and self.national_id and self.school_name and
+            self.avatar and self.address and has_parents_phone and self.gender and
             self.birth_certificate_image and self.national_card_image and
             self.sports_insurance_image
         )

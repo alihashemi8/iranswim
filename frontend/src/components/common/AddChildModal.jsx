@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X, UserPlus, CheckCircle2 } from 'lucide-react';
 import { useSwimmer } from '../../context/SwimmerContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export const AddChildModal = ({ isOpen, onClose }) => {
   const { addChild } = useSwimmer();
+  useBodyScrollLock(isOpen);
   const [formData, setFormData] = useState({
     first_name: '',
     last_name: '',
@@ -38,9 +41,21 @@ export const AddChildModal = ({ isOpen, onClose }) => {
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200" dir="rtl">
-      <div className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+  return createPortal(
+    <div
+      className="fixed inset-0 top-0 right-0 bottom-0 left-0 w-screen h-[100dvh] z-[9999] flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-xs select-none overscroll-contain overflow-hidden"
+      dir="rtl"
+      onClick={onClose}
+      onTouchMove={(e) => {
+        if (e.target === e.currentTarget) e.preventDefault();
+      }}
+      style={{ overscrollBehavior: 'none', touchAction: 'none' }}
+    >
+      <div
+        className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden select-auto"
+        onClick={(e) => e.stopPropagation()}
+        style={{ overscrollBehavior: 'contain' }}
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 bg-sky-50/50 dark:bg-sky-950/20">
           <div className="flex items-center gap-2.5">
@@ -165,6 +180,7 @@ export const AddChildModal = ({ isOpen, onClose }) => {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

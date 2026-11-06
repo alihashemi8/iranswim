@@ -12,10 +12,16 @@ import { DashboardShell } from './components/layout/DashboardShell';
 import { HomePage } from './pages/public/HomePage';
 import { LoginPage } from './pages/public/LoginPage';
 import { SupervisorDashboard } from './pages/supervisor/SupervisorDashboard';
-import { SupervisorUsersPage } from './pages/supervisor/SupervisorUsersPage';
+import { SupervisorInfrastructurePage } from './pages/supervisor/SupervisorInfrastructurePage';
+import { SupervisorServicesPage } from './pages/supervisor/SupervisorServicesPage';
 import { SupervisorErrorsPage } from './pages/supervisor/SupervisorErrorsPage';
+import { SupervisorActivityPage } from './pages/supervisor/SupervisorActivityPage';
+import { SupervisorDeploymentsPage } from './pages/supervisor/SupervisorDeploymentsPage';
+import { SupervisorBackupsPage } from './pages/supervisor/SupervisorBackupsPage';
+import { SupervisorConfigPage } from './pages/supervisor/SupervisorConfigPage';
 import { SupervisorAuditPage } from './pages/supervisor/SupervisorAuditPage';
 import { SupervisorTestTriggerPage } from './pages/supervisor/SupervisorTestTriggerPage';
+import { SupervisorUsersPage } from './pages/supervisor/SupervisorUsersPage';
 
 // Admin Pages
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -126,7 +132,7 @@ export default function App() {
                 }
               />
 
-              {/* Supervisor Protected Routes */}
+              {/* Supervisor Protected Routes - Technical Operations Hub */}
               <Route
                 path="/supervisor"
                 element={
@@ -136,10 +142,16 @@ export default function App() {
                 }
               >
                 <Route index element={<SupervisorDashboard />} />
-                <Route path="users" element={<SupervisorUsersPage />} />
+                <Route path="infrastructure" element={<SupervisorInfrastructurePage />} />
+                <Route path="services" element={<SupervisorServicesPage />} />
                 <Route path="errors" element={<SupervisorErrorsPage />} />
+                <Route path="activity" element={<SupervisorActivityPage />} />
+                <Route path="deployments" element={<SupervisorDeploymentsPage />} />
+                <Route path="backups" element={<SupervisorBackupsPage />} />
+                <Route path="config" element={<SupervisorConfigPage />} />
                 <Route path="audit" element={<SupervisorAuditPage />} />
                 <Route path="test" element={<SupervisorTestTriggerPage />} />
+                <Route path="users" element={<SupervisorUsersPage />} />
               </Route>
 
               {/* Admin Protected Routes - Full 13 Operations Hub */}

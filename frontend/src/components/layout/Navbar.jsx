@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation } from 'react-router-dom';
 import {
   LogIn, Menu, X,
@@ -8,6 +9,7 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useLandingSections } from '../../context/LandingSectionsContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import { NotificationDropdown } from './NotificationDropdown';
 import { ChildSwitcher } from './ChildSwitcher';
 
@@ -33,6 +35,9 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
     setMobileMenuOpen(false);
   }
 
+  // Bulletproof body scroll lock preventing underlying movement on mobile
+  useBodyScrollLock(mobileMenuOpen);
+
   // Close on Escape key
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -42,13 +47,9 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
     };
     if (mobileMenuOpen) {
       document.addEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
     }
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = '';
     };
   }, [mobileMenuOpen]);
 
@@ -315,22 +316,34 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
       </header>
 
       {/* Public Mobile Responsive Sidebar Drawer (Opens from Right on Mobile screens) */}
-      {!isFullWidth && mobileMenuOpen && (
-        <div className="fixed inset-0 z-50 md:hidden flex justify-start" dir="rtl">
+      {!isFullWidth && mobileMenuOpen && createPortal(
+        <div
+          className="fixed inset-0 top-0 right-0 bottom-0 left-0 w-screen h-[100dvh] z-[9999] md:hidden flex justify-start overflow-hidden select-none"
+          dir="rtl"
+          style={{ overscrollBehavior: 'none', touchAction: 'none' }}
+        >
           {/* Backdrop Overlay */}
           <div
-            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs animate-fade-in cursor-pointer transition-opacity"
+            className="fixed inset-0 top-0 right-0 bottom-0 left-0 w-screen h-[100dvh] bg-slate-900/60 backdrop-blur-xs animate-fade-in cursor-pointer transition-opacity"
             onClick={() => setMobileMenuOpen(false)}
+            onTouchMove={(e) => e.preventDefault()}
             aria-hidden="true"
+            style={{ touchAction: 'none' }}
           />
 
           {/* Sidebar Drawer Container (Sliding in from Right) */}
           <aside
-            className="relative w-72 sm:w-80 max-w-[85vw] bg-white h-full flex flex-col justify-between shadow-2xl z-10 overflow-hidden animate-slide-in-right border-l border-slate-200/80"
+            className="relative w-72 sm:w-80 max-w-[85vw] bg-white h-[100dvh] max-h-[100dvh] flex flex-col justify-between shadow-2xl z-10 overflow-hidden animate-slide-in-right border-l border-slate-200/80"
             aria-label="منوی کناری ناوبری"
+            style={{ overscrollBehavior: 'contain' }}
+            onClick={(e) => e.stopPropagation()}
           >
             {/* Header: Logo, Title & Close Button */}
-            <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-sky-50/50">
+            <div
+              className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-sky-50/50 select-none"
+              style={{ touchAction: 'none' }}
+              onTouchMove={(e) => e.preventDefault()}
+            >
               <Link
                 to="/"
                 onClick={() => setMobileMenuOpen(false)}
@@ -360,9 +373,16 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             </div>
 
             {/* Scrollable Nav Area */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            <div
+              className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 overscroll-contain"
+              style={{
+                overscrollBehavior: 'contain',
+                touchAction: 'pan-y',
+                WebkitOverflowScrolling: 'touch',
+              }}
+            >
               <div>
-                <span className="text-[11px] font-bold text-[#647789] px-2 block mb-2">
+                <span className="text-[11px] font-bold text-[#647789] px-2 block mb-2 select-none">
                   فهرست و دسترسی سریع
                 </span>
                 <nav className="flex flex-col space-y-1">
@@ -372,7 +392,18 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                       <a
                         key={item.href}
                         href={item.href}
-                        onClick={() => setMobileMenuOpen(false)}
+                        onClick={() => {
+                          setMobileMenuOpen(false);
+                          if (item.href.startsWith('/#')) {
+                            const targetId = item.href.replace('/#', '');
+                            setTimeout(() => {
+                              const el = document.getElementById(targetId);
+                              if (el) {
+                                el.scrollIntoView({ behavior: 'smooth' });
+                              }
+                            }, 80);
+                          }
+                        }}
                         className="flex items-center justify-between p-3 rounded-xl hover:bg-sky-50 text-[#163247] text-sm font-semibold transition-colors group"
                       >
                         <div className="flex items-center gap-3 min-w-0">
@@ -389,7 +420,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               </div>
 
               {/* Quick Contact & Info Card */}
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 text-xs space-y-2">
+              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 text-xs space-y-2 select-none">
                 <div className="flex items-center gap-2 text-[#083B5C] font-bold">
                   <PhoneCall className="w-4 h-4 text-[#087EA4] shrink-0" />
                   <span>پشتیبانی و پذیرش: ۰۲۸-۳۳۶۵۰۰۰۰</span>
@@ -403,7 +434,11 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             </div>
 
             {/* Bottom Actions Footer */}
-            <div className="p-4 border-t border-slate-100 bg-white shrink-0">
+            <div
+              className="p-4 border-t border-slate-100 bg-white shrink-0 select-none"
+              style={{ touchAction: 'none' }}
+              onTouchMove={(e) => e.preventDefault()}
+            >
               {!user ? (
                 (location.pathname === '/login' || location.pathname === '/register') ? (
                   <Link
@@ -450,7 +485,8 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               )}
             </div>
           </aside>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );

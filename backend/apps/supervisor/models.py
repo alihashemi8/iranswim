@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 
@@ -60,6 +61,9 @@ class AuditLog(models.Model):
         RECORD_VERIFY = 'RECORD_VERIFY', _('تأیید رکورد شنا')
         LEAGUE_RULE_CHANGE = 'LEAGUE_RULE_CHANGE', _('تغییر قوانین لیگ')
         CONFIG_CHANGE = 'CONFIG_CHANGE', _('تغییر تنظیمات سامانه')
+        BACKUP_TRIGGER = 'BACKUP_TRIGGER', _('اجرای پشتیبان‌گیری')
+        DEPLOY_TRIGGER = 'DEPLOY_TRIGGER', _('ثبت نشانگر استقرار')
+        MAINTENANCE_TOGGLE = 'MAINTENANCE_TOGGLE', _('تغییر حالت تعمیرات')
         USER_CREATE = 'USER_CREATE', _('ایجاد کاربر جدید')
         USER_UPDATE = 'USER_UPDATE', _('ویرایش مشخصات کاربر')
         USER_DELETE = 'USER_DELETE', _('حذف کاربر')
@@ -88,3 +92,96 @@ class AuditLog(models.Model):
     def __str__(self):
         actor_name = self.actor.phone if self.actor else 'سیستم'
         return f"{self.action} توسط {actor_name} روی {self.entity_type}#{self.entity_id}"
+
+
+class DeploymentMarker(models.Model):
+    class Status(models.TextChoices):
+        SUCCESS = 'SUCCESS', _('موفق')
+        FAILED = 'FAILED', _('ناموفق')
+        IN_PROGRESS = 'IN_PROGRESS', _('در حال استقرار')
+        ROLLED_BACK = 'ROLLED_BACK', _('بازگردانی‌شده')
+
+    version = models.CharField(_('نسخه نرم‌افزار'), max_length=50, default='v1.0.0')
+    commit_sha = models.CharField(_('شناسه کامیت گیت'), max_length=40, db_index=True)
+    commit_message = models.CharField(_('پیام کامیت'), max_length=255, blank=True)
+    branch = models.CharField(_('شاخه'), max_length=100, default='main')
+    environment = models.CharField(_('محیط اجرا'), max_length=50, default='production')
+    status = models.CharField(_('وضعیت استقرار'), max_length=20, choices=Status.choices, default=Status.SUCCESS)
+    deployed_at = models.DateTimeField(_('زمان استقرار'), default=timezone.now)
+    deployed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='deployments_triggered',
+        verbose_name=_('کاربر یا ایجنت دیپلوی')
+    )
+    details = models.JSONField(_('جزئیات کانتینرها و بیلد'), default=dict, blank=True)
+
+    class Meta:
+        verbose_name = _('نشانگر استقرار و نسخه')
+        verbose_name_plural = _('تاریخچه استقرارها')
+        ordering = ['-deployed_at']
+
+    def __str__(self):
+        return f"{self.version} ({self.commit_sha[:7]}) - {self.status}"
+
+
+class BackupRecord(models.Model):
+    class BackupType(models.TextChoices):
+        AUTOMATED = 'AUTOMATED', _('خودکار (سیستمی)')
+        MANUAL = 'MANUAL', _('دستی (توسط ناظر)')
+
+    class Status(models.TextChoices):
+        COMPLETED = 'COMPLETED', _('کامل‌شده')
+        IN_PROGRESS = 'IN_PROGRESS', _('در حال ایجاد')
+        FAILED = 'FAILED', _('ناموفق')
+
+    filename = models.CharField(_('نام فایل پشتیبان'), max_length=255)
+    file_size_bytes = models.BigIntegerField(_('حجم فایل به بایت'), default=0)
+    backup_type = models.CharField(_('نوع پشتیبان'), max_length=20, choices=BackupType.choices, default=BackupType.AUTOMATED)
+    status = models.CharField(_('وضعیت'), max_length=20, choices=Status.choices, default=Status.COMPLETED)
+    checksum = models.CharField(_('چک‌سام SHA256'), max_length=64, blank=True)
+    created_at = models.DateTimeField(_('زمان ایجاد'), default=timezone.now, db_index=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='backups_created',
+        verbose_name=_('کاربر ایجادکننده')
+    )
+    duration_seconds = models.FloatField(_('مدت زمان پردازش (ثانیه)'), default=0.0)
+    notes = models.TextField(_('یادداشت ناظر'), blank=True)
+
+    class Meta:
+        verbose_name = _('رکورد پشتیبان پایگاه داده')
+        verbose_name_plural = _('رکوردهای پشتیبان‌گیری')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.filename} ({self.status})"
+
+
+class SystemSetting(models.Model):
+    key = models.CharField(_('شناسه تنظیم'), max_length=100, unique=True, db_index=True)
+    value = models.JSONField(_('مقدار تنظیم'), default=dict)
+    description = models.CharField(_('توضیحات'), max_length=255, blank=True)
+    is_public = models.BooleanField(_('عمومی برای همه کاربران'), default=False)
+    updated_at = models.DateTimeField(_('آخرین بروزرسانی'), auto_now=True)
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='system_settings_updated',
+        verbose_name=_('کاربر بروزرسان')
+    )
+
+    class Meta:
+        verbose_name = _('تنظیم و متغیر فنی سامانه')
+        verbose_name_plural = _('تنظیمات فنی سامانه')
+
+    def __str__(self):
+        return self.key
+

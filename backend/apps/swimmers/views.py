@@ -152,10 +152,16 @@ class SwimmerCompleteProfileView(APIView):
             missing.append('نام پدر')
         if not profile.national_id or len(profile.national_id.strip()) != 10:
             missing.append('کد ملی ۱۰ رقمی معتبر')
+        if not profile.school_name:
+            missing.append('نام مدرسه')
+        if not profile.avatar:
+            missing.append('عکس پرسنلی شناگر')
         if not profile.address:
             missing.append('آدرس منزل')
-        if not (profile.father_phone or profile.mother_phone or profile.emergency_contact_phone):
-            missing.append('شماره تماس مادر یا پدر (حداقل یک شماره)')
+        if not profile.father_phone:
+            missing.append('شماره تماس پدر')
+        if not profile.mother_phone:
+            missing.append('شماره تماس مادر')
         if not profile.gender:
             missing.append('جنسیت')
         if not profile.birth_certificate_image:
@@ -341,4 +347,109 @@ class SwimmerAssignCoachView(APIView):
         )
 
         return Response(SwimmerProfileSerializer(swimmer, context={'request': request}).data)
+
+
+class SwimmerReviewDocumentsView(APIView):
+    """
+    تأیید یا رد مدارک هویتی شناگر (گام سوم) توسط مدیر آموزشگاه همراه با ثبت توضیحات و ارسال اعلان به شناگر
+    """
+    permission_classes = [IsAdminUserRole]
+
+    def post(self, request, pk):
+        try:
+            swimmer = SwimmerProfile.objects.select_related('user').get(pk=pk)
+        except SwimmerProfile.DoesNotExist:
+            return Response({'detail': 'شناگر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        action = request.data.get('action')  # 'APPROVE' or 'REJECT'
+        reason = request.data.get('reason', '').strip()
+
+        if action not in ['APPROVE', 'REJECT']:
+            return Response({'detail': 'نوع عملیات نامعتبر است (باید APPROVE یا REJECT باشد).'}, status=status.HTTP_400_BAD_REQUEST)
+
+        from apps.content.models import Notification
+        from apps.supervisor.models import AuditLog
+
+        # Find all recipient users (direct swimmer account or guardians)
+        recipient_users = set()
+        if swimmer.user:
+            recipient_users.add(swimmer.user)
+        for rel in swimmer.guardian_relations.select_related('guardian').all():
+            if rel.guardian:
+                recipient_users.add(rel.guardian)
+
+        if action == 'APPROVE':
+            swimmer.birth_certificate_status = DocumentStatus.APPROVED
+            swimmer.national_card_status = DocumentStatus.APPROVED
+            swimmer.sports_insurance_status = DocumentStatus.APPROVED
+            swimmer.documents_rejection_reason = ''
+            swimmer.is_profile_completed = True
+            swimmer.save()
+
+            # Create notification for swimmer / guardians
+            for u in recipient_users:
+                Notification.objects.create(
+                    recipient=u,
+                    category=Notification.Category.REGISTRATION,
+                    title='تأیید مدارک هویتی شناگر',
+                    message=f'مدارک هویتی شناگر «{swimmer.full_name}» توسط مدیریت آموزشگاه بررسی و با موفقیت تأیید شد.',
+                    link='/swimmer/documents',
+                    is_read=False,
+                )
+
+            AuditLog.objects.create(
+                actor=request.user,
+                action=AuditLog.Action.USER_UPDATE,
+                entity_type='SwimmerProfile',
+                entity_id=str(swimmer.id),
+                details={
+                    'action': 'APPROVE_DOCUMENTS',
+                    'swimmer': swimmer.full_name,
+                    'national_id': swimmer.national_id,
+                }
+            )
+
+            return Response({
+                'detail': f'مدارک هویتی شناگر «{swimmer.full_name}» با موفقیت تأیید شد و اعلان تأیید برای شناگر ارسال گردید.',
+                'swimmer': SwimmerProfileSerializer(swimmer, context={'request': request}).data
+            }, status=status.HTTP_200_OK)
+
+        elif action == 'REJECT':
+            if not reason:
+                return Response({'detail': 'ثبت توضیحات و علت رد مدارک الزامی است.'}, status=status.HTTP_400_BAD_REQUEST)
+
+            swimmer.birth_certificate_status = DocumentStatus.REVISION_REQUIRED
+            swimmer.national_card_status = DocumentStatus.REVISION_REQUIRED
+            swimmer.sports_insurance_status = DocumentStatus.REVISION_REQUIRED
+            swimmer.documents_rejection_reason = reason
+            swimmer.is_profile_completed = False
+            swimmer.save()
+
+            # Create notification for swimmer / guardians
+            for u in recipient_users:
+                Notification.objects.create(
+                    recipient=u,
+                    category=Notification.Category.REGISTRATION,
+                    title='نقص در مدارک هویتی شناگر',
+                    message=f'مدارک هویتی شناگر «{swimmer.full_name}» نیازمند اصلاح و بارگذاری مجدد است.\n\nتوضیحات مدیریت:\n{reason}',
+                    link='/swimmer/complete-profile',
+                    is_read=False,
+                )
+
+            AuditLog.objects.create(
+                actor=request.user,
+                action=AuditLog.Action.USER_UPDATE,
+                entity_type='SwimmerProfile',
+                entity_id=str(swimmer.id),
+                details={
+                    'action': 'REJECT_DOCUMENTS',
+                    'swimmer': swimmer.full_name,
+                    'reason': reason,
+                }
+            )
+
+            return Response({
+                'detail': f'مدارک شناگر «{swimmer.full_name}» رد شد و توضیحات نقص مدارک در قالب اعلان برای شناگر ارسال گردید.',
+                'swimmer': SwimmerProfileSerializer(swimmer, context={'request': request}).data
+            }, status=status.HTTP_200_OK)
 

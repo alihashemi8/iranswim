@@ -130,6 +130,14 @@ export const SwimmerCompleteProfilePage = () => {
       setError('تعیین جنسیت شناگر الزامی است.');
       return false;
     }
+    if (!schoolName.trim()) {
+      setError('نام مدرسه شناگر الزامی است.');
+      return false;
+    }
+    if (!avatar && !avatarPreview) {
+      setError('بارگذاری عکس پرسنلی شناگر الزامی است.');
+      return false;
+    }
     return true;
   };
 
@@ -138,8 +146,20 @@ export const SwimmerCompleteProfilePage = () => {
     setError('');
     const cleanFatherPhone = fatherPhone.trim();
     const cleanMotherPhone = motherPhone.trim();
-    if (!cleanFatherPhone && !cleanMotherPhone) {
-      setError('ثبت حداقل یکی از شماره‌های تماس پدر یا مادر الزامی است.');
+    if (!cleanFatherPhone) {
+      setError('شماره تماس پدر الزامی است.');
+      return false;
+    }
+    if (!/^09\d{9}$/.test(cleanFatherPhone)) {
+      setError('شماره تماس پدر باید یک شماره موبایل معتبر ۱۱ رقمی (شروع با ۰۹) باشد.');
+      return false;
+    }
+    if (!cleanMotherPhone) {
+      setError('شماره تماس مادر الزامی است.');
+      return false;
+    }
+    if (!/^09\d{9}$/.test(cleanMotherPhone)) {
+      setError('شماره تماس مادر باید یک شماره موبایل معتبر ۱۱ رقمی (شروع با ۰۹) باشد.');
       return false;
     }
     if (!address.trim()) {
@@ -451,6 +471,7 @@ export const SwimmerCompleteProfilePage = () => {
               <div>
                 <PersianDatePicker
                   label="تاریخ تولد *"
+                  required={true}
                   size="md"
                   labelClassName="text-sm font-bold block mb-1.5"
                   value={dateOfBirth}
@@ -496,12 +517,13 @@ export const SwimmerCompleteProfilePage = () => {
 
               <div className="sm:col-span-2">
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-                  نام مدرسه (اختیاری)
+                  نام مدرسه <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="relative">
                   <School className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
                   <input
                     type="text"
+                    required
                     value={schoolName}
                     onChange={(e) => setSchoolName(e.target.value)}
                     placeholder="مثال: دبیرستان نمونه دولتی رشد"
@@ -510,10 +532,10 @@ export const SwimmerCompleteProfilePage = () => {
                 </div>
               </div>
 
-              {/* Photo Upload (Optional) */}
+              {/* Photo Upload (Mandatory) */}
               <div>
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-                  عکس پرسنلی شناگر (اختیاری)
+                  عکس پرسنلی شناگر <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 overflow-hidden">
@@ -524,7 +546,7 @@ export const SwimmerCompleteProfilePage = () => {
                     )}
                   </div>
                   <label className="px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-xl text-xs sm:text-sm font-bold cursor-pointer border border-slate-200/80 transition-colors">
-                    <span>{avatarPreview ? 'تغییر عکس' : 'انتخاب عکس چهره'}</span>
+                    <span>{avatarPreview ? 'تغییر عکس' : 'انتخاب عکس چهره *'}</span>
                     <input
                       type="file"
                       accept="image/*"
@@ -562,18 +584,19 @@ export const SwimmerCompleteProfilePage = () => {
 
             <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl text-xs sm:text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2.5 font-medium leading-relaxed">
               <Phone className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
-              <span>شماره تماس پدر یا مادر: ثبت <strong>حداقل یکی از شماره‌های تماس پدر یا مادر الزامی است</strong>.</span>
+              <span>شماره تماس اولیاء: ثبت شماره تماس هر دو (<strong>پدر و مادر</strong>) الزامی است.</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
               <div>
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-                  شماره تماس پدر:
+                  شماره تماس پدر <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
                   <input
                     type="tel"
+                    required
                     value={fatherPhone}
                     onChange={(e) => setFatherPhone(e.target.value)}
                     placeholder="09123456789"
@@ -584,12 +607,13 @@ export const SwimmerCompleteProfilePage = () => {
 
               <div>
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-                  شماره تماس مادر:
+                  شماره تماس مادر <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
                   <input
                     type="tel"
+                    required
                     value={motherPhone}
                     onChange={(e) => setMotherPhone(e.target.value)}
                     placeholder="09129876543"
@@ -713,7 +737,7 @@ export const SwimmerCompleteProfilePage = () => {
                 <div className="flex items-center justify-between">
                   <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
                     <CreditCard className="w-4 h-4 text-sky-600" />
-                    کارت ملی شناگر <span className="text-rose-500 font-bold">*</span>
+                    عکس کارت ملی <span className="text-rose-500 font-bold">*</span>
                   </span>
                   {nationalCardPreview && (
                     <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
@@ -787,7 +811,6 @@ export const SwimmerCompleteProfilePage = () => {
                   <label className="flex flex-col items-center justify-center h-40 border-2 border-dashed border-emerald-300 dark:border-emerald-800 hover:border-emerald-500 rounded-xl cursor-pointer bg-emerald-50/40 dark:bg-emerald-950/20 transition-colors p-3 text-center">
                     <ShieldCheck className="w-6 h-6 text-emerald-600 mb-1" />
                     <span className="text-sm font-bold text-slate-700 dark:text-slate-300">عکس بیمه ورزشی</span>
-                    <span className="text-xs text-slate-400 mt-1 font-medium">فدراسیون پزشکی ورزشی</span>
                     <input
                       type="file"
                       accept="image/*"

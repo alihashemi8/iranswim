@@ -1,5 +1,7 @@
 import React, { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { LogOut, X, AlertTriangle } from 'lucide-react';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 
 export const LogoutModal = ({
   isOpen,
@@ -9,7 +11,9 @@ export const LogoutModal = ({
   userRole = '',
   loading = false,
 }) => {
-  // Handle Escape key and disable background scrolling
+  useBodyScrollLock(isOpen);
+
+  // Handle Escape key
   useEffect(() => {
     if (!isOpen) return;
 
@@ -20,29 +24,30 @@ export const LogoutModal = ({
     };
 
     document.addEventListener('keydown', handleKeyDown);
-    const originalOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
-      document.body.style.overflow = originalOverflow;
     };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  return (
+  return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-xs transition-opacity duration-200"
+      className="fixed inset-0 top-0 right-0 bottom-0 left-0 w-screen h-[100dvh] z-[9999] flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-xs transition-opacity duration-200 overflow-hidden select-none"
       dir="rtl"
       onClick={onClose}
+      onTouchMove={(e) => {
+        if (e.target === e.currentTarget) e.preventDefault();
+      }}
       role="dialog"
       aria-modal="true"
       aria-labelledby="logout-modal-title"
+      style={{ overscrollBehavior: 'none', touchAction: 'none' }}
     >
       <div
-        className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden transform transition-all duration-200 scale-100 p-6"
+        className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200/90 dark:border-slate-800 overflow-hidden transform transition-all duration-200 scale-100 p-6 select-auto"
         onClick={(e) => e.stopPropagation()}
+        style={{ overscrollBehavior: 'contain' }}
       >
         {/* Close Button */}
         <button
@@ -120,6 +125,7 @@ export const LogoutModal = ({
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };

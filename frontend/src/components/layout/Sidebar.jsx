@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Activity, Bug, ShieldCheck, Zap,
@@ -6,11 +7,12 @@ import {
   ClipboardCheck, Award, Trophy, Bell, BarChart3,
   UserCheck, X, LogOut, ChevronLeft, ChevronRight,
   TrendingUp, MessageSquareQuote, FileText, Settings,
-  MessageSquare, Globe
+  MessageSquare, Globe, Server, Radio, GitBranch, Database, Sliders, ShieldAlert
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import api from '../../api/client';
 import { LogoutModal } from '../common/LogoutModal';
 
@@ -50,17 +52,8 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Lock body scroll when mobile drawer is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
+  // Bulletproof body scroll lock preventing underlying movement on mobile
+  useBodyScrollLock(isOpen);
 
   if (!user) return null;
 
@@ -140,17 +133,39 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
         { to: '/admin/reports', label: 'گزارش‌های جامع', icon: BarChart3 },
       ],
     },
+    {
+      groupTitle: 'پیکربندی و سامانه',
+      items: [
+        { to: '/admin/profile?tab=users', label: 'کاربران و امنیت', icon: ShieldAlert },
+        { to: '/admin/profile?tab=settings', label: 'تنظیمات آموزشگاه', icon: Settings },
+      ],
+    },
   ];
 
-  // Supervisor Navigation
+  // Supervisor Navigation (10 Technical Operations Hub modules)
   const supervisorGroups = [
     {
-      groupTitle: 'نظارت فنی و زیرساخت',
+      groupTitle: 'پایش و عملیات زنده',
       items: [
-        { to: '/supervisor', label: 'داشبورد سلامت و سرور', icon: Activity, end: true },
-        { to: '/supervisor/users', label: 'مدیریت کاربران و دسترسی‌ها', icon: Users },
-        { to: '/supervisor/errors', label: 'لاگ باگ‌ها و استک‌ترس', icon: Bug },
+        { to: '/supervisor', label: 'داشبورد عملیات (Overview)', icon: Activity, end: true },
+        { to: '/supervisor/infrastructure', label: 'زیرساخت سرور و داکر', icon: Server },
+        { to: '/supervisor/services', label: 'وضعیت سرویس‌ها و SSL', icon: Radio },
+      ],
+    },
+    {
+      groupTitle: 'خطایابی و استقرار',
+      items: [
+        { to: '/supervisor/errors', label: 'مدیریت باگ‌ها و استک‌ترس', icon: Bug },
+        { to: '/supervisor/deployments', label: 'استقرار و CI/CD', icon: GitBranch },
+        { to: '/supervisor/backups', label: 'پشتیبان‌گیری (Backup)', icon: Database },
+      ],
+    },
+    {
+      groupTitle: 'امنیت و تنظیمات',
+      items: [
+        { to: '/supervisor/activity', label: 'نشست‌ها و امنیت کاربران', icon: Users },
         { to: '/supervisor/audit', label: 'حسابرسی عملیات (Audit)', icon: ShieldCheck },
+        { to: '/supervisor/config', label: 'تنظیمات فنی و Flagها', icon: Sliders },
         { to: '/supervisor/test', label: 'شبیه‌ساز و تست خطا', icon: Zap },
       ],
     },
@@ -571,28 +586,58 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       </aside>
 
       {/* Mobile Drawer (Overlay + Slide-over on the Right) */}
-      {isOpen && (
-        <div className="fixed inset-0 z-50 md:hidden flex justify-start" dir="rtl">
+      {isOpen && createPortal(
+        <div
+          className="fixed inset-0 top-0 right-0 bottom-0 left-0 w-screen h-[100dvh] z-[9999] md:hidden flex justify-start overflow-hidden select-none"
+          dir="rtl"
+          style={{ overscrollBehavior: 'none', touchAction: 'none' }}
+        >
           {/* Backdrop */}
           <div
-            className="fixed inset-0 bg-slate-950/60 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 top-0 right-0 bottom-0 left-0 w-screen h-[100dvh] bg-slate-950/60 backdrop-blur-xs transition-opacity"
             onClick={onClose}
+            onTouchMove={(e) => e.preventDefault()}
+            style={{ touchAction: 'none' }}
           />
 
           {/* Drawer Content */}
-          <div className="relative w-72 max-w-[85vw] bg-white dark:bg-slate-900 h-full flex flex-col justify-between shadow-2xl z-10 overflow-hidden animate-slide-in-right">
+          <div
+            className="relative w-72 sm:w-80 max-w-[85vw] bg-white dark:bg-slate-900 h-[100dvh] max-h-[100dvh] flex flex-col justify-between shadow-2xl z-10 overflow-hidden animate-slide-in-right border-l border-slate-200/80 dark:border-slate-800"
+            style={{ overscrollBehavior: 'contain' }}
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Fixed Top User Profile with Close Button */}
-            {renderTopProfile(true)}
+            <div
+              className="shrink-0 select-none"
+              style={{ touchAction: 'none' }}
+              onTouchMove={(e) => e.preventDefault()}
+            >
+              {renderTopProfile(true)}
+            </div>
 
             {/* Scrollable Mobile Nav Links */}
-            <div className="flex-1 overflow-y-auto px-3.5 py-3">
+            <div
+              className="flex-1 min-h-0 overflow-y-auto px-3.5 py-3 overscroll-contain"
+              style={{
+                overscrollBehavior: 'contain',
+                touchAction: 'pan-y',
+                WebkitOverflowScrolling: 'touch',
+              }}
+            >
               {renderNavSection(true)}
             </div>
 
             {/* Fixed Mobile Bottom Section */}
-            {renderBottomSection(true)}
+            <div
+              className="shrink-0 select-none"
+              style={{ touchAction: 'none' }}
+              onTouchMove={(e) => e.preventDefault()}
+            >
+              {renderBottomSection(true)}
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       {/* Logout Confirmation Modal */}
       <LogoutModal

@@ -3,11 +3,13 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   ArrowRight, User, Phone, Calendar, CreditCard, Award,
   BookOpen, Clock, ShieldAlert, CheckCircle2, AlertCircle,
-  FileText, ShieldCheck, Mail, Activity, ChevronLeft, MapPin, PlusCircle
+  FileText, ShieldCheck, Mail, Activity, ChevronLeft, MapPin, PlusCircle,
+  XCircle, ZoomIn, Send
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
+import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { StatsCard } from '../../components/common/StatsCard';
 import { MapLocationPicker } from '../../components/common/MapLocationPicker';
@@ -25,6 +27,95 @@ export const AdminSwimmerDetailPage = () => {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('INFO'); // INFO, ENROLLMENTS, ATTENDANCE, FINANCE, ASSESSMENTS
+
+  // Document Review States (Step 3)
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+  const [reviewing, setReviewing] = useState(false);
+  const [selectedPreviewImage, setSelectedPreviewImage] = useState(null);
+
+  const quickRejectReasons = [
+    'تصویر کارت ملی ناخوانا یا دارای بازتاب نور است، لطفاً تصویر واضح‌تری بارگذاری فرمایید.',
+    'عکس صفحه اول شناسنامه کامل نبوده یا بخش‌هایی از آن پوشانده شده است.',
+    'کارت بیمه ورزشی فاقد تاریخ معتبر است یا منقضی گردیده است.',
+    'مشخصات فردی ثبت‌شده با مندرجات کارت ملی یا شناسنامه مطابقت ندارد.',
+  ];
+
+  const handleApproveDocuments = async () => {
+    try {
+      setReviewing(true);
+      const res = await api.post(`/swimmers/${id}/review-documents/`, {
+        action: 'APPROVE',
+      });
+      if (res.data?.swimmer) {
+        setSwimmer(res.data.swimmer);
+      }
+      toast.success(res.data?.detail || 'مدارک هویتی شناگر با موفقیت تأیید شد و اعلان برای شناگر ارسال گردید.');
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.detail || 'خطا در تأیید مدارک شناگر');
+    } finally {
+      setReviewing(false);
+    }
+  };
+
+  const handleRejectDocuments = async (e) => {
+    if (e) e.preventDefault();
+    if (!rejectReason.trim()) {
+      toast.error('لطفاً علت و توضیحات رد مدارک را وارد فرمایید.');
+      return;
+    }
+    try {
+      setReviewing(true);
+      const res = await api.post(`/swimmers/${id}/review-documents/`, {
+        action: 'REJECT',
+        reason: rejectReason.trim(),
+      });
+      if (res.data?.swimmer) {
+        setSwimmer(res.data.swimmer);
+      }
+      toast.success(res.data?.detail || 'مدارک شناگر رد شد و پیام به بخش اعلانات شناگر ارسال گردید.');
+      setIsRejectModalOpen(false);
+      setRejectReason('');
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.detail || 'خطا در ثبت رد مدارک');
+    } finally {
+      setReviewing(false);
+    }
+  };
+
+  const getDocStatusBadge = (status, hasImage) => {
+    if (!hasImage || status === 'UNUPLOADED') {
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-500 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg">
+          بارگذاری‌نشده
+        </span>
+      );
+    }
+    if (status === 'APPROVED') {
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800">
+          <CheckCircle2 className="w-3.5 h-3.5" />
+          تأییدشده
+        </span>
+      );
+    }
+    if (status === 'REVISION_REQUIRED' || status === 'REJECTED') {
+      return (
+        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-0.5 rounded-lg border border-rose-200 dark:border-rose-800">
+          <XCircle className="w-3.5 h-3.5" />
+          نیازمند اصلاح
+        </span>
+      );
+    }
+    return (
+      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-lg border border-amber-200 dark:border-amber-800">
+        <Clock className="w-3.5 h-3.5" />
+        در انتظار بررسی
+      </span>
+    );
+  };
 
   useEffect(() => {
     const fetchDossier = async () => {
@@ -380,28 +471,86 @@ export const AdminSwimmerDetailPage = () => {
               </div>
             </div>
 
-            {/* Uploaded Documents Gallery */}
-            <div>
-              <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3 flex items-center gap-2">
-                <FileText className="w-4 h-4 text-indigo-600" />
-                <span>مدارک هویتی و تصاویر بارگذاری‌شده</span>
-              </h3>
+            {/* Uploaded Documents Gallery & Verification Controls (Step 3 Review) */}
+            <div className="bg-slate-50/70 dark:bg-slate-800/40 rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 space-y-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-700/80">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-5 h-5 text-sky-600" />
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                      بررسی مدارک هویتی شناگر (گام سوم ثبت‌نام)
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    بررسی و تعیین وضعیت نهایی تصاویر شناسنامه، کارت ملی و بیمه ورزشی
+                  </p>
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* 1. شناسنامه */}
-                <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 space-y-2">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
-                    عکس صفحه اول شناسنامه
+                {/* Action buttons: Approve / Reject */}
+                <div className="flex items-center gap-2 self-end sm:self-auto">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      setRejectReason(swimmer.documents_rejection_reason || '');
+                      setIsRejectModalOpen(true);
+                    }}
+                    disabled={reviewing}
+                    className="px-3.5 py-2 text-xs font-bold text-rose-600 dark:text-rose-400 border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/40 gap-1.5 cursor-pointer"
+                  >
+                    <XCircle className="w-4 h-4 text-rose-500" />
+                    <span>رد مدارک / اعلام نقص</span>
+                  </Button>
+
+                  <Button
+                    type="button"
+                    onClick={handleApproveDocuments}
+                    loading={reviewing}
+                    className="px-4 py-2 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>تأیید کامل مدارک</span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Rejection alert banner if rejected previously */}
+              {swimmer.documents_rejection_reason && (
+                <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-xs sm:text-sm text-rose-800 dark:text-rose-200 space-y-1">
+                  <div className="flex items-center gap-2 font-bold text-rose-900 dark:text-rose-100">
+                    <AlertCircle className="w-4 h-4 text-rose-600" />
+                    <span>آخرین توضیحات ثبت‌شده برای نقص مدارک این شناگر:</span>
+                  </div>
+                  <p className="pr-6 font-medium leading-relaxed">
+                    «{swimmer.documents_rejection_reason}»
+                  </p>
+                  <span className="block pr-6 text-[11px] text-rose-600/80 dark:text-rose-400/80">
+                    (این پیام به همراه راهنمای ویرایش مدارک در بخش اعلانات شناگر قرار دارد.)
                   </span>
+                </div>
+              )}
+
+              {/* Documents Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-1">
+                {/* 1. شناسنامه */}
+                <div className="p-3.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2.5 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      عکس صفحه اول شناسنامه
+                    </span>
+                    {getDocStatusBadge(swimmer.birth_certificate_status, Boolean(swimmer.birth_certificate_image))}
+                  </div>
                   {swimmer.birth_certificate_image ? (
-                    <a
-                      href={swimmer.birth_certificate_image}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block h-36 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:opacity-90 transition-opacity"
+                    <div
+                      onClick={() => setSelectedPreviewImage({ title: 'عکس صفحه اول شناسنامه', url: swimmer.birth_certificate_image })}
+                      className="group relative h-36 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 cursor-pointer bg-slate-100 dark:bg-slate-800"
                     >
-                      <img src={swimmer.birth_certificate_image} alt="شناسنامه" className="w-full h-full object-cover" />
-                    </a>
+                      <img src={swimmer.birth_certificate_image} alt="شناسنامه" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-bold">
+                        <ZoomIn className="w-4 h-4" />
+                        <span>مشاهده بزرگنمایی</span>
+                      </div>
+                    </div>
                   ) : (
                     <div className="h-36 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400 text-xs">
                       بارگذاری نشده
@@ -410,19 +559,24 @@ export const AdminSwimmerDetailPage = () => {
                 </div>
 
                 {/* 2. کارت ملی */}
-                <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 space-y-2">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
-                    عکس کارت ملی
-                  </span>
+                <div className="p-3.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2.5 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      عکس کارت ملی
+                    </span>
+                    {getDocStatusBadge(swimmer.national_card_status, Boolean(swimmer.national_card_image))}
+                  </div>
                   {swimmer.national_card_image ? (
-                    <a
-                      href={swimmer.national_card_image}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block h-36 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:opacity-90 transition-opacity"
+                    <div
+                      onClick={() => setSelectedPreviewImage({ title: 'عکس کارت ملی', url: swimmer.national_card_image })}
+                      className="group relative h-36 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 cursor-pointer bg-slate-100 dark:bg-slate-800"
                     >
-                      <img src={swimmer.national_card_image} alt="کارت ملی" className="w-full h-full object-cover" />
-                    </a>
+                      <img src={swimmer.national_card_image} alt="کارت ملی" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-bold">
+                        <ZoomIn className="w-4 h-4" />
+                        <span>مشاهده بزرگنمایی</span>
+                      </div>
+                    </div>
                   ) : (
                     <div className="h-36 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400 text-xs">
                       بارگذاری نشده
@@ -431,19 +585,24 @@ export const AdminSwimmerDetailPage = () => {
                 </div>
 
                 {/* 3. بیمه ورزشی */}
-                <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 space-y-2">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
-                    عکس کارت بیمه ورزشی
-                  </span>
+                <div className="p-3.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2.5 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      عکس کارت بیمه ورزشی
+                    </span>
+                    {getDocStatusBadge(swimmer.sports_insurance_status, Boolean(swimmer.sports_insurance_image))}
+                  </div>
                   {swimmer.sports_insurance_image ? (
-                    <a
-                      href={swimmer.sports_insurance_image}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block h-36 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:opacity-90 transition-opacity"
+                    <div
+                      onClick={() => setSelectedPreviewImage({ title: 'عکس کارت بیمه ورزشی', url: swimmer.sports_insurance_image })}
+                      className="group relative h-36 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 cursor-pointer bg-slate-100 dark:bg-slate-800"
                     >
-                      <img src={swimmer.sports_insurance_image} alt="بیمه ورزشی" className="w-full h-full object-cover" />
-                    </a>
+                      <img src={swimmer.sports_insurance_image} alt="بیمه ورزشی" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-bold">
+                        <ZoomIn className="w-4 h-4" />
+                        <span>مشاهده بزرگنمایی</span>
+                      </div>
+                    </div>
                   ) : (
                     <div className="h-36 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400 text-xs">
                       بارگذاری نشده
@@ -452,19 +611,33 @@ export const AdminSwimmerDetailPage = () => {
                 </div>
 
                 {/* 4. عکس پرسنلی */}
-                <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 space-y-2">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
-                    عکس پرسنلی / چهره
-                  </span>
+                <div className="p-3.5 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-2.5 shadow-2xs">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                      عکس پرسنلی / چهره
+                    </span>
+                    {swimmer.avatar ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-lg">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        بارگذاری‌شده
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-lg">
+                        بارگذاری‌نشده
+                      </span>
+                    )}
+                  </div>
                   {swimmer.avatar ? (
-                    <a
-                      href={swimmer.avatar}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block h-36 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 hover:opacity-90 transition-opacity"
+                    <div
+                      onClick={() => setSelectedPreviewImage({ title: 'عکس پرسنلی شناگر', url: swimmer.avatar })}
+                      className="group relative h-36 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 cursor-pointer bg-slate-100 dark:bg-slate-800"
                     >
-                      <img src={swimmer.avatar} alt="پروفایل" className="w-full h-full object-cover" />
-                    </a>
+                      <img src={swimmer.avatar} alt="پروفایل" className="w-full h-full object-cover transition-transform group-hover:scale-105" />
+                      <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1.5 text-white text-xs font-bold">
+                        <ZoomIn className="w-4 h-4" />
+                        <span>مشاهده بزرگنمایی</span>
+                      </div>
+                    </div>
                   ) : (
                     <div className="h-36 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex items-center justify-center text-slate-400 text-xs">
                       بارگذاری نشده
@@ -726,6 +899,114 @@ export const AdminSwimmerDetailPage = () => {
           </div>
         )}
       </div>
+
+      {/* Modal: Reject Swimmer Documents & Send Notification */}
+      <Modal
+        isOpen={isRejectModalOpen}
+        onClose={() => {
+          if (!reviewing) {
+            setIsRejectModalOpen(false);
+          }
+        }}
+        title="رد مدارک هویتی شناگر و ارسال پیام به اعلانات"
+        maxWidth="max-w-xl"
+      >
+        <form onSubmit={handleRejectDocuments} className="space-y-4 text-xs sm:text-sm">
+          <div className="p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 rounded-2xl text-rose-800 dark:text-rose-200 space-y-1">
+            <span className="font-bold block">
+              شناگر: «{swimmer.full_name}» {swimmer.national_id ? `(کد ملی: ${swimmer.national_id})` : ''}
+            </span>
+            <p className="text-xs text-rose-700/90 dark:text-rose-300/90 leading-relaxed font-normal">
+              با ثبت رد مدارک، توضیحات شما مستقیماً در قالب یک اعلان رسمی در پنل شناگر و اولیاء نمایش داده می‌شود تا نسبت به اصلاح و ارسال مجدد مدارک اقدام کنند.
+            </p>
+          </div>
+
+          {/* Quick preset chips */}
+          <div className="space-y-1.5">
+            <label className="font-bold text-slate-700 dark:text-slate-300 block">
+              انتخاب متن آماده یا دلایل پرتکرار نقص مدرک:
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {quickRejectReasons.map((preset, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => setRejectReason(preset)}
+                  className="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 rounded-xl text-[11px] font-medium text-slate-700 dark:text-slate-300 transition-colors text-right cursor-pointer"
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Custom Reason textarea */}
+          <div>
+            <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+              علت و توضیحات دقیق نقص مدارک <span className="text-rose-500">*</span>
+            </label>
+            <textarea
+              required
+              rows={4}
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              placeholder="مثلاً: تصویر کارت ملی ناخوانا و فاقد وضوح کافی است، لطفاً تصویر اسکن‌شده یا عکس باکیفیت و بدون نور مستقیم بارگذاری نمایید..."
+              className="w-full text-xs sm:text-sm p-3.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-rose-500 font-medium leading-relaxed"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <Button
+              type="button"
+              variant="outline"
+              disabled={reviewing}
+              onClick={() => setIsRejectModalOpen(false)}
+              className="px-4 py-2 text-xs font-bold"
+            >
+              انصراف
+            </Button>
+            <Button
+              type="submit"
+              loading={reviewing}
+              className="px-5 py-2 text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white gap-1.5 shadow-sm"
+            >
+              <Send className="w-4 h-4" />
+              <span>ثبت رد مدارک و ارسال اعلان</span>
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Modal: Document Zoom Preview */}
+      <Modal
+        isOpen={Boolean(selectedPreviewImage)}
+        onClose={() => setSelectedPreviewImage(null)}
+        title={selectedPreviewImage?.title || 'پیش‌نمایش تصویر مدرک'}
+        maxWidth="max-w-3xl"
+      >
+        {selectedPreviewImage && (
+          <div className="space-y-4">
+            <div className="max-h-[70vh] overflow-auto rounded-xl bg-slate-950 flex items-center justify-center p-2">
+              <img
+                src={selectedPreviewImage.url}
+                alt={selectedPreviewImage.title}
+                className="max-h-[65vh] w-auto max-w-full object-contain rounded-lg"
+              />
+            </div>
+            <div className="flex items-center justify-between text-xs text-slate-500">
+              <span>{selectedPreviewImage.title}</span>
+              <a
+                href={selectedPreviewImage.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sky-600 hover:underline font-bold"
+              >
+                باز کردن در تب جدید
+              </a>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

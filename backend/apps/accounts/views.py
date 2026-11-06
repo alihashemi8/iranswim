@@ -284,6 +284,11 @@ class UserListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         qs = User.objects.all().order_by('-created_at')
+        if self.request.user.is_authenticated and self.request.user.role == User.Role.ADMIN:
+            # Manager has access to everyone except other managers and technical supervisors
+            qs = qs.exclude(role=User.Role.SUPERVISOR).exclude(
+                Q(role=User.Role.ADMIN) & ~Q(id=self.request.user.id)
+            )
         role = self.request.query_params.get('role')
         if role:
             qs = qs.filter(role=role)
@@ -304,6 +309,14 @@ class UserListView(generics.ListCreateAPIView):
             )
         return qs
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        role = serializer.validated_data.get('role', User.Role.SWIMMER)
+        if user.is_authenticated and user.role == User.Role.ADMIN:
+            if role in [User.Role.ADMIN, User.Role.SUPERVISOR]:
+                raise ValidationError({'role': 'مدیر آموزشگاه فقط مجاز به ایجاد کاربر شناگر یا مربی است.'})
+        serializer.save()
+
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     """مشاهده، ویرایش، حذف و بازنشانی مشخصات کاربر توسط مدیر و ناظر فنی"""
@@ -311,9 +324,36 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = UserSerializer
     permission_classes = [IsAdminOrSupervisor]
 
+    def get_queryset(self):
+        qs = User.objects.all()
+        user = self.request.user
+        if user.is_authenticated and user.role == User.Role.ADMIN:
+            qs = qs.exclude(role=User.Role.SUPERVISOR).exclude(
+                Q(role=User.Role.ADMIN) & ~Q(id=user.id)
+            )
+        return qs
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        target = serializer.instance
+        if user.is_authenticated and user.role == User.Role.ADMIN:
+            if target.role == User.Role.SUPERVISOR or (target.role == User.Role.ADMIN and target.id != user.id):
+                raise ValidationError('شما دسترسی لازم برای ویرایش این کاربر را ندارید.')
+            new_role = serializer.validated_data.get('role')
+            if new_role and new_role in [User.Role.ADMIN, User.Role.SUPERVISOR]:
+                raise ValidationError({'role': 'مدیر آموزشگاه فقط مجاز به تخصیص نقش شناگر یا مربی است.'})
+            if target.id == user.id and serializer.validated_data.get('is_active') is False:
+                raise ValidationError({'is_active': 'شما نمی‌توانید حساب کاربری فعال خود را معلق یا غیرفعال کنید.'})
+        serializer.save()
+
     def perform_destroy(self, instance):
         if instance == self.request.user:
             raise ValidationError('شما نمی‌توانید حساب کاربری فعال خود را حذف نمایید.')
+
+        user = self.request.user
+        if user.is_authenticated and user.role == User.Role.ADMIN:
+            if instance.role == User.Role.SUPERVISOR or (instance.role == User.Role.ADMIN and instance.id != user.id):
+                raise ValidationError('شما دسترسی لازم برای حذف این کاربر را ندارید.')
 
         try:
             from apps.supervisor.models import AuditLog

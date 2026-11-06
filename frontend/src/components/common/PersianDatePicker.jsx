@@ -66,7 +66,7 @@ export const formatJalaliReadable = (str) => {
   const p = parseJalaliString(str);
   if (!p) return str || '';
   const monthName = PERSIAN_MONTHS[p.jm - 1] || '';
-  return `${p.jd.toLocaleString('fa-IR')} ${monthName} ${p.jy.toLocaleString('fa-IR')}`;
+  return `${p.jd.toLocaleString('fa-IR')} ${monthName} ${p.jy.toLocaleString('fa-IR', { useGrouping: false })}`;
 };
 
 export const PersianDatePicker = ({
@@ -461,7 +461,7 @@ export const PersianDatePicker = ({
             onClick={() => setPickerMode(pickerMode === 'years' ? 'days' : 'years')}
             className="px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 hover:text-sky-600 font-mono transition-colors cursor-pointer flex items-center gap-1"
           >
-            <span>{viewYear.toLocaleString('fa-IR')}</span>
+            <span>{viewYear.toLocaleString('fa-IR', { useGrouping: false })}</span>
             <ChevronDown className="w-3 h-3 text-slate-400" />
           </button>
         </div>
@@ -530,7 +530,7 @@ export const PersianDatePicker = ({
                     : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
-                {y.toLocaleString('fa-IR')}
+                {y.toLocaleString('fa-IR', { useGrouping: false })}
               </button>
             );
           })}
@@ -638,8 +638,16 @@ export const PersianDatePicker = ({
         <label className={`block font-semibold text-slate-700 dark:text-slate-300 mb-1.5 ${
           labelClassName || (size === 'md' ? 'text-sm font-bold' : 'text-xs')
         }`}>
-          {label}
-          {required && !label.includes('*') && <span className="text-rose-500 font-bold mr-1">*</span>}
+          {typeof label === 'string' && label.includes('*') ? (
+            <>
+              {label.replace('*', '').trim()} <span className="text-rose-500 font-bold">*</span>
+            </>
+          ) : (
+            <>
+              {label}
+              {required && <span className="text-rose-500 font-bold mr-1">*</span>}
+            </>
+          )}
         </label>
       )}
 

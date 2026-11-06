@@ -94,6 +94,79 @@ def test_supervisor_health_check_endpoint(api_client, supervisor_user):
 
 
 @pytest.mark.django_db
+def test_supervisor_technical_operations_hub_endpoints(api_client, supervisor_user):
+    """تست جامع اندپوینت‌های دهگانه هاب عملیات فنی ناظر (Overview, Infra, Services, Config, etc.)"""
+    api_client.force_authenticate(user=supervisor_user)
+
+    # 1. Overview
+    res_overview = api_client.get('/api/supervisor/overview/')
+    assert res_overview.status_code == 200
+    assert 'system_status' in res_overview.data
+    assert 'database' in res_overview.data
+
+    # 2. Infrastructure
+    res_infra = api_client.get('/api/supervisor/infrastructure/')
+    assert res_infra.status_code == 200
+    assert 'cpu' in res_infra.data
+    assert 'ram' in res_infra.data
+    assert 'containers' in res_infra.data
+
+    # 3. Services
+    res_services = api_client.get('/api/supervisor/services/')
+    assert res_services.status_code == 200
+    assert 'services' in res_services.data
+    assert len(res_services.data['services']) >= 4
+
+    # 4. Activity
+    res_act = api_client.get('/api/supervisor/activity/')
+    assert res_act.status_code == 200
+    assert 'active_sessions_count' in res_act.data
+    assert 'privileged_users' in res_act.data
+
+    # 5. Deployments
+    res_dep = api_client.get('/api/supervisor/deployments/')
+    assert res_dep.status_code == 200
+    assert 'current_release' in res_dep.data
+
+    # Create new deployment marker
+    res_dep_post = api_client.post('/api/supervisor/deployments/', {
+        'version': 'v1.3.0',
+        'commit_sha': 'abcdef123456',
+        'commit_message': 'Add technical supervisor ops hub',
+        'branch': 'main'
+    })
+    assert res_dep_post.status_code == 201
+    assert res_dep_post.data['version'] == 'v1.3.0'
+
+    # 6. Backups
+    res_bak = api_client.get('/api/supervisor/backups/')
+    assert res_bak.status_code == 200
+    assert 'backups' in res_bak.data
+
+    # Create manual backup snapshot
+    res_bak_post = api_client.post('/api/supervisor/backups/', {
+        'notes': 'تست بک‌آپ دستی در واحد آزمون'
+    })
+    assert res_bak_post.status_code == 201
+    assert res_bak_post.data['status'] == 'COMPLETED'
+    assert 'checksum' in res_bak_post.data
+
+    # 7. Config & Feature Flags
+    res_cfg = api_client.get('/api/supervisor/config/')
+    assert res_cfg.status_code == 200
+    assert 'maintenance_mode' in res_cfg.data
+    assert 'feature_flags' in res_cfg.data
+
+    # Update config toggle
+    res_cfg_post = api_client.post('/api/supervisor/config/', {
+        'key': 'feature_flags',
+        'value': {'online_leagues': True, 'test_flag': True}
+    }, format='json')
+    assert res_cfg_post.status_code == 200
+    assert res_cfg_post.data['value']['test_flag'] is True
+
+
+@pytest.mark.django_db
 def test_supervisor_error_logging_middleware(api_client, supervisor_user):
     """تست شبیه‌سازی خطا و اطمینان از ثبت استک‌ترس در پایگاه داده توسط میدل‌ویر ناظر"""
     api_client.force_authenticate(user=supervisor_user)
@@ -707,6 +780,103 @@ def test_supervisor_user_management_crud(api_client, supervisor_user):
     assert delete_res.status_code == 204
     assert not User.objects.filter(id=new_user_id).exists()
     assert AuditLog.objects.filter(entity_type='User', entity_id=str(new_user_id), action='USER_DELETE').exists()
+
+
+def test_admin_user_management_crud_and_access_restrictions(api_client, admin_user, supervisor_user, coach_user, swimmer_user):
+    """مدیر آموزشگاه فقط به مربیان، شناگران و خودش دسترسی دارد؛ ناظران فنی و سایر مدیران قابل دسترسی نیستند"""
+    # Create another admin
+    other_admin = User.objects.create_user(
+        phone='09120000099',
+        password='testpassword123',
+        first_name='مدیر دیگر',
+        last_name='تست',
+        role=User.Role.ADMIN
+    )
+
+    api_client.force_authenticate(user=admin_user)
+
+    # 1. مدیر لیست کاربران را می‌گیرد: نباید ناظر فنی یا مدیر دیگر در لیست باشند
+    list_res = api_client.get('/api/auth/users/')
+    assert list_res.status_code == 200
+    data_list = list_res.data.get('results', list_res.data) if isinstance(list_res.data, dict) else list_res.data
+    user_ids = [u['id'] for u in data_list]
+    assert supervisor_user.id not in user_ids
+    assert other_admin.id not in user_ids
+    assert coach_user.id in user_ids
+    assert swimmer_user.id in user_ids
+    assert admin_user.id in user_ids
+
+    # 2. مدیر نمی‌تواند مدیر جدید یا ناظر فنی ایجاد کند
+    fail_create = api_client.post('/api/auth/users/', {
+        'phone': '09129990011',
+        'first_name': 'ادمین غیرمجاز',
+        'last_name': 'تست',
+        'role': 'ADMIN',
+    })
+    assert fail_create.status_code == 400
+
+    fail_create_sup = api_client.post('/api/auth/users/', {
+        'phone': '09129990012',
+        'first_name': 'ناظر غیرمجاز',
+        'last_name': 'تست',
+        'role': 'SUPERVISOR',
+    })
+    assert fail_create_sup.status_code == 400
+
+    # 3. مدیر کاربر جدید شناگر ایجاد می‌کند (اضافه کردن)
+    create_swimmer = api_client.post('/api/auth/users/', {
+        'phone': '09129990013',
+        'first_name': 'شناگر جدید',
+        'last_name': 'مدیریتی',
+        'national_id': '0012399999',
+        'role': 'SWIMMER',
+        'password': 'Password123',
+        'is_active': True,
+    })
+    assert create_swimmer.status_code == 201
+    new_swimmer_id = create_swimmer.data['id']
+
+    # 4. مدیر مشخصات کاربر را ادیت می‌کند
+    edit_res = api_client.patch(f'/api/auth/users/{new_swimmer_id}/', {
+        'first_name': 'شناگر ویرایش شده',
+    })
+    assert edit_res.status_code == 200
+    assert edit_res.data['first_name'] == 'شناگر ویرایش شده'
+
+    # 5. مدیر کاربر را معلق (غیرفعال) می‌کند
+    suspend_res = api_client.patch(f'/api/auth/users/{new_swimmer_id}/', {
+        'is_active': False,
+    })
+    assert suspend_res.status_code == 200
+    assert suspend_res.data['is_active'] is False
+
+    # 6. مدیر نمی‌تواند خودش را معلق کند
+    self_suspend_res = api_client.patch(f'/api/auth/users/{admin_user.id}/', {
+        'is_active': False,
+    })
+    assert self_suspend_res.status_code == 400
+
+    # 7. مدیر نمی‌تواند نقش کاربر را به ADMIN یا SUPERVISOR تغییر دهد
+    role_change_fail = api_client.patch(f'/api/auth/users/{new_swimmer_id}/', {
+        'role': 'ADMIN',
+    })
+    assert role_change_fail.status_code == 400
+
+    # 8. مدیر نمی‌تواند مدیر دیگر یا ناظر فنی را مشاهده، ویرایش یا حذف کند
+    sup_detail = api_client.get(f'/api/auth/users/{supervisor_user.id}/')
+    assert sup_detail.status_code == 404
+
+    other_admin_edit = api_client.patch(f'/api/auth/users/{other_admin.id}/', {'first_name': 'تلاش هک'})
+    assert other_admin_edit.status_code == 404
+
+    other_admin_del = api_client.delete(f'/api/auth/users/{other_admin.id}/')
+    assert other_admin_del.status_code == 404
+
+    # 9. مدیر کاربر ساخته شده را حذف (دیلیت) می‌کند
+    del_res = api_client.delete(f'/api/auth/users/{new_swimmer_id}/')
+    assert del_res.status_code == 204
+    assert not User.objects.filter(id=new_swimmer_id).exists()
+
 
 
 
