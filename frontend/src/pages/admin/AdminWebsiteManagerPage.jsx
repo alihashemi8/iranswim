@@ -683,11 +683,11 @@ export const AdminWebsiteManagerPage = () => {
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex overflow-x-auto gap-1.5 sm:gap-2 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 no-scrollbar">
+      <div className="flex w-full overflow-x-auto gap-1.5 sm:gap-2 p-1.5 bg-slate-100 dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 no-scrollbar">
         <button
           type="button"
           onClick={() => setActiveTab('sections')}
-          className={`px-2.5 sm:px-3 lg:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs lg:text-[13px] 2xl:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer shrink-0 ${
+          className={`flex-1 min-w-max md:min-w-0 justify-center px-2 sm:px-3 lg:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs lg:text-[13px] 2xl:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'sections'
               ? 'bg-white dark:bg-slate-800 text-cyan-700 dark:text-cyan-400 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
@@ -702,7 +702,7 @@ export const AdminWebsiteManagerPage = () => {
         <button
           type="button"
           onClick={() => setActiveTab('pools')}
-          className={`px-2.5 sm:px-3 lg:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs lg:text-[13px] 2xl:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer shrink-0 ${
+          className={`flex-1 min-w-max md:min-w-0 justify-center px-2 sm:px-3 lg:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs lg:text-[13px] 2xl:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'pools'
               ? 'bg-white dark:bg-slate-800 text-cyan-700 dark:text-cyan-400 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
@@ -715,7 +715,7 @@ export const AdminWebsiteManagerPage = () => {
         <button
           type="button"
           onClick={() => setActiveTab('coaches')}
-          className={`px-2.5 sm:px-3 lg:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs lg:text-[13px] 2xl:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer shrink-0 ${
+          className={`flex-1 min-w-max md:min-w-0 justify-center px-2 sm:px-3 lg:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs lg:text-[13px] 2xl:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'coaches'
               ? 'bg-white dark:bg-slate-800 text-teal-700 dark:text-teal-400 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
@@ -728,7 +728,7 @@ export const AdminWebsiteManagerPage = () => {
         <button
           type="button"
           onClick={() => setActiveTab('news')}
-          className={`px-2.5 sm:px-3 lg:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs lg:text-[13px] 2xl:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer shrink-0 ${
+          className={`flex-1 min-w-max md:min-w-0 justify-center px-2 sm:px-3 lg:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs lg:text-[13px] 2xl:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'news'
               ? 'bg-white dark:bg-slate-800 text-amber-700 dark:text-amber-400 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
@@ -741,7 +741,7 @@ export const AdminWebsiteManagerPage = () => {
         <button
           type="button"
           onClick={() => setActiveTab('courses')}
-          className={`px-2.5 sm:px-3 lg:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs lg:text-[13px] 2xl:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer shrink-0 ${
+          className={`flex-1 min-w-max md:min-w-0 justify-center px-2 sm:px-3 lg:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs lg:text-[13px] 2xl:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
             activeTab === 'courses'
               ? 'bg-white dark:bg-slate-800 text-sky-700 dark:text-sky-400 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
