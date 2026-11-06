@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react';
 import { CheckCircle2, AlertTriangle, XCircle, Info, X } from 'lucide-react';
 
 const ToastContext = createContext(null);
@@ -11,26 +11,32 @@ export const ToastProvider = ({ children }) => {
   }, []);
 
   const addToast = useCallback(({ type = 'info', title, message, duration = 4000 }) => {
-    const id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-    const newToast = { id, type, title, message };
-
-    setToasts((prev) => [...prev, newToast]);
-
-    if (duration > 0) {
-      setTimeout(() => {
-        removeToast(id);
-      }, duration);
-    }
-    return id;
+    // Avoid spamming identical notifications
+    let isDuplicate = false;
+    setToasts((prev) => {
+      if (prev.some((t) => t.message === message && t.type === type)) {
+        isDuplicate = true;
+        return prev;
+      }
+      const id = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
+      const newToast = { id, type, title, message };
+      if (duration > 0) {
+        setTimeout(() => {
+          removeToast(id);
+        }, duration);
+      }
+      // Keep at most 4 toasts visible at a time
+      return [...prev.slice(-3), newToast];
+    });
   }, [removeToast]);
 
-  const toast = {
+  const toast = useMemo(() => ({
     success: (message, title = 'عملیات موفق') => addToast({ type: 'success', title, message }),
     error: (message, title = 'خطا در عملیات') => addToast({ type: 'error', title, message, duration: 6000 }),
     warning: (message, title = 'هشدار') => addToast({ type: 'warning', title, message, duration: 5000 }),
     info: (message, title = 'اطلاعیه') => addToast({ type: 'info', title, message }),
     remove: removeToast,
-  };
+  }), [addToast, removeToast]);
 
   const icons = {
     success: CheckCircle2,

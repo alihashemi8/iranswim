@@ -2,14 +2,16 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronRight, ChevronLeft, Pause, Play } from 'lucide-react';
 
 /**
- * Accessible, Responsive, RTL-aware Carousel Component
+ * Accessible, Responsive, RTL-aware Carousel Component with Ultra-Smooth Touch Gestures
  * Satisfies all specifications:
- * - Automatic movement when items > itemsPerView
- * - Smooth transition with comfortable reading interval
- * - Pauses on hover, focus, touch, manual interaction, and tab visibility change
+ * - Real-time 1:1 finger tracking with native GPU momentum and inertia on mobile
+ * - Automatic smooth scrolling when items > itemsPerView with comfortable reading interval
+ * - Pauses on touch, drag, hover, focus, manual interaction, and tab visibility change
  * - Respects prefers-reduced-motion
- * - Touch swipe support
- * - RTL navigation buttons (Next advances left, Prev advances right)
+ * - Snap-to-center on mobile for peek affordance, snap-to-start on tablet/desktop
+ * - Smooth desktop mouse-drag support
+ * - RTL-accurate navigation (Next advances left in RTL, Prev advances right)
+ * - Live synchronized dot indicators and interactive dot buttons
  */
 export const Carousel = ({
   items = [],
@@ -28,51 +30,26 @@ export const Carousel = ({
 }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
-  const [isFocused, setIsFocused] = useState(false);
+  const [isInteracting, setIsInteracting] = useState(false);
   const [isManuallyPaused, setIsManuallyPaused] = useState(false);
   const [isInView, setIsInView] = useState(false);
 
   const containerRef = useRef(null);
-  const touchStartX = useRef(0);
-  const touchEndX = useRef(0);
-  const userInteractionTimeout = useRef(null);
+  const trackRef = useRef(null);
+  const cardsRef = useRef([]);
+  const interactionTimeoutRef = useRef(null);
+  const isPointerDownRef = useRef(false);
+  const startXRef = useRef(0);
+  const startScrollLeftRef = useRef(0);
+  const hasDraggedRef = useRef(false);
+  const scrollDebounceRef = useRef(null);
 
-  // Pause carousel when not in active viewport to prevent background scroll interference
-  useEffect(() => {
-    if (!containerRef.current || typeof IntersectionObserver === 'undefined') {
-      setIsInView(true);
-      return;
-    }
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsInView(entry.isIntersecting);
-      },
-      { threshold: 0.15 }
-    );
-    observer.observe(containerRef.current);
-    return () => observer.disconnect();
-  }, []);
-
-  // Check prefers-reduced-motion with lazy initializer
+  // Lazy initializer for prefers-reduced-motion
   const [isReducedMotion, setIsReducedMotion] = useState(() => {
     if (typeof window !== 'undefined' && window.matchMedia) {
       return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     }
     return false;
-  });
-
-  const getItemsPerView = useCallback((width) => {
-    if (width >= 1280) return visibleItems.desktop || 3;
-    if (width >= 1024) return visibleItems.laptop || visibleItems.desktop || 3;
-    if (width >= 768) return visibleItems.tablet || 2;
-    return visibleItems.mobile || 1;
-  }, [visibleItems]);
-
-  const [itemsPerView, setItemsPerView] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return getItemsPerView(window.innerWidth);
-    }
-    return visibleItems.desktop || 3;
   });
 
   useEffect(() => {
@@ -83,152 +60,233 @@ export const Carousel = ({
     return () => mediaQuery.removeEventListener('change', handler);
   }, []);
 
+  // Pause carousel when not in active viewport to prevent background scroll interference
   useEffect(() => {
-    const handleResize = () => {
-      const width = window.innerWidth;
-      setItemsPerView(getItemsPerView(width));
-    };
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [getItemsPerView]);
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') {
+      setIsInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        setIsInView(entry.isIntersecting);
+      },
+      { threshold: 0.15 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const totalItems = items.length;
-  const maxIndex = Math.max(0, totalItems - itemsPerView);
-  const canSlide = totalItems > itemsPerView;
-  const safeIndex = Math.min(currentIndex, maxIndex);
+
+  const pauseInteraction = useCallback(() => {
+    setIsInteracting(true);
+    if (interactionTimeoutRef.current) {
+      clearTimeout(interactionTimeoutRef.current);
+    }
+    interactionTimeoutRef.current = setTimeout(() => {
+      setIsInteracting(false);
+    }, 4500);
+  }, []);
+
+  // Smoothly scrolls to a given slide index with exact viewport geometry
+  const scrollToSlide = useCallback((targetIndex, behavior = 'smooth') => {
+    const track = trackRef.current;
+    if (!track) return;
+    const cards = Array.from(track.children);
+    if (!cards || cards.length === 0) return;
+
+    const clampedIndex = Math.max(0, Math.min(targetIndex, cards.length - 1));
+    const targetCard = cards[clampedIndex];
+    if (!targetCard) return;
+
+    const trackRect = track.getBoundingClientRect();
+    const cardRect = targetCard.getBoundingClientRect();
+    const isMobile = window.innerWidth < 640;
+    const isRtl = document.documentElement.dir === 'rtl' || getComputedStyle(track).direction === 'rtl';
+
+    let delta = 0;
+    if (isMobile) {
+      // Center card on mobile view
+      const trackCenter = trackRect.left + trackRect.width / 2;
+      const cardCenter = cardRect.left + cardRect.width / 2;
+      delta = cardCenter - trackCenter;
+    } else {
+      // Align to start edge on desktop
+      const trackEdge = isRtl ? trackRect.right : trackRect.left;
+      const cardEdge = isRtl ? cardRect.right : cardRect.left;
+      delta = cardEdge - trackEdge;
+    }
+
+    if (Math.abs(delta) > 1) {
+      track.scrollBy({
+        left: delta,
+        behavior: isReducedMotion ? 'auto' : behavior,
+      });
+    }
+
+    setCurrentIndex(clampedIndex);
+  }, [isReducedMotion]);
+
+  // Live calculation of the active card during finger/mouse scrolling
+  const handleScroll = useCallback(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const cards = Array.from(track.children);
+    if (!cards || cards.length === 0) return;
+
+    if (scrollDebounceRef.current) {
+      cancelAnimationFrame(scrollDebounceRef.current);
+    }
+
+    scrollDebounceRef.current = requestAnimationFrame(() => {
+      const trackRect = track.getBoundingClientRect();
+      const isMobile = window.innerWidth < 640;
+      const isRtl = document.documentElement.dir === 'rtl' || getComputedStyle(track).direction === 'rtl';
+
+      let closestIndex = 0;
+      let minDiff = Infinity;
+
+      if (isMobile) {
+        const trackCenter = trackRect.left + trackRect.width / 2;
+        cards.forEach((card, idx) => {
+          const cardRect = card.getBoundingClientRect();
+          const cardCenter = cardRect.left + cardRect.width / 2;
+          const diff = Math.abs(trackCenter - cardCenter);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestIndex = idx;
+          }
+        });
+      } else {
+        const trackEdge = isRtl ? trackRect.right : trackRect.left;
+        cards.forEach((card, idx) => {
+          const cardRect = card.getBoundingClientRect();
+          const cardEdge = isRtl ? cardRect.right : cardRect.left;
+          const diff = Math.abs(trackEdge - cardEdge);
+          if (diff < minDiff) {
+            minDiff = diff;
+            closestIndex = idx;
+          }
+        });
+      }
+
+      setCurrentIndex(closestIndex);
+    });
+  }, []);
 
   const nextSlide = useCallback(() => {
-    if (!canSlide) return;
-    setCurrentIndex((prev) => (prev >= maxIndex ? 0 : prev + 1));
-  }, [canSlide, maxIndex]);
+    if (totalItems <= 1) return;
+    const nextIdx = (currentIndex + 1) % totalItems;
+    scrollToSlide(nextIdx);
+  }, [currentIndex, totalItems, scrollToSlide]);
 
   const prevSlide = useCallback(() => {
-    if (!canSlide) return;
-    setCurrentIndex((prev) => (prev <= 0 ? maxIndex : prev - 1));
-  }, [canSlide, maxIndex]);
+    if (totalItems <= 1) return;
+    const prevIdx = (currentIndex - 1 + totalItems) % totalItems;
+    scrollToSlide(prevIdx);
+  }, [currentIndex, totalItems, scrollToSlide]);
 
-  // Handler for manual controls with temporary pause
   const handleManualAction = (action) => {
+    pauseInteraction();
     action();
-    if (showPlayPause) {
-      setIsManuallyPaused(true);
-      if (userInteractionTimeout.current) {
-        clearTimeout(userInteractionTimeout.current);
-      }
-      // Resume auto-play after 8 seconds of inactivity
-      userInteractionTimeout.current = setTimeout(() => {
-        setIsManuallyPaused(false);
-      }, 8000);
-    }
   };
 
   // Auto-play interval
   useEffect(() => {
-    const shouldPause = (pauseOnHover && isHovered) || (showPlayPause && isManuallyPaused);
-    if (!autoPlay || !canSlide || isReducedMotion || shouldPause || isFocused || !isInView) {
+    const shouldPause = (pauseOnHover && isHovered) || (showPlayPause && isManuallyPaused) || isInteracting;
+    if (!autoPlay || totalItems <= 1 || isReducedMotion || shouldPause || !isInView) {
       return;
     }
 
-    let isDocumentVisible = !document.hidden;
-    const handleVisibilityChange = () => {
-      isDocumentVisible = !document.hidden;
-    };
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-
     const timer = setInterval(() => {
-      if (isDocumentVisible) {
-        nextSlide();
+      if (!document.hidden) {
+        setCurrentIndex((prev) => {
+          const next = (prev + 1) % totalItems;
+          scrollToSlide(next, 'smooth');
+          return next;
+        });
       }
     }, interval);
 
-    return () => {
-      clearInterval(timer);
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
-  }, [autoPlay, canSlide, isReducedMotion, pauseOnHover, isHovered, isFocused, showPlayPause, isManuallyPaused, interval, nextSlide, isInView]);
+    return () => clearInterval(timer);
+  }, [autoPlay, totalItems, isReducedMotion, pauseOnHover, isHovered, isInteracting, showPlayPause, isManuallyPaused, isInView, interval, scrollToSlide]);
 
-  // Cleanup timeout on unmount
+  // Cleanup timers on unmount
   useEffect(() => {
     return () => {
-      if (userInteractionTimeout.current) {
-        clearTimeout(userInteractionTimeout.current);
-      }
+      if (interactionTimeoutRef.current) clearTimeout(interactionTimeoutRef.current);
+      if (scrollDebounceRef.current) cancelAnimationFrame(scrollDebounceRef.current);
     };
   }, []);
 
-  // Touch handlers for mobile swipe
-  const handleTouchStart = (e) => {
-    touchStartX.current = e.targetTouches[0].clientX;
-  };
-
-  const handleTouchMove = (e) => {
-    touchEndX.current = e.targetTouches[0].clientX;
-  };
-
-  const handleTouchEnd = () => {
-    const diff = touchStartX.current - touchEndX.current;
-    const threshold = 45; // min swipe distance in px
-    if (Math.abs(diff) > threshold) {
-      // In RTL:
-      // Swiping finger Left (diff > 0) means dragging content to left -> advance forward (next)
-      // Swiping finger Right (diff < 0) means dragging content to right -> go back (prev)
-      if (diff > 0) {
-        handleManualAction(nextSlide);
-      } else {
-        handleManualAction(prevSlide);
-      }
+  // Desktop Mouse Drag to scroll smoothly
+  const handleMouseDown = (e) => {
+    if (e.button !== 0) return;
+    isPointerDownRef.current = true;
+    hasDraggedRef.current = false;
+    startXRef.current = e.clientX;
+    if (trackRef.current) {
+      startScrollLeftRef.current = trackRef.current.scrollLeft;
     }
-    touchStartX.current = 0;
-    touchEndX.current = 0;
+    pauseInteraction();
   };
 
-  // Keyboard navigation on track container
+  const handleMouseMove = (e) => {
+    if (!isPointerDownRef.current || !trackRef.current) return;
+    const walk = e.clientX - startXRef.current;
+    if (Math.abs(walk) > 4) {
+      hasDraggedRef.current = true;
+      trackRef.current.scrollLeft = startScrollLeftRef.current - walk;
+    }
+  };
+
+  const handleMouseUp = () => {
+    if (isPointerDownRef.current) {
+      isPointerDownRef.current = false;
+      setTimeout(() => {
+        hasDraggedRef.current = false;
+      }, 60);
+    }
+  };
+
+  // Keyboard navigation
   const handleKeyDown = (e) => {
     if (e.key === 'ArrowLeft') {
-      // In RTL, left arrow is forward / next
+      // In RTL, left arrow moves forward to next slide
       e.preventDefault();
       handleManualAction(nextSlide);
     } else if (e.key === 'ArrowRight') {
-      // In RTL, right arrow is backwards / prev
+      // In RTL, right arrow moves backward to prev slide
       e.preventDefault();
       handleManualAction(prevSlide);
     }
   };
-
-  // Calculate slide percentage width
-  const itemWidthPercent = 100 / itemsPerView;
-
-  // In RTL, moving to slide index N translates the track to the right (+N * itemWidthPercent %)
-  const translatePercent = safeIndex * itemWidthPercent;
-
-  // Dot count: number of possible starting positions
-  const dotCount = maxIndex + 1;
 
   if (totalItems === 0) return null;
 
   return (
     <div
       ref={containerRef}
-      className={`relative select-none w-full max-w-full min-w-0 ${className}`}
+      className={`relative w-full max-w-full min-w-0 ${className}`}
       aria-roledescription="carousel"
       aria-label={ariaLabel}
-      onMouseEnter={() => setIsHovered(true)}
+      onMouseEnter={() => {
+        setIsHovered(true);
+        pauseInteraction();
+      }}
       onMouseLeave={() => setIsHovered(false)}
-      onFocusCapture={() => setIsFocused(true)}
-      onBlurCapture={() => setIsFocused(false)}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
+      onFocusCapture={pauseInteraction}
       onKeyDown={handleKeyDown}
       role="region"
     >
       {/* Top Header Actions (Progress / Play status if enabled) */}
-      {canSlide && (showProgress || (showPlayPause && !isReducedMotion)) && (
+      {totalItems > 1 && (showProgress || (showPlayPause && !isReducedMotion)) && (
         <div className="flex items-center justify-between mb-4 gap-3">
           <div className="flex items-center gap-2">
             {showProgress && (
               <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-                {safeIndex + 1} از {dotCount}
+                {currentIndex + 1} از {totalItems}
               </span>
             )}
             {showPlayPause && !isReducedMotion && (
@@ -252,19 +310,39 @@ export const Carousel = ({
 
       {/* Cards Viewport & Side Navigation Box */}
       <div className="relative group/carousel">
-        {/* Overflow Track Viewport */}
+        {/* Scrollable Viewport with Touch Momentum & 1:1 Finger Tracking */}
         <div className="carousel-viewport w-full max-w-full min-w-0 overflow-hidden rounded-2xl sm:rounded-3xl p-1 -m-1">
           <div
-            className={`flex min-w-0 items-stretch ${isReducedMotion ? '' : 'transition-transform duration-500 ease-out'}`}
+            ref={trackRef}
+            onScroll={handleScroll}
+            onTouchStart={pauseInteraction}
+            onTouchMove={pauseInteraction}
+            onTouchEnd={pauseInteraction}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+            onClickCapture={(e) => {
+              if (hasDraggedRef.current) {
+                e.stopPropagation();
+                e.preventDefault();
+              }
+            }}
+            className="carousel-track landing-scroll-track flex overflow-x-auto overflow-y-hidden items-stretch snap-x snap-mandatory sm:snap-start py-3 px-3 sm:px-0 -mx-3 sm:mx-0 select-none cursor-grab active:cursor-grabbing"
             style={{
-              transform: `translateX(${translatePercent}%)`,
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch',
+              touchAction: 'pan-x pan-y',
+              overscrollBehaviorX: 'contain',
+              scrollPaddingInline: '1rem',
             }}
           >
             {items.map((item, index) => (
               <div
                 key={item.id || index}
-                className={`shrink-0 px-2 sm:px-3 min-w-0 flex flex-col items-stretch h-full ${itemClassName}`}
-                style={{ width: `${itemWidthPercent}%` }}
+                ref={(el) => (cardsRef.current[index] = el)}
+                className={`shrink-0 min-w-0 flex flex-col items-stretch h-full snap-center sm:snap-start w-[85vw] max-w-[340px] xs:w-[82vw] xs:max-w-[360px] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] px-2 sm:px-3 ${itemClassName}`}
                 role="group"
                 aria-roledescription="slide"
                 aria-label={`${index + 1} از ${totalItems}`}
@@ -276,7 +354,7 @@ export const Carousel = ({
         </div>
 
         {/* Side Navigation Buttons (Round, positioned on sides of the cards box, hidden on mobile) */}
-        {showNavigation && canSlide && (
+        {showNavigation && totalItems > 1 && (
           <>
             {/* Right Button (Previous in RTL: advances right) */}
             <button
@@ -303,20 +381,20 @@ export const Carousel = ({
         )}
       </div>
 
-      {/* Dot Indicators */}
-      {canSlide && showDots && dotCount > 1 && (
+      {/* Interactive Dot Indicators */}
+      {showDots && totalItems > 1 && (
         <div className="flex items-center justify-center gap-1.5 mt-6">
-          {Array.from({ length: dotCount }).map((_, dotIdx) => {
-            const isActive = dotIdx === safeIndex;
+          {items.map((_, dotIdx) => {
+            const isActive = dotIdx === currentIndex;
             return (
               <button
                 key={dotIdx}
                 type="button"
-                onClick={() => handleManualAction(() => setCurrentIndex(dotIdx))}
+                onClick={() => handleManualAction(() => scrollToSlide(dotIdx))}
                 className={`transition-all duration-300 rounded-full cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40 ${
                   isActive
-                    ? 'w-7 sm:w-8 h-2 bg-gradient-to-r from-sky-600 to-cyan-500 shadow-2xs'
-                    : 'w-2 h-2 bg-slate-300 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'
+                    ? 'w-7 sm:w-8 h-2 bg-gradient-to-r from-sky-600 to-cyan-500 shadow-xs'
+                    : 'w-2 h-2 bg-slate-300/80 dark:bg-slate-700 hover:bg-slate-400 dark:hover:bg-slate-600'
                 }`}
                 aria-label={`رفتن به اسلاید ${dotIdx + 1}`}
                 aria-current={isActive ? 'true' : 'false'}

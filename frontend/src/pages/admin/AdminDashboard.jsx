@@ -143,7 +143,7 @@ export const AdminDashboard = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [todayStr, toast]);
+  }, [todayStr]);
 
   useEffect(() => {
     fetchDashboardData();
