@@ -60,6 +60,10 @@ class AuditLog(models.Model):
         RECORD_VERIFY = 'RECORD_VERIFY', _('تأیید رکورد شنا')
         LEAGUE_RULE_CHANGE = 'LEAGUE_RULE_CHANGE', _('تغییر قوانین لیگ')
         CONFIG_CHANGE = 'CONFIG_CHANGE', _('تغییر تنظیمات سامانه')
+        USER_CREATE = 'USER_CREATE', _('ایجاد کاربر جدید')
+        USER_UPDATE = 'USER_UPDATE', _('ویرایش مشخصات کاربر')
+        USER_DELETE = 'USER_DELETE', _('حذف کاربر')
+        PASSWORD_RESET = 'PASSWORD_RESET', _('تغییر کلمه عبور کاربر')
 
     actor = models.ForeignKey(
         settings.AUTH_USER_MODEL,

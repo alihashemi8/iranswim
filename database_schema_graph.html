@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>گراف تعاملی دیتابیس ایران‌سوییم | IranSwim Database Schema Graph</title>
+  
+  <!-- Vis.js Network for Interactive Graph Rendering -->
+  <script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+    :root {
+      --bg-main: #0b1329;
+      --bg-panel: #111d3d;
+      --bg-card: #182852;
+      --border-color: #233876;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --accent: #0ea5e9;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Header */
+    header {
+      background: var(--bg-panel);
+      border-bottom: 1px solid var(--border-color);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 20;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #0284c7, #38bdf8);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 4px 12px rgba(2, 132, 199, 0.4);
+    }
+
+    .brand-text h1 {
+      font-size: 16px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .brand-text p {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .stats-badge {
+      display: flex;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .badge {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      padding: 4px 10px;
+      border-radius: 20px;
+      color: var(--text-main);
+    }
+    .badge span {
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .controls-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn:hover {
+      background: #20356c;
+      border-color: var(--primary);
+    }
+    .btn-primary {
+      background: #0284c7;
+      border-color: #38bdf8;
+    }
+    .btn-primary:hover {
+      background: #0369a1;
+    }
+
+    /* Main Container */
+    .main-container {
+      display: flex;
+      flex: 1;
+      height: calc(100vh - 61px);
+      position: relative;
+    }
+
+    /* Canvas Graph View */
+    #network-canvas {
+      flex: 1;
+      height: 100%;
+      background: radial-gradient(circle at center, #111d3d 0%, #070e1f 100%);
+      position: relative;
+    }
+
+    /* Filter & Legend Sidebar */
+    .sidebar {
+      width: 320px;
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border-color);
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+      transition: transform 0.3s ease;
+    }
+
+    .sidebar-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sidebar-header h2 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .search-box {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border-color);
+    }
+    .search-input {
+      width: 100%;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+    }
+    .search-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+    }
+
+    .modules-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px 16px;
+    }
+
+    .module-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 10px;
+      margin-bottom: 6px;
+      border-radius: 8px;
+      background: var(--bg-card);
+      border: 1px solid transparent;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.15s ease;
+    }
+    .module-item:hover {
+      border-color: var(--border-color);
+      background: #1c2e5e;
+    }
+    .module-item.disabled {
+      opacity: 0.35;
+      background: #0d162d;
+    }
+    .module-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .color-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 4px;
+    }
+    .module-name {
+      font-size: 13px;
+      font-weight: 600;
+    }
+    .module-count {
+      font-size: 11px;
+      color: var(--text-muted);
+      background: rgba(0,0,0,0.25);
+      padding: 2px 6px;
+      border-radius: 10px;
+    }
+
+    /* Table Details Drawer (Bottom or Float) */
+    .details-drawer {
+      position: absolute;
+      left: 20px;
+      bottom: 20px;
+      width: 440px;
+      max-height: 70vh;
+      background: rgba(17, 29, 61, 0.95);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--primary);
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      z-index: 15;
+      display: none;
+      flex-direction: column;
+      animation: fadeIn 0.25s ease;
+    }
+    .details-drawer.active {
+      display: flex;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .drawer-header {
+      padding: 12px 16px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border-color);
+      border-radius: 12px 12px 0 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .drawer-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .drawer-title h3 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #fff;
+    }
+    .drawer-title span {
+      font-size: 12px;
+      color: var(--primary);
+      font-family: 'JetBrains Mono', monospace;
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 18px;
+      cursor: pointer;
+    }
+    .close-btn:hover {
+      color: #fff;
+    }
+
+    .drawer-body {
+      padding: 14px 16px;
+      overflow-y: auto;
+      max-height: calc(70vh - 60px);
+    }
+    .fields-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    .fields-table th {
+      text-align: right;
+      padding: 6px 8px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border-color);
+      font-weight: 600;
+    }
+    .fields-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      font-family: 'JetBrains Mono', monospace;
+      direction: ltr;
+      text-align: left;
+    }
+    .fields-table td.field-desc {
+      font-family: 'Vazirmatn', sans-serif;
+      direction: rtl;
+      text-align: right;
+      color: #cbd5e1;
+    }
+    .pk-badge {
+      background: #f59e0b;
+      color: #000;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 3px;
+      margin-right: 4px;
+    }
+    .fk-badge {
+      background: #06b6d4;
+      color: #000;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 3px;
+      margin-right: 4px;
+    }
+
+    /* Floating Canvas Controls */
+    .floating-controls {
+      position: absolute;
+      right: 340px;
+      bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      z-index: 10;
+    }
+    .ctrl-btn {
+      width: 36px;
+      height: 36px;
+      background: var(--bg-panel);
+      border: 1px solid var(--border-color);
+      color: #fff;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      transition: all 0.2s;
+    }
+    .ctrl-btn:hover {
+      background: var(--bg-card);
+      border-color: var(--primary);
+    }
+
+    /* Legend Box */
+    .legend-box {
+      position: absolute;
+      left: 20px;
+      top: 20px;
+      background: rgba(17, 29, 61, 0.9);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-color);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 11px;
+      color: var(--text-muted);
+      z-index: 10;
+      pointer-events: none;
+    }
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 4px;
+    }
+    .legend-line {
+      width: 24px;
+      height: 2px;
+      background: #38bdf8;
+    }
+    .legend-line.dashed {
+      border-top: 2px dashed #f59e0b;
+      background: none;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-main);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #233876;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--primary);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🏊</div>
+      <div class="brand-text">
+        <h1>گراف جامع پایگاه داده سامانه ایران‌سوییم (IranSwim ERD)</h1>
+        <p>نقشه معماری روابط موجودیت‌ها، کلیدهای خارجی و ارتباطات چندگانه</p>
+      </div>
+    </div>
+
+    <div class="stats-badge">
+      <div class="badge">تعداد جداول: <span id="stat-tables">۳۸</span></div>
+      <div class="badge">تعداد روابط: <span id="stat-relations">۶۸</span></div>
+      <div class="badge">ماژول‌ها: <span id="stat-modules">۱۱ اپلیکیشن</span></div>
+    </div>
+
+    <div class="controls-top">
+      <button class="btn" id="btn-fit" title="تنظیم بزرگنمایی در صفحه">📐 تطبیق نما</button>
+      <button class="btn" id="btn-physics" title="توقف یا اجرای فیزیک">⚡ توقف شبیه‌سازی</button>
+      <button class="btn" id="btn-export" title="دریافت تصویر PNG">📸 ذخیره گراف</button>
+    </div>
+  </header>
+
+  <!-- Main View -->
+  <div class="main-container">
+    <!-- Graph Canvas Container -->
+    <div id="network-canvas"></div>
+
+    <!-- Legend -->
+    <div class="legend-box">
+      <div class="legend-row">
+        <div class="legend-line"></div>
+        <span>رابطه یک به چند (One-to-Many / Foreign Key)</span>
+      </div>
+      <div class="legend-row">
+        <div class="legend-line dashed"></div>
+        <span>رابطه یک به یک (One-to-One / Profile)</span>
+      </div>
+      <div style="margin-top: 6px; color: #38bdf8; font-weight: bold;">
+        💡 با کلیک روی هر جدول، مشخصات فیلدها و ارتباطات آن باز می‌شود.
+      </div>
+    </div>
+
+    <!-- Floating Zoom Controls -->
+    <div class="floating-controls">
+      <button class="ctrl-btn" id="zoom-in" title="بزرگ‌نمایی">+</button>
+      <button class="ctrl-btn" id="zoom-out" title="کوچک‌نمایی">−</button>
+      <button class="ctrl-btn" id="reset-cam" title="تنظیم مرکز">🎯</button>
+    </div>
+
+    <!-- Sidebar Modules Filter -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <h2>اپلیکیشن‌ها و ماژول‌ها</h2>
+        <button class="btn" id="btn-toggle-all" style="padding: 2px 8px; font-size: 11px;">تغییر همه</button>
+      </div>
+
+      <div class="search-box">
+        <input type="text" id="search-input" class="search-input" placeholder="🔍 جستجوی جدول یا فیلد...">
+      </div>
+
+      <div class="modules-list" id="modules-list">
+        <!-- Rendered dynamically -->
+      </div>
+    </aside>
+
+    <!-- Table Details Drawer -->
+    <div class="details-drawer" id="details-drawer">
+      <div class="drawer-header">
+        <div class="drawer-title">
+          <h3 id="drawer-model-name">User</h3>
+          <span id="drawer-app-name">apps.accounts</span>
+        </div>
+        <button class="close-btn" id="btn-close-drawer">&times;</button>
+      </div>
+      <div class="drawer-body">
+        <p id="drawer-model-desc" style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;"></p>
+        <table class="fields-table">
+          <thead>
+            <tr>
+              <th style="width: 35%;">نام فیلد</th>
+              <th style="width: 25%;">نوع داده</th>
+              <th style="width: 40%; text-align: right;">عنوان و ویژگی</th>
+            </tr>
+          </thead>
+          <tbody id="drawer-fields-body">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Database Schema Data Specification
+    const MODULES = {
+      accounts: { name: 'کاربران و هویت (Accounts)', color: '#6366f1', count: 2 },
+      swimmers: { name: 'شناگران و اولیا (Swimmers)', color: '#0284c7', count: 2 },
+      coaches: { name: 'مربیان و تمرینات (Coaches)', color: '#f59e0b', count: 2 },
+      education: { name: 'آموزش و دوره‌ها (Education)', color: '#10b981', count: 8 },
+      scheduling: { name: 'جلسات و تقویم (Scheduling)', color: '#8b5cf6', count: 1 },
+      attendance: { name: 'حضور و غیاب (Attendance)', color: '#06b6d4', count: 1 },
+      finance: { name: 'مالی و اقساط (Finance)', color: '#f43f5e', count: 6 },
+      assessments: { name: 'سنجش و رکوردها (Assessments)', color: '#14b8a6', count: 2 },
+      leagues: { name: 'لیگ و مسابقات (Leagues)', color: '#f97316', count: 4 },
+      content: { name: 'محتوا، استخرها، تیکت (Content)', color: '#3b82f6', count: 8 },
+      supervisor: { name: 'ناظر و باگ‌ها (Supervisor)', color: '#64748b', count: 2 }
+    };
+
+    const MODELS = [
+      // 1. Accounts
+      {
+        id: 'User',
+        label: 'User\n(کاربر)',
+        module: 'accounts',
+        desc: 'مدل سفارشی کاربر با شماره همراه و نقش‌های مدیر، مربی، شناگر، ناظر',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه یکتا' },
+          { name: 'phone', type: 'CharField(15)', desc: 'شماره همراه (یکتا/ورود)' },
+          { name: 'username', type: 'CharField(150)', desc: 'نام کاربری اختیاری' },
+          { name: 'role', type: 'CharField(20)', desc: 'نقش (ADMIN, COACH, ...)' },
+          { name: 'national_id', type: 'CharField(10)', desc: 'کد ملی' },
+          { name: 'first_name', type: 'CharField(150)', desc: 'نام' },
+          { name: 'last_name', type: 'CharField(150)', desc: 'نام خانوادگی' },
+          { name: 'is_password_changed', type: 'BooleanField', desc: 'تغییر رمز اولیه' },
+          { name: 'avatar', type: 'ImageField', desc: 'تصویر پروفایل' }
+        ]
+      },
+      {
+        id: 'OTPVerification',
+        label: 'OTPVerification\n(کد تایید)',
+        module: 'accounts',
+        desc: 'کدهای یکبار مصرف پیامکی جهت ثبت‌نام و ورود',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'phone', type: 'CharField(15)', desc: 'شماره موبایل' },
+          { name: 'code', type: 'CharField(6)', desc: 'کد ۶ رقمی' },
+          { name: 'purpose', type: 'CharField(20)', desc: 'هدف (LOGIN / REGISTER)' },
+          { name: 'expires_at', type: 'DateTimeField', desc: 'زمان انقضا' },
+          { name: 'is_used', type: 'BooleanField', desc: 'استفاده شده' }
+        ]
+      },
+
+      // 2. Swimmers
+      {
+        id: 'SwimmerProfile',
+        label: 'SwimmerProfile\n(پرونده شناگر)',
+        module: 'swimmers',
+        desc: 'اطلاعات کامل پرونده، مدارک شناسنامه، کارت ملی و بیمه ورزشی',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'user_id', type: 'OneToOne(User)', fk: true, desc: 'حساب کاربری' },
+          { name: 'current_level_id', type: 'FK(SkillLevel)', fk: true, desc: 'سطح مهارتی فعلی' },
+          { name: 'national_id', type: 'CharField(10)', desc: 'کد ملی' },
+          { name: 'date_of_birth', type: 'DateField', desc: 'تاریخ تولد' },
+          { name: 'gender', type: 'CharField(10)', desc: 'جنسیت (MALE / FEMALE)' },
+          { name: 'father_phone', type: 'CharField(20)', desc: 'شماره پدر' },
+          { name: 'mother_phone', type: 'CharField(20)', desc: 'شماره مادر' },
+          { name: 'sports_insurance_expiry', type: 'DateField', desc: 'انقضای بیمه ورزشی' },
+          { name: 'is_profile_completed', type: 'BooleanField', desc: 'تکمیل مدارک' }
+        ]
+      },
+      {
+        id: 'SwimmerGuardianRelation',
+        label: 'SwimmerGuardianRelation\n(ارتباط ولی)',
+        module: 'swimmers',
+        desc: 'ارتباط چندبه‌چند سرپرستان، والدین و شناگران',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'guardian_id', type: 'FK(User)', fk: true, desc: 'کاربر سرپرست' },
+          { name: 'swimmer_id', type: 'FK(SwimmerProfile)', fk: true, desc: 'شناگر' },
+          { name: 'relation_type', type: 'CharField(20)', desc: 'نسبت (پدر، مادر، ...)' }
+        ]
+      },
+
+      // 3. Coaches
+      {
+        id: 'CoachProfile',
+        label: 'CoachProfile\n(پروفایل مربی)',
+        module: 'coaches',
+        desc: 'مشخصات حرفه‌ای مربی، نرخ ساعتی و تخصص‌ها',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'user_id', type: 'OneToOne(User)', fk: true, desc: 'کاربر مربی' },
+          { name: 'gender', type: 'CharField(10)', desc: 'جنسیت' },
+          { name: 'specialties', type: 'CharField(255)', desc: 'تخصص‌های شنا' },
+          { name: 'hourly_rate', type: 'DecimalField(12,2)', desc: 'نرخ ساعتی (تومان)' },
+          { name: 'employment_status', type: 'CharField(20)', desc: 'وضعیت کاری' }
+        ]
+      },
+      {
+        id: 'WorkoutPlan',
+        label: 'WorkoutPlan\n(برنامه تمرین)',
+        module: 'coaches',
+        desc: 'طراحی ست‌های تمرینی شامل گرم‌کردن، شنای اصلی و سردکردن',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'coach_id', type: 'FK(CoachProfile)', fk: true, desc: 'مربی طراح' },
+          { name: 'group_id', type: 'FK(SwimmerGroup)', fk: true, desc: 'گروه هدف' },
+          { name: 'session_id', type: 'FK(ClassSession)', fk: true, desc: 'جلسه تمرینی' },
+          { name: 'target_level_id', type: 'FK(SkillLevel)', fk: true, desc: 'سطح مهارت' },
+          { name: 'duration_minutes', type: 'PositiveInt', desc: 'مدت تمرین' }
+        ]
+      },
+
+      // 4. Education
+      {
+        id: 'SkillLevel',
+        label: 'SkillLevel\n(سطح مهارت)',
+        module: 'education',
+        desc: 'سطوح استاندارد مهارت (مقدماتی، کرال سینه، قورباغه، پروانه و...) ',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'name', type: 'CharField(100)', desc: 'نام سطح' },
+          { name: 'order', type: 'PositiveSmallInt', desc: 'ترتیب سطح' },
+          { name: 'color_badge', type: 'CharField(20)', desc: 'کد رنگ بج' }
+        ]
+      },
+      {
+        id: 'Skill',
+        label: 'Skill\n(آیتم مهارتی)',
+        module: 'education',
+        desc: 'سرفصل‌های ارزیابی زیرمجموعه هر سطح',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'level_id', type: 'FK(SkillLevel)', fk: true, desc: 'سطح مرتبط' },
+          { name: 'name', type: 'CharField(150)', desc: 'عنوان مهارت' },
+          { name: 'criteria_description', type: 'TextField', desc: 'معیار قبولی' }
+        ]
+      },
+      {
+        id: 'Course',
+        label: 'Course\n(دوره آموزشی)',
+        module: 'education',
+        desc: 'دوره‌های آکادمی با تاریخ، استخر، شهریه و تعداد جلسات',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'name', type: 'CharField(200)', desc: 'عنوان دوره' },
+          { name: 'base_price', type: 'DecimalField(12,2)', desc: 'شهریه پایه (تومان)' },
+          { name: 'sessions_count', type: 'PositiveInt', desc: 'تعداد کل جلسات' },
+          { name: 'installments_count', type: 'PositiveInt', desc: 'سقف مجاز اقساط' },
+          { name: 'pool_location', type: 'CharField(200)', desc: 'استخر محل برگزاری' },
+          { name: 'days_of_week', type: 'CharField(150)', desc: 'روزهای برگزاری' },
+          { name: 'status', type: 'CharField(20)', desc: 'وضعیت دوره' }
+        ]
+      },
+      {
+        id: 'SwimmerGroup',
+        label: 'SwimmerGroup\n(گروه کلاسی)',
+        module: 'education',
+        desc: 'گروه اجرایی متصل به دوره و ظرفیت مشخص',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'course_id', type: 'FK(Course)', fk: true, desc: 'دوره آموزشی' },
+          { name: 'skill_level_id', type: 'FK(SkillLevel)', fk: true, desc: 'سطح مهارت' },
+          { name: 'name', type: 'CharField(150)', desc: 'نام گروه' },
+          { name: 'capacity', type: 'PositiveInt', desc: 'ظرفیت مجاز' },
+          { name: 'status', type: 'CharField(20)', desc: 'وضعیت ثبت‌نام' }
+        ]
+      },
+      {
+        id: 'GroupSchedule',
+        label: 'GroupSchedule\n(سانس هفتگی)',
+        module: 'education',
+        desc: 'برنامه ساعات و روزهای هفتگی گروه',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'group_id', type: 'FK(SwimmerGroup)', fk: true, desc: 'گروه اجرایی' },
+          { name: 'weekday', type: 'SmallInt(0-6)', desc: 'روز هفته' },
+          { name: 'start_time', type: 'TimeField', desc: 'ساعت شروع' },
+          { name: 'end_time', type: 'TimeField', desc: 'ساعت پایان' }
+        ]
+      },
+      {
+        id: 'GroupCoach',
+        label: 'GroupCoach\n(تخصیص مربی)',
+        module: 'education',
+        desc: 'جدول تخصیص مربیان اصلی و کمکی به گروه‌ها',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'group_id', type: 'FK(SwimmerGroup)', fk: true, desc: 'گروه کلاسی' },
+          { name: 'coach_id', type: 'FK(CoachProfile)', fk: true, desc: 'مربی' },
+          { name: 'is_primary', type: 'BooleanField', desc: 'مربی اصلی' }
+        ]
+      },
+      {
+        id: 'EnrollmentRequest',
+        label: 'EnrollmentRequest\n(درخواست ثبت‌نام)',
+        module: 'education',
+        desc: 'پیش‌ثبت‌نام آنلاین متقاضیان از صفحه وب‌سایت',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'course_id', type: 'FK(Course)', fk: true, desc: 'دوره درخواستی' },
+          { name: 'group_id', type: 'FK(SwimmerGroup)', fk: true, desc: 'گروه انتخابی' },
+          { name: 'coach_id', type: 'FK(CoachProfile)', fk: true, desc: 'مربی انتخابی' },
+          { name: 'swimmer_id', type: 'FK(SwimmerProfile)', fk: true, desc: 'شناگر پرونده‌دار' },
+          { name: 'reviewed_by_id', type: 'FK(User)', fk: true, desc: 'کاربر بررسی‌کننده' },
+          { name: 'applicant_phone', type: 'CharField(15)', desc: 'تلفن متقاضی' },
+          { name: 'status', type: 'CharField(20)', desc: 'وضعیت (PENDING/APPROVED)' }
+        ]
+      },
+      {
+        id: 'Enrollment',
+        label: 'Enrollment\n(ثبت‌نام قطعی)',
+        module: 'education',
+        desc: 'عضویت قطعی شناگر در دوره با کنترل سهمیه جلسات',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'swimmer_id', type: 'FK(SwimmerProfile)', fk: true, desc: 'شناگر' },
+          { name: 'course_id', type: 'FK(Course)', fk: true, desc: 'دوره آموزشی' },
+          { name: 'group_id', type: 'FK(SwimmerGroup)', fk: true, desc: 'گروه اجرایی' },
+          { name: 'coach_id', type: 'FK(CoachProfile)', fk: true, desc: 'مربی دوره' },
+          { name: 'sessions_purchased', type: 'PositiveInt', desc: 'جلسات خریداری‌شده' },
+          { name: 'sessions_attended', type: 'PositiveInt', desc: 'جلسات مصرف‌شده' },
+          { name: 'status', type: 'CharField(20)', desc: 'وضعیت ثبت‌نام' }
+        ]
+      },
+
+      // 5. Scheduling
+      {
+        id: 'ClassSession',
+        label: 'ClassSession\n(جلسه کلاسی)',
+        module: 'scheduling',
+        desc: 'جلسات تقویمی با موتور کشف تداخل زمانی مربی و استخر',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'group_id', type: 'FK(SwimmerGroup)', fk: true, desc: 'گروه آموزشی' },
+          { name: 'coach_id', type: 'FK(CoachProfile)', fk: true, desc: 'مربی مسئول' },
+          { name: 'replaces_session_id', type: 'FK(self)', fk: true, desc: 'جلسه جایگزین' },
+          { name: 'cancelled_by_id', type: 'FK(User)', fk: true, desc: 'کاربر لغوکننده' },
+          { name: 'session_date', type: 'DateField', desc: 'تاریخ برگزاری' },
+          { name: 'start_time', type: 'TimeField', desc: 'ساعت شروع' },
+          { name: 'end_time', type: 'TimeField', desc: 'ساعت پایان' },
+          { name: 'status', type: 'CharField(20)', desc: 'وضعیت جلسه' }
+        ]
+      },
+
+      // 6. Attendance
+      {
+        id: 'AttendanceRecord',
+        label: 'AttendanceRecord\n(حضور و غیاب)',
+        module: 'attendance',
+        desc: 'ثبت وضعیت حضور با کسر هوشمند سهمیه دوره',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'session_id', type: 'FK(ClassSession)', fk: true, desc: 'جلسه کلاسی' },
+          { name: 'swimmer_id', type: 'FK(SwimmerProfile)', fk: true, desc: 'شناگر' },
+          { name: 'enrollment_id', type: 'FK(Enrollment)', fk: true, desc: 'ثبت‌نام مرتبط' },
+          { name: 'recorded_by_id', type: 'FK(User)', fk: true, desc: 'ثبت‌کننده' },
+          { name: 'status', type: 'CharField(20)', desc: 'حاضر/غایب/موجه/تاخیر' },
+          { name: 'consumed_quota', type: 'BooleanField', desc: 'کسر از سهمیه' }
+        ]
+      },
+
+      // 7. Finance
+      {
+        id: 'Invoice',
+        label: 'Invoice\n(صورتحساب / فاکتور)',
+        module: 'finance',
+        desc: 'فاکتور مالی متصل به ثبت‌نام با شماره یکتا',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'invoice_number', type: 'CharField(50)', desc: 'شماره فاکتور یکتا' },
+          { name: 'swimmer_id', type: 'FK(SwimmerProfile)', fk: true, desc: 'شناگر بدهکار' },
+          { name: 'enrollment_id', type: 'OneToOne(Enrollment)', fk: true, desc: 'ثبت‌نام مرتبط' },
+          { name: 'total_amount', type: 'DecimalField(12,2)', desc: 'مبلغ کل فاکتور' },
+          { name: 'status', type: 'CharField(20)', desc: 'وضعیت تسویه' },
+          { name: 'due_date', type: 'DateField', desc: 'سررسید نهایی' }
+        ]
+      },
+      {
+        id: 'InvoiceItem',
+        label: 'InvoiceItem\n(ردیف فاکتور)',
+        module: 'finance',
+        desc: 'اقلام و شرح خدمات صورتحساب',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'invoice_id', type: 'FK(Invoice)', fk: true, desc: 'فاکتور اصلی' },
+          { name: 'description', type: 'CharField(255)', desc: 'شرح ردیف' },
+          { name: 'unit_price', type: 'DecimalField(12,2)', desc: 'قیمت واحد' },
+          { name: 'quantity', type: 'PositiveInt', desc: 'تعداد' },
+          { name: 'total_price', type: 'DecimalField(12,2)', desc: 'مبلغ کل ردیف' }
+        ]
+      },
+      {
+        id: 'Installment',
+        label: 'Installment\n(قسط شهریه)',
+        module: 'finance',
+        desc: 'اقساط زمان‌بندی‌شده با تاریخ سررسید و پیگیری معوقه',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'invoice_id', type: 'FK(Invoice)', fk: true, desc: 'صورتحساب' },
+          { name: 'installment_number', type: 'SmallInt', desc: 'شماره قسط' },
+          { name: 'amount', type: 'DecimalField(12,2)', desc: 'مبلغ قسط (تومان)' },
+          { name: 'due_date', type: 'DateField', desc: 'تاریخ سررسید' },
+          { name: 'status', type: 'CharField(20)', desc: 'پرداخت‌نشده/تسویه/معوق' }
+        ]
+      },
+      {
+        id: 'Payment',
+        label: 'Payment\n(پرداخت مالی)',
+        module: 'finance',
+        desc: 'تراکنش دریافتی با کلید یکتایی Idempotency و کد پیگیری',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'payment_number', type: 'CharField(50)', desc: 'کد پرداخت یکتا' },
+          { name: 'swimmer_id', type: 'FK(SwimmerProfile)', fk: true, desc: 'پرداخت‌کننده' },
+          { name: 'recorded_by_id', type: 'FK(User)', fk: true, desc: 'کاربر ثبت‌کننده' },
+          { name: 'amount', type: 'DecimalField(12,2)', desc: 'مبلغ پرداختی' },
+          { name: 'method', type: 'CharField(20)', desc: 'روش (کارتخوان/کارت/آنلاین)' },
+          { name: 'status', type: 'CharField(20)', desc: 'وضعیت پرداخت' },
+          { name: 'idempotency_key', type: 'CharField(64)', desc: 'کلید عدم تکرار' }
+        ]
+      },
+      {
+        id: 'PaymentAllocation',
+        label: 'PaymentAllocation\n(تخصیص پرداخت)',
+        module: 'finance',
+        desc: 'تخصیص مبلغ واریزی به فاکتور و اقساط معوق',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'payment_id', type: 'FK(Payment)', fk: true, desc: 'تراکنش پرداخت' },
+          { name: 'invoice_id', type: 'FK(Invoice)', fk: true, desc: 'صورتحساب' },
+          { name: 'installment_id', type: 'FK(Installment)', fk: true, desc: 'قسط مرتبط' },
+          { name: 'allocated_amount', type: 'DecimalField(12,2)', desc: 'مبلغ تخصیص‌یافته' }
+        ]
+      },
+      {
+        id: 'FinancialAdjustment',
+        label: 'FinancialAdjustment\n(تعدیل مالی)',
+        module: 'finance',
+        desc: 'اسناد تخفیف، استرداد وجه و بستانکاری',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'invoice_id', type: 'FK(Invoice)', fk: true, desc: 'صورتحساب' },
+          { name: 'approved_by_id', type: 'FK(User)', fk: true, desc: 'تأییدکننده' },
+          { name: 'type', type: 'CharField(20)', desc: 'تخفیف یا استرداد' },
+          { name: 'amount', type: 'DecimalField(12,2)', desc: 'مبلغ تعدیل' }
+        ]
+      },
+
+      // 8. Assessments
+      {
+        id: 'SkillAssessment',
+        label: 'SkillAssessment\n(ارزیابی مهارت)',
+        module: 'assessments',
+        desc: 'ثبت نمره و قبولی هر سرفصل شنا توسط مربی',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'swimmer_id', type: 'FK(SwimmerProfile)', fk: true, desc: 'شناگر' },
+          { name: 'skill_id', type: 'FK(Skill)', fk: true, desc: 'سرفصل مهارتی' },
+          { name: 'assessed_by_id', type: 'FK(User)', fk: true, desc: 'مربی ارزیاب' },
+          { name: 'score', type: 'DecimalField(5,2)', desc: 'نمره ارزیابی' },
+          { name: 'status', type: 'CharField(20)', desc: 'قبول/تمرین/نیاز به کار' }
+        ]
+      },
+      {
+        id: 'SwimmingRecord',
+        label: 'SwimmingRecord\n(رکورد زمانی)',
+        module: 'assessments',
+        desc: 'ثبت زمان کرونومتر در سبک‌های مختلف و استخرهای ۲۵ و ۵۰ متر',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'swimmer_id', type: 'FK(SwimmerProfile)', fk: true, desc: 'شناگر' },
+          { name: 'recorded_by_id', type: 'FK(User)', fk: true, desc: 'ثبت‌کننده' },
+          { name: 'verified_by_id', type: 'FK(User)', fk: true, desc: 'داور تأییدکننده' },
+          { name: 'stroke', type: 'CharField(20)', desc: 'سبک شنا (کرال، پروانه...)' },
+          { name: 'distance_meters', type: 'PositiveInt', desc: 'مسافت (متر)' },
+          { name: 'duration_seconds', type: 'DecimalField(6,2)', desc: 'زمان (ثانیه)' },
+          { name: 'pool_course', type: 'CharField(20)', desc: 'استخر ۲۵ یا ۵۰ متر' }
+        ]
+      },
+
+      // 9. Leagues
+      {
+        id: 'League',
+        label: 'League\n(لیگ رقابتی)',
+        module: 'leagues',
+        desc: 'دوره مسابقاتی با بازه تاریخی و ضرایب امتیازی',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'name', type: 'CharField(150)', desc: 'عنوان دوره لیگ' },
+          { name: 'season', type: 'CharField(50)', desc: 'فصل مسابقاتی' },
+          { name: 'starts_at', type: 'DateField', desc: 'آغاز لیگ' },
+          { name: 'is_active', type: 'BooleanField', desc: 'فعال' }
+        ]
+      },
+      {
+        id: 'LeagueCategory',
+        label: 'LeagueCategory\n(رده مسابقاتی)',
+        module: 'leagues',
+        desc: 'رده‌های سنی و جنسیتی لیگ',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'league_id', type: 'FK(League)', fk: true, desc: 'لیگ مسابقاتی' },
+          { name: 'title', type: 'CharField(100)', desc: 'عنوان رده' },
+          { name: 'age_min', type: 'SmallInt', desc: 'حداقل سن' },
+          { name: 'age_max', type: 'SmallInt', desc: 'حداکثر سن' }
+        ]
+      },
+      {
+        id: 'LeagueEntry',
+        label: 'LeagueEntry\n(عضویت در لیگ)',
+        module: 'leagues',
+        desc: 'ورودی شناگر در جدول رده‌بندی لیگ با مجموع امتیازات',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'league_id', type: 'FK(League)', fk: true, desc: 'لیگ' },
+          { name: 'category_id', type: 'FK(LeagueCategory)', fk: true, desc: 'رده مسابقاتی' },
+          { name: 'swimmer_id', type: 'FK(SwimmerProfile)', fk: true, desc: 'شناگر' },
+          { name: 'total_points', type: 'DecimalField(8,2)', desc: 'مجموع امتیازات' }
+        ]
+      },
+      {
+        id: 'LeagueResult',
+        label: 'LeagueResult\n(نتیجه مسابقه)',
+        module: 'leagues',
+        desc: 'ثبت نتیجه مسابقه و کسب امتیازات در هر ماده',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'entry_id', type: 'FK(LeagueEntry)', fk: true, desc: 'ورودی شناگر' },
+          { name: 'swimming_record_id', type: 'FK(SwimmingRecord)', fk: true, desc: 'رکورد زمانی' },
+          { name: 'verified_by_id', type: 'FK(User)', fk: true, desc: 'داور ناظر' },
+          { name: 'score_points', type: 'DecimalField(6,2)', desc: 'امتیاز مسابقه' }
+        ]
+      },
+
+      // 10. Content
+      {
+        id: 'NewsPost',
+        label: 'NewsPost\n(خبر و اطلاعیه)',
+        module: 'content',
+        desc: 'اخبار و رویدادهای عمومی آموزشگاه',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'author_id', type: 'FK(User)', fk: true, desc: 'نویسنده خبر' },
+          { name: 'title', type: 'CharField(200)', desc: 'عنوان خبر' },
+          { name: 'slug', type: 'SlugField', desc: 'نامک' },
+          { name: 'category', type: 'CharField(20)', desc: 'دسته‌بندی' }
+        ]
+      },
+      {
+        id: 'NewsImage',
+        label: 'NewsImage\n(تصویر خبر)',
+        module: 'content',
+        desc: 'گالری تصاویر داخل خبر',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'news_post_id', type: 'FK(NewsPost)', fk: true, desc: 'خبر مرتبط' },
+          { name: 'image', type: 'ImageField', desc: 'فایل عکس' }
+        ]
+      },
+      {
+        id: 'SwimmingPool',
+        label: 'SwimmingPool\n(استخر و مجموعه)',
+        module: 'content',
+        desc: 'استخرهای طرف قرارداد در قزوین با لوکیشن و امکانات',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'name', type: 'CharField(180)', desc: 'نام استخر' },
+          { name: 'location', type: 'CharField(300)', desc: 'آدرس و لوکیشن' },
+          { name: 'dimensions', type: 'CharField(100)', desc: 'ابعاد' },
+          { name: 'is_active', type: 'BooleanField', desc: 'فعال در سایت' }
+        ]
+      },
+      {
+        id: 'PoolImage',
+        label: 'PoolImage\n(عکس استخر)',
+        module: 'content',
+        desc: 'تصاویر گالری استخر',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'pool_id', type: 'FK(SwimmingPool)', fk: true, desc: 'استخر مرتبط' },
+          { name: 'image', type: 'ImageField', desc: 'عکس' }
+        ]
+      },
+      {
+        id: 'Announcement',
+        label: 'Announcement\n(اعلان درون‌برنامه‌ای)',
+        module: 'content',
+        desc: 'اعلانات تفکیک‌شده برای مربیان، شناگران یا گروه‌ها',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'target_group_id', type: 'FK(SwimmerGroup)', fk: true, desc: 'گروه هدف' },
+          { name: 'created_by_id', type: 'FK(User)', fk: true, desc: 'ایجادکننده' },
+          { name: 'title', type: 'CharField(180)', desc: 'عنوان اعلان' },
+          { name: 'audience', type: 'CharField(20)', desc: 'مخاطب (همه، مربیان...)' }
+        ]
+      },
+      {
+        id: 'Notification',
+        label: 'Notification\n(نوتیفیکیشن کاربر)',
+        module: 'content',
+        desc: 'پیام‌ها و هشدارهای فردی سررسید قسط، تغییر کلاس',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'recipient_id', type: 'FK(User)', fk: true, desc: 'گیرنده اعلان' },
+          { name: 'category', type: 'CharField(20)', desc: 'دسته (ثبت‌نام، مالی...)' },
+          { name: 'is_read', type: 'BooleanField', desc: 'خوانده‌شده' }
+        ]
+      },
+      {
+        id: 'SupportTicket',
+        label: 'SupportTicket\n(تیکت پشتیبانی)',
+        module: 'content',
+        desc: 'درخواست‌های اولیا و شناگران برای هماهنگی، غیبت یا امور مالی',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'user_id', type: 'FK(User)', fk: true, desc: 'ارسال‌کننده' },
+          { name: 'swimmer_id', type: 'FK(SwimmerProfile)', fk: true, desc: 'شناگر مرتبط' },
+          { name: 'responded_by_id', type: 'FK(User)', fk: true, desc: 'پاسخ‌دهنده' },
+          { name: 'subject', type: 'CharField(200)', desc: 'موضوع پیام' },
+          { name: 'status', type: 'CharField(20)', desc: 'ثبت‌شده/بررسی/پاسخ' }
+        ]
+      },
+      {
+        id: 'LandingSection',
+        label: 'LandingSection\n(بخش‌های لندینگ)',
+        module: 'content',
+        desc: 'مدیریت روشن/خاموش بودن سکشن‌های صفحه اصلی سایت',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'key', type: 'CharField(50)', desc: 'شناسه انگلیسی سکشن' },
+          { name: 'title', type: 'CharField(150)', desc: 'عنوان بخش' },
+          { name: 'is_enabled', type: 'BooleanField', desc: 'وضعیت نمایش' }
+        ]
+      },
+
+      // 11. Supervisor
+      {
+        id: 'SystemErrorLog',
+        label: 'SystemErrorLog\n(لاگ خطای سیستمی)',
+        module: 'supervisor',
+        desc: 'ضبط امن استک‌ترس، پارامترهای درخواست و کاربر در میدل‌ویر ناظر',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'user_id', type: 'FK(User)', fk: true, desc: 'کاربر مربوطه' },
+          { name: 'resolved_by_id', type: 'FK(User)', fk: true, desc: 'ناظر رفع‌کننده' },
+          { name: 'endpoint', type: 'CharField(255)', desc: 'مسیر درخواست' },
+          { name: 'status_code', type: 'PositiveInt', desc: 'کد ۵۰۰' },
+          { name: 'exception_type', type: 'CharField(200)', desc: 'نوع استثنا' },
+          { name: 'stack_trace', type: 'TextField', desc: 'استک‌ترس کامل' },
+          { name: 'is_resolved', type: 'BooleanField', desc: 'رفع‌شده' }
+        ]
+      },
+      {
+        id: 'AuditLog',
+        label: 'AuditLog\n(لاگ حسابرسی حساس)',
+        module: 'supervisor',
+        desc: 'ردگیری تغییرات بحرانی (نقش‌ها، مبالغ مالی، ویرایش حضور و غیاب)',
+        fields: [
+          { name: 'id', type: 'BigAutoField', pk: true, desc: 'شناسه' },
+          { name: 'actor_id', type: 'FK(User)', fk: true, desc: 'کاربر اقدام‌کننده' },
+          { name: 'action', type: 'CharField(50)', desc: 'نوع عملیات حساس' },
+          { name: 'entity_type', type: 'CharField(100)', desc: 'موجودیت هدف' },
+          { name: 'entity_id', type: 'CharField(100)', desc: 'شناسه هدف' }
+        ]
+      }
+    ];
+
+    // Accurate Relationships (Foreign Keys & Relations)
+    const RELATIONS = [
+      // Accounts -> Others
+      { from: 'SwimmerProfile', to: 'User', label: '1:1 (user_id)', style: 'dashed', title: 'حساب کاربری شناگر' },
+      { from: 'CoachProfile', to: 'User', label: '1:1 (user_id)', style: 'dashed', title: 'حساب کاربری مربی' },
+      { from: 'SwimmerGuardianRelation', to: 'User', label: 'N:1 (guardian_id)', title: 'سرپرست قانونی' },
+      { from: 'SwimmerGuardianRelation', to: 'SwimmerProfile', label: 'N:1 (swimmer_id)', title: 'شناگر تحت تکفل' },
+
+      // Swimmers & Levels
+      { from: 'SwimmerProfile', to: 'SkillLevel', label: 'N:1 (current_level_id)', title: 'سطح مهارت فعلی' },
+
+      // Education
+      { from: 'Skill', to: 'SkillLevel', label: 'N:1 (level_id)', title: 'سطح مهارت والد' },
+      { from: 'SwimmerGroup', to: 'Course', label: 'N:1 (course_id)', title: 'دوره کلاسی' },
+      { from: 'SwimmerGroup', to: 'SkillLevel', label: 'N:1 (skill_level_id)', title: 'سطح پیش‌نیاز کلاس' },
+      { from: 'GroupSchedule', to: 'SwimmerGroup', label: 'N:1 (group_id)', title: 'برنامه گروه' },
+      { from: 'GroupCoach', to: 'SwimmerGroup', label: 'N:1 (group_id)', title: 'گروه مربی' },
+      { from: 'GroupCoach', to: 'CoachProfile', label: 'N:1 (coach_id)', title: 'مربی تخصیص‌یافته' },
+
+      // Enrollments
+      { from: 'EnrollmentRequest', to: 'Course', label: 'N:1 (course_id)', title: 'دوره تقاضاشده' },
+      { from: 'EnrollmentRequest', to: 'SwimmerGroup', label: 'N:1 (group_id)', title: 'گروه انتخابی' },
+      { from: 'EnrollmentRequest', to: 'CoachProfile', label: 'N:1 (coach_id)', title: 'مربی انتخابی' },
+      { from: 'EnrollmentRequest', to: 'SwimmerProfile', label: 'N:1 (swimmer_id)', title: 'شناگر پرونده‌دار' },
+      { from: 'EnrollmentRequest', to: 'User', label: 'N:1 (reviewed_by_id)', title: 'کارشناس بررسی' },
+
+      { from: 'Enrollment', to: 'SwimmerProfile', label: 'N:1 (swimmer_id)', title: 'شناگر قطعی' },
+      { from: 'Enrollment', to: 'Course', label: 'N:1 (course_id)', title: 'دوره ثبت‌نامی' },
+      { from: 'Enrollment', to: 'SwimmerGroup', label: 'N:1 (group_id)', title: 'گروه اجرایی' },
+      { from: 'Enrollment', to: 'CoachProfile', label: 'N:1 (coach_id)', title: 'مربی کلاس' },
+
+      // Scheduling & Attendance
+      { from: 'ClassSession', to: 'SwimmerGroup', label: 'N:1 (group_id)', title: 'گروه جلسه' },
+      { from: 'ClassSession', to: 'CoachProfile', label: 'N:1 (coach_id)', title: 'مربی کلاس' },
+      { from: 'ClassSession', to: 'ClassSession', label: 'N:1 (replaces_session_id)', title: 'جلسه جبرانی جایگزین' },
+      { from: 'ClassSession', to: 'User', label: 'N:1 (cancelled_by_id)', title: 'لغوکننده جلسه' },
+
+      { from: 'AttendanceRecord', to: 'ClassSession', label: 'N:1 (session_id)', title: 'جلسه کلاسی' },
+      { from: 'AttendanceRecord', to: 'SwimmerProfile', label: 'N:1 (swimmer_id)', title: 'شناگر حاضر/غایب' },
+      { from: 'AttendanceRecord', to: 'Enrollment', label: 'N:1 (enrollment_id)', title: 'کسر از سهمیه دوره' },
+      { from: 'AttendanceRecord', to: 'User', label: 'N:1 (recorded_by_id)', title: 'مربی ثبت‌کننده' },
+
+      // Finance
+      { from: 'Invoice', to: 'SwimmerProfile', label: 'N:1 (swimmer_id)', title: 'شناگر صورتحساب' },
+      { from: 'Invoice', to: 'Enrollment', label: '1:1 (enrollment_id)', style: 'dashed', title: 'ثبت‌نام متناظر' },
+      { from: 'InvoiceItem', to: 'Invoice', label: 'N:1 (invoice_id)', title: 'ردیف فاکتور' },
+      { from: 'Installment', to: 'Invoice', label: 'N:1 (invoice_id)', title: 'اقساط فاکتور' },
+      { from: 'Payment', to: 'SwimmerProfile', label: 'N:1 (swimmer_id)', title: 'شناگر واریزکننده' },
+      { from: 'Payment', to: 'User', label: 'N:1 (recorded_by_id)', title: 'کاربر ثبت تراکنش' },
+      { from: 'PaymentAllocation', to: 'Payment', label: 'N:1 (payment_id)', title: 'تراکنش منبع' },
+      { from: 'PaymentAllocation', to: 'Invoice', label: 'N:1 (invoice_id)', title: 'فاکتور تسویه‌شونده' },
+      { from: 'PaymentAllocation', to: 'Installment', label: 'N:1 (installment_id)', title: 'قسط تسویه‌شونده' },
+      { from: 'FinancialAdjustment', to: 'Invoice', label: 'N:1 (invoice_id)', title: 'تعدیل مالی فاکتور' },
+      { from: 'FinancialAdjustment', to: 'User', label: 'N:1 (approved_by_id)', title: 'تأییدکننده تخفیف' },
+
+      // Assessments & Workouts
+      { from: 'SkillAssessment', to: 'SwimmerProfile', label: 'N:1 (swimmer_id)', title: 'شناگر ارزیابی‌شده' },
+      { from: 'SkillAssessment', to: 'Skill', label: 'N:1 (skill_id)', title: 'آیتم مهارتی' },
+      { from: 'SkillAssessment', to: 'User', label: 'N:1 (assessed_by_id)', title: 'مربی ارزیاب' },
+
+      { from: 'SwimmingRecord', to: 'SwimmerProfile', label: 'N:1 (swimmer_id)', title: 'شناگر رکوردار' },
+      { from: 'SwimmingRecord', to: 'User', label: 'N:1 (recorded_by_id)', title: 'ثبت‌کننده رکورد' },
+      { from: 'SwimmingRecord', to: 'User', label: 'N:1 (verified_by_id)', title: 'داور تأییدکننده' },
+
+      { from: 'WorkoutPlan', to: 'CoachProfile', label: 'N:1 (coach_id)', title: 'مربی طراح' },
+      { from: 'WorkoutPlan', to: 'SwimmerGroup', label: 'N:1 (group_id)', title: 'گروه تمرینی' },
+      { from: 'WorkoutPlan', to: 'ClassSession', label: 'N:1 (session_id)', title: 'جلسه تمرینی' },
+      { from: 'WorkoutPlan', to: 'SkillLevel', label: 'N:1 (target_level_id)', title: 'سطح هدف' },
+
+      // Leagues
+      { from: 'LeagueCategory', to: 'League', label: 'N:1 (league_id)', title: 'لیگ مسابقاتی' },
+      { from: 'LeagueEntry', to: 'League', label: 'N:1 (league_id)', title: 'لیگ مسابقه' },
+      { from: 'LeagueEntry', to: 'LeagueCategory', label: 'N:1 (category_id)', title: 'رده مسابقاتی' },
+      { from: 'LeagueEntry', to: 'SwimmerProfile', label: 'N:1 (swimmer_id)', title: 'شناگر عضو لیگ' },
+      { from: 'LeagueResult', to: 'LeagueEntry', label: 'N:1 (entry_id)', title: 'ورودی لیگ' },
+      { from: 'LeagueResult', to: 'SwimmingRecord', label: 'N:1 (swimming_record_id)', title: 'رکورد مبنا' },
+      { from: 'LeagueResult', to: 'User', label: 'N:1 (verified_by_id)', title: 'داور ناظر' },
+
+      // Content & Comms
+      { from: 'NewsPost', to: 'User', label: 'N:1 (author_id)', title: 'نویسنده خبر' },
+      { from: 'NewsImage', to: 'NewsPost', label: 'N:1 (news_post_id)', title: 'خبر والد' },
+      { from: 'PoolImage', to: 'SwimmingPool', label: 'N:1 (pool_id)', title: 'استخر والد' },
+      { from: 'Announcement', to: 'SwimmerGroup', label: 'N:1 (target_group_id)', title: 'گروه هدف' },
+      { from: 'Announcement', to: 'User', label: 'N:1 (created_by_id)', title: 'ارسال‌کننده' },
+      { from: 'Notification', to: 'User', label: 'N:1 (recipient_id)', title: 'گیرنده پیام' },
+      { from: 'SupportTicket', to: 'User', label: 'N:1 (user_id)', title: 'کاربر متقاضی' },
+      { from: 'SupportTicket', to: 'SwimmerProfile', label: 'N:1 (swimmer_id)', title: 'شناگر مرتبط' },
+      { from: 'SupportTicket', to: 'User', label: 'N:1 (responded_by_id)', title: 'پاسخ‌دهنده پشتیبانی' },
+
+      // Supervisor
+      { from: 'SystemErrorLog', to: 'User', label: 'N:1 (user_id)', title: 'کاربر زمان خطا' },
+      { from: 'SystemErrorLog', to: 'User', label: 'N:1 (resolved_by_id)', title: 'ناظر رفع‌کننده' },
+      { from: 'AuditLog', to: 'User', label: 'N:1 (actor_id)', title: 'کاربر اقدام‌کننده' }
+    ];
+
+    // State
+    let activeModules = new Set(Object.keys(MODULES));
+    let network = null;
+    let nodesDataSet = null;
+    let edgesDataSet = null;
+    let isPhysicsOn = true;
+
+    // Build Sidebar Modules
+    const modulesContainer = document.getElementById('modules-list');
+    Object.keys(MODULES).forEach((key) => {
+      const mod = MODULES[key];
+      const item = document.createElement('div');
+      item.className = 'module-item';
+      item.dataset.module = key;
+      item.innerHTML = `
+        <div class="module-left">
+          <div class="color-dot" style="background-color: ${mod.color};"></div>
+          <span class="module-name">${mod.name}</span>
+        </div>
+        <span class="module-count">${mod.count} جدول</span>
+      `;
+      item.addEventListener('click', () => {
+        if (activeModules.has(key)) {
+          activeModules.delete(key);
+          item.classList.add('disabled');
+        } else {
+          activeModules.add(key);
+          item.classList.remove('disabled');
+        }
+        updateGraphFilter();
+      });
+      modulesContainer.appendChild(item);
+    });
+
+    // Toggle All Modules
+    document.getElementById('btn-toggle-all').addEventListener('click', () => {
+      if (activeModules.size > 0) {
+        activeModules.clear();
+        document.querySelectorAll('.module-item').forEach(el => el.classList.add('disabled'));
+      } else {
+        Object.keys(MODULES).forEach(k => activeModules.add(k));
+        document.querySelectorAll('.module-item').forEach(el => el.classList.remove('disabled'));
+      }
+      updateGraphFilter();
+    });
+
+    // Initialize Vis.js Network
+    function initNetwork() {
+      const container = document.getElementById('network-canvas');
+
+      const rawNodes = MODELS.map(m => {
+        const modColor = MODULES[m.module].color;
+        return {
+          id: m.id,
+          label: m.label,
+          title: `جدول: ${m.id} (${MODULES[m.module].name})`,
+          shape: 'box',
+          margin: 12,
+          color: {
+            background: '#111d3d',
+            border: modColor,
+            highlight: {
+              background: '#1b2f63',
+              border: '#38bdf8'
+            },
+            hover: {
+              background: '#16264f',
+              border: '#38bdf8'
+            }
+          },
+          borderWidth: 2,
+          font: {
+            color: '#ffffff',
+            size: 13,
+            face: 'Vazirmatn'
+          },
+          shadow: {
+            enabled: true,
+            color: 'rgba(0,0,0,0.5)',
+            size: 10,
+            x: 2,
+            y: 4
+          },
+          module: m.module
+        };
+      });
+
+      const rawEdges = RELATIONS.map((r, idx) => ({
+        id: `e_${idx}`,
+        from: r.from,
+        to: r.to,
+        label: r.label,
+        title: r.title,
+        arrows: 'to',
+        dashes: r.style === 'dashed',
+        color: {
+          color: r.style === 'dashed' ? '#f59e0b' : '#38bdf8',
+          highlight: '#ffffff',
+          hover: '#ffffff',
+          opacity: 0.65
+        },
+        font: {
+          color: '#94a3b8',
+          size: 10,
+          face: 'JetBrains Mono',
+          align: 'middle',
+          background: 'rgba(11, 19, 41, 0.75)'
+        },
+        smooth: {
+          type: 'cubicBezier',
+          forceDirection: 'none',
+          roundness: 0.25
+        }
+      }));
+
+      nodesDataSet = new vis.DataSet(rawNodes);
+      edgesDataSet = new vis.DataSet(rawEdges);
+
+      const data = {
+        nodes: nodesDataSet,
+        edges: edgesDataSet
+      };
+
+      const options = {
+        physics: {
+          enabled: true,
+          solver: 'forceAtlas2Based',
+          forceAtlas2Based: {
+            gravitationalConstant: -70,
+            centralGravity: 0.015,
+            springLength: 140,
+            springConstant: 0.08,
+            damping: 0.4
+          },
+          stabilization: {
+            iterations: 200,
+            updateInterval: 25
+          }
+        },
+        interaction: {
+          hover: true,
+          navigationButtons: false,
+          keyboard: false,
+          zoomView: true,
+          dragView: true
+        }
+      };
+
+      network = new vis.Network(container, data, options);
+
+      // Node Click -> Open Details Drawer & Highlight Connections
+      network.on('click', function(params) {
+        if (params.nodes.length > 0) {
+          const selectedId = params.nodes[0];
+          showTableDetails(selectedId);
+          highlightConnected(selectedId);
+        } else {
+          hideTableDetails();
+          resetHighlight();
+        }
+      });
+    }
+
+    function updateGraphFilter() {
+      const searchTerm = document.getElementById('search-input').value.trim().toLowerCase();
+
+      MODELS.forEach(m => {
+        const isModuleActive = activeModules.has(m.module);
+        let matchesSearch = true;
+
+        if (searchTerm) {
+          const inName = m.id.toLowerCase().includes(searchTerm) || m.label.toLowerCase().includes(searchTerm);
+          const inFields = m.fields.some(f => f.name.toLowerCase().includes(searchTerm) || f.desc.toLowerCase().includes(searchTerm));
+          matchesSearch = inName || inFields;
+        }
+
+        const isHidden = !(isModuleActive && matchesSearch);
+        nodesDataSet.update({ id: m.id, hidden: isHidden });
+      });
+
+      // Update edges visibility
+      RELATIONS.forEach((r, idx) => {
+        const fromHidden = nodesDataSet.get(r.from)?.hidden;
+        const toHidden = nodesDataSet.get(r.to)?.hidden;
+        edgesDataSet.update({ id: `e_${idx}`, hidden: fromHidden || toHidden });
+      });
+    }
+
+    // Highlighting
+    function highlightConnected(nodeId) {
+      const connectedNodes = network.getConnectedNodes(nodeId);
+      connectedNodes.push(nodeId);
+
+      const allNodes = nodesDataSet.get();
+      const updateArray = allNodes.map(node => {
+        const isConnected = connectedNodes.includes(node.id);
+        return {
+          id: node.id,
+          opacity: isConnected ? 1 : 0.15
+        };
+      });
+      nodesDataSet.update(updateArray);
+
+      const allEdges = edgesDataSet.get();
+      const edgeUpdates = allEdges.map(edge => {
+        const isConnected = edge.from === nodeId || edge.to === nodeId;
+        return {
+          id: edge.id,
+          color: {
+            opacity: isConnected ? 1 : 0.05
+          }
+        };
+      });
+      edgesDataSet.update(edgeUpdates);
+    }
+
+    function resetHighlight() {
+      const allNodes = nodesDataSet.get().map(n => ({ id: n.id, opacity: 1 }));
+      nodesDataSet.update(allNodes);
+
+      const allEdges = edgesDataSet.get().map(e => ({
+        id: e.id,
+        color: { opacity: 0.65 }
+      }));
+      edgesDataSet.update(allEdges);
+    }
+
+    // Show Table Details in Drawer
+    function showTableDetails(modelId) {
+      const model = MODELS.find(m => m.id === modelId);
+      if (!model) return;
+
+      const drawer = document.getElementById('details-drawer');
+      document.getElementById('drawer-model-name').textContent = model.id;
+      document.getElementById('drawer-app-name').textContent = `apps.${model.module}`;
+      document.getElementById('drawer-model-desc').textContent = model.desc;
+
+      const tbody = document.getElementById('drawer-fields-body');
+      tbody.innerHTML = '';
+
+      model.fields.forEach(f => {
+        const tr = document.createElement('tr');
+        const badge = f.pk ? '<span class="pk-badge">PK</span>' : (f.fk ? '<span class="fk-badge">FK</span>' : '');
+        tr.innerHTML = `
+          <td>${badge}<strong>${f.name}</strong></td>
+          <td style="color: #38bdf8;">${f.type}</td>
+          <td class="field-desc">${f.desc}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      drawer.classList.add('active');
+    }
+
+    function hideTableDetails() {
+      document.getElementById('details-drawer').classList.remove('active');
+    }
+
+    document.getElementById('btn-close-drawer').addEventListener('click', () => {
+      hideTableDetails();
+      resetHighlight();
+    });
+
+    // Controls
+    document.getElementById('btn-fit').addEventListener('click', () => {
+      network.fit({ animation: { duration: 600, easingFunction: 'easeInOutQuad' } });
+    });
+
+    document.getElementById('reset-cam').addEventListener('click', () => {
+      network.moveTo({ position: { x: 0, y: 0 }, scale: 0.9, animation: { duration: 500 } });
+    });
+
+    document.getElementById('zoom-in').addEventListener('click', () => {
+      const scale = network.getScale();
+      network.moveTo({ scale: scale * 1.25, animation: { duration: 300 } });
+    });
+
+    document.getElementById('zoom-out').addEventListener('click', () => {
+      const scale = network.getScale();
+      network.moveTo({ scale: scale * 0.8, animation: { duration: 300 } });
+    });
+
+    const btnPhysics = document.getElementById('btn-physics');
+    btnPhysics.addEventListener('click', () => {
+      isPhysicsOn = !isPhysicsOn;
+      network.setOptions({ physics: { enabled: isPhysicsOn } });
+      btnPhysics.textContent = isPhysicsOn ? '⚡ توقف شبیه‌سازی' : '▶️ فعال‌سازی فیزیک';
+    });
+
+    document.getElementById('search-input').addEventListener('input', updateGraphFilter);
+
+    // Export Graph as PNG
+    document.getElementById('btn-export').addEventListener('click', () => {
+      const canvas = document.querySelector('#network-canvas canvas');
+      if (!canvas) return;
+      const imgUrl = canvas.toDataURL('image/png');
+      const a = document.createElement('a');
+      a.href = imgUrl;
+      a.download = 'iranswim_database_erd.png';
+      a.click();
+    });
+
+    // Boot
+    window.addEventListener('load', () => {
+      initNetwork();
+    });
+  </script>
+</body>
+</html>

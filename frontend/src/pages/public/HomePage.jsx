@@ -443,16 +443,34 @@ export const HomePage = () => {
 
       const targetCard = cards[nextIndex];
       if (targetCard) {
-        const targetOffset = targetCard.offsetLeft - (track.clientWidth - targetCard.clientWidth) / 2;
-        track.scrollTo({
-          left: targetOffset,
+        const trackRect = track.getBoundingClientRect();
+        const cardRect = targetCard.getBoundingClientRect();
+        const delta = (cardRect.left + cardRect.width / 2) - (trackRect.left + trackRect.width / 2);
+        track.scrollBy({
+          left: delta,
           behavior: 'smooth',
         });
       }
-    }, 3600);
+    }, 4000);
 
     return () => clearInterval(intervalId);
   }, []);
+
+  const scrollToBenefit = (index) => {
+    const track = benefitsTrackRef.current;
+    if (!track) return;
+    const cards = Array.from(track.children);
+    const card = cards[index];
+    if (!card) return;
+
+    const trackRect = track.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    const delta = (cardRect.left + cardRect.width / 2) - (trackRect.left + trackRect.width / 2);
+    track.scrollBy({ left: delta, behavior: 'smooth' });
+    setActiveBenefitDot(index);
+    activeBenefitIndexRef.current = index;
+    handleBenefitInteractionStart();
+  };
 
   const handleBenefitInteractionStart = () => {
     isBenefitInteractingRef.current = true;
@@ -496,6 +514,90 @@ export const HomePage = () => {
 
     activeBenefitIndexRef.current = closestIndex;
     setActiveBenefitDot(closestIndex);
+  };
+
+  // Facilities smooth scroll tracking for mobile
+  const facilitiesTrackRef = useRef(null);
+  const [activeFacilityDot, setActiveFacilityDot] = useState(0);
+
+  const handleFacilityScroll = () => {
+    const track = facilitiesTrackRef.current;
+    if (!track) return;
+    const cards = Array.from(track.children);
+    if (!cards || cards.length === 0) return;
+
+    const trackRect = track.getBoundingClientRect();
+    const trackCenter = trackRect.left + trackRect.width / 2;
+    let closestIndex = 0;
+    let minDiff = Infinity;
+
+    cards.forEach((card, idx) => {
+      const cardRect = card.getBoundingClientRect();
+      const cardCenter = cardRect.left + cardRect.width / 2;
+      const diff = Math.abs(trackCenter - cardCenter);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = idx;
+      }
+    });
+
+    setActiveFacilityDot(closestIndex);
+  };
+
+  const scrollToFacility = (index) => {
+    const track = facilitiesTrackRef.current;
+    if (!track) return;
+    const cards = Array.from(track.children);
+    const card = cards[index];
+    if (!card) return;
+
+    const trackRect = track.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    const delta = (cardRect.left + cardRect.width / 2) - (trackRect.left + trackRect.width / 2);
+    track.scrollBy({ left: delta, behavior: 'smooth' });
+    setActiveFacilityDot(index);
+  };
+
+  // Hero feature cards smooth scroll tracking for mobile
+  const heroFeaturesTrackRef = useRef(null);
+  const [activeHeroFeatureDot, setActiveHeroFeatureDot] = useState(0);
+
+  const handleHeroFeatureScroll = () => {
+    const track = heroFeaturesTrackRef.current;
+    if (!track) return;
+    const cards = Array.from(track.children);
+    if (!cards || cards.length === 0) return;
+
+    const trackRect = track.getBoundingClientRect();
+    const trackCenter = trackRect.left + trackRect.width / 2;
+    let closestIndex = 0;
+    let minDiff = Infinity;
+
+    cards.forEach((card, idx) => {
+      const cardRect = card.getBoundingClientRect();
+      const cardCenter = cardRect.left + cardRect.width / 2;
+      const diff = Math.abs(trackCenter - cardCenter);
+      if (diff < minDiff) {
+        minDiff = diff;
+        closestIndex = idx;
+      }
+    });
+
+    setActiveHeroFeatureDot(closestIndex);
+  };
+
+  const scrollToHeroFeature = (index) => {
+    const track = heroFeaturesTrackRef.current;
+    if (!track) return;
+    const cards = Array.from(track.children);
+    const card = cards[index];
+    if (!card) return;
+
+    const trackRect = track.getBoundingClientRect();
+    const cardRect = card.getBoundingClientRect();
+    const delta = (cardRect.left + cardRect.width / 2) - (trackRect.left + trackRect.width / 2);
+    track.scrollBy({ left: delta, behavior: 'smooth' });
+    setActiveHeroFeatureDot(index);
   };
 
   useEffect(() => {
@@ -642,37 +744,60 @@ export const HomePage = () => {
   };
 
   const renderHeroFeatureCards = () => (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5 lg:gap-4 items-stretch">
-      <div className="hero-feature-card w-full p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
-        <div className="hero-feature-header flex items-center gap-1.5 text-black text-xs sm:text-sm lg:text-[14px] font-black whitespace-nowrap">
-          <Waves className="w-4 h-4 text-cyan-600 shrink-0" />
-          <span className="hero-feature-title font-black text-black whitespace-nowrap">آموزش ۴ شنا</span>
+    <div className="space-y-2">
+      <div
+        ref={heroFeaturesTrackRef}
+        onScroll={handleHeroFeatureScroll}
+        className="flex sm:grid sm:grid-cols-4 overflow-x-auto sm:overflow-visible gap-2.5 sm:gap-3.5 lg:gap-4 items-stretch landing-scroll-track pb-2 pt-1 px-1 -mx-1 snap-x snap-mandatory sm:snap-none"
+      >
+        <div className="hero-feature-card w-[72vw] max-w-[260px] sm:w-full shrink-0 snap-center sm:snap-none p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
+          <div className="hero-feature-header flex items-center gap-1.5 text-black text-xs sm:text-sm lg:text-[14px] font-black whitespace-nowrap">
+            <Waves className="w-4 h-4 text-cyan-600 shrink-0" />
+            <span className="hero-feature-title font-black text-black whitespace-nowrap">آموزش ۴ شنا</span>
+          </div>
+          <p className="hero-feature-desc text-xs sm:text-[13px] text-slate-800 font-semibold leading-snug sm:leading-relaxed">کرال سینه، پشت، قورباغه و پروانه</p>
         </div>
-        <p className="hero-feature-desc text-xs sm:text-[13px] text-slate-800 font-semibold leading-snug sm:leading-relaxed">کرال سینه، پشت، قورباغه و پروانه</p>
+
+        <div className="hero-feature-card w-[72vw] max-w-[260px] sm:w-full shrink-0 snap-center sm:snap-none p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
+          <div className="hero-feature-header flex items-center gap-1.5 text-black text-xs sm:text-sm lg:text-[14px] font-black whitespace-nowrap">
+            <Award className="w-4 h-4 text-cyan-600 shrink-0" />
+            <span className="hero-feature-title font-black text-black whitespace-nowrap">مربیان رسمی</span>
+          </div>
+          <p className="hero-feature-desc text-xs sm:text-[13px] text-slate-800 font-semibold leading-snug sm:leading-relaxed">دارای کارت مربیگری و نجات‌غریق</p>
+        </div>
+
+        <div className="hero-feature-card w-[72vw] max-w-[260px] sm:w-full shrink-0 snap-center sm:snap-none p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
+          <div className="hero-feature-header flex items-center gap-1.5 text-black text-xs sm:text-sm lg:text-[14px] font-black whitespace-nowrap">
+            <Users2 className="w-4 h-4 text-cyan-600 shrink-0" />
+            <span className="hero-feature-title font-black text-black whitespace-nowrap">کودکان و بزرگسالان</span>
+          </div>
+          <p className="hero-feature-desc text-xs sm:text-[13px] text-slate-800 font-semibold leading-snug sm:leading-relaxed">از ۵ سال تا رده‌های بزرگسال</p>
+        </div>
+
+        <div className="hero-feature-card w-[72vw] max-w-[260px] sm:w-full shrink-0 snap-center sm:snap-none p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
+          <div className="hero-feature-header flex items-center gap-1.5 text-black text-xs sm:text-sm lg:text-[14px] font-black whitespace-nowrap">
+            <MapPin className="w-4 h-4 text-cyan-600 shrink-0" />
+            <span className="hero-feature-title font-black text-black whitespace-nowrap">استخرهای قزوین</span>
+          </div>
+          <p className="hero-feature-desc text-xs sm:text-[13px] text-slate-800 font-semibold leading-snug sm:leading-relaxed">محیط تمیز، بهداشتی و ایمن</p>
+        </div>
       </div>
 
-      <div className="hero-feature-card w-full p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
-        <div className="hero-feature-header flex items-center gap-1.5 text-black text-xs sm:text-sm lg:text-[14px] font-black whitespace-nowrap">
-          <Award className="w-4 h-4 text-cyan-600 shrink-0" />
-          <span className="hero-feature-title font-black text-black whitespace-nowrap">مربیان رسمی</span>
-        </div>
-        <p className="hero-feature-desc text-xs sm:text-[13px] text-slate-800 font-semibold leading-snug sm:leading-relaxed">دارای کارت مربیگری و نجات‌غریق</p>
-      </div>
-
-      <div className="hero-feature-card w-full p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
-        <div className="hero-feature-header flex items-center gap-1.5 text-black text-xs sm:text-sm lg:text-[14px] font-black whitespace-nowrap">
-          <Users2 className="w-4 h-4 text-cyan-600 shrink-0" />
-          <span className="hero-feature-title font-black text-black whitespace-nowrap">کودکان و بزرگسالان</span>
-        </div>
-        <p className="hero-feature-desc text-xs sm:text-[13px] text-slate-800 font-semibold leading-snug sm:leading-relaxed">از ۵ سال تا رده‌های بزرگسال</p>
-      </div>
-
-      <div className="hero-feature-card w-full p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
-        <div className="hero-feature-header flex items-center gap-1.5 text-black text-xs sm:text-sm lg:text-[14px] font-black whitespace-nowrap">
-          <MapPin className="w-4 h-4 text-cyan-600 shrink-0" />
-          <span className="hero-feature-title font-black text-black whitespace-nowrap">استخرهای قزوین</span>
-        </div>
-        <p className="hero-feature-desc text-xs sm:text-[13px] text-slate-800 font-semibold leading-snug sm:leading-relaxed">محیط تمیز، بهداشتی و ایمن</p>
+      {/* Subtle indicator dots on mobile */}
+      <div className="flex sm:hidden items-center justify-center gap-1.5 pt-0.5" aria-hidden="true">
+        {[0, 1, 2, 3].map((idx) => (
+          <button
+            key={idx}
+            type="button"
+            onClick={() => scrollToHeroFeature(idx)}
+            className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+              activeHeroFeatureDot === idx
+                ? 'w-5 bg-cyan-400 shadow-xs'
+                : 'w-1.5 bg-cyan-900/30'
+            }`}
+            aria-label={`کارت ${idx + 1}`}
+          />
+        ))}
       </div>
     </div>
   );
@@ -889,16 +1014,19 @@ export const HomePage = () => {
             </div>
           </div>
 
-          {/* Dots Indicator for Mobile & Tablet (NO Play/Pause button) */}
+          {/* Dots Indicator for Mobile & Tablet (Interactive) */}
           <div className="flex lg:hidden items-center justify-center gap-2 pt-1" aria-hidden="true">
             {[0, 1, 2].map((idx) => (
-              <span
+              <button
                 key={idx}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
+                type="button"
+                onClick={() => scrollToBenefit(idx)}
+                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
                   activeBenefitDot === idx
                     ? 'w-7 bg-cyan-400 shadow-sm shadow-cyan-400/50'
-                    : 'w-2 bg-cyan-900/40'
+                    : 'w-2 bg-cyan-900/40 hover:bg-cyan-900/60'
                 }`}
+                aria-label={`رفتن به ویژگی ${idx + 1}`}
               />
             ))}
           </div>
@@ -1153,9 +1281,13 @@ export const HomePage = () => {
             </div>
           </div>
 
-          <div className="landing-facilities-track landing-scroll-track flex overflow-x-auto pt-4 pb-4 px-3 sm:pt-4 sm:pb-5 sm:px-5 gap-5 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pt-4 lg:pb-5 lg:px-5 items-stretch">
+          <div
+            ref={facilitiesTrackRef}
+            onScroll={handleFacilityScroll}
+            className="landing-facilities-track landing-scroll-track flex overflow-x-auto pt-4 pb-4 px-3 sm:pt-4 sm:pb-5 sm:px-5 gap-5 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pt-4 lg:pb-5 lg:px-5 items-stretch"
+          >
             {/* Feature 1 */}
-            <div className="bg-white/95 p-6 rounded-3xl border-2 border-teal-200/80 shadow-[0_8px_24px_rgba(13,148,136,0.08)] hover:shadow-lg hover:border-teal-400 transition-all flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
+            <div className="bg-white/95 p-6 rounded-3xl border-2 border-teal-200/80 shadow-[0_8px_24px_rgba(13,148,136,0.08)] hover:shadow-lg hover:border-teal-400 transition-all flex flex-col justify-between w-[82vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-center sm:snap-start lg:w-auto lg:max-w-none lg:shrink">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="w-12 h-12 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-200 shadow-xs">
@@ -1179,7 +1311,7 @@ export const HomePage = () => {
             </div>
 
             {/* Feature 2 */}
-            <div className="bg-white/95 p-6 rounded-3xl border-2 border-amber-200/80 shadow-[0_8px_24px_rgba(217,119,6,0.08)] hover:shadow-lg hover:border-amber-400 transition-all flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
+            <div className="bg-white/95 p-6 rounded-3xl border-2 border-amber-200/80 shadow-[0_8px_24px_rgba(217,119,6,0.08)] hover:shadow-lg hover:border-amber-400 transition-all flex flex-col justify-between w-[82vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-center sm:snap-start lg:w-auto lg:max-w-none lg:shrink">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200 shadow-xs">
@@ -1203,7 +1335,7 @@ export const HomePage = () => {
             </div>
 
             {/* Feature 3 */}
-            <div className="bg-white/95 p-6 rounded-3xl border-2 border-orange-200/80 shadow-[0_8px_24px_rgba(234,88,12,0.08)] hover:shadow-lg hover:border-orange-400 transition-all flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
+            <div className="bg-white/95 p-6 rounded-3xl border-2 border-orange-200/80 shadow-[0_8px_24px_rgba(234,88,12,0.08)] hover:shadow-lg hover:border-orange-400 transition-all flex flex-col justify-between w-[82vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-center sm:snap-start lg:w-auto lg:max-w-none lg:shrink">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="w-12 h-12 rounded-xl bg-orange-50 text-orange-700 flex items-center justify-center border border-orange-200 shadow-xs">
@@ -1227,7 +1359,7 @@ export const HomePage = () => {
             </div>
 
             {/* Feature 4 */}
-            <div className="bg-white/95 p-6 rounded-3xl border-2 border-indigo-200/80 shadow-[0_8px_24px_rgba(79,70,229,0.08)] hover:shadow-lg hover:border-indigo-400 transition-all flex flex-col justify-between w-[80vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-start lg:w-auto lg:max-w-none lg:shrink">
+            <div className="bg-white/95 p-6 rounded-3xl border-2 border-indigo-200/80 shadow-[0_8px_24px_rgba(79,70,229,0.08)] hover:shadow-lg hover:border-indigo-400 transition-all flex flex-col justify-between w-[82vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-center sm:snap-start lg:w-auto lg:max-w-none lg:shrink">
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center border border-indigo-200 shadow-xs">
@@ -1249,6 +1381,23 @@ export const HomePage = () => {
                 <Check className="w-3.5 h-3.5 text-indigo-600" />
               </div>
             </div>
+          </div>
+
+          {/* Dots Indicator for Mobile & Tablet (Interactive) */}
+          <div className="flex lg:hidden items-center justify-center gap-2 pt-3" aria-hidden="true">
+            {[0, 1, 2, 3].map((idx) => (
+              <button
+                key={idx}
+                type="button"
+                onClick={() => scrollToFacility(idx)}
+                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                  activeFacilityDot === idx
+                    ? 'w-7 bg-teal-500 shadow-sm shadow-teal-500/50'
+                    : 'w-2 bg-teal-900/40 hover:bg-teal-900/60'
+                }`}
+                aria-label={`رفتن به امکان ${idx + 1}`}
+              />
+            ))}
           </div>
         </div>
         </section>

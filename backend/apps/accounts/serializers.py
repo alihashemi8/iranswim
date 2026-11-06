@@ -77,6 +77,7 @@ class IranSwimTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(read_only=True)
+    password = serializers.CharField(write_only=True, required=False, allow_blank=True)
     swimmer_id = serializers.SerializerMethodField()
     coach_id = serializers.SerializerMethodField()
     is_profile_completed = serializers.SerializerMethodField()
@@ -85,10 +86,143 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'phone', 'first_name', 'last_name', 'full_name',
-            'national_id', 'role', 'is_active', 'is_password_changed', 'swimmer_id', 'coach_id',
-            'is_profile_completed', 'created_at'
+            'national_id', 'role', 'is_active', 'is_password_changed', 'password',
+            'swimmer_id', 'coach_id', 'is_profile_completed', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
+    def validate_phone(self, value):
+        val = to_english_digits(value).strip() if value else ''
+        if not (val.startswith('09') and len(val) == 11 and val.isdigit()):
+            raise ValidationError('شماره موبایل وارد شده باید ۱۱ رقم بوده و با ۰۹ شروع شود.')
+        return val
+
+    def validate_national_id(self, value):
+        if value:
+            return to_english_digits(value).strip()
+        return value
+
+    def create(self, validated_data):
+        password = validated_data.pop('password', None)
+        phone = validated_data.get('phone')
+        role = validated_data.get('role', User.Role.SWIMMER)
+
+        if User.objects.filter(phone=phone).exists():
+            raise ValidationError({'phone': 'کاربری با این شماره همراه قبلاً در سامانه ثبت شده است.'})
+
+        user = User.objects.create_user(**validated_data)
+        if password:
+            user.set_password(to_english_digits(password).strip())
+            user.is_password_changed = True
+        elif user.national_id:
+            user.set_password(user.national_id)
+        else:
+            user.set_unusable_password()
+
+        if role in [User.Role.ADMIN, User.Role.SUPERVISOR]:
+            user.is_staff = True
+            if role == User.Role.ADMIN:
+                user.is_superuser = True
+        user.save()
+
+        # Create Profile
+        if role == User.Role.SWIMMER:
+            from apps.swimmers.models import SwimmerProfile
+            SwimmerProfile.objects.get_or_create(
+                user=user,
+                defaults={
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'phone': user.phone,
+                    'national_id': user.national_id or '',
+                }
+            )
+        elif role == User.Role.COACH:
+            from apps.coaches.models import CoachProfile
+            CoachProfile.objects.get_or_create(user=user)
+
+        # Audit Log
+        request = self.context.get('request')
+        if request and getattr(request, 'user', None) and request.user.is_authenticated:
+            try:
+                from apps.supervisor.models import AuditLog
+                AuditLog.objects.create(
+                    actor=request.user,
+                    action='USER_CREATE',
+                    entity_type='User',
+                    entity_id=str(user.id),
+                    details={
+                        'phone': user.phone,
+                        'full_name': user.full_name,
+                        'role': user.role
+                    }
+                )
+            except Exception:
+                pass
+
+        return user
+
+    def update(self, instance, validated_data):
+        password = validated_data.pop('password', None)
+        old_role = instance.role
+        phone = validated_data.get('phone')
+        if phone and phone != instance.phone and User.objects.filter(phone=phone).exclude(id=instance.id).exists():
+            raise ValidationError({'phone': 'این شماره همراه قبلاً توسط کاربر دیگری ثبت شده است.'})
+
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+
+        if password:
+            instance.set_password(to_english_digits(password).strip())
+            instance.is_password_changed = True
+
+        if instance.role in [User.Role.ADMIN, User.Role.SUPERVISOR]:
+            instance.is_staff = True
+            if instance.role == User.Role.ADMIN:
+                instance.is_superuser = True
+
+        instance.save()
+
+        # Create Profile if role changed
+        if instance.role == User.Role.SWIMMER:
+            from apps.swimmers.models import SwimmerProfile
+            SwimmerProfile.objects.get_or_create(
+                user=instance,
+                defaults={
+                    'first_name': instance.first_name,
+                    'last_name': instance.last_name,
+                    'phone': instance.phone,
+                    'national_id': instance.national_id or '',
+                }
+            )
+        elif instance.role == User.Role.COACH:
+            from apps.coaches.models import CoachProfile
+            CoachProfile.objects.get_or_create(user=instance)
+
+        # Audit Log
+        request = self.context.get('request')
+        if request and getattr(request, 'user', None) and request.user.is_authenticated:
+            try:
+                from apps.supervisor.models import AuditLog
+                action = 'ROLE_CHANGE' if old_role != instance.role else ('PASSWORD_RESET' if password else 'USER_UPDATE')
+                AuditLog.objects.create(
+                    actor=request.user,
+                    action=action,
+                    entity_type='User',
+                    entity_id=str(instance.id),
+                    details={
+                        'phone': instance.phone,
+                        'full_name': instance.full_name,
+                        'old_role': old_role,
+                        'new_role': instance.role,
+                        'is_active': instance.is_active,
+                        'password_changed': bool(password)
+                    }
+                )
+            except Exception:
+                pass
+
+        return instance
 
     def get_swimmer_id(self, obj):
         profile = getattr(obj, 'swimmer_profile', None)

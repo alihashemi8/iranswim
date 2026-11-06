@@ -7,12 +7,14 @@ from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError, AuthenticationFailed
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
+from django.db.models import Q
 from .models import User, OTPVerification
 from .serializers import (
     IranSwimTokenObtainPairSerializer, UserSerializer, RegisterSerializer,
-    SendOTPSerializer, VerifyOTPLoginSerializer, RegisterWithOTPSerializer
+    SendOTPSerializer, VerifyOTPLoginSerializer, RegisterWithOTPSerializer,
+    to_english_digits
 )
-from .permissions import IsAdminUserRole
+from .permissions import IsAdminUserRole, IsAdminOrSupervisor
 
 
 class LoginView(TokenObtainPairView):
@@ -276,16 +278,58 @@ class RegisterView(generics.CreateAPIView):
 
 
 class UserListView(generics.ListCreateAPIView):
-    queryset = User.objects.all()
+    """لیست و ایجاد کاربران با دسترسی مدیر و ناظر فنی سامانه"""
     serializer_class = UserSerializer
-    permission_classes = [IsAdminUserRole]
-    filterset_fields = ['role', 'is_active']
-    search_fields = ['first_name', 'last_name', 'phone', 'national_id']
+    permission_classes = [IsAdminOrSupervisor]
+
+    def get_queryset(self):
+        qs = User.objects.all().order_by('-created_at')
+        role = self.request.query_params.get('role')
+        if role:
+            qs = qs.filter(role=role)
+        is_active = self.request.query_params.get('is_active')
+        if is_active is not None and is_active != '':
+            if is_active.lower() in ['true', '1']:
+                qs = qs.filter(is_active=True)
+            elif is_active.lower() in ['false', '0']:
+                qs = qs.filter(is_active=False)
+        search = self.request.query_params.get('search')
+        if search:
+            search = to_english_digits(search).strip()
+            qs = qs.filter(
+                Q(phone__icontains=search) |
+                Q(first_name__icontains=search) |
+                Q(last_name__icontains=search) |
+                Q(national_id__icontains=search)
+            )
+        return qs
 
 
-class UserDetailView(generics.RetrieveUpdateAPIView):
-    """مشاهده و ویرایش مشخصات، نقش و وضعیت فعال بودن کاربر توسط مدیر"""
+class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """مشاهده، ویرایش، حذف و بازنشانی مشخصات کاربر توسط مدیر و ناظر فنی"""
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    permission_classes = [IsAdminUserRole]
+    permission_classes = [IsAdminOrSupervisor]
+
+    def perform_destroy(self, instance):
+        if instance == self.request.user:
+            raise ValidationError('شما نمی‌توانید حساب کاربری فعال خود را حذف نمایید.')
+
+        try:
+            from apps.supervisor.models import AuditLog
+            AuditLog.objects.create(
+                actor=self.request.user,
+                action='USER_DELETE',
+                entity_type='User',
+                entity_id=str(instance.id),
+                details={
+                    'phone': instance.phone,
+                    'full_name': instance.full_name,
+                    'role': instance.role
+                }
+            )
+        except Exception:
+            pass
+
+        instance.delete()
 
