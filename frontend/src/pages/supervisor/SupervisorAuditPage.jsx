@@ -38,6 +38,10 @@ export const SupervisorAuditPage = () => {
   const actionLabels = {
     LOGIN: { label: 'ورود به سیستم', variant: 'neutral' },
     ROLE_CHANGE: { label: 'تغییر نقش کاربر', variant: 'warning' },
+    USER_CREATE: { label: 'ایجاد کاربر جدید', variant: 'primary' },
+    USER_UPDATE: { label: 'ویرایش مشخصات کاربر', variant: 'info' },
+    USER_DELETE: { label: 'حذف کاربر', variant: 'danger' },
+    PASSWORD_RESET: { label: 'تغییر کلمه عبور کاربر', variant: 'warning' },
     ENROLLMENT_CREATE: { label: 'ثبت‌نام جدید', variant: 'info' },
     PAYMENT_RECORD: { label: 'ثبت پرداخت مالی', variant: 'success' },
     REFUND_ISSUE: { label: 'استرداد یا تخفیف', variant: 'danger' },

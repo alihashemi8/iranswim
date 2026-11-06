@@ -12,6 +12,7 @@ import { DashboardShell } from './components/layout/DashboardShell';
 import { HomePage } from './pages/public/HomePage';
 import { LoginPage } from './pages/public/LoginPage';
 import { SupervisorDashboard } from './pages/supervisor/SupervisorDashboard';
+import { SupervisorUsersPage } from './pages/supervisor/SupervisorUsersPage';
 import { SupervisorErrorsPage } from './pages/supervisor/SupervisorErrorsPage';
 import { SupervisorAuditPage } from './pages/supervisor/SupervisorAuditPage';
 import { SupervisorTestTriggerPage } from './pages/supervisor/SupervisorTestTriggerPage';
@@ -135,6 +136,7 @@ export default function App() {
                 }
               >
                 <Route index element={<SupervisorDashboard />} />
+                <Route path="users" element={<SupervisorUsersPage />} />
                 <Route path="errors" element={<SupervisorErrorsPage />} />
                 <Route path="audit" element={<SupervisorAuditPage />} />
                 <Route path="test" element={<SupervisorTestTriggerPage />} />

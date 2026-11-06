@@ -657,5 +657,58 @@ def test_support_ticket_flow(api_client, admin_user):
     assert 'با غیبت موجه موافقت شد' in user_tickets_res.data['results'][0]['response']
 
 
+@pytest.mark.django_db
+def test_supervisor_user_management_crud(api_client, supervisor_user):
+    """تست کامل مدیریت کاربران (ایجاد، ویرایش، تغییر نقش، تغییر کلمه عبور و حذف) توسط ناظر فنی"""
+    from apps.supervisor.models import AuditLog
+
+    api_client.force_authenticate(user=supervisor_user)
+
+    # 1. ناظر فنی لیست کاربران را دریافت می‌کند
+    list_res = api_client.get('/api/auth/users/')
+    assert list_res.status_code == 200
+
+    # 2. ناظر فنی یک کاربر جدید با نقش مدیر می‌سازد
+    create_res = api_client.post('/api/auth/users/', {
+        'phone': '09129998877',
+        'first_name': 'مدیر جدید',
+        'last_name': 'تهرانی',
+        'national_id': '0012345678',
+        'role': 'ADMIN',
+        'password': 'StrongPassword@2026',
+        'is_active': True,
+    })
+    assert create_res.status_code == 201
+    new_user_id = create_res.data['id']
+    assert create_res.data['phone'] == '09129998877'
+    assert create_res.data['role'] == 'ADMIN'
+
+    # بررسی ثبت در دیتابیس و لاگ حسابرسی
+    created_user = User.objects.get(id=new_user_id)
+    assert created_user.check_password('StrongPassword@2026')
+    assert AuditLog.objects.filter(entity_type='User', entity_id=str(new_user_id), action='USER_CREATE').exists()
+
+    # 3. ناظر فنی مشخصات و کلمه عبور کاربر را ویرایش می‌کند
+    update_res = api_client.patch(f'/api/auth/users/{new_user_id}/', {
+        'first_name': 'مدیر ارشد',
+        'password': 'UpdatedPassword@2026',
+    })
+    assert update_res.status_code == 200
+    assert update_res.data['first_name'] == 'مدیر ارشد'
+    created_user.refresh_from_db()
+    assert created_user.check_password('UpdatedPassword@2026')
+
+    # 4. جلوگیری از حذف کاربر جاری توسط خودش
+    self_delete_res = api_client.delete(f'/api/auth/users/{supervisor_user.id}/')
+    assert self_delete_res.status_code == 400
+
+    # 5. ناظر فنی کاربر ایجاد شده را حذف می‌کند
+    delete_res = api_client.delete(f'/api/auth/users/{new_user_id}/')
+    assert delete_res.status_code == 204
+    assert not User.objects.filter(id=new_user_id).exists()
+    assert AuditLog.objects.filter(entity_type='User', entity_id=str(new_user_id), action='USER_DELETE').exists()
+
+
+
 
 

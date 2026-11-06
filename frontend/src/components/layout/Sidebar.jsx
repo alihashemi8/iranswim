@@ -148,6 +148,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       groupTitle: 'نظارت فنی و زیرساخت',
       items: [
         { to: '/supervisor', label: 'داشبورد سلامت و سرور', icon: Activity, end: true },
+        { to: '/supervisor/users', label: 'مدیریت کاربران و دسترسی‌ها', icon: Users },
         { to: '/supervisor/errors', label: 'لاگ باگ‌ها و استک‌ترس', icon: Bug },
         { to: '/supervisor/audit', label: 'حسابرسی عملیات (Audit)', icon: ShieldCheck },
         { to: '/supervisor/test', label: 'شبیه‌ساز و تست خطا', icon: Zap },
