@@ -242,11 +242,22 @@ class AnnouncementListView(generics.ListCreateAPIView):
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs
         elif user.role == 'COACH':
-            return qs.filter(audience__in=['ALL', 'COACHES'])
+            coach_profile = getattr(user, 'coach_profile', None)
+            gender_filter = []
+            if coach_profile and coach_profile.gender == 'MALE':
+                gender_filter.append('COACHES_MALE')
+            elif coach_profile and coach_profile.gender == 'FEMALE':
+                gender_filter.append('COACHES_FEMALE')
+            return qs.filter(audience__in=['ALL', 'COACHES', *gender_filter])
         elif user.role == 'SWIMMER':
             swimmer = getattr(user, 'swimmer_profile', None)
             group_ids = swimmer.enrollments.values_list('group_id', flat=True) if swimmer else []
-            return qs.filter(audience__in=['ALL', 'SWIMMERS']) | qs.filter(target_group_id__in=group_ids)
+            gender_filter = []
+            if swimmer and swimmer.gender == 'MALE':
+                gender_filter.append('SWIMMERS_MALE')
+            elif swimmer and swimmer.gender == 'FEMALE':
+                gender_filter.append('SWIMMERS_FEMALE')
+            return qs.filter(audience__in=['ALL', 'SWIMMERS', *gender_filter]) | qs.filter(target_group_id__in=group_ids)
         return Announcement.objects.none()
 
     def perform_create(self, serializer):

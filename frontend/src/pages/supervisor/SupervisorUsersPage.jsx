@@ -1086,6 +1086,8 @@ export const SupervisorUsersPage = () => {
             شما به عنوان ناظر فنی می‌توانید مستقیماً و بدون نیاز به داشتن رمز قبلی، کلمه عبور جدیدی برای این کاربر ثبت نمایید.
           </div>
 
+          <PasswordRequirementsList password={passwordForm.newPassword} showAlways={true} />
+
           <div>
             <div className="flex items-center justify-between mb-1">
               <label className="text-xs font-semibold text-slate-700 dark:text-slate-200">
@@ -1118,7 +1120,6 @@ export const SupervisorUsersPage = () => {
                 {showNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
               </button>
             </div>
-            <PasswordRequirementsList password={passwordForm.newPassword} showAlways={true} className="mt-2" />
           </div>
 
           <div>

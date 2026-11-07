@@ -288,9 +288,11 @@ export const AdminCoursesPage = () => {
                   <div className="py-3 space-y-2.5">
                     <div>
                       <span className="text-[11px] text-slate-400 block">{group.course_name}</span>
-                      <h3 className="font-bold text-slate-900 dark:text-white text-base">
-                        {group.name}
-                      </h3>
+                      <Link to={`/admin/classes/${group.id}`} className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors block">
+                        <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                          {group.name}
+                        </h3>
+                      </Link>
                     </div>
 
                     <div className="flex items-center gap-1.5 text-xs text-slate-500">
@@ -327,12 +329,13 @@ export const AdminCoursesPage = () => {
                 </div>
 
                 <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs">
-                  <span className="text-slate-500 font-mono">ظرفیت کل: {group.capacity} نفر</span>
+                  <span className="text-slate-500 font-mono">ظرفیت: {group.capacity} نفر</span>
                   <Link
-                    to="/admin/enrollments"
-                    className="text-sky-600 dark:text-sky-400 font-semibold hover:underline"
+                    to={`/admin/classes/${group.id}`}
+                    className="text-sky-600 dark:text-sky-400 font-bold hover:underline inline-flex items-center gap-1"
                   >
-                    مشاهده متقاضیان ←
+                    <span>ورود به فضای کلاس</span>
+                    <span className="text-sm">←</span>
                   </Link>
                 </div>
               </div>

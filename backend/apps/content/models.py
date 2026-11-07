@@ -109,10 +109,14 @@ class PoolImage(models.Model):
 
 class Announcement(models.Model):
     class Audience(models.TextChoices):
-        ALL = 'ALL', _('همه اعضا')
-        SWIMMERS = 'SWIMMERS', _('فقط شناگران')
-        COACHES = 'COACHES', _('فقط مربیان')
-        GROUP = 'GROUP', _('اعضای یک گروه مشخص')
+        ALL = 'ALL', _('همه اعضای آموزشگاه')
+        SWIMMERS = 'SWIMMERS', _('کلیه شناگران')
+        SWIMMERS_MALE = 'SWIMMERS_MALE', _('شناگران پسر')
+        SWIMMERS_FEMALE = 'SWIMMERS_FEMALE', _('شناگران دختر')
+        COACHES = 'COACHES', _('کلیه مربیان')
+        COACHES_MALE = 'COACHES_MALE', _('مربیان آقا')
+        COACHES_FEMALE = 'COACHES_FEMALE', _('مربیان خانم')
+        GROUP = 'GROUP', _('اعضای یک کلاس مشخص')
 
     title = models.CharField(_('عنوان اعلان'), max_length=180)
     message = models.TextField(_('متن اعلان'))
@@ -126,6 +130,7 @@ class Announcement(models.Model):
         verbose_name=_('گروه هدف (در صورت انتخاب گروه)')
     )
     is_pinned = models.BooleanField(_('پین شده / مهم'), default=False)
+    send_sms = models.BooleanField(_('ارسال پیامک به مخاطبان'), default=False)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 

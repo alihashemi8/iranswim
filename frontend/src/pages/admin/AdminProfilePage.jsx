@@ -805,6 +805,10 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 </div>
 
                 <form onSubmit={handleChangePassword} className="space-y-4">
+                  {/* توضیحات و شرایط الزامی کلمه عبور در بالا */}
+                  <PasswordRequirementsList password={passwordForm.newPassword} showAlways={true} />
+
+                  {/* رمز جدید و تکرار زیر هم */}
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       رمز عبور جدید (انگلیسی، حداقل ۸ نویسه):
@@ -818,7 +822,6 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                       placeholder="مانند: Admin@Safe2026"
                       className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 transition-all"
                     />
-                    <PasswordRequirementsList password={passwordForm.newPassword} showAlways={true} className="mt-2.5" />
                   </div>
 
                   <div>

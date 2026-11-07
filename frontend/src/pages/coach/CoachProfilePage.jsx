@@ -185,6 +185,9 @@ export const CoachProfilePage = () => {
           </h3>
 
           <form onSubmit={handleChangePassword} className="space-y-4 text-sm">
+            {/* توضیحات و شرایط الزامی کلمه عبور در بالا */}
+            <PasswordRequirementsList password={newPassword} showAlways={true} />
+
             <div>
               <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5">
                 کلمه عبور فعلی:
@@ -210,7 +213,6 @@ export const CoachProfilePage = () => {
                 className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white font-mono text-sm"
                 required
               />
-              <PasswordRequirementsList password={newPassword} showAlways={true} className="mt-2" />
             </div>
 
             <div>

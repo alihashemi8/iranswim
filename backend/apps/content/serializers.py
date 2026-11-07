@@ -112,7 +112,7 @@ class AnnouncementSerializer(serializers.ModelSerializer):
         model = Announcement
         fields = [
             'id', 'title', 'message', 'audience', 'audience_display',
-            'target_group', 'target_group_name', 'is_pinned', 'created_at'
+            'target_group', 'target_group_name', 'is_pinned', 'send_sms', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
 

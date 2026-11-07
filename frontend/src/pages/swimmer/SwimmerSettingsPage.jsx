@@ -116,6 +116,9 @@ export const SwimmerSettingsPage = () => {
           </h3>
 
           <form onSubmit={handlePasswordChange} className="space-y-4">
+            {/* توضیحات و شرایط الزامی کلمه عبور در بالا */}
+            <PasswordRequirementsList password={passwordForm.new_password} showAlways={true} />
+
             <div>
               <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                 رمز عبور فعلی (یا کد ملی)
@@ -160,7 +163,6 @@ export const SwimmerSettingsPage = () => {
                   {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              <PasswordRequirementsList password={passwordForm.new_password} showAlways={true} className="mt-2.5" />
             </div>
 
             <div>
