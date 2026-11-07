@@ -250,7 +250,7 @@ export const AdminCoursesPage = () => {
           }`}
         >
           <Calendar className="w-5 h-5 shrink-0" />
-          <span className="whitespace-nowrap">جلسات تقویمی</span>
+          <span className="whitespace-nowrap">جدول هفتگی دوره‌ها</span>
           <span
             className={`text-xs px-2 py-0.5 rounded-full font-bold transition-colors ${
               activeTab === 'SESSIONS'
@@ -258,7 +258,7 @@ export const AdminCoursesPage = () => {
                 : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
             }`}
           >
-            {sessions.length}
+            {courses.length}
           </span>
         </button>
       </div>
@@ -511,12 +511,14 @@ export const AdminCoursesPage = () => {
           ))}
         </div>
       ) : (
-        /* TAB 4: CALENDAR & SESSIONS (جدول روز در ساعت و امکان دانلود باکیفیت) */
+        /* TAB 4: CALENDAR & SESSIONS (جدول روز در ساعت دوره‌ها با امکان دانلود باکیفیت) */
         <SessionsScheduleTimetable
+          courses={courses}
           sessions={sessions}
           groups={groups}
           coaches={coaches}
           onRefresh={fetchData}
+          onOpenCourseSwimmers={handleOpenCourseSwimmers}
         />
       )}
 

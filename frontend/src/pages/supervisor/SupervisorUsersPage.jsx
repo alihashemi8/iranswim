@@ -1107,7 +1107,7 @@ export const SupervisorUsersPage = () => {
                 type={showNewPassword ? 'text' : 'password'}
                 required
                 dir="ltr"
-                placeholder="انگلیسی، حداقل ۸ نویسه"
+                placeholder="کلمه عبور جدید"
                 value={passwordForm.newPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                 className="w-full pl-9 pr-9 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"

@@ -4,11 +4,13 @@ import {
   Calendar, Clock, User, MapPin, Download, Printer,
   FileSpreadsheet, ChevronLeft, ChevronRight, Filter,
   LayoutGrid, List, CheckCircle2, AlertCircle, XCircle,
-  Users, RefreshCw, Eye, ArrowLeft, ArrowRight, ExternalLink,
-  ChevronDown, Smartphone, Monitor
+  Users, RefreshCw, Eye, ArrowRight, ExternalLink,
+  GraduationCap, BookOpen, Layers, X
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { Badge } from './Badge';
+import { Modal } from './Modal';
+import { Button } from './Button';
 import { exportToCsv } from '../../utils/exportCsv';
 import { useToast } from '../../context/ToastContext';
 
@@ -23,257 +25,248 @@ const WEEKDAYS = [
   { index: 6, name: 'جمعه', short: 'ج' },
 ];
 
-// Standard pool time slots (سانس‌های استاندارد استخر)
-const DEFAULT_TIME_SLOTS = [
-  { id: '08:00', label: '۰۸:۰۰ الی ۰۹:۳۰', start: '08:00', end: '09:30', period: 'صبحگاهی اول' },
-  { id: '09:30', label: '۰۹:۳۰ الی ۱۱:۰۰', start: '09:30', end: '11:00', period: 'صبحگاهی دوم' },
-  { id: '11:00', label: '۱۱:۰۰ الی ۱۲:۳۰', start: '11:00', end: '12:30', period: 'ظهر' },
-  { id: '15:30', label: '۱۵:۳۰ الی ۱۷:۰۰', start: '15:30', end: '17:00', period: 'بعدازظهر' },
-  { id: '17:00', label: '۱۷:۰۰ الی ۱۸:۳۰', start: '17:00', end: '18:30', period: 'عصر اول' },
-  { id: '17:00_long', label: '۱۷:۰۰ الی ۱۹:۰۰', start: '17:00', end: '19:00', period: 'عصر ویژه' },
-  { id: '18:30', label: '۱۸:۳۰ الی ۲۰:۰۰', start: '18:30', end: '20:00', period: 'عصر دوم' },
-  { id: '20:00', label: '۲۰:۰۰ الی ۲۱:۳۰', start: '20:00', end: '21:30', period: 'شبانه' },
-];
-
 /**
- * Get weekday index (0 for Saturday ... 6 for Friday) from date string (YYYY-MM-DD)
+ * Parse course days into array of weekday indices [0..6]
  */
-export const getWeekdayFromDateStr = (dateStr) => {
-  if (!dateStr) return 0;
-  try {
-    const parts = dateStr.split('-');
-    if (parts.length < 3) return 0;
-    const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-    const jsDay = d.getDay(); // 0: Sun, 1: Mon, ..., 6: Sat
-    return (jsDay + 1) % 7;
-  } catch {
-    return 0;
-  }
-};
+export const parseCourseWeekdays = (course, allGroups = []) => {
+  const weekdaysSet = new Set();
 
-/**
- * Format date string to Persian locale
- */
-export const formatFaDate = (dateStr) => {
-  if (!dateStr) return '';
-  try {
-    const parts = dateStr.split('-');
-    if (parts.length < 3) return dateStr;
-    const d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
-    return d.toLocaleDateString('fa-IR', { month: 'long', day: 'numeric' });
-  } catch {
-    return dateStr;
-  }
-};
+  // 1. Check schedules of groups belonging to this course
+  const courseGroups = (course.groups && course.groups.length > 0)
+    ? course.groups
+    : allGroups.filter((g) => g.course === course.id || g.course_id === course.id);
 
-/**
- * Calculate dates for the week of a reference date (starts on Saturday)
- */
-export const getWeekDates = (refDate = new Date()) => {
-  const d = new Date(refDate);
-  const jsDay = d.getDay(); // 0: Sun, ..., 6: Sat
-  const offsetToSat = (jsDay + 1) % 7; // days passed since Saturday
-  
-  const saturday = new Date(d);
-  saturday.setDate(d.getDate() - offsetToSat);
-
-  const week = [];
-  for (let i = 0; i < 7; i++) {
-    const day = new Date(saturday);
-    day.setDate(saturday.getDate() + i);
-    const isoStr = day.toISOString().split('T')[0];
-    week.push({
-      weekdayIndex: i,
-      isoDate: isoStr,
-      faLabel: day.toLocaleDateString('fa-IR', { month: 'short', day: 'numeric' }),
-      isToday: day.toDateString() === new Date().toDateString(),
+  courseGroups.forEach((g) => {
+    (g.schedules || []).forEach((sch) => {
+      if (typeof sch.weekday === 'number') {
+        weekdaysSet.add(sch.weekday);
+      }
     });
+  });
+
+  // 2. Parse text in days_of_week
+  if (weekdaysSet.size === 0 && course.days_of_week) {
+    const text = course.days_of_week.toLowerCase();
+
+    // Check for "فرد" (Odd days): Saturday(0), Monday(2), Wednesday(4)
+    if (text.includes('فرد')) {
+      weekdaysSet.add(0);
+      weekdaysSet.add(2);
+      weekdaysSet.add(4);
+    }
+    // Check for "زوج" (Even days): Sunday(1), Tuesday(3), Thursday(5)
+    else if (text.includes('زوج')) {
+      weekdaysSet.add(1);
+      weekdaysSet.add(3);
+      weekdaysSet.add(5);
+    } else {
+      if (text.includes('شنبه') && !text.includes('یکشنبه') && !text.includes('دوشنبه') && !text.includes('سه‌شنبه') && !text.includes('چهارشنبه') && !text.includes('پنج‌شنبه')) {
+        weekdaysSet.add(0);
+      }
+      if (text.includes('یکشنبه')) weekdaysSet.add(1);
+      if (text.includes('دوشنبه')) weekdaysSet.add(2);
+      if (text.includes('سه‌شنبه')) weekdaysSet.add(3);
+      if (text.includes('چهارشنبه')) weekdaysSet.add(4);
+      if (text.includes('پنج‌شنبه')) weekdaysSet.add(5);
+      if (text.includes('جمعه')) weekdaysSet.add(6);
+    }
   }
-  return week;
+
+  // Fallback if empty
+  if (weekdaysSet.size === 0) {
+    weekdaysSet.add(0);
+    weekdaysSet.add(2);
+    weekdaysSet.add(4);
+  }
+
+  return Array.from(weekdaysSet).sort((a, b) => a - b);
+};
+
+/**
+ * Extract start and end time for a course
+ */
+export const getCourseTimeSlot = (course, allGroups = []) => {
+  let start = course.start_time ? String(course.start_time).slice(0, 5) : '';
+  let end = course.end_time ? String(course.end_time).slice(0, 5) : '';
+
+  if (!start) {
+    const courseGroups = (course.groups && course.groups.length > 0)
+      ? course.groups
+      : allGroups.filter((g) => g.course === course.id || g.course_id === course.id);
+
+    for (const g of courseGroups) {
+      if (g.schedules && g.schedules.length > 0) {
+        start = String(g.schedules[0].start_time || '').slice(0, 5);
+        end = String(g.schedules[0].end_time || '').slice(0, 5);
+        if (start) break;
+      }
+    }
+  }
+
+  // Fallbacks if not set
+  start = start || '17:00';
+  end = end || (start === '17:00' ? '18:30' : '19:00');
+
+  return {
+    start,
+    end,
+    key: `${start}-${end}`,
+    label: `${start} تا ${end}`,
+  };
 };
 
 export const SessionsScheduleTimetable = ({
+  courses = [],
   sessions = [],
   groups = [],
   coaches = [],
   onRefresh,
+  onOpenCourseSwimmers,
 }) => {
   const navigate = useNavigate();
   const toast = useToast();
   const printContainerRef = useRef(null);
 
   // States
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' (روز در ساعت) | 'list' (فهرستی)
-  const [weekScope, setWeekScope] = useState('ALL'); // 'ALL' (الگوی کلی هفتگی) | 'CURRENT_WEEK' (هفته انتخابی)
-  const [weekOffset, setWeekOffset] = useState(0); // weeks from now
-  const [selectedCoach, setSelectedCoach] = useState('ALL');
-  const [selectedStatus, setSelectedStatus] = useState('ALL');
   const [selectedPool, setSelectedPool] = useState('ALL');
+  const [searchTerm, setSearchTerm] = useState('');
   const [isExportingPng, setIsExportingPng] = useState(false);
+
+  // Selected Course Modal State (برای مشاهده کلاس‌های این دوره)
+  const [selectedCourseForModal, setSelectedCourseForModal] = useState(null);
 
   // Mobile layout state
   const [selectedMobileDay, setSelectedMobileDay] = useState(() => {
-    // default to today's weekday in Iranian calendar
     const jsDay = new Date().getDay();
-    return (jsDay + 1) % 7;
+    return (jsDay + 1) % 7; // today's Persian weekday
   });
   const [mobileLayoutMode, setMobileLayoutMode] = useState('dayTimeline'); // 'dayTimeline' | 'matrixTable'
-
-  // Calculate current week reference based on weekOffset
-  const currentWeekDays = useMemo(() => {
-    const refDate = new Date();
-    refDate.setDate(refDate.getDate() + weekOffset * 7);
-    return getWeekDates(refDate);
-  }, [weekOffset]);
 
   // Extract distinct pool locations
   const poolLocations = useMemo(() => {
     const set = new Set();
-    sessions.forEach((s) => s.pool_location && set.add(s.pool_location));
+    courses.forEach((c) => c.pool_location && set.add(c.pool_location));
     groups.forEach((g) => g.pool_location && set.add(g.pool_location));
     return Array.from(set);
-  }, [sessions, groups]);
+  }, [courses, groups]);
 
-  // Extract distinct coaches
-  const availableCoaches = useMemo(() => {
-    const map = new Map();
-    sessions.forEach((s) => {
-      if (s.coach && s.coach_name) map.set(s.coach, s.coach_name);
+  // Prepared Course Items with parsed weekdays and times
+  const scheduledCourses = useMemo(() => {
+    return courses.map((course) => {
+      const timeSlot = getCourseTimeSlot(course, groups);
+      const weekdays = parseCourseWeekdays(course, groups);
+      const courseGroups = (course.groups && course.groups.length > 0)
+        ? course.groups
+        : groups.filter((g) => g.course === course.id || g.course_id === course.id);
+
+      return {
+        ...course,
+        timeSlot,
+        weekdays,
+        groups: courseGroups,
+      };
     });
-    coaches.forEach((c) => {
-      const name = c.user?.first_name ? `${c.user.first_name} ${c.user.last_name}` : c.full_name || `مربی #${c.id}`;
-      map.set(c.id, name);
+  }, [courses, groups]);
+
+  // Filtered courses
+  const filteredCourses = useMemo(() => {
+    return scheduledCourses.filter((c) => {
+      if (selectedPool !== 'ALL' && c.pool_location !== selectedPool) return false;
+      if (searchTerm.trim()) {
+        const q = searchTerm.trim().toLowerCase();
+        const matchName = c.name?.toLowerCase().includes(q);
+        const matchAge = c.age_range?.toLowerCase().includes(q);
+        const matchPool = c.pool_location?.toLowerCase().includes(q);
+        if (!matchName && !matchAge && !matchPool) return false;
+      }
+      return true;
     });
-    return Array.from(map.entries()).map(([id, name]) => ({ id, name }));
-  }, [sessions, coaches]);
+  }, [scheduledCourses, selectedPool, searchTerm]);
 
-  // Filter sessions
-  const filteredSessions = useMemo(() => {
-    let result = sessions;
-
-    // Scope filter (Current week vs All)
-    if (weekScope === 'CURRENT_WEEK') {
-      const weekDatesSet = new Set(currentWeekDays.map((d) => d.isoDate));
-      result = result.filter((s) => weekDatesSet.has(s.session_date));
-    }
-
-    // Coach filter
-    if (selectedCoach !== 'ALL') {
-      result = result.filter((s) => String(s.coach) === String(selectedCoach));
-    }
-
-    // Status filter
-    if (selectedStatus !== 'ALL') {
-      result = result.filter((s) => s.status === selectedStatus);
-    }
-
-    // Pool location filter
-    if (selectedPool !== 'ALL') {
-      result = result.filter((s) => s.pool_location === selectedPool);
-    }
-
-    return result;
-  }, [sessions, weekScope, currentWeekDays, selectedCoach, selectedStatus, selectedPool]);
-
-  // Build dynamic Time Slots based on sessions data
+  // Extract distinct unique Time Slots from courses
   const timeSlots = useMemo(() => {
     const slotMap = new Map();
 
-    // Add slots from active sessions
-    filteredSessions.forEach((s) => {
-      const start = s.start_time?.slice(0, 5) || '17:00';
-      const end = s.end_time?.slice(0, 5) || '18:30';
-      const key = `${start}-${end}`;
+    filteredCourses.forEach((c) => {
+      const { start, end, key, label } = c.timeSlot;
       if (!slotMap.has(key)) {
         slotMap.set(key, {
           id: key,
           start,
           end,
-          label: `${start} تا ${end}`,
-          period: start < '12:00' ? 'صبح' : start < '17:00' ? 'بعدازظهر' : 'عصر و شب',
+          label,
         });
       }
     });
 
-    // Also include group recurring schedules if present
-    groups.forEach((g) => {
-      (g.schedules || []).forEach((sch) => {
-        const start = sch.start_time?.slice(0, 5) || '17:00';
-        const end = sch.end_time?.slice(0, 5) || '19:00';
-        const key = `${start}-${end}`;
-        if (!slotMap.has(key)) {
-          slotMap.set(key, {
-            id: key,
-            start,
-            end,
-            label: `${start} تا ${end}`,
-            period: start < '12:00' ? 'صبح' : start < '17:00' ? 'بعدازظهر' : 'عصر و شب',
-          });
-        }
-      });
-    });
-
-    // Fallback to default swimming slots if none found
+    // If no course slots, provide default swimming slots
     if (slotMap.size === 0) {
-      return DEFAULT_TIME_SLOTS;
+      return [
+        { id: '08:00-09:30', start: '08:00', end: '09:30', label: '۰۸:۰۰ تا ۰۹:۳۰' },
+        { id: '16:00-17:30', start: '16:00', end: '17:30', label: '۱۶:۰۰ تا ۱۷:۳۰' },
+        { id: '17:00-18:30', start: '17:00', end: '18:30', label: '۱۷:۰۰ تا ۱۸:۳۰' },
+        { id: '17:00-19:00', start: '17:00', end: '19:00', label: '۱۷:۰۰ تا ۱۹:۰۰' },
+        { id: '18:30-20:00', start: '18:30', end: '20:00', label: '۱۸:۳۰ تا ۲۰:۰۰' },
+      ];
     }
 
-    // Convert map to sorted array by start time
     return Array.from(slotMap.values()).sort((a, b) => a.start.localeCompare(b.start));
-  }, [filteredSessions, groups]);
+  }, [filteredCourses]);
 
-  // Group sessions into matrix [slotId][weekdayIndex] -> array of sessions
-  const scheduleMatrix = useMemo(() => {
+  // Course Grid Matrix: matrix[timeSlotKey][weekdayIndex] -> array of courses
+  const courseMatrix = useMemo(() => {
     const matrix = {};
-
     timeSlots.forEach((slot) => {
-      matrix[slot.id] = {
-        0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: []
-      };
+      matrix[slot.id] = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
     });
 
-    filteredSessions.forEach((s) => {
-      const weekday = getWeekdayFromDateStr(s.session_date);
-      const sStart = s.start_time?.slice(0, 5) || '17:00';
-      const sEnd = s.end_time?.slice(0, 5) || '18:30';
-
-      // Find exact or closest matching slot
-      let matchedSlot = timeSlots.find((slot) => slot.start === sStart && slot.end === sEnd);
-      if (!matchedSlot) {
-        matchedSlot = timeSlots.find((slot) => slot.start === sStart);
-      }
-      if (!matchedSlot && timeSlots.length > 0) {
-        matchedSlot = timeSlots[0];
+    filteredCourses.forEach((c) => {
+      const slotKey = c.timeSlot.key;
+      let targetSlot = timeSlots.find((s) => s.id === slotKey);
+      if (!targetSlot) {
+        targetSlot = timeSlots.find((s) => s.start === c.timeSlot.start) || timeSlots[0];
       }
 
-      if (matchedSlot && matrix[matchedSlot.id] && matrix[matchedSlot.id][weekday]) {
-        matrix[matchedSlot.id][weekday].push(s);
+      if (targetSlot && matrix[targetSlot.id]) {
+        c.weekdays.forEach((dayIdx) => {
+          if (matrix[targetSlot.id][dayIdx]) {
+            matrix[targetSlot.id][dayIdx].push(c);
+          }
+        });
       }
     });
 
     return matrix;
-  }, [filteredSessions, timeSlots]);
+  }, [filteredCourses, timeSlots]);
 
-  // Sessions map grouped by day of week (for mobile day view)
-  const daySessionsMap = useMemo(() => {
+  // Courses map by day for mobile view
+  const dayCoursesMap = useMemo(() => {
     const map = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
-    filteredSessions.forEach((s) => {
-      const weekday = getWeekdayFromDateStr(s.session_date);
-      if (map[weekday]) map[weekday].push(s);
+    filteredCourses.forEach((c) => {
+      c.weekdays.forEach((dayIdx) => {
+        if (map[dayIdx]) {
+          map[dayIdx].push(c);
+        }
+      });
     });
-    // Sort each day's sessions by start time
+
+    // Sort by start time
     Object.keys(map).forEach((dayKey) => {
-      map[dayKey].sort((a, b) => (a.start_time || '').localeCompare(b.start_time || ''));
+      map[dayKey].sort((a, b) => a.timeSlot.start.localeCompare(b.timeSlot.start));
     });
     return map;
-  }, [filteredSessions]);
+  }, [filteredCourses]);
 
-  // Status Meta
-  const statusMeta = {
-    SCHEDULED: { label: 'برنامه‌ریزی‌شده', color: 'bg-sky-50 text-sky-700 dark:bg-sky-950/80 dark:text-sky-300 border-sky-200 dark:border-sky-800' },
-    COMPLETED: { label: 'برگزارشده', color: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800' },
-    CANCELLED: { label: 'لغوشده', color: 'bg-rose-50 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800' },
-    MAKEUP: { label: 'جبرانی', color: 'bg-amber-50 text-amber-700 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800' },
+  // Click handler for Course Card
+  const handleCourseClick = (course) => {
+    const courseGroups = course.groups || [];
+    if (courseGroups.length === 1) {
+      // If course has only 1 class, jump directly to its space
+      navigate(`/admin/classes/${courseGroups[0].id}`);
+    } else {
+      // Open modal to view classes of this course
+      setSelectedCourseForModal(course);
+    }
   };
 
   // High-Resolution PNG Export
@@ -281,9 +274,8 @@ export const SessionsScheduleTimetable = ({
     if (!printContainerRef.current) return;
     try {
       setIsExportingPng(true);
-      toast.info('در حال آماده‌سازی تصویر باکیفیت بالا...');
+      toast.info('در حال تولید تصویر باکیفیت جدول دوره‌ها...');
 
-      // Render with 2.5x pixel ratio for print-ready high clarity
       const dataUrl = await toPng(printContainerRef.current, {
         cacheBust: true,
         backgroundColor: '#ffffff',
@@ -292,14 +284,14 @@ export const SessionsScheduleTimetable = ({
       });
 
       const todayFa = new Intl.DateTimeFormat('fa-IR').format(new Date()).replace(/\//g, '-');
-      const filename = `جدول-برنامه-هفتگی-استخر-${todayFa}.png`;
+      const filename = `جدول-برنامه-هفتگی-دوره-های-استخر-${todayFa}.png`;
 
       const link = document.createElement('a');
       link.download = filename;
       link.href = dataUrl;
       link.click();
 
-      toast.success('تصویر باکیفیت جدول زمان‌بندی با موفقیت دانلود شد.');
+      toast.success('تصویر باکیفیت جدول دوره‌ها با موفقیت دانلود شد.');
     } catch (err) {
       console.error('Export PNG failed:', err);
       toast.error('خطا در تولید تصویر جدول');
@@ -315,49 +307,34 @@ export const SessionsScheduleTimetable = ({
 
   // Export to CSV / Excel
   const handleExportCsv = () => {
-    if (!filteredSessions.length) {
-      toast.error('جلسه‌ای برای خروجی اکسل وجود ندارد.');
+    if (!filteredCourses.length) {
+      toast.error('دوره‌ای برای خروجی اکسل وجود ندارد.');
       return;
     }
 
     const headers = {
-      group_name: 'گروه کلاسی',
-      course_name: 'دوره آموزشی',
-      coach_name: 'مربی مسئول',
-      weekday_name: 'روز هفته',
-      session_date: 'تاریخ برگزاری',
-      time_range: 'ساعت کلاس',
-      pool_location: 'محل استخر و لاین',
-      status_display: 'وضعیت جلسه',
-      enrolled_count: 'تعداد شناگران ثبت‌نام‌شده',
+      name: 'نام دوره آموزشی',
+      age_range: 'رده سنی / سطح',
+      days_of_week: 'روزهای برگزاری',
+      time_slot: 'ساعت کلاس',
+      pool_location: 'محل استخر',
+      groups_count: 'تعداد کلاس‌ها / لاین‌ها',
+      status: 'وضعیت دوره',
     };
 
-    const rows = filteredSessions.map((s) => {
-      const weekdayIdx = getWeekdayFromDateStr(s.session_date);
-      const weekdayObj = WEEKDAYS.find((w) => w.index === weekdayIdx);
-      return {
-        group_name: s.group_name || '—',
-        course_name: s.course_name || '—',
-        coach_name: s.coach_name || '—',
-        weekday_name: weekdayObj?.name || '—',
-        session_date: s.session_date || '—',
-        time_range: `${s.start_time?.slice(0, 5)} تا ${s.end_time?.slice(0, 5)}`,
-        pool_location: s.pool_location || 'استخر شهید رئیسی',
-        status_display: s.status_display || s.status,
-        enrolled_count: s.enrolled_count || 0,
-      };
-    });
+    const rows = filteredCourses.map((c) => ({
+      name: c.name || '—',
+      age_range: c.age_range || 'عمومی',
+      days_of_week: c.days_of_week || c.weekdays.map((w) => WEEKDAYS[w]?.name).join('، '),
+      time_slot: c.timeSlot.label,
+      pool_location: c.pool_location || 'استخر شهید رئیسی',
+      groups_count: (c.groups?.length || c.coaches?.length || 0),
+      status: c.status === 'ACTIVE' ? 'فعال' : c.status,
+    }));
 
     const todayFa = new Intl.DateTimeFormat('fa-IR').format(new Date()).replace(/\//g, '-');
-    exportToCsv(`جلسات-تقویمی-استخر-${todayFa}`, rows, headers);
-    toast.success('فایل اکسل جلسات تقویمی با موفقیت دانلود شد.');
-  };
-
-  // Navigate to Class Space
-  const handleNavigateToClass = (groupId) => {
-    if (groupId) {
-      navigate(`/admin/classes/${groupId}`);
-    }
+    exportToCsv(`برنامه-زمانی-دوره-های-استخر-${todayFa}`, rows, headers);
+    toast.success('فایل اکسل دوره‌های آموزشی با موفقیت دانلود شد.');
   };
 
   return (
@@ -378,7 +355,7 @@ export const SessionsScheduleTimetable = ({
             width: 100%;
             background: white !important;
             color: black !important;
-            padding: 12px;
+            padding: 10px;
           }
           .no-print {
             display: none !important;
@@ -390,27 +367,27 @@ export const SessionsScheduleTimetable = ({
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
         
         {/* Top Header & Actions Toolbar */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
           <div>
             <div className="flex items-center gap-2.5">
               <span className="p-2 sm:p-2.5 rounded-2xl bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 border border-sky-200/60 dark:border-sky-800 shrink-0">
-                <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
+                <BookOpen className="w-5 h-5 sm:w-6 sm:h-6" />
               </span>
               <div>
                 <h3 className="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
-                  <span>جدول زمان‌بندی روز در ساعت جلسات استخر</span>
+                  <span>جدول زمان‌بندی هفتگی دوره‌های آموزشی استخر</span>
                   <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300">
-                    {filteredSessions.length} جلسه
+                    {filteredCourses.length} دوره فعال
                   </span>
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                  نمایش ماتریسی کلاس‌ها، مربیان و لاین‌ها · با کلیک روی هر کلاس، وارد فضای اختصاصی آن شوید
+                  برنامه سانس‌ها و روزهای دوره‌ها · با کلیک روی هر دوره، کلاس‌ها و لاین‌های آن را مشاهده کنید
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Action Buttons: High-Res PNG, Print/PDF, Excel, View Mode */}
+          {/* Action Buttons: High-Res PNG, Print/PDF, Excel */}
           <div className="flex items-center gap-2 flex-wrap no-print">
             {/* Download High-Res PNG Button */}
             <button
@@ -418,10 +395,10 @@ export const SessionsScheduleTimetable = ({
               onClick={handleDownloadHighResPng}
               disabled={isExportingPng}
               className="inline-flex items-center gap-1.5 px-3 sm:px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow-xs transition-all cursor-pointer disabled:opacity-60"
-              title="دانلود تصویر باکیفیت جدول (مناسب اشتراک‌گذاری و چاپ)"
+              title="دانلود تصویر باکیفیت جدول دوره‌ها (مناسب اشتراک‌گذاری و پرینت)"
             >
               <Download className="w-4 h-4" />
-              <span>{isExportingPng ? 'در حال تولید...' : 'دانلود تصویر باکیفیت (PNG)'}</span>
+              <span>{isExportingPng ? 'در حال آماده‌سازی...' : 'دانلود تصویر باکیفیت (PNG)'}</span>
             </button>
 
             {/* Print / PDF Button */}
@@ -440,140 +417,17 @@ export const SessionsScheduleTimetable = ({
               type="button"
               onClick={handleExportCsv}
               className="inline-flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm font-bold rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-emerald-700 dark:text-emerald-400 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
-              title="دریافت فایل اکسل جلسات"
+              title="دریافت فایل اکسل دوره‌ها"
             >
               <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
               <span className="hidden sm:inline">خروجی اکسل</span>
             </button>
-
-            {/* View Mode Switcher (Grid vs List) */}
-            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
-              <button
-                type="button"
-                onClick={() => setViewMode('grid')}
-                className={`p-1.5 px-2.5 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                  viewMode === 'grid'
-                    ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                }`}
-                title="نمای جدول روز در ساعت"
-              >
-                <LayoutGrid className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">جدول ماتریسی</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('list')}
-                className={`p-1.5 px-2.5 rounded-lg font-bold flex items-center gap-1 transition-all cursor-pointer ${
-                  viewMode === 'list'
-                    ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                }`}
-                title="نمای لیستی"
-              >
-                <List className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">فهرست خطی</span>
-              </button>
-            </div>
           </div>
         </div>
 
-        {/* Filters and Week Scope Bar */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-4 pb-2 no-print">
-          {/* Week Scope Navigator */}
+        {/* Filters Toolbar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-3 pb-2 no-print text-xs">
           <div className="flex items-center gap-2 flex-wrap">
-            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
-              <button
-                type="button"
-                onClick={() => setWeekScope('ALL')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                  weekScope === 'ALL'
-                    ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                }`}
-              >
-                الگوی کلی هفتگی (همه جلسات)
-              </button>
-              <button
-                type="button"
-                onClick={() => setWeekScope('CURRENT_WEEK')}
-                className={`px-3 py-1.5 rounded-lg font-bold transition-all cursor-pointer ${
-                  weekScope === 'CURRENT_WEEK'
-                    ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                }`}
-              >
-                تقویم هفتگی با تاریخ
-              </button>
-            </div>
-
-            {/* Week navigation buttons if CURRENT_WEEK */}
-            {weekScope === 'CURRENT_WEEK' && (
-              <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800/60 p-1 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
-                <button
-                  type="button"
-                  onClick={() => setWeekOffset((prev) => prev - 1)}
-                  className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
-                  title="هفته قبل"
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-                <span className="font-bold px-2 text-slate-800 dark:text-slate-200">
-                  {weekOffset === 0
-                    ? 'هفته جاری'
-                    : weekOffset > 0
-                    ? `${weekOffset} هفته بعد`
-                    : `${Math.abs(weekOffset)} هفته قبل`}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setWeekOffset((prev) => prev + 1)}
-                  className="p-1 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
-                  title="هفته بعد"
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                {weekOffset !== 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setWeekOffset(0)}
-                    className="text-[11px] font-bold text-sky-600 hover:underline px-1.5"
-                  >
-                    امروز
-                  </button>
-                )}
-              </div>
-            )}
-          </div>
-
-          {/* Dropdown Filters (Coach, Status, Pool) */}
-          <div className="flex items-center gap-2 flex-wrap text-xs">
-            {/* Coach filter */}
-            {availableCoaches.length > 0 && (
-              <select
-                value={selectedCoach}
-                onChange={(e) => setSelectedCoach(e.target.value)}
-                className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-slate-700 dark:text-slate-200 font-medium outline-none focus:ring-1 focus:ring-sky-500"
-              >
-                <option value="ALL">همه مربیان ({availableCoaches.length})</option>
-                {availableCoaches.map((c) => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
-            )}
-
-            {/* Status filter */}
-            <select
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-              className="bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-2.5 py-1.5 text-slate-700 dark:text-slate-200 font-medium outline-none focus:ring-1 focus:ring-sky-500"
-            >
-              <option value="ALL">همه وضعیت‌ها</option>
-              <option value="SCHEDULED">برنامه‌ریزی‌شده</option>
-              <option value="COMPLETED">برگزارشده</option>
-              <option value="CANCELLED">لغوشده</option>
-            </select>
-
             {/* Pool filter */}
             {poolLocations.length > 1 && (
               <select
@@ -588,415 +442,391 @@ export const SessionsScheduleTimetable = ({
               </select>
             )}
 
-            {(selectedCoach !== 'ALL' || selectedStatus !== 'ALL' || selectedPool !== 'ALL') && (
+            {selectedPool !== 'ALL' && (
               <button
                 type="button"
-                onClick={() => {
-                  setSelectedCoach('ALL');
-                  setSelectedStatus('ALL');
-                  setSelectedPool('ALL');
-                }}
+                onClick={() => setSelectedPool('ALL')}
                 className="text-xs text-rose-600 hover:underline px-1 font-bold"
               >
-                حذف فیلترها
+                حذف فیلتر
               </button>
             )}
+          </div>
+
+          <div className="text-slate-400 text-[11px] font-mono">
+            نکته: با کلیک روی هر دوره، فضای کلاس‌های اختصاصی هر مربی باز می‌شود
           </div>
         </div>
 
         {/* MOBILE MODE CONTROLS (< md) */}
-        {viewMode === 'grid' && (
-          <div className="md:hidden pt-3 pb-2 space-y-3 no-print">
-            {/* Mobile Layout Switcher: Day Timeline vs Full Matrix */}
-            <div className="flex items-center justify-between text-xs">
-              <span className="font-bold text-slate-700 dark:text-slate-300">نمایش موبایل:</span>
-              <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
-                <button
-                  type="button"
-                  onClick={() => setMobileLayoutMode('dayTimeline')}
-                  className={`px-2 py-1 rounded-md font-bold transition-all ${
-                    mobileLayoutMode === 'dayTimeline'
-                      ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  روز انتخابی
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMobileLayoutMode('matrixTable')}
-                  className={`px-2 py-1 rounded-md font-bold transition-all ${
-                    mobileLayoutMode === 'matrixTable'
-                      ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
-                      : 'text-slate-500 hover:text-slate-800'
-                  }`}
-                >
-                  جدول کامل (اسکرول)
-                </button>
-              </div>
+        <div className="md:hidden pt-2 pb-2 space-y-2.5 no-print">
+          {/* Mobile Layout Switcher: Day Timeline vs Full Matrix */}
+          <div className="flex items-center justify-between text-xs">
+            <span className="font-bold text-slate-700 dark:text-slate-300">نمایش موبایل:</span>
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg border border-slate-200 dark:border-slate-700">
+              <button
+                type="button"
+                onClick={() => setMobileLayoutMode('dayTimeline')}
+                className={`px-2 py-1 rounded-md font-bold transition-all ${
+                  mobileLayoutMode === 'dayTimeline'
+                    ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                روز انتخابی
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobileLayoutMode('matrixTable')}
+                className={`px-2 py-1 rounded-md font-bold transition-all ${
+                  mobileLayoutMode === 'matrixTable'
+                    ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
+                    : 'text-slate-500 hover:text-slate-800'
+                }`}
+              >
+                جدول کامل (اسکرول)
+              </button>
             </div>
-
-            {/* Mobile Day Selector Pill Strip (visible in dayTimeline mode) */}
-            {mobileLayoutMode === 'dayTimeline' && (
-              <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 scrollbar-none">
-                {WEEKDAYS.map((day) => {
-                  const count = (daySessionsMap[day.index] || []).length;
-                  const isSelected = selectedMobileDay === day.index;
-                  const weekDateObj = currentWeekDays.find((d) => d.weekdayIndex === day.index);
-                  return (
-                    <button
-                      key={day.index}
-                      type="button"
-                      onClick={() => setSelectedMobileDay(day.index)}
-                      className={`px-3 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex flex-col items-center gap-0.5 cursor-pointer border ${
-                        isSelected
-                          ? 'bg-sky-600 text-white border-sky-600 shadow-xs scale-102'
-                          : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                      }`}
-                    >
-                      <span className="font-extrabold">{day.name}</span>
-                      {weekScope === 'CURRENT_WEEK' && weekDateObj && (
-                        <span className="text-[10px] opacity-80 font-mono">{weekDateObj.faLabel}</span>
-                      )}
-                      <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono mt-0.5 ${
-                        isSelected
-                          ? 'bg-sky-700 text-white'
-                          : count > 0
-                          ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 font-bold'
-                          : 'bg-slate-200/80 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
-                      }`}>
-                        {count} کلاس
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
           </div>
-        )}
+
+          {/* Mobile Day Selector Pill Strip (visible in dayTimeline mode) */}
+          {mobileLayoutMode === 'dayTimeline' && (
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+              {WEEKDAYS.map((day) => {
+                const count = (dayCoursesMap[day.index] || []).length;
+                const isSelected = selectedMobileDay === day.index;
+                return (
+                  <button
+                    key={day.index}
+                    type="button"
+                    onClick={() => setSelectedMobileDay(day.index)}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold transition-all shrink-0 flex flex-col items-center gap-0.5 cursor-pointer border ${
+                      isSelected
+                        ? 'bg-sky-600 text-white border-sky-600 shadow-xs'
+                        : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                    }`}
+                  >
+                    <span className="font-extrabold">{day.name}</span>
+                    <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono mt-0.5 ${
+                      isSelected
+                        ? 'bg-sky-700 text-white'
+                        : count > 0
+                        ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 font-bold'
+                        : 'bg-slate-200/80 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                    }`}>
+                      {count} دوره
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
         {/* Printable & Exportable Timetable Root */}
-        <div id="print-schedule-root" ref={printContainerRef} className="mt-3 bg-white dark:bg-slate-900 rounded-2xl">
+        <div id="print-schedule-root" ref={printContainerRef} className="mt-2 bg-white dark:bg-slate-900 rounded-2xl">
           
-          {/* Header visible in PNG & Print exports */}
-          <div className="hidden print:block p-4 mb-4 border-b-2 border-slate-300 text-center space-y-1">
-            <h2 className="text-xl font-black text-slate-900">مدرسه شنای ایران - جدول برنامه‌ریزی جلسات و سانس‌های هفتگی</h2>
+          {/* Header visible only in PNG & Print exports */}
+          <div className="hidden print:block p-4 mb-3 border-b-2 border-slate-300 text-center space-y-1">
+            <h2 className="text-xl font-black text-slate-900">مدرسه شنای ایران - جدول برنامه‌ریزی هفتگی دوره‌های آموزشی</h2>
             <p className="text-xs text-slate-600">
-              تاریخ صدور گزارش: {new Intl.DateTimeFormat('fa-IR', { dateStyle: 'full' }).format(new Date())}
-              {selectedCoach !== 'ALL' && ` • مربی: ${availableCoaches.find(c => String(c.id) === String(selectedCoach))?.name}`}
+              تاریخ گزارش: {new Intl.DateTimeFormat('fa-IR', { dateStyle: 'full' }).format(new Date())}
             </p>
           </div>
 
-          {/* VIEW 1: DAY-IN-HOUR TIMETABLE GRID (جدول روز در ساعت) */}
-          {viewMode === 'grid' ? (
-            <>
-              {/* MOBILE DAY TIMELINE VIEW (shown on mobile when dayTimeline mode is selected) */}
-              <div className={`md:hidden ${mobileLayoutMode === 'dayTimeline' ? 'block' : 'hidden'} space-y-3 pt-1`}>
-                <div className="flex items-center justify-between px-1 text-xs text-slate-500 font-bold">
-                  <span>برنامه روز {WEEKDAYS.find((w) => w.index === selectedMobileDay)?.name}:</span>
-                  <span className="font-mono text-sky-600">{(daySessionsMap[selectedMobileDay] || []).length} کلاس فعال</span>
-                </div>
+          {/* MOBILE DAY TIMELINE VIEW (shown on mobile when dayTimeline mode is selected) */}
+          <div className={`md:hidden ${mobileLayoutMode === 'dayTimeline' ? 'block' : 'hidden'} space-y-3 pt-1`}>
+            <div className="flex items-center justify-between px-1 text-xs text-slate-500 font-bold">
+              <span>دوره‌های روز {WEEKDAYS.find((w) => w.index === selectedMobileDay)?.name}:</span>
+              <span className="font-mono text-sky-600">{(dayCoursesMap[selectedMobileDay] || []).length} دوره فعال</span>
+            </div>
 
-                {(daySessionsMap[selectedMobileDay] || []).length === 0 ? (
-                  <div className="text-center py-12 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800 text-slate-400 text-xs space-y-1">
-                    <p className="font-bold">در این روز جلسه یا کلاسی تعریف نشده است.</p>
-                    <p className="text-[11px]">برای مشاهده سایر روزها، دکمه‌های بالای صفحه را انتخاب کنید.</p>
+            {(dayCoursesMap[selectedMobileDay] || []).length === 0 ? (
+              <div className="text-center py-10 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800 text-slate-400 text-xs space-y-1">
+                <p className="font-bold">در این روز دوره‌ای برنامه‌ریزی نشده است.</p>
+                <p className="text-[11px]">برای مشاهده سایر روزها، روز دیگری را از نوار بالا انتخاب نمایید.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {(dayCoursesMap[selectedMobileDay] || []).map((course) => (
+                  <div
+                    key={course.id}
+                    onClick={() => handleCourseClick(course)}
+                    className="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 shadow-xs hover:border-sky-400 hover:shadow-md transition-all cursor-pointer space-y-3 active:scale-[0.99] group"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-1.5 text-xs text-sky-600 dark:text-sky-400 font-mono font-bold mb-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>ساعت {course.timeSlot.label}</span>
+                        </div>
+                        <h4 className="font-extrabold text-sm text-slate-900 dark:text-white group-hover:text-sky-600 transition-colors">
+                          {course.name}
+                        </h4>
+                      </div>
+                      {course.age_range && (
+                        <Badge variant="teal" className="text-[10px] shrink-0">
+                          {course.age_range}
+                        </Badge>
+                      )}
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300 pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                      <div className="flex items-center gap-1.5">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span className="truncate">{course.pool_location || 'استخر شهید رئیسی'}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 font-medium">
+                        <GraduationCap className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                        <span>{(course.groups?.length || course.coaches?.length || 0)} کلاس / لاین</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-700/60 text-xs">
+                      <span className="text-sky-600 dark:text-sky-400 font-bold flex items-center gap-1">
+                        <span>مشاهده کلاس‌ها و مربیان دوره</span>
+                        <span className="text-sm">←</span>
+                      </span>
+                      <span className="text-slate-400 text-[11px] font-mono">
+                        {course.days_of_week || 'روزهای فرد'}
+                      </span>
+                    </div>
                   </div>
-                ) : (
-                  <div className="space-y-3">
-                    {(daySessionsMap[selectedMobileDay] || []).map((sess) => {
-                      const meta = statusMeta[sess.status] || statusMeta.SCHEDULED;
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* TABLE MATRIX VIEW (Desktop, Tablet, or Mobile Matrix Mode) */}
+          <div className={`overflow-x-auto rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-2xs ${
+            mobileLayoutMode === 'dayTimeline' ? 'hidden md:block' : 'block'
+          }`}>
+            <table className="w-full text-right border-collapse min-w-[700px] lg:min-w-[900px]">
+              {/* Table Header: Days of the Week */}
+              <thead>
+                <tr className="bg-slate-100/95 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-20">
+                  {/* Ultra-compact Sticky Right Time Header in RTL */}
+                  <th className="p-2 sm:p-2.5 text-center font-extrabold text-xs w-16 sm:w-20 border-l border-slate-200 dark:border-slate-700 sticky right-0 z-30 bg-slate-200/90 dark:bg-slate-800 shadow-xs">
+                    <span className="text-slate-700 dark:text-slate-300">ساعت</span>
+                  </th>
+
+                  {/* 7 Days Columns */}
+                  {WEEKDAYS.map((day) => (
+                    <th
+                      key={day.index}
+                      className="p-3 text-center border-l last:border-l-0 border-slate-200 dark:border-slate-700 font-bold text-xs sm:text-sm"
+                    >
+                      <span>{day.name}</span>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+
+              {/* Table Body: Time Slots as Rows */}
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80 bg-white dark:bg-slate-900">
+                {timeSlots.map((slot) => (
+                  <tr key={slot.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20 transition-colors">
+                    {/* Ultra-compact Sticky Right Column for Hour in RTL */}
+                    <td className="p-2 text-center border-l border-slate-200 dark:border-slate-700 bg-slate-50/95 dark:bg-slate-800/90 sticky right-0 z-10 shadow-xs align-middle w-16 sm:w-20">
+                      <div className="flex flex-col items-center justify-center font-mono leading-tight">
+                        <span className="text-xs font-black text-slate-800 dark:text-slate-100">{slot.start}</span>
+                        <span className="text-[10px] text-slate-400 font-normal">تا</span>
+                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">{slot.end}</span>
+                      </div>
+                    </td>
+
+                    {/* 7 Days cells */}
+                    {WEEKDAYS.map((day) => {
+                      const cellCourses = courseMatrix[slot.id]?.[day.index] || [];
+                      const hasCourses = cellCourses.length > 0;
+
                       return (
-                        <div
-                          key={sess.id}
-                          onClick={() => handleNavigateToClass(sess.group)}
-                          className="p-4 rounded-2xl bg-slate-50/90 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 shadow-xs hover:border-sky-400 hover:shadow-md transition-all cursor-pointer space-y-3 active:scale-[0.99] group"
+                        <td
+                          key={day.index}
+                          className={`p-2 border-l last:border-l-0 border-slate-200/80 dark:border-slate-800 align-top transition-colors ${
+                            hasCourses ? 'bg-sky-50/15 dark:bg-sky-950/10' : ''
+                          }`}
                         >
-                          <div className="flex items-start justify-between gap-2">
-                            <div>
-                              <div className="flex items-center gap-1.5 text-xs text-sky-600 dark:text-sky-400 font-bold mb-1">
-                                <Clock className="w-3.5 h-3.5" />
-                                <span>{sess.start_time?.slice(0, 5)} الی {sess.end_time?.slice(0, 5)}</span>
-                              </div>
-                              <h4 className="font-extrabold text-sm text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
-                                {sess.group_name}
-                              </h4>
-                            </div>
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-lg border shrink-0 ${meta.color}`}>
-                              {sess.status_display || meta.label}
-                            </span>
-                          </div>
+                          {hasCourses ? (
+                            <div className="space-y-2">
+                              {cellCourses.map((course) => (
+                                <div
+                                  key={course.id}
+                                  onClick={() => handleCourseClick(course)}
+                                  className="p-2.5 rounded-xl bg-sky-50/80 hover:bg-sky-100/90 dark:bg-sky-950/40 dark:hover:bg-sky-900/60 border border-sky-200/80 dark:border-sky-800 shadow-2xs hover:border-sky-400 hover:shadow-md hover:-translate-y-0.5 transition-all space-y-1.5 cursor-pointer group"
+                                  title="کلیک برای مشاهده کلاس‌های این دوره"
+                                >
+                                  {/* Course Title & Age Badge */}
+                                  <div className="flex items-start justify-between gap-1">
+                                    <h4 className="font-extrabold text-xs text-sky-950 dark:text-sky-100 group-hover:text-sky-600 transition-colors leading-tight">
+                                      {course.name}
+                                    </h4>
+                                    {course.age_range && (
+                                      <Badge variant="teal" className="text-[9px] py-0 px-1 shrink-0">
+                                        {course.age_range.split(' ')[0]}
+                                      </Badge>
+                                    )}
+                                  </div>
 
-                          <div className="grid grid-cols-2 gap-2 text-xs text-slate-600 dark:text-slate-300 pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
-                            <div className="flex items-center gap-1.5">
-                              <User className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                              <span className="truncate">{sess.coach_name || 'بدون مربی'}</span>
-                            </div>
-                            <div className="flex items-center gap-1.5">
-                              <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                              <span className="truncate">{sess.pool_location || 'استخر شهید رئیسی'}</span>
-                            </div>
-                          </div>
+                                  {/* Pool location */}
+                                  <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400">
+                                    <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                                    <span className="truncate">{course.pool_location || 'استخر شهید رئیسی'}</span>
+                                  </div>
 
-                          <div className="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-700/60 text-xs">
-                            <span className="text-sky-600 dark:text-sky-400 font-bold flex items-center gap-1 group-hover:translate-x-[-3px] transition-transform">
-                              <span>ورود به فضای کلاس</span>
-                              <span className="text-sm">←</span>
-                            </span>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                navigate(`/admin/attendance/${sess.id}`);
-                              }}
-                              className="px-2.5 py-1 rounded-lg bg-sky-100 hover:bg-sky-200 dark:bg-sky-950/70 dark:hover:bg-sky-900/70 text-sky-700 dark:text-sky-300 text-xs font-bold transition-colors"
-                            >
-                              برگه حضور و غیاب
-                            </button>
-                          </div>
-                        </div>
+                                  {/* Classes count and Action arrow */}
+                                  <div className="pt-1 border-t border-sky-100 dark:border-sky-800/60 flex items-center justify-between text-[10px]">
+                                    <span className="text-slate-500 font-medium">
+                                      {(course.groups?.length || course.coaches?.length || 0)} کلاس / لاین
+                                    </span>
+                                    <span className="text-sky-600 dark:text-sky-400 font-bold flex items-center gap-0.5 group-hover:translate-x-[-2px] transition-transform">
+                                      <span>کلاس‌ها</span>
+                                      <span>←</span>
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="h-16 flex items-center justify-center text-slate-300 dark:text-slate-700 text-xs font-mono select-none">
+                              —
+                            </div>
+                          )}
+                        </td>
                       );
                     })}
-                  </div>
-                )}
-              </div>
-
-              {/* TABLE MATRIX VIEW (Desktop, Tablet, or Mobile Matrix Mode) */}
-              <div className={`overflow-x-auto rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-2xs ${
-                mobileLayoutMode === 'dayTimeline' ? 'hidden md:block' : 'block'
-              }`}>
-                <table className="w-full text-right border-collapse min-w-[760px] lg:min-w-[920px]">
-                  {/* Table Header: Days of the Week */}
-                  <thead>
-                    <tr className="bg-slate-100/95 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700 sticky top-0 z-20">
-                      {/* Sticky Right Column Header in RTL (Hour / سانس) */}
-                      <th className="p-3.5 text-center font-extrabold text-xs sm:text-sm w-32 sm:w-36 border-l border-slate-200 dark:border-slate-700 sticky right-0 z-30 bg-slate-200/80 dark:bg-slate-800 shadow-xs">
-                        <div className="flex items-center justify-center gap-1.5">
-                          <Clock className="w-4 h-4 text-sky-600" />
-                          <span>ساعت / سانس</span>
-                        </div>
-                      </th>
-
-                      {/* 7 Days Columns */}
-                      {WEEKDAYS.map((day) => {
-                        const weekDateObj = currentWeekDays.find((d) => d.weekdayIndex === day.index);
-                        return (
-                          <th
-                            key={day.index}
-                            className={`p-3 text-center border-l last:border-l-0 border-slate-200 dark:border-slate-700 transition-colors ${
-                              weekDateObj?.isToday && weekScope === 'CURRENT_WEEK'
-                                ? 'bg-sky-100/70 dark:bg-sky-950/70 text-sky-900 dark:text-sky-200 font-black'
-                                : 'font-bold text-xs sm:text-sm'
-                            }`}
-                          >
-                            <div className="space-y-0.5">
-                              <span className="block">{day.name}</span>
-                              {weekScope === 'CURRENT_WEEK' && weekDateObj && (
-                                <span className={`block text-[11px] font-mono ${
-                                  weekDateObj.isToday
-                                    ? 'text-sky-700 dark:text-sky-300 font-bold'
-                                    : 'text-slate-500 dark:text-slate-400 font-normal'
-                                }`}>
-                                  {weekDateObj.faLabel}
-                                </span>
-                              )}
-                            </div>
-                          </th>
-                        );
-                      })}
-                    </tr>
-                  </thead>
-
-                  {/* Table Body: Time Slots as Rows */}
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80 bg-white dark:bg-slate-900">
-                    {timeSlots.map((slot) => {
-                      return (
-                        <tr key={slot.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20 transition-colors">
-                          {/* Sticky Time Slot Column in RTL */}
-                          <td className="p-3 text-center border-l border-slate-200 dark:border-slate-700 bg-slate-50/90 dark:bg-slate-800/80 sticky right-0 z-10 shadow-xs align-middle">
-                            <div className="space-y-1">
-                              <span className="font-mono font-bold text-xs sm:text-sm text-slate-800 dark:text-slate-200 block">
-                                {slot.label}
-                              </span>
-                              <span className="inline-block px-2 py-0.5 text-[10px] rounded-md font-semibold bg-slate-200/80 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
-                                {slot.period}
-                              </span>
-                            </div>
-                          </td>
-
-                          {/* 7 Days cells */}
-                          {WEEKDAYS.map((day) => {
-                            const cellSessions = scheduleMatrix[slot.id]?.[day.index] || [];
-                            const hasSessions = cellSessions.length > 0;
-
-                            return (
-                              <td
-                                key={day.index}
-                                className={`p-2 border-l last:border-l-0 border-slate-200/80 dark:border-slate-800 align-top transition-colors ${
-                                  hasSessions ? 'bg-sky-50/20 dark:bg-sky-950/10' : ''
-                                }`}
-                              >
-                                {hasSessions ? (
-                                  <div className="space-y-2">
-                                    {cellSessions.map((sess) => {
-                                      const meta = statusMeta[sess.status] || statusMeta.SCHEDULED;
-                                      return (
-                                        <div
-                                          key={sess.id}
-                                          onClick={() => handleNavigateToClass(sess.group)}
-                                          className="p-2.5 rounded-xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 shadow-2xs hover:border-sky-400 dark:hover:border-sky-500 hover:shadow-md hover:-translate-y-0.5 transition-all space-y-1.5 cursor-pointer group"
-                                          title="کلیک برای ورود به فضای اختصاصی این کلاس"
-                                        >
-                                          {/* Group & Status */}
-                                          <div className="flex items-start justify-between gap-1.5">
-                                            <h4 className="font-bold text-xs text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 leading-tight transition-colors">
-                                              {sess.group_name}
-                                            </h4>
-                                            <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-md border shrink-0 ${meta.color}`}>
-                                              {sess.status_display || meta.label}
-                                            </span>
-                                          </div>
-
-                                          {/* Coach */}
-                                          <div className="flex items-center gap-1 text-[11px] text-slate-700 dark:text-slate-300 font-medium">
-                                            <User className="w-3 h-3 text-sky-600 shrink-0" />
-                                            <span className="truncate">{sess.coach_name || 'بدون مربی'}</span>
-                                          </div>
-
-                                          {/* Pool location */}
-                                          {sess.pool_location && (
-                                            <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400">
-                                              <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                                              <span className="truncate">{sess.pool_location}</span>
-                                            </div>
-                                          )}
-
-                                          {/* Action Footer on Card */}
-                                          <div className="pt-1.5 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-[10px]">
-                                            <span className="text-sky-600 dark:text-sky-400 font-bold flex items-center gap-0.5 group-hover:underline">
-                                              <span>کلاس</span>
-                                              <span>←</span>
-                                            </span>
-                                            {weekScope === 'ALL' && sess.session_date ? (
-                                              <span className="text-slate-400 font-mono">{formatFaDate(sess.session_date)}</span>
-                                            ) : sess.enrolled_count > 0 ? (
-                                              <span className="text-slate-500 font-mono font-bold">{sess.enrolled_count} نفر</span>
-                                            ) : null}
-                                          </div>
-                                        </div>
-                                      );
-                                    })}
-                                  </div>
-                                ) : (
-                                  <div className="h-16 flex items-center justify-center text-slate-300 dark:text-slate-700 text-xs font-mono select-none">
-                                    —
-                                  </div>
-                                )}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-            </>
-          ) : (
-            /* VIEW 2: CLASSIC LIST VIEW (فهرست خطی جلسات) */
-            <div className="overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-slate-800">
-              <table className="w-full text-sm text-right min-w-[700px]">
-                <thead className="bg-slate-50 dark:bg-slate-800/70 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800">
-                  <tr>
-                    <th className="px-4 py-3 rounded-r-xl">گروه کلاسی</th>
-                    <th className="px-4 py-3">دوره آموزشی</th>
-                    <th className="px-4 py-3">مربی مسئول</th>
-                    <th className="px-4 py-3">روز و تاریخ جلسه</th>
-                    <th className="px-4 py-3">ساعت برگزاری</th>
-                    <th className="px-4 py-3">محل استخر</th>
-                    <th className="px-4 py-3">وضعیت</th>
-                    <th className="px-4 py-3 text-center rounded-l-xl">عملیات</th>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
-                  {filteredSessions.map((sess) => {
-                    const weekdayIdx = getWeekdayFromDateStr(sess.session_date);
-                    const weekdayObj = WEEKDAYS.find((w) => w.index === weekdayIdx);
-                    const meta = statusMeta[sess.status] || statusMeta.SCHEDULED;
+                ))}
+              </tbody>
+            </table>
+          </div>
 
-                    return (
-                      <tr key={sess.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30 transition-colors">
-                        <td className="px-4 py-3 font-bold text-slate-900 dark:text-white">
-                          <button
-                            type="button"
-                            onClick={() => handleNavigateToClass(sess.group)}
-                            className="hover:text-sky-600 dark:hover:text-sky-400 font-bold hover:underline transition-colors text-right"
-                          >
-                            {sess.group_name}
-                          </button>
-                        </td>
-                        <td className="px-4 py-3 text-xs text-slate-600 dark:text-slate-400">{sess.course_name || '—'}</td>
-                        <td className="px-4 py-3 text-xs font-medium text-slate-800 dark:text-slate-200">{sess.coach_name || 'نامشخص'}</td>
-                        <td className="px-4 py-3 text-xs font-mono">
-                          <span className="font-bold text-sky-700 dark:text-sky-300 ml-1.5">{weekdayObj?.name}</span>
-                          <span>{sess.session_date}</span>
-                        </td>
-                        <td className="px-4 py-3 text-xs font-mono text-slate-700 dark:text-slate-300">
-                          {sess.start_time?.slice(0, 5)} تا {sess.end_time?.slice(0, 5)}
-                        </td>
-                        <td className="px-4 py-3 text-xs text-slate-500">{sess.pool_location}</td>
-                        <td className="px-4 py-3">
-                          <span className={`text-xs font-bold px-2 py-1 rounded-lg border inline-block ${meta.color}`}>
-                            {sess.status_display || meta.label}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <button
-                            type="button"
-                            onClick={() => handleNavigateToClass(sess.group)}
-                            className="px-2.5 py-1 rounded-lg bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1"
-                          >
-                            <span>ورود به کلاس</span>
-                            <span>←</span>
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
+          {/* Table Footer Summary */}
+          <div className="pt-3.5 mt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-500 dark:text-slate-400">
+            <div className="flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+              <span>هر کارت نشان‌دهنده یک دوره آموزشی فعال در آن روز و ساعت است. با کلیک بر روی آن، کلاس‌ها و لاین‌های تفکیک‌شده باز می‌شوند.</span>
             </div>
-          )}
-
-          {/* Table Legend / Footer info */}
-          <div className="pt-4 mt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-500 dark:text-slate-400">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="font-bold">راهنمای وضعیت‌ها:</span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
-                <span>برنامه‌ریزی‌شده</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                <span>برگزارشده</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
-                <span>لغوشده</span>
-              </span>
-              <span className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                <span>جلسه جبرانی</span>
-              </span>
-            </div>
-
-            <div className="text-left font-mono">
-              مجموع جلسات قابل نمایش: {filteredSessions.length} جلسه
+            <div className="text-left font-mono font-bold text-sky-600">
+              {filteredCourses.length} دوره در جدول
             </div>
           </div>
 
         </div>
       </div>
+
+      {/* MODAL: VIEW CLASSES OF SELECTED COURSE */}
+      <Modal
+        isOpen={Boolean(selectedCourseForModal)}
+        onClose={() => setSelectedCourseForModal(null)}
+        title={selectedCourseForModal ? `کلاس‌ها و لاین‌های: ${selectedCourseForModal.name}` : ''}
+        maxWidth="max-w-2xl"
+      >
+        {selectedCourseForModal && (
+          <div className="space-y-4">
+            {/* Header summary of the course */}
+            <div className="p-3.5 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200/70 dark:border-sky-800 text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold text-sky-900 dark:text-sky-200 text-sm">
+                    {selectedCourseForModal.name}
+                  </span>
+                  <Badge variant="teal">{selectedCourseForModal.age_range || 'عمومی'}</Badge>
+                </div>
+                <div className="flex items-center gap-3 text-slate-600 dark:text-slate-400">
+                  <span className="flex items-center gap-1">
+                    <Clock className="w-3.5 h-3.5 text-slate-400" />
+                    <span>ساعت {selectedCourseForModal.timeSlot.label}</span>
+                  </span>
+                  <span>•</span>
+                  <span className="flex items-center gap-1">
+                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{selectedCourseForModal.pool_location || 'استخر شهید رئیسی'}</span>
+                  </span>
+                </div>
+              </div>
+
+              {onOpenCourseSwimmers && (
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    const c = selectedCourseForModal;
+                    setSelectedCourseForModal(null);
+                    onOpenCourseSwimmers(c);
+                  }}
+                  className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-700 text-white shrink-0"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>شناگران دوره و تخصیص مربی</span>
+                </Button>
+              )}
+            </div>
+
+            {/* List of Classes */}
+            <div className="space-y-2.5">
+              <h4 className="font-bold text-xs text-slate-700 dark:text-slate-300 flex items-center justify-between">
+                <span>کلاس‌های تفکیکی این دوره (مربیان و لاین‌ها):</span>
+                <span className="font-mono text-slate-400">
+                  {(selectedCourseForModal.groups || []).length} کلاس
+                </span>
+              </h4>
+
+              {(selectedCourseForModal.groups || []).length === 0 ? (
+                <div className="text-center py-6 text-slate-400 text-xs bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/60">
+                  هنوز گروه کلاسی برای این دوره تعریف نشده است.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {(selectedCourseForModal.groups || []).map((grp) => {
+                    const coachName = grp.coach_assignments?.[0]?.coach_name || 'مربی مشخص نشده';
+                    return (
+                      <div
+                        key={grp.id}
+                        className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 flex flex-col justify-between gap-3 shadow-2xs hover:border-sky-400 transition-all"
+                      >
+                        <div className="space-y-1.5">
+                          <h5 className="font-bold text-xs text-slate-900 dark:text-white">
+                            {grp.name}
+                          </h5>
+                          <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                            <User className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                            <span>مربی: {coachName}</span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 font-mono">
+                            ظرفیت: {grp.capacity} نفر ({grp.remaining_capacity || grp.capacity} جای خالی)
+                          </div>
+                        </div>
+
+                        <Button
+                          size="sm"
+                          onClick={() => {
+                            setSelectedCourseForModal(null);
+                            navigate(`/admin/classes/${grp.id}`);
+                          }}
+                          className="w-full gap-1.5 text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white"
+                        >
+                          <span>ورود به فضای کلاس</span>
+                          <span>←</span>
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-800">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedCourseForModal(null)}
+              >
+                بستن
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

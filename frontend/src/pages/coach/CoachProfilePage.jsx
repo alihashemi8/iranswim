@@ -209,7 +209,7 @@ export const CoachProfilePage = () => {
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="مانند: Coach@Secure2026"
+                placeholder="کلمه عبور جدید"
                 className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white font-mono text-sm"
                 required
               />

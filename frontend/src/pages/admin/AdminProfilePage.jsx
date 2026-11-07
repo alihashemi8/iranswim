@@ -819,7 +819,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                       minLength={8}
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                      placeholder="مانند: Admin@Safe2026"
+                      placeholder="رمز عبور جدید"
                       className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 transition-all"
                     />
                   </div>

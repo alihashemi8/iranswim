@@ -5,7 +5,7 @@ import {
   CheckCircle2, AlertCircle, Trash2, RefreshCw,
   ShieldCheck, ArrowLeft, Check, CheckCheck, Loader2,
   MessageSquare, UserPlus, CreditCard, Calendar, Inbox,
-  User, GraduationCap, Search, Filter
+  User, GraduationCap, Search, Filter, Smartphone
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -165,16 +165,24 @@ export const AdminAnnouncementsPage = () => {
 
   const audienceLabels = {
     ALL: 'همه اعضای آموزشگاه (عمومی)',
-    SWIMMERS: 'فقط شناگران و اولیا',
-    COACHES: 'فقط کادر مربیان',
+    SWIMMERS: 'کلیه شناگران',
+    SWIMMERS_MALE: 'شناگران پسر',
+    SWIMMERS_FEMALE: 'شناگران دختر',
+    COACHES: 'کلیه مربیان',
+    COACHES_MALE: 'مربیان آقا',
+    COACHES_FEMALE: 'مربیان خانم',
     GROUP: 'اعضای یک کلاس مشخص',
   };
 
   const audienceFilterOptions = [
     { value: '', label: 'همه مخاطبان' },
     { value: 'ALL', label: 'عمومی (همه اعضا)', icon: Users },
-    { value: 'SWIMMERS', label: 'شناگران', icon: User },
-    { value: 'COACHES', label: 'مربیان', icon: GraduationCap },
+    { value: 'SWIMMERS', label: 'کلیه شناگران', icon: User },
+    { value: 'SWIMMERS_MALE', label: 'شناگران پسر', icon: User },
+    { value: 'SWIMMERS_FEMALE', label: 'شناگران دختر', icon: User },
+    { value: 'COACHES', label: 'کلیه مربیان', icon: GraduationCap },
+    { value: 'COACHES_MALE', label: 'مربیان آقا', icon: GraduationCap },
+    { value: 'COACHES_FEMALE', label: 'مربیان خانم', icon: GraduationCap },
     { value: 'GROUP', label: 'کلاس‌های خاص', icon: BookOpen },
   ];
 
@@ -468,6 +476,12 @@ export const AdminAnnouncementsPage = () => {
                           <span className="flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/60 px-2 py-0.5 rounded-md">
                             <Pin className="w-3 h-3 rotate-45" />
                             مهم و پین‌شده
+                          </span>
+                        )}
+                        {item.send_sms && (
+                          <span className="flex items-center gap-1 text-[11px] font-bold text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/60 px-2 py-0.5 rounded-md">
+                            <Smartphone className="w-3 h-3" />
+                            پیامک
                           </span>
                         )}
                         <h3 className="font-bold text-sm text-slate-900 dark:text-white">

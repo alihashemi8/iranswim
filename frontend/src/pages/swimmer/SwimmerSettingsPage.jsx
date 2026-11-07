@@ -151,7 +151,7 @@ export const SwimmerSettingsPage = () => {
                   type={showNew ? 'text' : 'password'}
                   value={passwordForm.new_password}
                   onChange={(e) => setPasswordForm({ ...passwordForm, new_password: e.target.value })}
-                  placeholder="مانند: IranSwim@2026"
+                  placeholder="کلمه عبور جدید"
                   className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500 font-mono"
                   required
                 />
