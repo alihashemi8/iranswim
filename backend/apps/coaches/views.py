@@ -31,7 +31,7 @@ class CoachListView(generics.ListCreateAPIView):
 
     def get_serializer_class(self):
         user = self.request.user if hasattr(self, 'request') else None
-        if user and user.is_authenticated and (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser or user.is_staff):
+        if user and user.is_authenticated and (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser):
             return CoachProfileSerializer
         return CoachPublicSerializer
 
@@ -60,8 +60,20 @@ class CoachDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_serializer_class(self):
         user = self.request.user if hasattr(self, 'request') else None
-        if user and user.is_authenticated and (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser or user.is_staff):
+        if not user or not user.is_authenticated:
+            return CoachPublicSerializer
+
+        # Administrators and technical supervisors receive the full management serializer
+        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return CoachProfileSerializer
+
+        # A coach viewing their own private profile dossier
+        if user.role == 'COACH' and hasattr(user, 'coach_profile'):
+            lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+            lookup_val = self.kwargs.get(lookup_url_kwarg)
+            if lookup_val is not None and str(user.coach_profile.id) == str(lookup_val):
+                return CoachProfileSerializer
+
         return CoachPublicSerializer
 
     def get_permissions(self):

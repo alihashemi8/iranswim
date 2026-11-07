@@ -87,7 +87,6 @@ class CoachProfileSerializer(serializers.ModelSerializer):
         is_admin_or_self = bool(user and (
             user.role in ['ADMIN', 'SUPERVISOR'] or
             user.is_superuser or
-            user.is_staff or
             (instance.user and instance.user == user)
         ))
 
