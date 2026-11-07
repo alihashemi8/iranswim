@@ -229,40 +229,64 @@ export const AdminAnnouncementsPage = () => {
         </div>
       </div>
 
-      {/* Tabs Switcher */}
-      <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-xs sm:text-sm gap-1">
-        <button
-          type="button"
-          onClick={() => handleTabChange('NOTIFICATIONS')}
-          className={`flex-1 py-2.5 px-4 rounded-xl font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
-            activeTab === 'NOTIFICATIONS'
-              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-          }`}
-        >
-          <Inbox className="w-4 h-4" />
-          <span>اعلان‌های دریافتی مدیریت</span>
-          {unreadNotifCount > 0 ? (
-            <span className="px-2 py-0.5 rounded-full text-[11px] bg-rose-500 text-white font-mono">
-              {unreadNotifCount} جدید
-            </span>
-          ) : (
-            <span className="text-[11px] text-slate-400 font-mono">({notifications.length})</span>
-          )}
-        </button>
+      {/* Navigation Tabs Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-3">
+        <div className="inline-flex items-center bg-slate-100 dark:bg-slate-800/90 p-1 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 shadow-2xs gap-1">
+          <button
+            type="button"
+            onClick={() => handleTabChange('NOTIFICATIONS')}
+            className={`py-2 px-4 sm:px-5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-2 ${
+              activeTab === 'NOTIFICATIONS'
+                ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-xs border border-slate-200/60 dark:border-slate-700/80'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/40'
+            }`}
+          >
+            <Inbox className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+            <span>اعلان‌های دریافتی مدیریت</span>
+            {unreadNotifCount > 0 ? (
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-500 text-white shadow-2xs animate-pulse">
+                {unreadNotifCount} جدید
+              </span>
+            ) : (
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 font-mono">
+                {notifications.length}
+              </span>
+            )}
+          </button>
 
-        <button
-          type="button"
-          onClick={() => handleTabChange('ANNOUNCEMENTS')}
-          className={`flex-1 py-2.5 px-4 rounded-xl font-bold transition-all cursor-pointer flex items-center justify-center gap-2 ${
-            activeTab === 'ANNOUNCEMENTS'
-              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-          }`}
-        >
-          <Bell className="w-4 h-4" />
-          <span>اطلاعیه‌های ارسالی آموزشگاه ({announcements.length})</span>
-        </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange('ANNOUNCEMENTS')}
+            className={`py-2 px-4 sm:px-5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-2 ${
+              activeTab === 'ANNOUNCEMENTS'
+                ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-xs border border-slate-200/60 dark:border-slate-700/80'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/40'
+            }`}
+          >
+            <Bell className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+            <span>اطلاعیه‌های ارسالی آموزشگاه</span>
+            <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 font-mono">
+              {announcements.length}
+            </span>
+          </button>
+        </div>
+
+        {/* Mark all as read button aligned neatly on the left */}
+        {activeTab === 'NOTIFICATIONS' && unreadNotifCount > 0 && (
+          <button
+            type="button"
+            onClick={handleMarkAllNotifsAsRead}
+            disabled={markingAll}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 dark:hover:bg-sky-900/60 border border-sky-200 dark:border-sky-800/80 transition-colors cursor-pointer self-start sm:self-auto"
+          >
+            {markingAll ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-600" />
+            ) : (
+              <CheckCheck className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+            )}
+            <span>علامت‌گذاری همه به‌عنوان خوانده‌شده</span>
+          </button>
+        )}
       </div>
 
       {/* ============================================================= */}
@@ -272,19 +296,11 @@ export const AdminAnnouncementsPage = () => {
         <div className="space-y-4">
           <div className="flex items-center justify-between px-1">
             <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
-              پیام‌های سیستمی و هشدارهای ارسال مدارک شناگران:
+              پیام‌های سیستمی، هشدارهای مدارک و گزارش‌های کاربری:
             </span>
-            {unreadNotifCount > 0 && (
-              <button
-                type="button"
-                onClick={handleMarkAllNotifsAsRead}
-                disabled={markingAll}
-                className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer"
-              >
-                <CheckCheck className="w-3.5 h-3.5" />
-                <span>علامت‌گذاری همه به‌عنوان خوانده‌شده</span>
-              </button>
-            )}
+            <span className="text-xs text-slate-400 font-mono">
+              مجموع: {notifications.length} اعلان ({unreadNotifCount} خوانده نشده)
+            </span>
           </div>
 
           {loading ? (
@@ -304,85 +320,142 @@ export const AdminAnnouncementsPage = () => {
 
                 const isMarking = markingIds.has(notif.id);
 
+                // Category Badge & Theme
+                let catBadge = {
+                  label: 'سیستمی',
+                  color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
+                };
+                let catIcon = <Bell className="w-5 h-5" />;
+                let iconBg = 'bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400';
+                let actionLabel = 'مشاهده جزئیات';
+
+                if (isSwimmerDocAlert) {
+                  catBadge = {
+                    label: 'مدارک شناگر',
+                    color: 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+                  };
+                  catIcon = <ShieldCheck className="w-5 h-5" />;
+                  iconBg = 'bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400';
+                  actionLabel = 'بررسی مدارک شناگر';
+                } else if (notif.category === 'REGISTRATION') {
+                  catBadge = {
+                    label: 'ثبت‌نام',
+                    color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+                  };
+                  catIcon = <UserPlus className="w-5 h-5" />;
+                  iconBg = 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400';
+                  actionLabel = 'مشاهده پرونده شناگر';
+                } else if (
+                  notif.category === 'PAYMENT' ||
+                  notif.title?.includes('شهریه') ||
+                  notif.message?.includes('شهریه') ||
+                  notif.title?.includes('اقساط')
+                ) {
+                  catBadge = {
+                    label: 'امور مالی و شهریه',
+                    color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
+                  };
+                  catIcon = <CreditCard className="w-5 h-5" />;
+                  iconBg = 'bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400';
+                  actionLabel = 'مشاهده وضعیت مالی و اقساط';
+                } else if (
+                  notif.category === 'SCHEDULE' ||
+                  notif.title?.includes('سانس') ||
+                  notif.title?.includes('استخر')
+                ) {
+                  catBadge = {
+                    label: 'برنامه و سانس استخر',
+                    color: 'bg-teal-100 text-teal-800 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800',
+                  };
+                  catIcon = <Calendar className="w-5 h-5" />;
+                  iconBg = 'bg-teal-100 dark:bg-teal-950 text-teal-600 dark:text-teal-400';
+                  actionLabel = 'مشاهده برنامه سانس‌ها';
+                }
+
                 return (
                   <div
                     key={notif.id}
-                    className={`p-4 rounded-2xl border transition-all ${
+                    className={`p-4 sm:p-5 rounded-2xl border transition-all ${
                       notif.is_read
-                        ? 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800'
-                        : 'bg-sky-50/50 dark:bg-sky-950/20 border-sky-200 dark:border-sky-900/60 shadow-2xs'
+                        ? 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-slate-300'
+                        : 'bg-gradient-to-r from-sky-50/70 via-white to-white dark:from-sky-950/30 dark:via-slate-900 dark:to-slate-900 border-sky-300 dark:border-sky-800/80 shadow-xs'
                     }`}
                   >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex items-start gap-3 min-w-0 flex-1">
-                        <div
-                          className={`p-2.5 rounded-xl shrink-0 mt-0.5 ${
-                            isSwimmerDocAlert
-                              ? 'bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400'
-                              : notif.category === 'REGISTRATION'
-                              ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400'
-                              : 'bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400'
-                          }`}
-                        >
-                          {isSwimmerDocAlert ? (
-                            <ShieldCheck className="w-5 h-5" />
-                          ) : notif.category === 'REGISTRATION' ? (
-                            <UserPlus className="w-5 h-5" />
-                          ) : notif.category === 'PAYMENT' ? (
-                            <CreditCard className="w-5 h-5" />
-                          ) : (
-                            <Bell className="w-5 h-5" />
-                          )}
-                        </div>
+                    <div className="flex items-start gap-3.5">
+                      {/* Category Icon */}
+                      <div className={`p-2.5 rounded-xl shrink-0 mt-0.5 ${iconBg}`}>
+                        {catIcon}
+                      </div>
 
-                        <div className="space-y-1 min-w-0 flex-1">
+                      {/* Content */}
+                      <div className="flex-1 min-w-0 space-y-2">
+                        {/* Card Header */}
+                        <div className="flex flex-wrap items-center justify-between gap-2">
                           <div className="flex items-center gap-2 flex-wrap">
+                            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-lg border ${catBadge.color}`}>
+                              {catBadge.label}
+                            </span>
                             <h3 className="font-bold text-sm text-slate-900 dark:text-white">
                               {notif.title}
                             </h3>
                             {!notif.is_read && (
-                              <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse" />
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/60 px-2 py-0.5 rounded-md">
+                                <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
+                                جدید
+                              </span>
                             )}
-                            <span className="text-[11px] font-mono text-slate-400">
+                          </div>
+
+                          <div className="flex items-center gap-3">
+                            <span className="text-xs text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5">
+                              <Clock className="w-3.5 h-3.5 text-slate-400" />
                               {formatPersianDate(notif.created_at, 'YYYY/MM/DD - HH:mm')}
                             </span>
-                          </div>
-                          <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                            {notif.message}
-                          </p>
 
-                          {/* Quick Action Button for Swimmer Document Alert */}
-                          {notif.link && (
-                            <div className="pt-2">
-                              <Link
-                                to={notif.link}
-                                onClick={() => !notif.is_read && handleMarkNotifAsRead(notif.id)}
-                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white transition-colors shadow-2xs"
+                            {/* Mark read toggle button */}
+                            {!notif.is_read ? (
+                              <button
+                                type="button"
+                                onClick={(e) => handleMarkNotifAsRead(notif.id, e)}
+                                disabled={isMarking}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 hover:text-sky-700 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
+                                title="علامت‌گذاری به‌عنوان خوانده‌شده"
                               >
-                                <span>مشاهده جزئیات و بررسی پرونده</span>
-                                <ArrowLeft className="w-3.5 h-3.5" />
-                              </Link>
-                            </div>
-                          )}
+                                {isMarking ? (
+                                  <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-600" />
+                                ) : (
+                                  <Check className="w-3.5 h-3.5 text-slate-500" />
+                                )}
+                                <span>خوانده شد</span>
+                              </button>
+                            ) : (
+                              <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                                <CheckCheck className="w-3.5 h-3.5 text-emerald-500" />
+                                خوانده‌شده
+                              </span>
+                            )}
+                          </div>
                         </div>
-                      </div>
 
-                      {/* Read Toggle Button */}
-                      {!notif.is_read && (
-                        <button
-                          type="button"
-                          onClick={(e) => handleMarkNotifAsRead(notif.id, e)}
-                          disabled={isMarking}
-                          className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-sky-600 hover:border-sky-300 dark:hover:border-sky-700 transition-colors cursor-pointer shrink-0"
-                          title="علامت‌گذاری به‌عنوان خوانده‌شده"
-                        >
-                          {isMarking ? (
-                            <Loader2 className="w-4 h-4 animate-spin text-sky-600" />
-                          ) : (
-                            <Check className="w-4 h-4" />
-                          )}
-                        </button>
-                      )}
+                        {/* Message body */}
+                        <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                          {notif.message}
+                        </p>
+
+                        {/* Action Button */}
+                        {notif.link && (
+                          <div className="pt-1.5">
+                            <Link
+                              to={notif.link}
+                              onClick={() => !notif.is_read && handleMarkNotifAsRead(notif.id)}
+                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white transition-colors shadow-2xs"
+                            >
+                              <span>{actionLabel}</span>
+                              <ArrowLeft className="w-3.5 h-3.5" />
+                            </Link>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 );
@@ -503,8 +576,9 @@ export const AdminAnnouncementsPage = () => {
                             ? `گروه: ${targetGroupName}`
                             : audienceLabels[item.audience] || item.audience}
                         </Badge>
-                        <span className="text-[11px] font-mono text-slate-400">
-                          {new Date(item.created_at).toLocaleDateString('fa-IR')}
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5 text-slate-400" />
+                          {formatPersianDate(item.created_at, 'YYYY/MM/DD')}
                         </span>
                         {/* Pin toggle button */}
                         <button

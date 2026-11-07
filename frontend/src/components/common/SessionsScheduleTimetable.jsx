@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import {
   Calendar, Clock, User, MapPin, Download, Printer,
   FileSpreadsheet, ChevronLeft, ChevronRight,
-  BookOpen, GraduationCap, Users, ArrowLeft, ArrowRight,
-  ExternalLink, Layers, CheckCircle2
+  BookOpen, GraduationCap, Users, ArrowRight,
+  Layers, CheckCircle2, Search, ExternalLink
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import { Badge } from './Badge';
-import { Modal } from './Modal';
 import { Button } from './Button';
 import { exportToCsv } from '../../utils/exportCsv';
 import { useToast } from '../../context/ToastContext';
@@ -127,12 +126,11 @@ export const SessionsScheduleTimetable = ({
 
   // States
   const [isExportingPng, setIsExportingPng] = useState(false);
-  const [selectedCourseForModal, setSelectedCourseForModal] = useState(null);
 
-  // Mobile active day: default to today's Persian weekday
-  const [selectedMobileDay, setSelectedMobileDay] = useState(() => {
+  // Selected Day (0: Saturday ... 6: Friday, or 'ALL')
+  const [selectedDay, setSelectedDay] = useState(() => {
     const jsDay = new Date().getDay();
-    return (jsDay + 1) % 7;
+    return (jsDay + 1) % 7; // today's Persian weekday
   });
 
   // Prepared Course Items with parsed weekdays and times
@@ -153,62 +151,7 @@ export const SessionsScheduleTimetable = ({
     });
   }, [courses, groups]);
 
-  // Extract distinct unique Time Slots from courses
-  const timeSlots = useMemo(() => {
-    const slotMap = new Map();
-
-    scheduledCourses.forEach((c) => {
-      const { start, end, key, label } = c.timeSlot;
-      if (!slotMap.has(key)) {
-        slotMap.set(key, {
-          id: key,
-          start,
-          end,
-          label,
-        });
-      }
-    });
-
-    if (slotMap.size === 0) {
-      return [
-        { id: '08:00-09:30', start: '08:00', end: '09:30', label: '۰۸:۰۰ الی ۰۹:۳۰' },
-        { id: '16:00-17:30', start: '16:00', end: '17:30', label: '۱۶:۰۰ الی ۱۷:۳۰' },
-        { id: '17:00-18:30', start: '17:00', end: '18:30', label: '۱۷:۰۰ الی ۱۸:۳۰' },
-        { id: '17:00-19:00', start: '17:00', end: '19:00', label: '۱۷:۰۰ الی ۱۹:۰۰' },
-        { id: '18:30-20:00', start: '18:30', end: '20:00', label: '۱۸:۳۰ الی ۲۰:۰۰' },
-      ];
-    }
-
-    return Array.from(slotMap.values()).sort((a, b) => a.start.localeCompare(b.start));
-  }, [scheduledCourses]);
-
-  // Course Grid Matrix: matrix[timeSlotKey][weekdayIndex] -> array of courses
-  const courseMatrix = useMemo(() => {
-    const matrix = {};
-    timeSlots.forEach((slot) => {
-      matrix[slot.id] = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
-    });
-
-    scheduledCourses.forEach((c) => {
-      const slotKey = c.timeSlot.key;
-      let targetSlot = timeSlots.find((s) => s.id === slotKey);
-      if (!targetSlot) {
-        targetSlot = timeSlots.find((s) => s.start === c.timeSlot.start) || timeSlots[0];
-      }
-
-      if (targetSlot && matrix[targetSlot.id]) {
-        c.weekdays.forEach((dayIdx) => {
-          if (matrix[targetSlot.id][dayIdx]) {
-            matrix[targetSlot.id][dayIdx].push(c);
-          }
-        });
-      }
-    });
-
-    return matrix;
-  }, [scheduledCourses, timeSlots]);
-
-  // Courses grouped by day for mobile view
+  // Courses grouped by day
   const dayCoursesMap = useMemo(() => {
     const map = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
     scheduledCourses.forEach((c) => {
@@ -226,22 +169,20 @@ export const SessionsScheduleTimetable = ({
     return map;
   }, [scheduledCourses]);
 
-  // Click handler for Course Card
-  const handleCourseClick = (course) => {
-    const courseGroups = course.groups || [];
-    if (courseGroups.length === 1) {
-      navigate(`/admin/classes/${courseGroups[0].id}`);
-    } else {
-      setSelectedCourseForModal(course);
+  // Active courses for current selection
+  const activeCourses = useMemo(() => {
+    if (selectedDay === 'ALL') {
+      return scheduledCourses;
     }
-  };
+    return dayCoursesMap[selectedDay] || [];
+  }, [selectedDay, scheduledCourses, dayCoursesMap]);
 
   // High-Resolution PNG Export
   const handleDownloadHighResPng = async () => {
     if (!printContainerRef.current) return;
     try {
       setIsExportingPng(true);
-      toast.info('در حال تولید تصویر باکیفیت جدول...');
+      toast.info('در حال تولید تصویر باکیفیت برنامه دوره‌ها...');
 
       const dataUrl = await toPng(printContainerRef.current, {
         cacheBust: true,
@@ -251,17 +192,17 @@ export const SessionsScheduleTimetable = ({
       });
 
       const todayFa = new Intl.DateTimeFormat('fa-IR').format(new Date()).replace(/\//g, '-');
-      const filename = `جدول-برنامه-هفتگی-دوره-های-استخر-${todayFa}.png`;
+      const filename = `برنامه-هفتگی-دوره-ها-${todayFa}.png`;
 
       const link = document.createElement('a');
       link.download = filename;
       link.href = dataUrl;
       link.click();
 
-      toast.success('تصویر جدول زمان‌بندی با موفقیت دانلود شد.');
+      toast.success('تصویر برنامه هفتگی با موفقیت دانلود شد.');
     } catch (err) {
       console.error('Export PNG failed:', err);
-      toast.error('خطا در تولید تصویر جدول');
+      toast.error('خطا در تولید تصویر برنامه');
     } finally {
       setIsExportingPng(false);
     }
@@ -301,9 +242,9 @@ export const SessionsScheduleTimetable = ({
       {/* Main Container Card */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
         
-        {/* Clean Header Bar */}
-        <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-2.5">
+        {/* Top Header Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-3">
             <span className="p-2 sm:p-2.5 rounded-2xl bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 border border-sky-200/60 dark:border-sky-800 shrink-0">
               <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
             </span>
@@ -311,23 +252,23 @@ export const SessionsScheduleTimetable = ({
               <h2 className="font-black text-base sm:text-xl text-slate-900 dark:text-white leading-tight">
                 برنامه هفتگی دوره‌های آموزشی استخر
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                زمان‌بندی سانس‌ها و لاین‌های استخر به تفکیک روز و ساعت
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                مشاهده زمان‌بندی دوره‌ها، سانس‌های فعال و ورود مستقیم به کلاس‌های هر مربی
               </p>
             </div>
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-2 no-print shrink-0">
+          <div className="flex items-center gap-2 no-print self-end sm:self-auto shrink-0">
             <button
               type="button"
               onClick={handleDownloadHighResPng}
               disabled={isExportingPng}
-              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow-xs transition-all cursor-pointer disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow-xs transition-all cursor-pointer disabled:opacity-60"
               title="دانلود تصویر باکیفیت"
             >
               <Download className="w-4 h-4" />
-              <span className="hidden sm:inline">{isExportingPng ? 'در حال تولید...' : 'دانلود تصویر'}</span>
+              <span>{isExportingPng ? 'در حال تولید...' : 'دانلود تصویر'}</span>
             </button>
 
             <button
@@ -342,372 +283,208 @@ export const SessionsScheduleTimetable = ({
         </div>
 
         {/* =========================================================================
-            MOBILE LAYOUT (< md): Ergonomic, Native-Feeling Day Timeline
+            DAY SELECTOR TABS (شنبه تا جمعه) - Universal across Desktop, Tablet & Mobile
            ========================================================================= */}
-        <div className="block md:hidden pt-3 space-y-4">
-          {/* Day Selector Pill Strip */}
-          <div className="grid grid-cols-7 gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/70 dark:border-slate-700">
+        <div className="pt-4 pb-2 no-print">
+          <div className="grid grid-cols-7 gap-1.5 sm:gap-2 bg-slate-100 dark:bg-slate-800/90 p-1.5 rounded-2xl border border-slate-200/70 dark:border-slate-700">
             {WEEKDAYS.map((day) => {
               const count = (dayCoursesMap[day.index] || []).length;
-              const isSelected = selectedMobileDay === day.index;
+              const isSelected = selectedDay === day.index;
               return (
                 <button
                   key={day.index}
                   type="button"
-                  onClick={() => setSelectedMobileDay(day.index)}
-                  className={`py-2 px-1 rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center gap-0.5 cursor-pointer ${
+                  onClick={() => setSelectedDay(day.index)}
+                  className={`py-2.5 sm:py-3 px-1 sm:px-3 rounded-xl font-bold transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 cursor-pointer ${
                     isSelected
-                      ? 'bg-sky-600 text-white shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                      ? 'bg-sky-600 text-white shadow-sm scale-101'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40'
                   }`}
                 >
-                  <span>{day.short}</span>
-                  <span className={`w-1.5 h-1.5 rounded-full ${
-                    isSelected
-                      ? 'bg-white'
-                      : count > 0
-                      ? 'bg-sky-500'
-                      : 'bg-transparent'
-                  }`} />
+                  <span className="text-xs sm:text-sm sm:font-extrabold">{day.name}</span>
+                  <span
+                    className={`text-[10px] sm:text-xs px-1.5 py-0.2 rounded-full font-mono font-bold ${
+                      isSelected
+                        ? 'bg-sky-700/90 text-white'
+                        : count > 0
+                        ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300'
+                        : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400'
+                    }`}
+                  >
+                    {count}
+                  </span>
                 </button>
               );
             })}
           </div>
+        </div>
 
-          {/* Active Day Header */}
-          <div className="flex items-center justify-between px-1">
-            <h3 className="font-extrabold text-sm text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-              <span>دوره‌های روز</span>
-              <span className="text-sky-600 dark:text-sky-400">{WEEKDAYS.find((w) => w.index === selectedMobileDay)?.name}:</span>
-            </h3>
-            <span className="text-xs font-mono text-slate-500">
-              {(dayCoursesMap[selectedMobileDay] || []).length} دوره فعال
+        {/* Printable Root for Content */}
+        <div id="print-schedule-root" ref={printContainerRef} className="pt-3">
+          {/* Header visible only in PNG & Print exports */}
+          <div className="hidden print:block p-4 mb-4 border-b-2 border-slate-300 text-center space-y-1">
+            <h2 className="text-xl font-black text-slate-900">مدرسه شنای ایران - جدول برنامه‌ریزی هفتگی دوره‌های آموزشی</h2>
+            <p className="text-xs text-slate-600">
+              تاریخ صدور گزارش: {new Intl.DateTimeFormat('fa-IR', { dateStyle: 'full' }).format(new Date())}
+            </p>
+          </div>
+
+          {/* Active Day Title & Stats Bar */}
+          <div className="flex items-center justify-between px-1 pb-3 text-xs sm:text-sm">
+            <div className="flex items-center gap-2">
+              <span className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">
+                دوره‌های روز {WEEKDAYS.find((w) => w.index === selectedDay)?.name}
+              </span>
+              <span className="text-xs font-bold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded-lg border border-sky-200/60 dark:border-sky-800">
+                {activeCourses.length} دوره آموزشی
+              </span>
+            </div>
+
+            <span className="text-slate-400 text-xs hidden sm:inline">
+              برای مشاهده سایر روزها، روز مورد نظر را از نوار بالا انتخاب فرمایید
             </span>
           </div>
 
-          {/* Mobile Courses List for Selected Day */}
-          {(dayCoursesMap[selectedMobileDay] || []).length === 0 ? (
-            <div className="text-center py-12 rounded-3xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800 text-slate-400 text-xs space-y-1">
-              <p className="font-bold">در این روز دوره‌ای برنامه‌ریزی نشده است.</p>
-              <p className="text-[11px] text-slate-400">یکی دیگر از روزهای هفته را از نوار بالا لمس کنید.</p>
+          {/* =========================================================================
+              COURSES CARDS: Spacious, Responsive 2-Column Desktop & 1-Column Mobile
+             ========================================================================= */}
+          {activeCourses.length === 0 ? (
+            <div className="text-center py-16 rounded-3xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800 text-slate-400 text-xs sm:text-sm space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
+                <Calendar className="w-6 h-6" />
+              </div>
+              <p className="font-bold text-slate-700 dark:text-slate-300">
+                در روز {WEEKDAYS.find((w) => w.index === selectedDay)?.name} دوره‌ای برنامه‌ریزی نشده است.
+              </p>
+              <p className="text-xs text-slate-400">
+                برای مشاهده برنامه‌های آموزشی، یکی از روزهای دیگر هفته را از نوار بالا انتخاب فرمایید.
+              </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {(dayCoursesMap[selectedMobileDay] || []).map((course) => (
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+              {activeCourses.map((course) => (
                 <div
                   key={course.id}
-                  className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 p-4 shadow-xs space-y-3"
+                  className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 p-5 sm:p-6 shadow-xs hover:border-sky-300 dark:hover:border-sky-600 transition-all flex flex-col justify-between gap-4"
                 >
-                  {/* Card Header: Time & Badges */}
-                  <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-700/60 pb-3">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-mono font-bold text-xs border border-amber-200/70 dark:border-amber-800">
-                      <Clock className="w-3.5 h-3.5 text-amber-600" />
-                      <span>{course.timeSlot.label}</span>
+                  <div className="space-y-3">
+                    {/* Time Pill & Metadata Badges */}
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-700/60 pb-3">
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-mono font-bold text-xs sm:text-sm border border-amber-200/70 dark:border-amber-800">
+                        <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+                        <span>ساعت {course.timeSlot.label}</span>
+                      </div>
+
+                      <div className="flex items-center gap-1.5">
+                        {course.age_range && (
+                          <span className="text-xs font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 px-2.5 py-1 rounded-lg border border-sky-200/60 dark:border-sky-800">
+                            {course.age_range}
+                          </span>
+                        )}
+                        <span className="text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-700/60 px-2.5 py-1 rounded-lg">
+                          {course.days_of_week || 'روزهای فرد'}
+                        </span>
+                      </div>
                     </div>
 
-                    {course.age_range && (
-                      <span className="text-xs font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 px-2.5 py-0.5 rounded-lg border border-sky-200/60 dark:border-sky-800">
-                        {course.age_range}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Course Title & Location */}
-                  <div>
-                    <h4 className="font-black text-base text-slate-900 dark:text-white leading-snug">
-                      {course.name}
-                    </h4>
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 mt-1">
-                      <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span>{course.pool_location || 'استخر شهید رئیسی'}</span>
-                      <span>•</span>
-                      <span>{course.days_of_week || 'روزهای فرد'}</span>
+                    {/* Course Title & Pool Location */}
+                    <div>
+                      <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white leading-snug">
+                        {course.name}
+                      </h3>
+                      <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1.5">
+                        <span className="flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          <span>{course.pool_location || 'استخر شهید رئیسی'}</span>
+                        </span>
+                        {course.sessions_count && (
+                          <>
+                            <span>•</span>
+                            <span>طول دوره: {course.sessions_count} جلسه</span>
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
 
-                  {/* Classes of this course embedded directly into mobile card */}
-                  <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 space-y-2">
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-                      کلاس‌ها و لاین‌های فعال ({(course.groups || []).length} کلاس):
-                    </span>
+                    {/* Embedded Classes & Coaches List */}
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 space-y-2">
+                      <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
+                        <span className="flex items-center gap-1.5">
+                          <GraduationCap className="w-4 h-4 text-sky-600" />
+                          <span>کلاس‌ها و مربیان دوره ({(course.groups || []).length} کلاس):</span>
+                        </span>
+                        <span className="text-slate-400 text-[11px] font-mono">ظرفیت لاین: ۱۵ نفر</span>
+                      </div>
 
-                    {(course.groups || []).length === 0 ? (
-                      <p className="text-xs text-slate-400 italic">کلاسی برای این دوره تعریف نشده است.</p>
-                    ) : (
-                      <div className="space-y-1.5">
-                        {(course.groups || []).map((grp) => {
-                          const coachName = grp.coach_assignments?.[0]?.coach_name || grp.name;
-                          return (
-                            <div
-                              key={grp.id}
-                              onClick={() => navigate(`/admin/classes/${grp.id}`)}
-                              className="flex items-center justify-between p-2.5 rounded-2xl bg-slate-50 dark:bg-slate-700/50 hover:bg-sky-50 dark:hover:bg-slate-700 border border-slate-200/70 dark:border-slate-600 transition-all cursor-pointer active:scale-[0.99]"
-                            >
-                              <div className="space-y-0.5">
-                                <span className="font-bold text-xs text-slate-900 dark:text-white block">
-                                  {grp.name}
-                                </span>
-                                <span className="text-[11px] text-slate-500 font-mono">
-                                  ظرفیت: {grp.capacity} نفر ({grp.remaining_capacity || grp.capacity} خالی)
+                      {(course.groups || []).length === 0 ? (
+                        <p className="text-xs text-slate-400 italic py-1">کلاسی برای این دوره تعریف نشده است.</p>
+                      ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {(course.groups || []).map((grp) => {
+                            const coachName = grp.coach_assignments?.[0]?.coach_name || grp.name;
+                            return (
+                              <div
+                                key={grp.id}
+                                onClick={() => navigate(`/admin/classes/${grp.id}`)}
+                                className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-700/50 hover:bg-sky-50 dark:hover:bg-slate-700 border border-slate-200/70 dark:border-slate-600 hover:border-sky-400 transition-all cursor-pointer group/grp active:scale-[0.99]"
+                                title="ورود به فضای این کلاس"
+                              >
+                                <div className="space-y-0.5">
+                                  <div className="font-bold text-xs text-slate-900 dark:text-white group-hover/grp:text-sky-600 transition-colors">
+                                    {grp.name}
+                                  </div>
+                                  <div className="text-[11px] text-slate-500 font-mono">
+                                    ظرفیت: {grp.capacity} نفر ({grp.remaining_capacity || grp.capacity} خالی)
+                                  </div>
+                                </div>
+
+                                <span className="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1 group-hover/grp:translate-x-[-2px] transition-transform shrink-0">
+                                  <span>ورود</span>
+                                  <span className="text-sm">←</span>
                                 </span>
                               </div>
-
-                              <span className="text-sky-600 dark:text-sky-400 font-bold text-xs flex items-center gap-1">
-                                <span>ورود</span>
-                                <span className="text-sm">←</span>
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    )}
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
+
+                  {/* Card Bottom Action */}
+                  {onOpenCourseSwimmers && (
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-xs">
+                      <button
+                        type="button"
+                        onClick={() => onOpenCourseSwimmers(course)}
+                        className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <Users className="w-3.5 h-3.5" />
+                        <span>مشاهده کل شناگران دوره و تخصیص مربی ←</span>
+                      </button>
+
+                      <span className="text-slate-400 font-mono text-[11px]">
+                        {(course.groups || []).length} لاین فعال
+                      </span>
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
           )}
-        </div>
 
-        {/* =========================================================================
-            DESKTOP & TABLET LAYOUT (>= md): Elegant Timetable Grid
-           ========================================================================= */}
-        <div id="print-schedule-root" ref={printContainerRef} className="hidden md:block pt-3">
-          {/* Header visible only in PNG & Print exports */}
-          <div className="hidden print:block p-4 mb-3 border-b-2 border-slate-300 text-center space-y-1">
-            <h2 className="text-xl font-black text-slate-900">مدرسه شنای ایران - جدول برنامه‌ریزی هفتگی دوره‌های آموزشی</h2>
-            <p className="text-xs text-slate-600">
-              تاریخ گزارش: {new Intl.DateTimeFormat('fa-IR', { dateStyle: 'full' }).format(new Date())}
-            </p>
-          </div>
-
-          <div className="overflow-x-auto rounded-3xl border border-slate-200/90 dark:border-slate-800 shadow-2xs">
-            <table className="w-full text-right border-collapse table-fixed min-w-[760px]">
-              {/* Table Header: Days of the Week */}
-              <thead>
-                <tr className="bg-slate-100/95 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-b border-slate-200 dark:border-slate-700">
-                  {/* Ultra-compact Time Column in RTL */}
-                  <th className="p-2 text-center font-extrabold text-xs w-20 border-l border-slate-200 dark:border-slate-700 bg-slate-200/80 dark:bg-slate-800">
-                    <span>ساعت</span>
-                  </th>
-
-                  {/* 7 Days Columns */}
-                  {WEEKDAYS.map((day) => (
-                    <th
-                      key={day.index}
-                      className="p-3 text-center border-l last:border-l-0 border-slate-200 dark:border-slate-700 font-extrabold text-xs sm:text-sm text-slate-800 dark:text-slate-200"
-                    >
-                      <span>{day.name}</span>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-
-              {/* Table Body: Time Slots as Rows */}
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-800/80 bg-white dark:bg-slate-900">
-                {timeSlots.map((slot) => (
-                  <tr key={slot.id} className="hover:bg-slate-50/40 dark:hover:bg-slate-800/20 transition-colors">
-                    {/* Ultra-compact Time Column in RTL */}
-                    <td className="p-2 text-center border-l border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/60 align-middle w-20">
-                      <div className="flex flex-col items-center justify-center font-mono leading-tight">
-                        <span className="text-xs font-black text-slate-800 dark:text-slate-100">{slot.start}</span>
-                        <span className="text-[10px] text-slate-400 font-normal">تا</span>
-                        <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400">{slot.end}</span>
-                      </div>
-                    </td>
-
-                    {/* 7 Days cells */}
-                    {WEEKDAYS.map((day) => {
-                      const cellCourses = courseMatrix[slot.id]?.[day.index] || [];
-                      const hasCourses = cellCourses.length > 0;
-
-                      return (
-                        <td
-                          key={day.index}
-                          className={`p-2 border-l last:border-l-0 border-slate-200/80 dark:border-slate-800 align-top transition-colors ${
-                            hasCourses ? 'bg-sky-50/15 dark:bg-sky-950/10' : ''
-                          }`}
-                        >
-                          {hasCourses ? (
-                            <div className="space-y-2">
-                              {cellCourses.map((course) => (
-                                <div
-                                  key={course.id}
-                                  onClick={() => handleCourseClick(course)}
-                                  className="p-3 rounded-2xl bg-sky-50/80 hover:bg-sky-100/90 dark:bg-sky-950/40 dark:hover:bg-sky-900/60 border border-sky-200/80 dark:border-sky-800 shadow-2xs hover:border-sky-400 hover:shadow-md hover:-translate-y-0.5 transition-all space-y-1.5 cursor-pointer group"
-                                  title="کلیک برای مشاهده کلاس‌های این دوره"
-                                >
-                                  {/* Course Title & Age Badge */}
-                                  <div className="flex items-start justify-between gap-1">
-                                    <h4 className="font-extrabold text-xs text-sky-950 dark:text-sky-100 group-hover:text-sky-600 transition-colors leading-tight">
-                                      {course.name}
-                                    </h4>
-                                    {course.age_range && (
-                                      <Badge variant="teal" className="text-[9px] py-0 px-1 shrink-0">
-                                        {course.age_range.split(' ')[0]}
-                                      </Badge>
-                                    )}
-                                  </div>
-
-                                  {/* Pool location */}
-                                  <div className="flex items-center gap-1 text-[10px] text-slate-500 dark:text-slate-400">
-                                    <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
-                                    <span className="truncate">{course.pool_location || 'استخر شهید رئیسی'}</span>
-                                  </div>
-
-                                  {/* Classes count and Action arrow */}
-                                  <div className="pt-1 border-t border-sky-100 dark:border-sky-800/60 flex items-center justify-between text-[10px]">
-                                    <span className="text-slate-500 font-medium">
-                                      {(course.groups?.length || course.coaches?.length || 0)} کلاس / لاین
-                                    </span>
-                                    <span className="text-sky-600 dark:text-sky-400 font-bold flex items-center gap-0.5 group-hover:translate-x-[-2px] transition-transform">
-                                      <span>کلاس‌ها</span>
-                                      <span>←</span>
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="h-16 flex items-center justify-center text-slate-300 dark:text-slate-700 text-xs font-mono select-none">
-                              —
-                            </div>
-                          )}
-                        </td>
-                      );
-                    })}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Table Footer Summary */}
-          <div className="pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+          {/* Footer Info */}
+          <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-sky-500"></span>
-              <span>با کلیک بر روی هر دوره، کلاس‌ها و لاین‌های تفکیک‌شده مربیان باز می‌شوند.</span>
+              <span>برای ورود به فضای اختصاصی هر کلاس و مشاهده حضور و غیاب، روی کارت همان کلاس کلیک کنید.</span>
             </div>
             <div className="font-mono font-bold text-sky-600">
-              {scheduledCourses.length} دوره آموزشی در برنامه
+              {scheduledCourses.length} دوره آموزشی در برنامه هفتگی
             </div>
           </div>
         </div>
 
       </div>
-
-      {/* MODAL: VIEW CLASSES OF SELECTED COURSE (Desktop Modal) */}
-      <Modal
-        isOpen={Boolean(selectedCourseForModal)}
-        onClose={() => setSelectedCourseForModal(null)}
-        title={selectedCourseForModal ? `کلاس‌های دوره: ${selectedCourseForModal.name}` : ''}
-        maxWidth="max-w-xl"
-      >
-        {selectedCourseForModal && (
-          <div className="space-y-4">
-            {/* Header summary of the course */}
-            <div className="p-3.5 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200/70 dark:border-sky-800 text-xs space-y-1.5">
-              <div className="flex items-center justify-between gap-2">
-                <span className="font-extrabold text-sky-900 dark:text-sky-200 text-sm">
-                  {selectedCourseForModal.name}
-                </span>
-                <Badge variant="teal">{selectedCourseForModal.age_range || 'عمومی'}</Badge>
-              </div>
-              <div className="flex items-center gap-3 text-slate-600 dark:text-slate-400 text-xs">
-                <span className="flex items-center gap-1 font-mono">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" />
-                  <span>{selectedCourseForModal.timeSlot.label}</span>
-                </span>
-                <span>•</span>
-                <span className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                  <span>{selectedCourseForModal.pool_location || 'استخر شهید رئیسی'}</span>
-                </span>
-              </div>
-            </div>
-
-            {/* List of Classes */}
-            <div className="space-y-2">
-              <h4 className="font-bold text-xs text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                <span>کلاس‌ها و لاین‌های تفکیک‌شده:</span>
-                <span className="font-mono text-slate-400">
-                  {(selectedCourseForModal.groups || []).length} کلاس
-                </span>
-              </h4>
-
-              {(selectedCourseForModal.groups || []).length === 0 ? (
-                <div className="text-center py-6 text-slate-400 text-xs bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/60">
-                  هنوز گروه کلاسی برای این دوره تعریف نشده است.
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {(selectedCourseForModal.groups || []).map((grp) => {
-                    const coachName = grp.coach_assignments?.[0]?.coach_name || 'مربی مشخص نشده';
-                    return (
-                      <div
-                        key={grp.id}
-                        className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 flex items-center justify-between gap-3 shadow-2xs hover:border-sky-400 transition-all"
-                      >
-                        <div className="space-y-0.5">
-                          <h5 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">
-                            {grp.name}
-                          </h5>
-                          <div className="flex items-center gap-3 text-xs text-slate-600 dark:text-slate-400">
-                            <span className="flex items-center gap-1">
-                              <User className="w-3.5 h-3.5 text-sky-600 shrink-0" />
-                              <span>مربی: {coachName}</span>
-                            </span>
-                            <span className="font-mono text-[11px] text-slate-400">
-                              ظرفیت: {grp.capacity} نفر ({grp.remaining_capacity || grp.capacity} خالی)
-                            </span>
-                          </div>
-                        </div>
-
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setSelectedCourseForModal(null);
-                            navigate(`/admin/classes/${grp.id}`);
-                          }}
-                          className="gap-1 text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white shrink-0"
-                        >
-                          <span>ورود به کلاس</span>
-                          <span>←</span>
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {/* Bottom Actions */}
-            <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
-              {onOpenCourseSwimmers ? (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const c = selectedCourseForModal;
-                    setSelectedCourseForModal(null);
-                    onOpenCourseSwimmers(c);
-                  }}
-                  className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1"
-                >
-                  <Users className="w-3.5 h-3.5" />
-                  <span>مشاهده کلیه شناگران دوره و تخصیص مربی ←</span>
-                </button>
-              ) : <div />}
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setSelectedCourseForModal(null)}
-              >
-                بستن
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
     </div>
   );
 };
