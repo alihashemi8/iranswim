@@ -301,8 +301,9 @@ export const SupervisorUsersPage = () => {
     e.preventDefault();
     if (!selectedUser) return;
 
-    if (!passwordForm.newPassword || passwordForm.newPassword.length < 6) {
-      toast.error('کلمه عبور جدید باید حداقل دارای ۶ نویسه (کاراکتر) باشد.');
+    const validation = validatePassword(passwordForm.newPassword);
+    if (!validation.isValid) {
+      toast.error(validation.firstError || 'رمز عبور با معیارهای امنیتی مطابقت ندارد.');
       return;
     }
     if (passwordForm.newPassword !== passwordForm.confirmPassword) {
@@ -892,6 +893,9 @@ export const SupervisorUsersPage = () => {
                 {showAddPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
               </button>
             </div>
+            {addForm.password && (
+              <PasswordRequirementsList password={addForm.password} showAlways={true} className="mt-2" />
+            )}
           </div>
 
           {/* Active status */}
