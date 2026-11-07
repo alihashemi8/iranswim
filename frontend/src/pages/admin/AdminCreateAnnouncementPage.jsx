@@ -1,177 +1,248 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import {
   Bell, Send, Pin, Users, User, Layers, BookOpen,
   ArrowRight, GraduationCap, Sparkles, CheckCircle2,
   Info, AlertCircle, Eye, Calendar, Clock, Check,
-  Smartphone, MessageSquare, CheckCheck, Shield
+  Smartphone, MessageSquare, CheckCheck, Shield, Search
 } from 'lucide-react';
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
-import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 
 export const AdminCreateAnnouncementPage = () => {
   const navigate = useNavigate();
   const toast = useToast();
 
-  // 1. Title, 2. Message, 3. Audience (with categories), 4. Important (Send SMS)
-  const [form, setForm] = useState({
-    title: '',
-    message: '',
-    audienceGroup: 'ALL', // 'ALL' | 'SWIMMERS' | 'COACHES'
-    audience: 'ALL',      // 'ALL' | 'SWIMMERS' | 'SWIMMERS_MALE' | 'SWIMMERS_FEMALE' | 'GROUP' | 'COACHES' | 'COACHES_MALE' | 'COACHES_FEMALE'
-    target_group: '',
-    is_important_sms: false, // مهم است (ارسال پیامک)
-  });
+  // Form State: 1. Title, 2. Message, 3. Tickable Audience, 4. Important (Send SMS)
+  const [title, setTitle] = useState('');
+  const [message, setMessage] = useState('');
 
+  // Audience Checkbox States
+  const [sendToAll, setSendToAll] = useState(false); // همه اعضای آموزشگاه (عمومی)
+
+  // Swimmer Checkboxes
+  const [allSwimmers, setAllSwimmers] = useState(false); // کلیه شناگران
+  const [swimmersMale, setSwimmersMale] = useState(false); // شناگران پسر
+  const [swimmersFemale, setSwimmersFemale] = useState(false); // شناگران دختر
+  const [filterByGroups, setFilterByGroups] = useState(false); // کلاس‌های خاص
+  const [selectedGroupIds, setSelectedGroupIds] = useState([]); // شناسه‌های کلاس‌های تیک‌خورده
+
+  // Coach Checkboxes
+  const [allCoaches, setAllCoaches] = useState(false); // کلیه مربیان
+  const [coachesMale, setCoachesMale] = useState(false); // مربیان آقا
+  const [coachesFemale, setCoachesFemale] = useState(false); // مربیان خانم
+  const [filterByCoaches, setFilterByCoaches] = useState(false); // مربیان خاص
+  const [selectedCoachIds, setSelectedCoachIds] = useState([]); // مربیان تیک‌خورده
+
+  // 4. Important (Send SMS)
+  const [isImportantSms, setIsImportantSms] = useState(false);
+
+  // Data fetching
   const [groups, setGroups] = useState([]);
-  const [loadingGroups, setLoadingGroups] = useState(false);
+  const [coaches, setCoaches] = useState([]);
+  const [loadingData, setLoadingData] = useState(false);
+  const [groupSearchQuery, setGroupSearchQuery] = useState('');
+  const [coachSearchQuery, setCoachSearchQuery] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Fetch groups for class-level targeting
   useEffect(() => {
-    const fetchGroups = async () => {
+    const fetchData = async () => {
       try {
-        setLoadingGroups(true);
-        const res = await api.get('/education/groups/');
-        const list = Array.isArray(res.data) ? res.data : res.data?.results || [];
-        setGroups(list);
+        setLoadingData(true);
+        const [grpRes, coachRes] = await Promise.allSettled([
+          api.get('/education/groups/'),
+          api.get('/coaches/'),
+        ]);
+
+        if (grpRes.status === 'fulfilled') {
+          const list = Array.isArray(grpRes.value.data) ? grpRes.value.data : grpRes.value.data?.results || [];
+          setGroups(list);
+        }
+        if (coachRes.status === 'fulfilled') {
+          const cList = Array.isArray(coachRes.value.data) ? coachRes.value.data : coachRes.value.data?.results || [];
+          setCoaches(cList);
+        }
       } catch (err) {
-        console.error('Error fetching groups:', err);
+        console.error('Fetch error:', err);
       } finally {
-        setLoadingGroups(false);
+        setLoadingData(false);
       }
     };
-    fetchGroups();
+    fetchData();
   }, []);
 
-  // Swimmer subcategories options
-  const swimmerAudienceOptions = [
-    {
-      value: 'SWIMMERS',
-      label: 'کلیه شناگران آموزشگاه (همه سطوح و رده‌ها)',
-      description: 'ارسال اعلان به تمامی شناگران ثبت‌نام‌شده در سامانه',
-      icon: Users,
-      badge: 'عمومی شناگران',
-    },
-    {
-      value: 'GROUP',
-      label: 'اعضای یک کلاس / گروه آموزشی مشخص',
-      description: 'انتخاب یک سانس یا کلاس مشخص و ارسال پیام اختصاصی به ثبت‌نامی‌ها',
-      icon: Layers,
-      badge: 'کلاسی / سانسی',
-    },
-    {
-      value: 'SWIMMERS_MALE',
-      label: 'فقط شناگران پسر / آقایان',
-      description: 'ارسال پیام اختصاصی فقط به کارتابل شناگران پسر',
-      icon: User,
-      badge: 'آقایان',
-    },
-    {
-      value: 'SWIMMERS_FEMALE',
-      label: 'فقط شناگران دختر / بانوان',
-      description: 'ارسال پیام اختصاصی فقط به کارتابل شناگران دختر',
-      icon: User,
-      badge: 'بانوان',
-    },
-  ];
+  // Filtered Groups for search
+  const filteredGroups = useMemo(() => {
+    if (!groupSearchQuery.trim()) return groups;
+    const q = groupSearchQuery.trim().toLowerCase();
+    return groups.filter(
+      (g) =>
+        g.name?.toLowerCase().includes(q) ||
+        g.course_name?.toLowerCase().includes(q) ||
+        g.coach_name?.toLowerCase().includes(q)
+    );
+  }, [groups, groupSearchQuery]);
 
-  // Coach subcategories options
-  const coachAudienceOptions = [
-    {
-      value: 'COACHES',
-      label: 'کلیه کادر مربیان آموزشگاه',
-      description: 'ارسال اطلاعیه درون‌برنامه‌ای به تمام مربیان فعال',
-      icon: GraduationCap,
-      badge: 'همه مربیان',
-    },
-    {
-      value: 'COACHES_MALE',
-      label: 'فقط مربیان آقا',
-      description: 'ارسال اطلاعیه اختصاصی فقط به مربیان آقا',
-      icon: User,
-      badge: 'مربیان آقا',
-    },
-    {
-      value: 'COACHES_FEMALE',
-      label: 'فقط مربیان خانم',
-      description: 'ارسال اطلاعیه اختصاصی فقط به مربیان خانم',
-      icon: User,
-      badge: 'مربیان خانم',
-    },
-  ];
+  // Filtered Coaches for search
+  const filteredCoaches = useMemo(() => {
+    if (!coachSearchQuery.trim()) return coaches;
+    const q = coachSearchQuery.trim().toLowerCase();
+    return coaches.filter(
+      (c) =>
+        c.full_name?.toLowerCase().includes(q) ||
+        c.phone?.toLowerCase().includes(q)
+    );
+  }, [coaches, coachSearchQuery]);
 
-  const groupOptions = groups.map((grp) => ({
-    value: String(grp.id),
-    label: grp.course_name ? `${grp.course_name} - ${grp.name}` : grp.name,
-    description: grp.coach_name
-      ? `مربی: ${grp.coach_name}${grp.schedule ? ` | زمان: ${grp.schedule}` : ''}`
-      : (grp.schedule ? `زمان: ${grp.schedule}` : 'کلاس آموزشی'),
-    badge: grp.gender_display || (grp.enrolled_count ? `${grp.enrolled_count} نفر` : undefined),
-    icon: BookOpen,
-  }));
+  // Handlers for checkboxes
+  const handleToggleSendToAll = () => {
+    const next = !sendToAll;
+    setSendToAll(next);
+    if (next) {
+      // Clear specific category checkboxes to avoid redundant selections
+      setAllSwimmers(false);
+      setSwimmersMale(false);
+      setSwimmersFemale(false);
+      setFilterByGroups(false);
+      setSelectedGroupIds([]);
 
-  const selectedGroup = groups.find((g) => String(g.id) === String(form.target_group));
-
-  // Handler for changing audience group (عمومی / شناگران / مربیان)
-  const handleAudienceGroupChange = (group) => {
-    if (group === 'ALL') {
-      setForm((prev) => ({
-        ...prev,
-        audienceGroup: 'ALL',
-        audience: 'ALL',
-        target_group: '',
-      }));
-    } else if (group === 'SWIMMERS') {
-      setForm((prev) => ({
-        ...prev,
-        audienceGroup: 'SWIMMERS',
-        audience: 'SWIMMERS',
-        target_group: '',
-      }));
-    } else if (group === 'COACHES') {
-      setForm((prev) => ({
-        ...prev,
-        audienceGroup: 'COACHES',
-        audience: 'COACHES',
-        target_group: '',
-      }));
+      setAllCoaches(false);
+      setCoachesMale(false);
+      setCoachesFemale(false);
+      setFilterByCoaches(false);
+      setSelectedCoachIds([]);
     }
   };
+
+  const handleToggleGroup = (groupId) => {
+    setSelectedGroupIds((prev) =>
+      prev.includes(groupId) ? prev.filter((id) => id !== groupId) : [...prev, groupId]
+    );
+  };
+
+  const handleSelectAllGroups = () => {
+    setSelectedGroupIds(groups.map((g) => g.id));
+  };
+
+  const handleClearAllGroups = () => {
+    setSelectedGroupIds([]);
+  };
+
+  const handleToggleCoach = (coachId) => {
+    setSelectedCoachIds((prev) =>
+      prev.includes(coachId) ? prev.filter((id) => id !== coachId) : [...prev, coachId]
+    );
+  };
+
+  // Determine current active audience value to send to backend
+  const resolvedAudienceInfo = useMemo(() => {
+    if (sendToAll) {
+      return {
+        audience: 'ALL',
+        label: 'همه اعضای آموزشگاه (عمومی)',
+        groups: [],
+      };
+    }
+
+    const hasSwimmers = allSwimmers || swimmersMale || swimmersFemale || (filterByGroups && selectedGroupIds.length > 0);
+    const hasCoaches = allCoaches || coachesMale || coachesFemale || (filterByCoaches && selectedCoachIds.length > 0);
+
+    if (hasSwimmers && hasCoaches) {
+      // Both swimmers and coaches selected
+      return {
+        audience: 'ALL',
+        label: 'شناگران و کادر مربیان منتخب',
+        groups: selectedGroupIds,
+      };
+    }
+
+    if (hasSwimmers) {
+      if (filterByGroups && selectedGroupIds.length > 0) {
+        return {
+          audience: 'GROUP',
+          label: `${selectedGroupIds.length} کلاس آموزشی مشخص`,
+          groups: selectedGroupIds,
+        };
+      }
+      if (allSwimmers || (swimmersMale && swimmersFemale)) {
+        return { audience: 'SWIMMERS', label: 'کلیه شناگران آموزشگاه', groups: [] };
+      }
+      if (swimmersMale) {
+        return { audience: 'SWIMMERS_MALE', label: 'فقط شناگران پسر (آقایان)', groups: [] };
+      }
+      if (swimmersFemale) {
+        return { audience: 'SWIMMERS_FEMALE', label: 'فقط شناگران دختر (بانوان)', groups: [] };
+      }
+      return { audience: 'SWIMMERS', label: 'شناگران منتخب', groups: [] };
+    }
+
+    if (hasCoaches) {
+      if (allCoaches || (coachesMale && coachesFemale)) {
+        return { audience: 'COACHES', label: 'کلیه کادر مربیان', groups: [] };
+      }
+      if (coachesMale) {
+        return { audience: 'COACHES_MALE', label: 'فقط مربیان آقا', groups: [] };
+      }
+      if (coachesFemale) {
+        return { audience: 'COACHES_FEMALE', label: 'فقط مربیان خانم', groups: [] };
+      }
+      if (filterByCoaches && selectedCoachIds.length > 0) {
+        return { audience: 'COACHES', label: `${selectedCoachIds.length} مربی مشخص`, groups: [] };
+      }
+      return { audience: 'COACHES', label: 'کادر مربیان', groups: [] };
+    }
+
+    return {
+      audience: '',
+      label: 'هیچ مخاطبی تیک نخورده است',
+      groups: [],
+    };
+  }, [
+    sendToAll, allSwimmers, swimmersMale, swimmersFemale,
+    filterByGroups, selectedGroupIds,
+    allCoaches, coachesMale, coachesFemale,
+    filterByCoaches, selectedCoachIds
+  ]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!form.title.trim()) {
-      toast.error('لطفاً عنوان پیام اعلان را وارد کنید.');
+    if (!title.trim()) {
+      toast.error('لطفاً عنوان پیام اعلان را وارد فرمایید.');
       return;
     }
-    if (!form.message.trim()) {
+    if (!message.trim()) {
       toast.error('متن کامل پیام اعلان الزامی است.');
       return;
     }
-    if (form.audience === 'GROUP' && !form.target_group) {
-      toast.error('لطفاً کلاس یا گروه آموزشی هدف را انتخاب کنید.');
+
+    if (!resolvedAudienceInfo.audience) {
+      toast.error('لطفاً حداقل یک دسته از مخاطبان را تیک بزنید.');
+      return;
+    }
+
+    if (filterByGroups && selectedGroupIds.length === 0 && !allSwimmers && !swimmersMale && !swimmersFemale) {
+      toast.error('لطفاً حداقل یک کلاس آموزشی را از لیست تیک بزنید.');
       return;
     }
 
     try {
       setSubmitting(true);
       const payload = {
-        title: form.title.trim(),
-        message: form.message.trim(),
-        audience: form.audience,
-        target_group: form.audience === 'GROUP' ? Number(form.target_group) : null,
-        is_pinned: form.is_important_sms,
-        send_sms: form.is_important_sms,
+        title: title.trim(),
+        message: message.trim(),
+        audience: resolvedAudienceInfo.audience,
+        target_group: selectedGroupIds.length > 0 ? selectedGroupIds[0] : null,
+        target_group_ids: selectedGroupIds,
+        is_pinned: isImportantSms,
+        send_sms: isImportantSms,
       };
 
       await api.post('/content/announcements/', payload);
       toast.success(
-        form.is_important_sms
+        isImportantSms
           ? 'پیام اعلان ثبت شد، نوتیفیکیشن سیستمی منتشر گردید و پیامک به مخاطبان ارسال شد.'
           : 'پیام اعلان با موفقیت ثبت و نوتیفیکیشن سیستمی آن منتشر شد.'
       );
@@ -182,22 +253,6 @@ export const AdminCreateAnnouncementPage = () => {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const getAudienceDisplayLabel = () => {
-    if (form.audience === 'ALL') return 'همه اعضای آموزشگاه (عمومی)';
-    if (form.audience === 'SWIMMERS') return 'کلیه شناگران آموزشگاه';
-    if (form.audience === 'SWIMMERS_MALE') return 'فقط شناگران پسر';
-    if (form.audience === 'SWIMMERS_FEMALE') return 'فقط شناگران دختر';
-    if (form.audience === 'COACHES') return 'کلیه کادر مربیان';
-    if (form.audience === 'COACHES_MALE') return 'فقط مربیان آقا';
-    if (form.audience === 'COACHES_FEMALE') return 'فقط مربیان خانم';
-    if (form.audience === 'GROUP') {
-      return selectedGroup
-        ? `کلاس: ${selectedGroup.course_name ? `${selectedGroup.course_name} - ` : ''}${selectedGroup.name}`
-        : 'یک کلاس آموزشی مشخص';
-    }
-    return 'مخاطبان هدف';
   };
 
   return (
@@ -225,7 +280,7 @@ export const AdminCreateAnnouncementPage = () => {
             <span>ارسال پیام و اعلان جدید</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            ارسال پیام به تفکیک دسته‌بندی شناگران و مربیان به همراه اطلاع‌رسانی پیامکی
+            تعیین عنوان، متن، تیک زدن مخاطبان هدف و ارسال فوری پیامک
           </p>
         </div>
 
@@ -246,7 +301,7 @@ export const AdminCreateAnnouncementPage = () => {
           {/* Main Left Form Column (2 Cols) */}
           <div className="lg:col-span-2 space-y-6">
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-6">
-              
+
               {/* ======================================================== */}
               {/* بخش ۱: عنوان (Title)                                     */}
               {/* ======================================================== */}
@@ -256,15 +311,15 @@ export const AdminCreateAnnouncementPage = () => {
                     ۱. عنوان پیام اعلان <span className="text-rose-500">*</span>
                   </label>
                   <span className="text-[11px] font-mono text-slate-400">
-                    {form.title.length} / ۱۸۰
+                    {title.length} / ۱۸۰
                   </span>
                 </div>
                 <input
                   type="text"
                   required
                   maxLength={180}
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
                   placeholder="مثال: یادآوری تغییر زمان سانس‌های آموزشی و تعطیلی هفته آینده..."
                   className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500/25 focus:border-sky-500 transition-all text-slate-900 dark:text-white placeholder:text-slate-400"
                 />
@@ -279,120 +334,386 @@ export const AdminCreateAnnouncementPage = () => {
                     ۲. متن کامل پیام اعلان <span className="text-rose-500">*</span>
                   </label>
                   <span className="text-[11px] font-mono text-slate-400">
-                    {form.message.length} نویسه
+                    {message.length} نویسه
                   </span>
                 </div>
                 <textarea
-                  rows={6}
+                  rows={5}
                   required
-                  value={form.message}
-                  onChange={(e) => setForm({ ...form, message: e.target.value })}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
                   placeholder="متن کامل پیام اطلاع‌رسانی، شرایط حضور، تغییرات ساعت، تذکرات لازم یا نکات بهداشتی و آموزشی را بنویسید..."
                   className="w-full px-3.5 py-3 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500/25 focus:border-sky-500 transition-all text-slate-900 dark:text-white placeholder:text-slate-400 leading-relaxed"
                 />
               </div>
 
               {/* ======================================================== */}
-              {/* بخش ۳: مخاطبین (Audience with Swimmer & Coach Categories) */}
+              {/* بخش ۳: مخاطبین (کاملاً تیک‌زدنی / Checkboxes Only)         */}
               {/* ======================================================== */}
-              <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-                <div>
-                  <label className="block text-xs font-bold text-slate-800 dark:text-slate-200 mb-1">
-                    ۳. مخاطبین هدف (دسته‌بندی‌های شناگران و مربیان) <span className="text-rose-500">*</span>
-                  </label>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-2.5">
-                    تعیین کنید پیام برای کدام گروه یا دسته‌بندی اختصاصی ارسال شود:
-                  </p>
+              <div className="space-y-4 pt-2 border-t border-slate-100 dark:border-slate-800">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-800 dark:text-slate-200">
+                      ۳. مخاطبین هدف (انتخاب به صورت تیک‌زدنی) <span className="text-rose-500">*</span>
+                    </label>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5">
+                      مخاطبان مورد نظر خود را با تیک زدن انتخاب نمایید:
+                    </p>
+                  </div>
                 </div>
 
-                {/* Main 3 Segmented Selector */}
-                <div className="grid grid-cols-3 gap-2 p-1.5 bg-slate-100/80 dark:bg-slate-800/60 rounded-2xl border border-slate-200/60 dark:border-slate-700/60">
-                  <button
-                    type="button"
-                    onClick={() => handleAudienceGroupChange('ALL')}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none ${
-                      form.audienceGroup === 'ALL'
-                        ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs border border-sky-200/70 dark:border-sky-800'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
-                  >
-                    <Users className="w-3.5 h-3.5" />
-                    <span>همه اعضا (عمومی)</span>
-                  </button>
+                {/* گزینه عمومی: همه اعضای آموزشگاه */}
+                <label
+                  className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer select-none ${
+                    sendToAll
+                      ? 'bg-sky-50/70 dark:bg-sky-950/30 border-sky-300 dark:border-sky-700 shadow-2xs'
+                      : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                  }`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={sendToAll}
+                    onChange={handleToggleSendToAll}
+                    className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer mt-0.5"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+                        همه اعضای آموزشگاه (عمومی)
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300">
+                        شامل تمام کاربران
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                      ارسال اعلان به کلیه شناگران، مربیان و مدیران حاضر در سامانه
+                    </p>
+                  </div>
+                </label>
 
-                  <button
-                    type="button"
-                    onClick={() => handleAudienceGroupChange('SWIMMERS')}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none ${
-                      form.audienceGroup === 'SWIMMERS'
-                        ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs border border-sky-200/70 dark:border-sky-800'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
-                  >
-                    <User className="w-3.5 h-3.5" />
-                    <span>دسته‌بندی شناگران</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => handleAudienceGroupChange('COACHES')}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none ${
-                      form.audienceGroup === 'COACHES'
-                        ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs border border-sky-200/70 dark:border-sky-800'
-                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
-                  >
-                    <GraduationCap className="w-3.5 h-3.5" />
-                    <span>دسته‌بندی مربیان</span>
-                  </button>
-                </div>
-
-                {/* Subcategories for Swimmers */}
-                {form.audienceGroup === 'SWIMMERS' && (
-                  <div className="space-y-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 animate-in fade-in-50 duration-200">
-                    <CustomSelect
-                      label="زیرمجموعه مخاطبان شناگر *"
-                      value={form.audience}
-                      onChange={(val) => setForm({ ...form, audience: val, target_group: '' })}
-                      options={swimmerAudienceOptions}
-                      menuClassName="w-full"
-                      placeholder="انتخاب دسته‌بندی شناگران..."
-                    />
-
-                    {/* If specific group is chosen */}
-                    {form.audience === 'GROUP' && (
-                      <div className="p-3.5 rounded-xl bg-sky-50/70 dark:bg-sky-950/30 border border-sky-200 dark:border-sky-800/70 space-y-2 animate-in fade-in-50 duration-150">
-                        <CustomSelect
-                          label="انتخاب کلاس یا گروه آموزشی *"
-                          value={form.target_group}
-                          onChange={(val) => setForm({ ...form, target_group: val })}
-                          options={groupOptions}
-                          searchable={true}
-                          icon={BookOpen}
-                          menuClassName="w-full"
-                          placeholder={loadingGroups ? 'در حال بارگذاری کلاس‌ها...' : 'جستجو و انتخاب کلاس یا سانس...'}
-                        />
-                        <p className="text-[11px] text-sky-700 dark:text-sky-300">
-                          پیام فقط برای شناگرانی که در این سانس ثبت‌نام دارند و مربی آن نمایش داده می‌شود.
-                        </p>
+                {/* دو کادر دسته‌بندی شناگران و مربیان */}
+                <div className={`space-y-4 transition-opacity ${sendToAll ? 'opacity-40 pointer-events-none' : 'opacity-100'}`}>
+                  
+                  {/* --- کادر دسته‌بندی شناگران --- */}
+                  <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700/80 space-y-3">
+                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-700/60 text-xs font-bold text-slate-800 dark:text-slate-200">
+                      <div className="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950 text-sky-600 dark:text-sky-400">
+                        <User className="w-3.5 h-3.5" />
                       </div>
-                    )}
-                  </div>
-                )}
+                      <span>دسته‌بندی شناگران:</span>
+                    </div>
 
-                {/* Subcategories for Coaches */}
-                {form.audienceGroup === 'COACHES' && (
-                  <div className="space-y-3 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 animate-in fade-in-50 duration-200">
-                    <CustomSelect
-                      label="زیرمجموعه مخاطبان مربی *"
-                      value={form.audience}
-                      onChange={(val) => setForm({ ...form, audience: val, target_group: '' })}
-                      options={coachAudienceOptions}
-                      menuClassName="w-full"
-                      placeholder="انتخاب دسته‌بندی مربیان..."
-                    />
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {/* کلیه شناگران */}
+                      <label
+                        className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs cursor-pointer select-none transition-all ${
+                          allSwimmers
+                            ? 'bg-sky-50 dark:bg-sky-950/40 border-sky-400 text-sky-900 dark:text-sky-100 font-bold'
+                            : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100/60'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={allSwimmers}
+                          onChange={(e) => {
+                            setAllSwimmers(e.target.checked);
+                            if (e.target.checked) setSendToAll(false);
+                          }}
+                          className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer"
+                        />
+                        <span>کلیه شناگران آموزشگاه</span>
+                      </label>
+
+                      {/* شناگران پسر */}
+                      <label
+                        className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs cursor-pointer select-none transition-all ${
+                          swimmersMale
+                            ? 'bg-sky-50 dark:bg-sky-950/40 border-sky-400 text-sky-900 dark:text-sky-100 font-bold'
+                            : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100/60'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={swimmersMale}
+                          onChange={(e) => {
+                            setSwimmersMale(e.target.checked);
+                            if (e.target.checked) setSendToAll(false);
+                          }}
+                          className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer"
+                        />
+                        <span>فقط شناگران پسر (آقایان)</span>
+                      </label>
+
+                      {/* شناگران دختر */}
+                      <label
+                        className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs cursor-pointer select-none transition-all ${
+                          swimmersFemale
+                            ? 'bg-sky-50 dark:bg-sky-950/40 border-sky-400 text-sky-900 dark:text-sky-100 font-bold'
+                            : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100/60'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={swimmersFemale}
+                          onChange={(e) => {
+                            setSwimmersFemale(e.target.checked);
+                            if (e.target.checked) setSendToAll(false);
+                          }}
+                          className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 cursor-pointer"
+                        />
+                        <span>فقط شناگران دختر (بانوان)</span>
+                      </label>
+                    </div>
+
+                    {/* چک‌باکس انتخاب کلاس‌های مشخص */}
+                    <div className="pt-1">
+                      <label
+                        className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs cursor-pointer select-none transition-all ${
+                          filterByGroups
+                            ? 'bg-indigo-50/70 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-700 text-indigo-950 dark:text-indigo-100 font-bold'
+                            : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100/60'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={filterByGroups}
+                          onChange={(e) => {
+                            setFilterByGroups(e.target.checked);
+                            if (e.target.checked) setSendToAll(false);
+                          }}
+                          className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+                        />
+                        <div className="flex items-center justify-between flex-1">
+                          <span className="flex items-center gap-1.5">
+                            <BookOpen className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                            <span>انتخاب کلاس‌ها یا سانس‌های آموزشی خاص</span>
+                          </span>
+                          {selectedGroupIds.length > 0 && (
+                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-indigo-200/70 dark:bg-indigo-900/60 text-indigo-800 dark:text-indigo-200 font-mono">
+                              {selectedGroupIds.length} کلاس انتخاب شد
+                            </span>
+                          )}
+                        </div>
+                      </label>
+
+                      {/* لیست تیک‌زدنی کلاس‌ها */}
+                      {filterByGroups && (
+                        <div className="mt-2.5 p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-900/80 border border-indigo-100 dark:border-indigo-950 space-y-3 animate-in fade-in-50 duration-200">
+                          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2">
+                            <div className="relative flex-1">
+                              <Search className="w-3.5 h-3.5 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2" />
+                              <input
+                                type="text"
+                                value={groupSearchQuery}
+                                onChange={(e) => setGroupSearchQuery(e.target.value)}
+                                placeholder="جستجوی سریع کلاس یا مربی..."
+                                className="w-full pr-8 pl-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200"
+                              />
+                            </div>
+
+                            <div className="flex items-center gap-2 text-[11px] shrink-0">
+                              <button
+                                type="button"
+                                onClick={handleSelectAllGroups}
+                                className="px-2 py-1 rounded bg-indigo-100 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 font-bold hover:bg-indigo-200 transition-colors cursor-pointer"
+                              >
+                                انتخاب همه کلاس‌ها
+                              </button>
+                              <button
+                                type="button"
+                                onClick={handleClearAllGroups}
+                                className="px-2 py-1 rounded border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                              >
+                                پاک کردن
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* چک‌باکس‌های کلاس‌ها */}
+                          <div className="max-h-56 overflow-y-auto space-y-1.5 pr-1">
+                            {filteredGroups.length === 0 ? (
+                              <div className="p-3 text-center text-xs text-slate-400">
+                                کلاسی یافت نشد.
+                              </div>
+                            ) : (
+                              filteredGroups.map((grp) => {
+                                const isChecked = selectedGroupIds.includes(grp.id);
+                                return (
+                                  <label
+                                    key={grp.id}
+                                    className={`flex items-start gap-2.5 p-2.5 rounded-lg border text-xs cursor-pointer select-none transition-all ${
+                                      isChecked
+                                        ? 'bg-indigo-50 dark:bg-indigo-950/60 border-indigo-400 text-indigo-950 dark:text-indigo-100 font-bold'
+                                        : 'bg-white dark:bg-slate-800/80 border-slate-200/80 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                                    }`}
+                                  >
+                                    <input
+                                      type="checkbox"
+                                      checked={isChecked}
+                                      onChange={() => handleToggleGroup(grp.id)}
+                                      className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 cursor-pointer mt-0.5"
+                                    />
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-center justify-between gap-2">
+                                        <span className="truncate">
+                                          {grp.course_name ? `${grp.course_name} - ` : ''}{grp.name}
+                                        </span>
+                                        {grp.gender_display && (
+                                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 shrink-0">
+                                            {grp.gender_display}
+                                          </span>
+                                        )}
+                                      </div>
+                                      {grp.coach_name && (
+                                        <div className="text-[10px] text-slate-400 dark:text-slate-500 font-normal mt-0.5">
+                                          مربی: {grp.coach_name} {grp.schedule ? ` | ${grp.schedule}` : ''}
+                                        </div>
+                                      )}
+                                    </div>
+                                  </label>
+                                );
+                              })
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
+
+                  {/* --- کادر دسته‌بندی مربیان --- */}
+                  <div className="p-4 rounded-2xl bg-white dark:bg-slate-800/60 border border-slate-200/90 dark:border-slate-700/80 space-y-3">
+                    <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-700/60 text-xs font-bold text-slate-800 dark:text-slate-200">
+                      <div className="p-1.5 rounded-lg bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400">
+                        <GraduationCap className="w-3.5 h-3.5" />
+                      </div>
+                      <span>دسته‌بندی مربیان:</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {/* کلیه مربیان */}
+                      <label
+                        className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs cursor-pointer select-none transition-all ${
+                          allCoaches
+                            ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-400 text-emerald-900 dark:text-emerald-100 font-bold'
+                            : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100/60'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={allCoaches}
+                          onChange={(e) => {
+                            setAllCoaches(e.target.checked);
+                            if (e.target.checked) setSendToAll(false);
+                          }}
+                          className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                        />
+                        <span>کلیه کادر مربیان</span>
+                      </label>
+
+                      {/* مربیان آقا */}
+                      <label
+                        className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs cursor-pointer select-none transition-all ${
+                          coachesMale
+                            ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-400 text-emerald-900 dark:text-emerald-100 font-bold'
+                            : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100/60'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={coachesMale}
+                          onChange={(e) => {
+                            setCoachesMale(e.target.checked);
+                            if (e.target.checked) setSendToAll(false);
+                          }}
+                          className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                        />
+                        <span>فقط مربیان آقا</span>
+                      </label>
+
+                      {/* مربیان خانم */}
+                      <label
+                        className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs cursor-pointer select-none transition-all ${
+                          coachesFemale
+                            ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-400 text-emerald-900 dark:text-emerald-100 font-bold'
+                            : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100/60'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={coachesFemale}
+                          onChange={(e) => {
+                            setCoachesFemale(e.target.checked);
+                            if (e.target.checked) setSendToAll(false);
+                          }}
+                          className="w-4 h-4 rounded text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                        />
+                        <span>فقط مربیان خانم</span>
+                      </label>
+                    </div>
+
+                    {/* چک‌باکس انتخاب مربیان خاص */}
+                    <div className="pt-1">
+                      <label
+                        className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs cursor-pointer select-none transition-all ${
+                          filterByCoaches
+                            ? 'bg-teal-50/70 dark:bg-teal-950/30 border-teal-300 dark:border-teal-700 text-teal-950 dark:text-teal-100 font-bold'
+                            : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100/60'
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={filterByCoaches}
+                          onChange={(e) => {
+                            setFilterByCoaches(e.target.checked);
+                            if (e.target.checked) setSendToAll(false);
+                          }}
+                          className="w-4 h-4 rounded text-teal-600 focus:ring-teal-500 cursor-pointer"
+                        />
+                        <div className="flex items-center justify-between flex-1">
+                          <span className="flex items-center gap-1.5">
+                            <GraduationCap className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                            <span>انتخاب مربیان خاص</span>
+                          </span>
+                          {selectedCoachIds.length > 0 && (
+                            <span className="text-[11px] px-2 py-0.5 rounded-full bg-teal-200/70 dark:bg-teal-900/60 text-teal-800 dark:text-teal-200 font-mono">
+                              {selectedCoachIds.length} مربی انتخاب شد
+                            </span>
+                          )}
+                        </div>
+                      </label>
+
+                      {/* لیست تیک‌زدنی مربیان */}
+                      {filterByCoaches && (
+                        <div className="mt-2.5 p-3.5 rounded-xl bg-slate-50/90 dark:bg-slate-900/80 border border-teal-100 dark:border-teal-950 space-y-2 animate-in fade-in-50 duration-200">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {coaches.map((c) => {
+                              const isChecked = selectedCoachIds.includes(c.id);
+                              return (
+                                <label
+                                  key={c.id}
+                                  className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer select-none transition-all ${
+                                    isChecked
+                                      ? 'bg-teal-50 dark:bg-teal-950/60 border-teal-400 text-teal-950 dark:text-teal-100 font-bold'
+                                      : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isChecked}
+                                    onChange={() => handleToggleCoach(c.id)}
+                                    className="w-4 h-4 rounded text-teal-600 focus:ring-teal-500 cursor-pointer"
+                                  />
+                                  <span>{c.full_name}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                </div>
               </div>
 
               {/* ======================================================== */}
@@ -404,15 +725,15 @@ export const AdminCreateAnnouncementPage = () => {
                 </label>
 
                 <div
-                  onClick={() => setForm({ ...form, is_important_sms: !form.is_important_sms })}
+                  onClick={() => setIsImportantSms(!isImportantSms)}
                   className={`p-4 rounded-2xl border transition-all cursor-pointer select-none flex items-start gap-3.5 ${
-                    form.is_important_sms
+                    isImportantSms
                       ? 'bg-amber-50/80 dark:bg-amber-950/30 border-amber-300 dark:border-amber-700/80 shadow-xs'
                       : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600'
                   }`}
                 >
                   <div className={`mt-0.5 p-2 rounded-xl shrink-0 transition-colors ${
-                    form.is_important_sms
+                    isImportantSms
                       ? 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300'
                       : 'bg-slate-200/70 dark:bg-slate-700/60 text-slate-400'
                   }`}>
@@ -424,7 +745,7 @@ export const AdminCreateAnnouncementPage = () => {
                       <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
                         مهم است (ارسال پیامک به مخاطبان)
                       </span>
-                      {form.is_important_sms ? (
+                      {isImportantSms ? (
                         <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-200/70 dark:bg-amber-900/70 text-amber-900 dark:text-amber-100 flex items-center gap-1">
                           <Check className="w-3 h-3" />
                           <span>پیامک + پین طلایی فعال</span>
@@ -444,8 +765,8 @@ export const AdminCreateAnnouncementPage = () => {
                     <input
                       type="checkbox"
                       id="is_important_sms"
-                      checked={form.is_important_sms}
-                      onChange={(e) => setForm({ ...form, is_important_sms: e.target.checked })}
+                      checked={isImportantSms}
+                      onChange={(e) => setIsImportantSms(e.target.checked)}
                       onClick={(e) => e.stopPropagation()}
                       className="w-5 h-5 rounded-md text-sky-600 focus:ring-sky-500 cursor-pointer"
                     />
@@ -476,7 +797,7 @@ export const AdminCreateAnnouncementPage = () => {
                 <span>
                   {submitting
                     ? 'در حال ارسال و انتشار...'
-                    : form.is_important_sms
+                    : isImportantSms
                     ? 'ارسال پیامک و انتشار اعلان مهم'
                     : 'ارسال و انتشار اعلان'}
                 </span>
@@ -484,7 +805,7 @@ export const AdminCreateAnnouncementPage = () => {
             </div>
           </div>
 
-          {/* Right Sidebar Column: Live Preview & Tips (1 Col) */}
+          {/* Right Sidebar Column: Live Preview & Summary (1 Col) */}
           <div className="space-y-6">
             {/* Live Card Preview */}
             <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs space-y-4">
@@ -502,20 +823,20 @@ export const AdminCreateAnnouncementPage = () => {
               {/* Simulated Card */}
               <div
                 className={`p-4 rounded-xl border transition-all ${
-                  form.is_important_sms
+                  isImportantSms
                     ? 'bg-amber-50/70 dark:bg-amber-950/25 border-amber-200 dark:border-amber-900/60 shadow-xs'
                     : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
                 }`}
               >
                 <div className="flex items-center justify-between gap-2 pb-2.5 border-b border-slate-200/60 dark:border-slate-700/60">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    {form.is_important_sms && (
+                    {isImportantSms && (
                       <span className="flex items-center gap-1 text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/60 px-2 py-0.5 rounded-md">
                         <Pin className="w-3 h-3 rotate-45" />
                         مهم و پین‌شده
                       </span>
                     )}
-                    {form.is_important_sms && (
+                    {isImportantSms && (
                       <span className="flex items-center gap-1 text-[10px] font-bold text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/60 px-2 py-0.5 rounded-md">
                         <Smartphone className="w-3 h-3" />
                         پیامک
@@ -523,14 +844,14 @@ export const AdminCreateAnnouncementPage = () => {
                     )}
                     <Badge
                       variant={
-                        form.audience === 'ALL'
+                        sendToAll
                           ? 'info'
-                          : form.audience === 'GROUP'
+                          : selectedGroupIds.length > 0
                           ? 'warning'
                           : 'neutral'
                       }
                     >
-                      {getAudienceDisplayLabel()}
+                      {resolvedAudienceInfo.label}
                     </Badge>
                   </div>
 
@@ -541,11 +862,11 @@ export const AdminCreateAnnouncementPage = () => {
 
                 <div className="pt-3 space-y-2">
                   <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white line-clamp-2">
-                    {form.title.trim() || 'عنوان پیام اعلان در این قسمت قرار می‌گیرد...'}
+                    {title.trim() || 'عنوان پیام اعلان در این قسمت قرار می‌گیرد...'}
                   </h4>
 
                   <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
-                    {form.message.trim() || 'متن کامل اعلان و جزئیات پیام به صورت مرتب در کارتابل شناگر یا مربی نمایش داده خواهد شد.'}
+                    {message.trim() || 'متن کامل اعلان و جزئیات پیام به صورت مرتب در کارتابل شناگر یا مربی نمایش داده خواهد شد.'}
                   </p>
                 </div>
               </div>
@@ -559,25 +880,21 @@ export const AdminCreateAnnouncementPage = () => {
             <div className="bg-gradient-to-br from-sky-50 to-blue-50 dark:from-sky-950/30 dark:to-blue-950/20 rounded-2xl border border-sky-200/60 dark:border-sky-800/60 p-5 space-y-3">
               <div className="flex items-center gap-2 text-xs font-bold text-sky-900 dark:text-sky-200">
                 <Sparkles className="w-4 h-4 text-sky-600" />
-                <span>نکات انتشار پیام</span>
+                <span>مزایای انتخاب تیک‌زدنی</span>
               </div>
 
               <ul className="text-xs text-slate-600 dark:text-slate-400 space-y-2 leading-relaxed">
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                  <span><strong>عنوان و متن:</strong> در ابتدا قرار دارند تا محتوا را با دقت تدوین کنید.</span>
+                  <span>بدون نیاز به دراپ‌داون، تمام دسته‌بندی‌ها مستقیماً با تیک زدن در دسترس هستند.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                  <span><strong>دسته‌بندی شناگران:</strong> امکان ارسال به همه، تفکیک جنسیت (پسر/دختر) یا یک کلاس مشخص.</span>
+                  <span>امکان انتخاب همزمان چند کلاس آموزشی با چک‌باکس و جستجوی سریع.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                  <span><strong>دسته‌بندی مربیان:</strong> امکان ارسال به کلیه مربیان، مربیان آقا یا مربیان خانم.</span>
-                </li>
-                <li className="flex items-start gap-2">
-                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                  <span><strong>مهم است (ارسال پیامک):</strong> اعلان را در صدر پرتال پین کرده و پیامک ارسال می‌کند.</span>
+                  <span>امکان تفکیک جنسیت شناگران و مربیان با تیک‌های مجزا.</span>
                 </li>
               </ul>
             </div>
