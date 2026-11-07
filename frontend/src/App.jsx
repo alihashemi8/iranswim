@@ -42,6 +42,7 @@ import { AdminFinancePage } from './pages/admin/AdminFinancePage';
 import { AdminNewsPage } from './pages/admin/AdminNewsPage';
 import { AdminWebsiteManagerPage } from './pages/admin/AdminWebsiteManagerPage';
 import { AdminAnnouncementsPage } from './pages/admin/AdminAnnouncementsPage';
+import { AdminCreateAnnouncementPage } from './pages/admin/AdminCreateAnnouncementPage';
 import { AdminReportsPage } from './pages/admin/AdminReportsPage';
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
 import { AdminSecurityPage } from './pages/admin/AdminSecurityPage';
@@ -192,6 +193,8 @@ export default function App() {
                 <Route path="website" element={<AdminWebsiteManagerPage />} />
                 <Route path="news" element={<AdminNewsPage />} />
                 <Route path="announcements" element={<AdminAnnouncementsPage />} />
+                <Route path="announcements/new" element={<AdminCreateAnnouncementPage />} />
+                <Route path="announcements/create" element={<Navigate to="/admin/announcements/new" replace />} />
 
                 {/* 6. Reports & Analytics */}
                 <Route path="reports" element={<AdminReportsPage />} />

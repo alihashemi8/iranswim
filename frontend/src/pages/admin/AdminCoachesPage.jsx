@@ -14,7 +14,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
-import { generateStrongPassword } from '../../utils/passwordValidator';
+import { generateStrongPassword, validatePassword } from '../../utils/passwordValidator';
 
 export const AdminCoachesPage = () => {
   const navigate = useNavigate();
@@ -74,6 +74,14 @@ export const AdminCoachesPage = () => {
     if (!addCoachForm.first_name || !addCoachForm.last_name || !addCoachForm.phone) {
       toast.error('لطفاً نام، نام خانوادگی و شماره همراه مربی را وارد کنید.');
       return;
+    }
+
+    if (addCoachForm.password && addCoachForm.password.trim()) {
+      const validation = validatePassword(addCoachForm.password.trim());
+      if (!validation.isValid) {
+        toast.error(validation.firstError || 'رمز عبور با معیارهای امنیتی مطابقت ندارد.');
+        return;
+      }
     }
 
     try {

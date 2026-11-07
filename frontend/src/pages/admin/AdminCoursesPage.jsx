@@ -13,6 +13,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { ProgressBar } from '../../components/common/Charts';
 import { CoachSelectorDropdown } from '../../components/common/CoachSelectorDropdown';
 import { SwimmerCourseCard } from '../../components/common/SwimmerCourseCard';
+import { SessionsScheduleTimetable } from '../../components/common/SessionsScheduleTimetable';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
@@ -507,86 +508,13 @@ export const AdminCoursesPage = () => {
           ))}
         </div>
       ) : (
-        /* TAB 4: CALENDAR & SESSIONS */
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 mb-4">
-            <h3 className="font-bold text-sm text-slate-900 dark:text-white">
-              برنامه زمانی جلسات استخر
-            </h3>
-            <Link to="/admin/sessions" className="text-xs font-semibold text-sky-600 hover:underline">
-              مشاهده تقویم کامل و مدیریت کنسلی ←
-            </Link>
-          </div>
-
-          {/* Desktop Table View */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-sm text-right min-w-[640px]">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300">
-                <tr>
-                  <th className="px-4 py-3 rounded-r-xl">گروه کلاسی</th>
-                  <th className="px-4 py-3">مربی مسئول</th>
-                  <th className="px-4 py-3">تاریخ جلسه</th>
-                  <th className="px-4 py-3">ساعت برگزاری</th>
-                  <th className="px-4 py-3">محل استخر</th>
-                  <th className="px-4 py-3 text-left rounded-l-xl">وضعیت جلسه</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
-                {sessions.slice(0, 10).map((s) => (
-                  <tr key={s.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="px-4 py-3 font-bold text-slate-800 dark:text-slate-100">{s.group_name}</td>
-                    <td className="px-4 py-3 text-xs">{s.coach_name}</td>
-                    <td className="px-4 py-3 font-mono text-xs">{new Date(s.session_date).toLocaleDateString('fa-IR')}</td>
-                    <td className="px-4 py-3 font-mono text-xs">{s.start_time?.slice(0, 5)} تا {s.end_time?.slice(0, 5)}</td>
-                    <td className="px-4 py-3 text-xs text-slate-500">{s.pool_location}</td>
-                    <td className="px-4 py-3 text-left">
-                      <Badge variant={s.status === 'COMPLETED' ? 'success' : s.status === 'CANCELLED' ? 'danger' : 'info'}>
-                        {s.status_display}
-                      </Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Mobile Cards View */}
-          <div className="md:hidden space-y-3">
-            {sessions.slice(0, 10).map((s) => (
-              <div
-                key={s.id}
-                className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-2.5 text-xs"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm">{s.group_name}</h4>
-                    <span className="text-slate-500 dark:text-slate-400 text-xs block mt-0.5">مربی: {s.coach_name || 'نامشخص'}</span>
-                  </div>
-                  <Badge variant={s.status === 'COMPLETED' ? 'success' : s.status === 'CANCELLED' ? 'danger' : 'info'}>
-                    {s.status_display}
-                  </Badge>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
-                  <div>
-                    <span className="text-slate-400 block text-[10px]">تاریخ</span>
-                    <span className="font-mono text-slate-700 dark:text-slate-300">{new Date(s.session_date).toLocaleDateString('fa-IR')}</span>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-[10px]">ساعت</span>
-                    <span className="font-mono text-slate-700 dark:text-slate-300">{s.start_time?.slice(0, 5)} تا {s.end_time?.slice(0, 5)}</span>
-                  </div>
-                  {s.pool_location && (
-                    <div className="col-span-2">
-                      <span className="text-slate-400 block text-[10px]">محل استخر</span>
-                      <span className="text-slate-600 dark:text-slate-300">{s.pool_location}</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        /* TAB 4: CALENDAR & SESSIONS (جدول روز در ساعت و امکان دانلود باکیفیت) */
+        <SessionsScheduleTimetable
+          sessions={sessions}
+          groups={groups}
+          coaches={coaches}
+          onRefresh={fetchData}
+        />
       )}
 
 
