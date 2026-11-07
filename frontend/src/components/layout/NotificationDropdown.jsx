@@ -205,7 +205,7 @@ export const NotificationDropdown = () => {
         {/* Unread Badge (hidden when count === 0) */}
         {unreadCount > 0 && (
           <span className="absolute -top-1 -left-1 min-w-4.5 h-4.5 px-1 flex items-center justify-center text-[10px] font-bold font-mono text-white bg-rose-500 rounded-full shadow-xs ring-2 ring-white dark:ring-slate-900 animate-fade-in">
-            {unreadCount > 99 ? '99+' : unreadCount.toLocaleString('fa-IR')}
+            {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
       </button>
@@ -231,8 +231,8 @@ export const NotificationDropdown = () => {
                   پیام‌ها و اعلان‌ها
                 </span>
                 {unreadCount > 0 && (
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300">
-                    {unreadCount.toLocaleString('fa-IR')} جدید
+                  <span className="text-[11px] font-bold font-mono px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300">
+                    {unreadCount > 99 ? '99+' : unreadCount} جدید
                   </span>
                 )}
               </div>
