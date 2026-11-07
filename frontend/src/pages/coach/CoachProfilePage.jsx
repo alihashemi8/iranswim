@@ -8,6 +8,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/common/Button';
 import { LoadingState } from '../../components/common/LoadingState';
 import { useToast } from '../../context/ToastContext';
+import { validatePassword, PasswordRequirementsList } from '../../utils/passwordValidator';
 
 export const CoachProfilePage = () => {
   const { user } = useAuth();
@@ -64,12 +65,13 @@ export const CoachProfilePage = () => {
 
   const handleChangePassword = async (e) => {
     e.preventDefault();
-    if (newPassword !== confirmPassword) {
-      toast.error('تکرار کلمه عبور جدید مطابقت ندارد.');
+    const validation = validatePassword(newPassword);
+    if (!validation.isValid) {
+      toast.error(validation.firstError || 'رمز عبور با معیارهای امنیتی مطابقت ندارد.');
       return;
     }
-    if (newPassword.length < 6) {
-      toast.error('کلمه عبور جدید باید حداقل ۶ کاراکتر باشد.');
+    if (newPassword !== confirmPassword) {
+      toast.error('تکرار کلمه عبور جدید مطابقت ندارد.');
       return;
     }
 
@@ -198,15 +200,17 @@ export const CoachProfilePage = () => {
 
             <div>
               <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5">
-                کلمه عبور جدید:
+                کلمه عبور جدید (انگلیسی، حداقل ۸ نویسه):
               </label>
               <input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="مانند: Coach@Secure2026"
                 className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white font-mono text-sm"
                 required
               />
+              <PasswordRequirementsList password={newPassword} showAlways={true} className="mt-2" />
             </div>
 
             <div>
