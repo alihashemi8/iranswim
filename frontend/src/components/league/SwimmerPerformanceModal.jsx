@@ -115,7 +115,7 @@ export const SwimmerPerformanceModal = ({
             <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200/80 dark:border-slate-800 p-3.5 rounded-2xl text-center space-y-1">
               <span className="text-[11px] font-bold text-slate-400 block">رتبه در لیگ</span>
               <span className="text-xl font-mono font-black text-slate-900 dark:text-white flex items-center justify-center gap-1">
-                {entry.rank === 1 ? '🥇 ۱' : entry.rank === 2 ? '🥈 ۲' : entry.rank === 3 ? '🥉 ۳' : `#${entry.rank || '-'}`}
+                {entry.rank === 1 ? '🥇 1' : entry.rank === 2 ? '🥈 2' : entry.rank === 3 ? '🥉 3' : `#${entry.rank || '-'}`}
               </span>
             </div>
 
@@ -234,7 +234,7 @@ export const SwimmerPerformanceModal = ({
                           {r.formatted_time || '-'}
                         </td>
                         <td className="p-3 text-center font-bold font-mono">
-                          {r.rank ? (r.rank === 1 ? '🥇 ۱' : r.rank === 2 ? '🥈 ۲' : r.rank === 3 ? '🥉 ۳' : r.rank) : '-'}
+                          {r.rank ? (r.rank === 1 ? '🥇 1' : r.rank === 2 ? '🥈 2' : r.rank === 3 ? '🥉 3' : r.rank) : '-'}
                         </td>
                         <td className="p-3 text-center">
                           {r.medal === 'GOLD' ? 'طلا' : r.medal === 'SILVER' ? 'نقره' : r.medal === 'BRONZE' ? 'برنز' : '-'}

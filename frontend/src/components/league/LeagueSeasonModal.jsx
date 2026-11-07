@@ -109,7 +109,7 @@ export const LeagueSeasonModal = ({
               name="season"
               value={formData.season}
               onChange={handleChange}
-              placeholder="مثال: زمستان ۱۴۰۵ یا بهار ۱۴۰۶"
+              placeholder="مثال: زمستان 1405 یا بهار 1406"
               required
               className="w-full text-xs p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
             />
