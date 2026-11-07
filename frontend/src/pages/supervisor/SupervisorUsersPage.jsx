@@ -15,6 +15,7 @@ import { Pagination } from '../../components/common/Pagination';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { formatPersianDate } from '../../utils/date';
+import { validatePassword, generateStrongPassword, PasswordRequirementsList } from '../../utils/passwordValidator';
 
 const ROLE_DEFINITIONS = {
   ADMIN: {
@@ -190,11 +191,7 @@ export const SupervisorUsersPage = () => {
   };
 
   const handleGenerateRandomPassword = (targetForm = 'add') => {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789!@#$%';
-    let rand = 'IranSwim@';
-    for (let i = 0; i < 4; i++) {
-      rand += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
+    const rand = generateStrongPassword(14);
     if (targetForm === 'add') {
       setAddForm((prev) => ({ ...prev, password: rand }));
       setShowAddPassword(true);
@@ -215,6 +212,14 @@ export const SupervisorUsersPage = () => {
     if (!cleanedPhone.startsWith('09') || cleanedPhone.length !== 11) {
       toast.error('شماره تلفن همراه باید ۱۱ رقمی بوده و با ۰۹ شروع شود.');
       return;
+    }
+
+    if (addForm.password.trim()) {
+      const validation = validatePassword(addForm.password.trim());
+      if (!validation.isValid) {
+        toast.error(validation.firstError || 'رمز عبور با معیارهای امنیتی مطابقت ندارد.');
+        return;
+      }
     }
 
     setAddingUser(true);

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   UserCheck, Plus, Calendar, Clock, BookOpen,
   Award, Shield, Phone, Edit, CheckCircle2, AlertTriangle, FileSpreadsheet,
-  ChevronLeft, Sparkles, User, Hash, Lock, DollarSign
+  ChevronLeft, Sparkles, User, Hash, Lock, DollarSign, KeyRound, Copy, X
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -14,6 +14,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
+import { generateStrongPassword } from '../../utils/passwordValidator';
 
 export const AdminCoachesPage = () => {
   const navigate = useNavigate();
@@ -439,15 +440,58 @@ export const AdminCoachesPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                کلمه عبور ورود (اختیاری)
+                کلمه عبور ورود به سامانه
               </label>
-              <input
-                type="password"
-                placeholder="پیش‌فرض: کد ملی یا شماره همراه"
-                value={addCoachForm.password}
-                onChange={(e) => setAddCoachForm({ ...addCoachForm, password: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-              />
+              {!addCoachForm.password ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    const newPass = generateStrongPassword(14);
+                    setAddCoachForm((prev) => ({ ...prev, password: newPass }));
+                    if (navigator.clipboard?.writeText) {
+                      navigator.clipboard.writeText(newPass);
+                    }
+                    toast.success('کلمه عبور امن تصادفی تولید و در کلیپ‌بورد کپی شد.');
+                  }}
+                  className="w-full py-2 px-3 border border-dashed border-sky-300 dark:border-sky-700 hover:bg-sky-50 dark:hover:bg-sky-950/40 text-sky-700 dark:text-sky-300 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <KeyRound className="w-3.5 h-3.5" />
+                  <span>تولید رمز تصادفی و کپی در کلیپ‌بورد</span>
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <div className="relative flex-1">
+                    <Lock className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="password"
+                      readOnly
+                      value={addCoachForm.password}
+                      className="w-full pl-3 pr-9 py-2 text-xs font-mono bg-white dark:bg-slate-900 border border-sky-300 dark:border-sky-700 rounded-xl text-slate-500 cursor-not-allowed select-none tracking-widest"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (navigator.clipboard?.writeText) {
+                        navigator.clipboard.writeText(addCoachForm.password);
+                      }
+                      toast.success('کلمه عبور مجدداً در کلیپ‌بورد کپی شد.');
+                    }}
+                    className="p-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer shrink-0"
+                    title="کپی مجدد رمز عبور"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAddCoachForm((prev) => ({ ...prev, password: '' }))}
+                    className="p-2 text-slate-400 hover:text-rose-500 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer shrink-0"
+                    title="حذف و ورود با کد ملی / پیامک"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              )}
             </div>
             <div>
               <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">

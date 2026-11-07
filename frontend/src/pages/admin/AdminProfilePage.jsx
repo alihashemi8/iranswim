@@ -456,6 +456,12 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
         is_active: addForm.is_active,
       };
       if (addForm.password.trim()) {
+        const validation = validatePassword(addForm.password.trim());
+        if (!validation.isValid) {
+          toast.error(validation.firstError || 'رمز عبور با معیارهای امنیتی مطابقت ندارد.');
+          setAddingUser(false);
+          return;
+        }
         payload.password = addForm.password.trim();
       }
 
@@ -504,6 +510,12 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
         payload.role = editForm.role;
       }
       if (editForm.password.trim()) {
+        const validation = validatePassword(editForm.password.trim());
+        if (!validation.isValid) {
+          toast.error(validation.firstError || 'رمز عبور با معیارهای امنیتی مطابقت ندارد.');
+          setUpdatingUser(false);
+          return;
+        }
         payload.password = editForm.password.trim();
       }
 
@@ -795,17 +807,18 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 <form onSubmit={handleChangePassword} className="space-y-4">
                   <div>
                     <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                      رمز عبور جدید (حداقل ۶ نویسه):
+                      رمز عبور جدید (انگلیسی، حداقل ۸ نویسه):
                     </label>
                     <input
                       type="password"
                       required
-                      minLength={6}
+                      minLength={8}
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                      placeholder="حداقل ۶ نویسه"
+                      placeholder="مانند: Admin@Safe2026"
                       className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 transition-all"
                     />
+                    <PasswordRequirementsList password={passwordForm.newPassword} showAlways={true} className="mt-2.5" />
                   </div>
 
                   <div>
@@ -815,7 +828,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                     <input
                       type="password"
                       required
-                      minLength={6}
+                      minLength={8}
                       value={passwordForm.confirmPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                       placeholder="تکرار رمز عبور"
@@ -1790,39 +1803,77 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
             )}
           </div>
 
-          {/* Password (Optional update) */}
-          <div>
-            <div className="flex items-center justify-between mb-1">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-200">
-                تعیین کلمه عبور جدید (اختیاری)
+          {/* Password (تنظیم کلمه عبور بدون دسترسی یا مشاهده توسط مدیر) */}
+          {selectedUser?.role !== 'ADMIN' && (
+            <div className="space-y-2">
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200">
+                کلمه عبور ورود به سامانه
               </label>
-              <button
-                type="button"
-                onClick={() => handleGenerateRandomPassword('edit')}
-                className="text-[11px] text-sky-600 dark:text-sky-400 hover:underline font-medium cursor-pointer"
-              >
-                تولید رمز تصادفی
-              </button>
+              {!editForm.password ? (
+                <div className="p-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                      رمزهای عبور کاربران هش‌شده و برای هیچ‌کس (از جمله مدیر) قابل مشاهده نیست. در صورت درخواست کاربر، می‌توانید کلمه عبور تصادفی جدید صادر و در کلیپ‌بورد کپی فرمایید.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={handleGenerateEditPassword}
+                      className="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                    >
+                      <KeyRound className="w-3.5 h-3.5" />
+                      <span>تولید رمز تصادفی و کپی</span>
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-3 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50/50 dark:bg-sky-950/30 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold text-sky-900 dark:text-sky-200 flex items-center gap-1.5">
+                      <KeyRound className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                      کلمه عبور تصادفی جدید آماده ثبت و در کلیپ‌بورد کپی شد
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setEditForm((prev) => ({ ...prev, password: '' }))}
+                      className="text-[11px] text-rose-500 hover:underline cursor-pointer"
+                    >
+                      انصراف از تغییر رمز
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <Lock className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="password"
+                        readOnly
+                        value={editForm.password}
+                        className="w-full pl-3 pr-9 py-2 text-xs font-mono bg-white dark:bg-slate-900 border border-sky-300 dark:border-sky-700 rounded-xl text-slate-500 cursor-not-allowed select-none tracking-widest"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => copyToClipboard(editForm.password, 'کلمه عبور جدید مجدداً در کلیپ‌بورد کپی شد.')}
+                      className="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                    >
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>کپی رمز عبور</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleGenerateEditPassword}
+                      className="p-2 border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl transition-colors cursor-pointer"
+                      title="تولید مجدد رمز"
+                    >
+                      <RefreshCw className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                    با کلیک بر روی «ذخیره مشخصات»، این رمز اعمال می‌شود. کاراکترها به مدیر نمایش داده نمی‌شوند و در کلیپ‌بورد کپی شده‌اند.
+                  </p>
+                </div>
+              )}
             </div>
-            <div className="relative">
-              <Lock className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
-              <input
-                type={showEditPassword ? 'text' : 'password'}
-                dir="ltr"
-                placeholder="در صورت تمایل به تغییر رمز، رمز جدید را وارد نمایید"
-                value={editForm.password}
-                onChange={(e) => setEditForm({ ...editForm, password: e.target.value })}
-                className="w-full pl-9 pr-9 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
-              />
-              <button
-                type="button"
-                onClick={() => setShowEditPassword(!showEditPassword)}
-                className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 absolute left-2.5 top-1/2 -translate-y-1/2 cursor-pointer"
-              >
-                {showEditPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              </button>
-            </div>
-          </div>
+          )}
 
           {/* Active Status Checkbox */}
           {selectedUser?.id !== user?.id && (
@@ -1934,6 +1985,125 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               )}
             </Button>
           </div>
+        </div>
+      </Modal>
+
+      {/* ===================================================================== */}
+      {/* MODAL 4: RESET USER PASSWORD (صدور کلمه عبور تصادفی جدید و کپی)       */}
+      {/* ===================================================================== */}
+      <Modal
+        isOpen={isResetPasswordModalOpen}
+        onClose={() => {
+          setIsResetPasswordModalOpen(false);
+          setGeneratedResetPassword(null);
+        }}
+        title={`صدور کلمه عبور تصادفی جدید: ${selectedUser?.full_name || selectedUser?.phone}`}
+        maxWidth="max-w-md"
+      >
+        <div className="space-y-4">
+          {!generatedResetPassword ? (
+            <>
+              <div className="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-xs text-amber-800 dark:text-amber-300 leading-relaxed space-y-1.5">
+                <div className="flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-200">
+                  <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+                  <span>حفظ امنیت و محرمانگی کلمه عبور کاربر</span>
+                </div>
+                <p>
+                  مدیر آموزشگاه به کلمات عبور کاربران دسترسی ندارد و امکان مشاهده یا تعیین رمز دلخواه وجود ندارد. با زدن دکمه زیر، یک کلمه عبور استاندارد، قوی و تصادفی صادر و بلافاصله در کلیپ‌بورد شما کپی خواهد شد تا بتوانید آن را برای کاربر ارسال نمایید.
+                </p>
+              </div>
+
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 text-xs space-y-1.5">
+                <div className="flex justify-between">
+                  <span className="text-slate-500 dark:text-slate-400">نام کاربر:</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-100">{selectedUser?.full_name || 'بدون نام'}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 dark:text-slate-400">شماره همراه (شناسه ورود):</span>
+                  <span className="font-mono text-slate-800 dark:text-slate-100">{selectedUser?.phone}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500 dark:text-slate-400">نقش کاربری:</span>
+                  <span className="font-semibold text-slate-800 dark:text-slate-100">{roleLabels[selectedUser?.role] || selectedUser?.role}</span>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setIsResetPasswordModalOpen(false)}
+                  disabled={resettingUser}
+                >
+                  انصراف
+                </Button>
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={handleExecuteResetPassword}
+                  disabled={resettingUser}
+                  className="gap-2"
+                >
+                  {resettingUser ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>در حال صدور و ثبت...</span>
+                    </>
+                  ) : (
+                    <>
+                      <KeyRound className="w-3.5 h-3.5" />
+                      <span>تولید، ثبت و کپی کلمه عبور جدید</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+            </>
+          ) : (
+            <div className="space-y-4">
+              <div className="p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl text-center space-y-2">
+                <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-300 flex items-center justify-center mx-auto">
+                  <CheckCircle2 className="w-5 h-5" />
+                </div>
+                <h4 className="font-bold text-sm text-emerald-900 dark:text-emerald-100">
+                  کلمه عبور جدید با موفقیت ثبت شد
+                </h4>
+                <p className="text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed">
+                  رمز عبور تصادفی جدید در کلیپ‌بورد سیستم شما کپی گردید. لطفاً آن را از طریق پیامک یا پیام‌رسان به کاربر اعلام فرمایید.
+                </p>
+              </div>
+
+              <div className="p-3 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Lock className="w-4 h-4 text-slate-400" />
+                  <span className="font-mono text-sm tracking-widest text-slate-600 dark:text-slate-300 select-none">
+                    ••••••••••••••
+                  </span>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => copyToClipboard(generatedResetPassword, 'کلمه عبور مجدداً در کلیپ‌بورد کپی شد.')}
+                  className="gap-1.5 text-xs py-1.5 px-3"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>کپی مجدد رمز عبور</span>
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
+                <Button
+                  type="button"
+                  variant="primary"
+                  onClick={() => {
+                    setIsResetPasswordModalOpen(false);
+                    setGeneratedResetPassword(null);
+                  }}
+                >
+                  متوجه شدم و بستن
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
       </Modal>
     </div>
