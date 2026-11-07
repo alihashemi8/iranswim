@@ -6,6 +6,40 @@ from apps.accounts.models import User
 from apps.accounts.validators import validate_password_complexity
 
 
+class CoachPublicSerializer(serializers.ModelSerializer):
+    """
+    سریالایزر عمومی مربیان جهت نمایش در صفحه اصلی (Landing) و پرتال کاربران:
+    تنها اطلاعات عمومی مجاز را برمی‌گرداند و اطلاعات هویتی و مالی محرمانه
+    (کد ملی، شماره تلفن همراه، دستمزد ساعتی، وضعیت استخدامی) را کاملاً حذف می‌کند.
+    """
+    full_name = serializers.CharField(read_only=True)
+    first_name = serializers.CharField(source='user.first_name', read_only=True)
+    last_name = serializers.CharField(source='user.last_name', read_only=True)
+    avatar = serializers.SerializerMethodField()
+    gender_display = serializers.CharField(source='get_gender_display', read_only=True)
+    assigned_groups_count = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CoachProfile
+        fields = [
+            'id', 'first_name', 'last_name', 'full_name',
+            'avatar', 'gender', 'gender_display', 'display_order', 'show_on_landing',
+            'specialties', 'bio', 'assigned_groups_count'
+        ]
+        read_only_fields = fields
+
+    def get_avatar(self, obj):
+        if obj.user and obj.user.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.user.avatar.url)
+            return obj.user.avatar.url
+        return None
+
+    def get_assigned_groups_count(self, obj):
+        return obj.assigned_groups.count()
+
+
 class CoachProfileSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(read_only=True)
     phone = serializers.CharField(required=False)
@@ -48,12 +82,34 @@ class CoachProfileSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
+        request = self.context.get('request')
+        user = request.user if request and hasattr(request, 'user') and request.user.is_authenticated else None
+        is_admin_or_self = bool(user and (
+            user.role in ['ADMIN', 'SUPERVISOR'] or
+            user.is_superuser or
+            user.is_staff or
+            (instance.user and instance.user == user)
+        ))
+
         if instance.user:
             ret['first_name'] = instance.user.first_name or ''
             ret['last_name'] = instance.user.last_name or ''
-            ret['phone'] = instance.user.phone or ''
-            ret['national_id'] = instance.user.national_id or ''
             ret['full_name'] = instance.user.get_full_name() or instance.user.phone or ''
+            if is_admin_or_self:
+                ret['phone'] = instance.user.phone or ''
+                ret['national_id'] = instance.user.national_id or ''
+            else:
+                ret.pop('phone', None)
+                ret.pop('national_id', None)
+        else:
+            if not is_admin_or_self:
+                ret.pop('phone', None)
+                ret.pop('national_id', None)
+
+        if not is_admin_or_self:
+            ret.pop('hourly_rate', None)
+            ret.pop('employment_status', None)
+
         return ret
 
     def create(self, validated_data):

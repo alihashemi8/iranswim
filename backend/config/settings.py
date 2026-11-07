@@ -15,6 +15,17 @@ SECRET_KEY = os.environ.get(
 )
 
 DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
+ENVIRONMENT = os.environ.get('DJANGO_ENV', 'development' if DEBUG else 'production').lower()
+
+# Security / OTP Policy:
+# In production, OTP is strictly dispatched via SMS and never returned in API responses.
+# In local development or automated test suites, DEV_OTP can be enabled for test flows.
+# It is impossible to activate in production (strictly blocked when ENVIRONMENT == 'production' or DJANGO_DEBUG == 'False').
+EXPOSE_DEV_OTP = (
+    ENVIRONMENT != 'production' and
+    os.environ.get('DJANGO_DEBUG', 'True').lower() != 'false' and
+    os.environ.get('DJANGO_EXPOSE_DEV_OTP', 'True').lower() == 'true'
+)
 
 ALLOWED_HOSTS_ENV = os.environ.get('ALLOWED_HOSTS')
 if ALLOWED_HOSTS_ENV:

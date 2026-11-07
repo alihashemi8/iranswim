@@ -108,6 +108,14 @@ class UserSerializer(serializers.ModelSerializer):
             validate_password_complexity(value)
         return value
 
+    def validate(self, attrs):
+        request = self.context.get('request')
+        # Strict authorization: only authenticated admin or supervisor can modify user role
+        if 'role' in attrs:
+            if not request or not request.user or not request.user.is_authenticated or request.user.role not in [User.Role.ADMIN, User.Role.SUPERVISOR]:
+                raise ValidationError({'role': 'فقط مدیر سامانه یا ناظر فنی مجاز به تعیین یا تغییر نقش کاربری هستند.'})
+        return attrs
+
     def create(self, validated_data):
         password = validated_data.pop('password', None)
         phone = validated_data.get('phone')
@@ -293,35 +301,161 @@ class RegisterWithOTPSerializer(serializers.Serializer):
         return val
 
 
+class SelfProfileSerializer(serializers.ModelSerializer):
+    """
+    سریالایزر امن ویرایش پروفایل کاربری توسط خود کاربر (/api/auth/me/):
+    فیلدهای سطح دسترسی (نقش، سوپریوزر، کارمند و وضعیت فعال) را غیرقابل ویرایش می‌سازد
+    تا از هرگونه ترفیع دسترسی غیرمجاز جلوگیری شود.
+    """
+    full_name = serializers.CharField(read_only=True)
+    swimmer_id = serializers.SerializerMethodField()
+    coach_id = serializers.SerializerMethodField()
+    is_profile_completed = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = [
+            'id', 'phone', 'first_name', 'last_name', 'full_name',
+            'national_id', 'role', 'is_active', 'is_password_changed',
+            'swimmer_id', 'coach_id', 'is_profile_completed', 'created_at'
+        ]
+        read_only_fields = [
+            'id', 'phone', 'role', 'is_active', 'is_password_changed',
+            'swimmer_id', 'coach_id', 'is_profile_completed', 'created_at'
+        ]
+
+    def get_swimmer_id(self, obj):
+        profile = getattr(obj, 'swimmer_profile', None)
+        return profile.id if profile else None
+
+    def get_coach_id(self, obj):
+        profile = getattr(obj, 'coach_profile', None)
+        return profile.id if profile else None
+
+    def get_is_profile_completed(self, obj):
+        if obj.role == User.Role.SWIMMER and hasattr(obj, 'swimmer_profile'):
+            return obj.swimmer_profile.is_profile_completed
+        return True
+
+    def validate_national_id(self, value):
+        if value:
+            return to_english_digits(value).strip()
+        return value
+
+    def validate(self, attrs):
+        # Explicitly disallow any attempt to supply privileged or security-sensitive fields
+        forbidden_attempts = []
+        for field in ['role', 'is_staff', 'is_superuser', 'is_active', 'is_password_changed', 'password', 'phone']:
+            if field in self.initial_data:
+                val = self.initial_data.get(field)
+                current_val = getattr(self.instance, field, None)
+                if val is not None and str(val) != str(current_val):
+                    forbidden_attempts.append(field)
+
+        if forbidden_attempts:
+            raise ValidationError({
+                f: 'شما دسترسی لازم برای تغییر این فیلد را ندارید.'
+                for f in forbidden_attempts
+            })
+        return attrs
+
+    def update(self, instance, validated_data):
+        # Whitelist safe editable profile fields only
+        safe_fields = {'first_name', 'last_name', 'national_id'}
+        for attr in safe_fields:
+            if attr in validated_data:
+                setattr(instance, attr, validated_data[attr])
+        instance.save()
+
+        # Synchronize first_name, last_name, and national_id with linked SwimmerProfile if present
+        if hasattr(instance, 'swimmer_profile') and instance.swimmer_profile:
+            profile = instance.swimmer_profile
+            profile_changed = False
+            if 'first_name' in validated_data and profile.first_name != instance.first_name:
+                profile.first_name = instance.first_name
+                profile_changed = True
+            if 'last_name' in validated_data and profile.last_name != instance.last_name:
+                profile.last_name = instance.last_name
+                profile_changed = True
+            if 'national_id' in validated_data and profile.national_id != instance.national_id:
+                profile.national_id = instance.national_id or ''
+                profile_changed = True
+            if profile_changed:
+                profile.save()
+
+        return instance
+
+
 class RegisterSerializer(serializers.ModelSerializer):
+    """
+    سریالایزر ثبت‌نام عمومی:
+    فقط و فقط امکان ثبت‌نام با نقش SWIMMER را فراهم می‌کند.
+    هیچ کاربری نمی‌تواند نقش‌های مدیریتی (ADMIN, COACH, SUPERVISOR) یا دسترسی‌های ویژه ایجاد کند.
+    """
     password = serializers.CharField(write_only=True, min_length=8)
 
     class Meta:
         model = User
-        fields = ['phone', 'first_name', 'last_name', 'password', 'national_id', 'role']
+        fields = ['phone', 'first_name', 'last_name', 'password', 'national_id']
+
+    def validate_phone(self, value):
+        val = to_english_digits(value).strip() if value else ''
+        if not (val.startswith('09') and len(val) == 11 and val.isdigit()):
+            raise ValidationError('شماره موبایل باید ۱۱ رقم بوده و با ۰۹ آغاز شود.')
+        if User.objects.filter(phone=val).exists():
+            raise ValidationError('کاربری با این شماره همراه قبلاً در سامانه ثبت شده است. لطفاً وارد شوید.')
+        return val
 
     def validate_password(self, value):
         return validate_password_complexity(value)
 
+    def validate_national_id(self, value):
+        if value:
+            val = to_english_digits(value).strip()
+            if not (len(val) == 10 and val.isdigit()):
+                raise ValidationError('کد ملی باید دقیقاً ۱۰ رقم عددی باشد.')
+            if User.objects.filter(national_id=val).exists():
+                raise ValidationError('این کد ملی قبلاً برای کاربر دیگری ثبت شده است.')
+            return val
+        return value
+
+    def validate(self, attrs):
+        # Reject client-supplied privileged role attempts
+        requested_role = self.initial_data.get('role')
+        if requested_role and requested_role != User.Role.SWIMMER:
+            raise ValidationError({'role': 'ثبت‌نام عمومی فقط برای حساب‌های شناگر مجاز است.'})
+        return attrs
+
     def create(self, validated_data):
         password = validated_data.pop('password')
-        role = validated_data.get('role', User.Role.SWIMMER)
-        user = User.objects.create_user(password=password, **validated_data)
+        # Ensure role, is_staff, is_superuser cannot be manipulated via registration
+        validated_data.pop('role', None)
+        validated_data.pop('is_staff', None)
+        validated_data.pop('is_superuser', None)
+
+        user = User.objects.create_user(
+            password=password,
+            role=User.Role.SWIMMER,
+            is_staff=False,
+            is_superuser=False,
+            **validated_data
+        )
         
-        # Automatically create profile based on role
-        if role == User.Role.SWIMMER:
-            from apps.swimmers.models import SwimmerProfile
-            SwimmerProfile.objects.create(
-                user=user,
-                first_name=user.first_name,
-                last_name=user.last_name,
-                phone=user.phone,
-                national_id=user.national_id or '',
-                is_profile_completed=False
-            )
-        elif role == User.Role.COACH:
-            from apps.coaches.models import CoachProfile
-            CoachProfile.objects.create(
-                user=user
-            )
+        # Automatically create profile for swimmer
+        from apps.swimmers.models import SwimmerProfile, SwimmerGuardianRelation
+        swimmer_profile, _ = SwimmerProfile.objects.get_or_create(
+            user=user,
+            defaults={
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'phone': user.phone,
+                'national_id': user.national_id or '',
+                'is_profile_completed': False
+            }
+        )
+        SwimmerGuardianRelation.objects.get_or_create(
+            guardian=user,
+            swimmer=swimmer_profile,
+            defaults={'relationship_type': 'SELF', 'is_primary': True, 'is_verified': True}
+        )
         return user

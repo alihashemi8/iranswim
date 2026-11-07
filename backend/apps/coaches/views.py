@@ -7,7 +7,7 @@ from rest_framework.response import Response
 
 from .models import CoachProfile, WorkoutPlan
 from .serializers import (
-    CoachProfileSerializer, WorkoutPlanSerializer,
+    CoachProfileSerializer, CoachPublicSerializer, WorkoutPlanSerializer,
     CoachClassListSerializer, CoachSwimmerDetailSerializer
 )
 from apps.accounts.permissions import IsAdminOrCoach, IsAdminUserRole
@@ -28,6 +28,12 @@ def get_coach_profile(user):
 class CoachListView(generics.ListCreateAPIView):
     queryset = CoachProfile.objects.all().select_related('user')
     serializer_class = CoachProfileSerializer
+
+    def get_serializer_class(self):
+        user = self.request.user if hasattr(self, 'request') else None
+        if user and user.is_authenticated and (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser or user.is_staff):
+            return CoachProfileSerializer
+        return CoachPublicSerializer
 
     def get_permissions(self):
         if self.request.method == 'GET':
@@ -51,6 +57,12 @@ class CoachListView(generics.ListCreateAPIView):
 class CoachDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = CoachProfile.objects.all().select_related('user')
     serializer_class = CoachProfileSerializer
+
+    def get_serializer_class(self):
+        user = self.request.user if hasattr(self, 'request') else None
+        if user and user.is_authenticated and (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser or user.is_staff):
+            return CoachProfileSerializer
+        return CoachPublicSerializer
 
     def get_permissions(self):
         if self.request.method == 'GET':

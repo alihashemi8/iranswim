@@ -1,5 +1,7 @@
-import random
+import logging
+import secrets
 from datetime import timedelta
+from django.conf import settings
 from django.utils import timezone
 from rest_framework import status, generics, permissions
 from rest_framework.views import APIView
@@ -11,11 +13,13 @@ from django.db.models import Q
 from .models import User, OTPVerification
 from .validators import validate_password_complexity
 from .serializers import (
-    IranSwimTokenObtainPairSerializer, UserSerializer, RegisterSerializer,
+    IranSwimTokenObtainPairSerializer, UserSerializer, SelfProfileSerializer, RegisterSerializer,
     SendOTPSerializer, VerifyOTPLoginSerializer, RegisterWithOTPSerializer,
     to_english_digits
 )
 from .permissions import IsAdminUserRole, IsAdminOrSupervisor
+
+logger = logging.getLogger('iranswim.accounts')
 
 
 class LoginView(TokenObtainPairView):
@@ -49,8 +53,8 @@ class SendOTPView(APIView):
         # Invalidate existing unused codes for this phone
         OTPVerification.objects.filter(phone=phone, is_used=False).update(is_used=True)
 
-        # Generate a new 6-digit code
-        code = f"{random.randint(100000, 999999)}"
+        # Generate a cryptographically secure 6-digit code
+        code = f"{secrets.SystemRandom().randint(100000, 999999)}"
         expires_at = timezone.now() + timedelta(minutes=2)
 
         otp_record = OTPVerification.objects.create(
@@ -60,12 +64,25 @@ class SendOTPView(APIView):
             expires_at=expires_at
         )
 
-        return Response({
+        # Safe logging: log destination with phone masking, NEVER log the OTP code
+        masked_phone = phone[:4] + '****' + phone[-3:] if len(phone) >= 7 else phone
+        logger.info(f"Dispatched OTP verification SMS to {masked_phone}")
+
+        response_payload = {
             'detail': f'کد یکبار مصرف با موفقیت به شماره {phone} ارسال شد.',
-            'code': code,  # Provided in response for seamless development & demo testing
             'expires_in': 120,
             'phone': phone
-        }, status=status.HTTP_200_OK)
+        }
+
+        # Expose OTP strictly in local development or automated test suites; impossible to activate in production
+        is_production = (
+            getattr(settings, 'ENVIRONMENT', 'production').lower() == 'production' or
+            not getattr(settings, 'EXPOSE_DEV_OTP', False)
+        )
+        if not is_production:
+            response_payload['code'] = code
+
+        return Response(response_payload, status=status.HTTP_200_OK)
 
 
 class VerifyOTPLoginView(APIView):
@@ -264,15 +281,27 @@ class ChangePasswordView(APIView):
 
 
 class CurrentUserView(APIView):
+    """
+    مشاهده و ویرایش مشخصات فردی کاربر جاری واردشده:
+    با استفاده از سریالایزر SelfProfileSerializer، امکان ترفیع دسترسی (role, is_staff, is_superuser)
+    یا ویرایش فیلدهای حساس امنیتی به طور کامل مسدود شده است.
+    """
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
-        serializer = UserSerializer(request.user)
+        serializer = SelfProfileSerializer(request.user)
         return Response(serializer.data)
 
     def patch(self, request):
         user = request.user
-        serializer = UserSerializer(user, data=request.data, partial=True)
+        serializer = SelfProfileSerializer(user, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response(serializer.data)
+
+    def put(self, request):
+        user = request.user
+        serializer = SelfProfileSerializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
