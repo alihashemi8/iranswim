@@ -3,6 +3,7 @@ from .models import CoachProfile, WorkoutPlan
 from apps.education.models import SwimmerGroup, SkillLevel, GroupSchedule
 from apps.swimmers.models import SwimmerProfile
 from apps.accounts.models import User
+from apps.accounts.validators import validate_password_complexity
 
 
 class CoachProfileSerializer(serializers.ModelSerializer):
@@ -39,6 +40,11 @@ class CoachProfileSerializer(serializers.ModelSerializer):
 
     def get_assigned_groups_count(self, obj):
         return obj.assigned_groups.count()
+
+    def validate_password(self, value):
+        if value:
+            validate_password_complexity(value)
+        return value
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)

@@ -7,6 +7,7 @@ from rest_framework.exceptions import ValidationError, AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User, OTPVerification
+from .validators import validate_password_complexity
 
 
 def to_english_digits(text):
@@ -100,6 +101,11 @@ class UserSerializer(serializers.ModelSerializer):
     def validate_national_id(self, value):
         if value:
             return to_english_digits(value).strip()
+        return value
+
+    def validate_password(self, value):
+        if value:
+            validate_password_complexity(value)
         return value
 
     def create(self, validated_data):
@@ -288,11 +294,14 @@ class RegisterWithOTPSerializer(serializers.Serializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, min_length=6)
+    password = serializers.CharField(write_only=True, min_length=8)
 
     class Meta:
         model = User
         fields = ['phone', 'first_name', 'last_name', 'password', 'national_id', 'role']
+
+    def validate_password(self, value):
+        return validate_password_complexity(value)
 
     def create(self, validated_data):
         password = validated_data.pop('password')

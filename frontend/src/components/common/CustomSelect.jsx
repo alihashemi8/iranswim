@@ -42,7 +42,7 @@ export const CustomSelect = ({
     const q = searchTerm.trim().toLowerCase();
     const l = opt.label?.toLowerCase() || '';
     const d = opt.description?.toLowerCase() || '';
-    const b = opt.badge?.toLowerCase() || '';
+    const b = opt.badge != null ? String(opt.badge).toLowerCase() : '';
     return l.includes(q) || d.includes(q) || b.includes(q);
   });
 
@@ -261,6 +261,18 @@ export const CustomSelect = ({
           >
             {selectedOption ? selectedOption.label : placeholder}
           </span>
+          {selectedOption && selectedOption.badge !== undefined && selectedOption.badge !== null && selectedOption.badge !== '' && (
+            <span
+              className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold shrink-0 transition-colors ${
+                selectedOption.badgeClassName ||
+                (isSelectedActive
+                  ? 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300'
+                  : 'bg-slate-200/70 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300')
+              }`}
+            >
+              {selectedOption.badge}
+            </span>
+          )}
         </div>
 
         <div className="flex items-center gap-1 shrink-0 mr-1">
@@ -386,11 +398,13 @@ export const CustomSelect = ({
                     </div>
 
                     <div className="flex items-center gap-1.5 shrink-0">
-                      {opt.badge && (
+                      {(opt.badge !== undefined && opt.badge !== null && opt.badge !== '') && (
                         <span
                           className={`text-[10px] px-2 py-0.5 rounded-md font-bold shrink-0 ${
                             opt.badgeClassName ||
-                            'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700'
+                            (isSelected
+                              ? 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300'
+                              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700')
                           }`}
                         >
                           {opt.badge}

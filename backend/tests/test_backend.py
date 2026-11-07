@@ -830,7 +830,7 @@ def test_admin_user_management_crud_and_access_restrictions(api_client, admin_us
         'last_name': 'مدیریتی',
         'national_id': '0012399999',
         'role': 'SWIMMER',
-        'password': 'Password123',
+        'password': 'Password@123',
         'is_active': True,
     })
     assert create_swimmer.status_code == 201

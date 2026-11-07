@@ -9,6 +9,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Q
 from .models import User, OTPVerification
+from .validators import validate_password_complexity
 from .serializers import (
     IranSwimTokenObtainPairSerializer, UserSerializer, RegisterSerializer,
     SendOTPSerializer, VerifyOTPLoginSerializer, RegisterWithOTPSerializer,
@@ -220,15 +221,25 @@ class ChangePasswordView(APIView):
         new_password = request.data.get('new_password', '').strip()
         confirm_password = request.data.get('confirm_password', '').strip()
 
-        if not new_password or len(new_password) < 6:
+        if not new_password:
             return Response(
-                {'detail': 'کلمه عبور جدید باید حداقل ۶ کاراکتر باشد.'},
+                {'detail': 'کلمه عبور جدید الزامی است.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
         if new_password != confirm_password:
             return Response(
                 {'detail': 'تکرار کلمه عبور جدید با آن مطابقت ندارد.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        # اعتبارسنجی پیچیدگی رمز عبور طبق سیاست امنیت سامانه
+        try:
+            validate_password_complexity(new_password)
+        except ValidationError as e:
+            detail = e.detail if isinstance(e.detail, str) else (e.detail[0] if isinstance(e.detail, list) else str(e.detail))
+            return Response(
+                {'detail': str(detail)},
                 status=status.HTTP_400_BAD_REQUEST
             )
 
@@ -261,10 +272,6 @@ class CurrentUserView(APIView):
 
     def patch(self, request):
         user = request.user
-        password = request.data.get('password')
-        if password:
-            user.set_password(password)
-            user.save()
         serializer = UserSerializer(user, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()

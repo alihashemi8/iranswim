@@ -14,6 +14,7 @@ import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Pagination } from '../../components/common/Pagination';
+import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { formatPersianDate } from '../../utils/date';
@@ -244,6 +245,49 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
     const suspended = accessibleUsers.filter((u) => !u.is_active).length;
     return { total, coaches, swimmers, active, suspended };
   }, [accessibleUsers]);
+
+  // Role and status options for CustomSelect filters
+  const roleFilterOptions = useMemo(() => [
+    {
+      value: '',
+      label: 'همه نقش‌ها',
+      badge: accessibleUsers.length,
+      icon: Filter,
+    },
+    {
+      value: 'SWIMMER',
+      label: 'شناگران و اولیا',
+      badge: userStats.swimmers,
+      icon: User,
+    },
+    {
+      value: 'COACH',
+      label: 'مربیان آکادمی',
+      badge: userStats.coaches,
+      icon: Award,
+    },
+  ], [accessibleUsers.length, userStats.swimmers, userStats.coaches]);
+
+  const statusFilterOptions = useMemo(() => [
+    {
+      value: '',
+      label: 'همه وضعیت‌ها',
+      badge: accessibleUsers.length,
+      icon: Shield,
+    },
+    {
+      value: 'active',
+      label: 'فقط فعال‌ها',
+      badge: userStats.active,
+      icon: CheckCircle2,
+    },
+    {
+      value: 'suspended',
+      label: 'فقط معلق‌ها',
+      badge: userStats.suspended,
+      icon: ShieldAlert,
+    },
+  ], [accessibleUsers.length, userStats.active, userStats.suspended]);
 
   // Filtered and Paginated users
   const filteredUsers = useMemo(() => {
@@ -1063,35 +1107,34 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
-                  <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                    <select
+                  <div className="w-full sm:w-48">
+                    <CustomSelect
                       value={roleFilter}
-                      onChange={(e) => {
-                        setRoleFilter(e.target.value);
+                      onChange={(val) => {
+                        setRoleFilter(val);
                         setCurrentPage(1);
                       }}
-                      className="bg-transparent text-xs text-slate-700 dark:text-slate-200 focus:outline-hidden cursor-pointer"
-                    >
-                      <option value="">همه نقش‌ها ({accessibleUsers.length})</option>
-                      <option value="SWIMMER">شناگران و اولیا ({userStats.swimmers})</option>
-                      <option value="COACH">مربیان آکادمی ({userStats.coaches})</option>
-                    </select>
+                      options={roleFilterOptions}
+                      placeholder="همه نقش‌ها..."
+                      icon={Filter}
+                      size="sm"
+                      clearable
+                    />
                   </div>
 
-                  <div className="bg-slate-50 dark:bg-slate-800 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <select
+                  <div className="w-full sm:w-44">
+                    <CustomSelect
                       value={statusFilter}
-                      onChange={(e) => {
-                        setStatusFilter(e.target.value);
+                      onChange={(val) => {
+                        setStatusFilter(val);
                         setCurrentPage(1);
                       }}
-                      className="bg-transparent text-xs text-slate-700 dark:text-slate-200 focus:outline-hidden cursor-pointer"
-                    >
-                      <option value="">همه وضعیت‌ها</option>
-                      <option value="active">فقط فعال‌ها ({userStats.active})</option>
-                      <option value="suspended">فقط معلق‌ها ({userStats.suspended})</option>
-                    </select>
+                      options={statusFilterOptions}
+                      placeholder="همه وضعیت‌ها..."
+                      icon={Shield}
+                      size="sm"
+                      clearable
+                    />
                   </div>
 
                   <button
@@ -1615,14 +1658,25 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 className="w-full px-3 py-2 text-xs bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 cursor-not-allowed"
               />
             ) : (
-              <select
+              <CustomSelect
                 value={editForm.role}
-                onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 cursor-pointer"
-              >
-                <option value="SWIMMER">شناگر / اولیا (دسترسی به پورتال آموزشی)</option>
-                <option value="COACH">مربی آکادمی (دسترسی به میز کار مربی و کلاس‌ها)</option>
-              </select>
+                onChange={(val) => setEditForm({ ...editForm, role: val })}
+                options={[
+                  {
+                    value: 'SWIMMER',
+                    label: 'شناگر / اولیا',
+                    description: 'دسترسی به پورتال آموزشی، دوره‌ها و سوابق شناگر',
+                    icon: User,
+                  },
+                  {
+                    value: 'COACH',
+                    label: 'مربی آکادمی',
+                    description: 'دسترسی به میز کار مربی، ثبت جلسات، حضور و غیاب و ارزیابی',
+                    icon: Award,
+                  },
+                ]}
+                menuClassName="w-full"
+              />
             )}
           </div>
 

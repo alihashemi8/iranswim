@@ -164,66 +164,101 @@ export const AdminCoursesPage = () => {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="outline" onClick={() => navigate('/admin/courses/new')} className="gap-1.5 text-xs">
+          <Button onClick={() => navigate('/admin/courses/new')} className="gap-2 text-sm">
             <Plus className="w-4 h-4" />
             <span>تعریف دوره جدید</span>
-          </Button>
-          <Button onClick={() => setIsGroupModalOpen(true)} className="gap-1.5 text-xs">
-            <Plus className="w-4 h-4" />
-            <span>ایجاد گروه کلاسی جدید</span>
           </Button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-xs w-fit">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-700 w-full shadow-2xs">
         <button
           type="button"
           onClick={() => setActiveTab('GROUPS')}
-          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+          className={`py-3 px-3 sm:px-4 rounded-xl font-bold text-xs sm:text-sm md:text-base transition-all cursor-pointer flex items-center justify-center gap-2 sm:gap-2.5 ${
             activeTab === 'GROUPS'
-              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm border border-slate-200/50 dark:border-slate-800'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-slate-700/40'
           }`}
         >
-          <Users className="w-4 h-4" />
-          <span>گروه‌های کلاسی و ظرفیت ({groups.length})</span>
+          <Users className="w-5 h-5 shrink-0" />
+          <span className="whitespace-nowrap">گروه‌های کلاسی و ظرفیت</span>
+          <span
+            className={`text-xs px-2 py-0.5 rounded-full font-bold transition-colors ${
+              activeTab === 'GROUPS'
+                ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+            }`}
+          >
+            {groups.length}
+          </span>
         </button>
+
         <button
           type="button"
           onClick={() => setActiveTab('COURSES')}
-          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+          className={`py-3 px-3 sm:px-4 rounded-xl font-bold text-xs sm:text-sm md:text-base transition-all cursor-pointer flex items-center justify-center gap-2 sm:gap-2.5 ${
             activeTab === 'COURSES'
-              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm border border-slate-200/50 dark:border-slate-800'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-slate-700/40'
           }`}
         >
-          <BookOpen className="w-4 h-4" />
-          <span>دوره‌ها و بسته‌ها ({courses.length})</span>
+          <BookOpen className="w-5 h-5 shrink-0" />
+          <span className="whitespace-nowrap">دوره‌ها و بسته‌ها</span>
+          <span
+            className={`text-xs px-2 py-0.5 rounded-full font-bold transition-colors ${
+              activeTab === 'COURSES'
+                ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+            }`}
+          >
+            {courses.length}
+          </span>
         </button>
+
         <button
           type="button"
           onClick={() => setActiveTab('LEVELS')}
-          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+          className={`py-3 px-3 sm:px-4 rounded-xl font-bold text-xs sm:text-sm md:text-base transition-all cursor-pointer flex items-center justify-center gap-2 sm:gap-2.5 ${
             activeTab === 'LEVELS'
-              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm border border-slate-200/50 dark:border-slate-800'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-slate-700/40'
           }`}
         >
-          <Award className="w-4 h-4" />
-          <span>سطوح مهارتی ({levels.length})</span>
+          <Award className="w-5 h-5 shrink-0" />
+          <span className="whitespace-nowrap">سطوح مهارتی</span>
+          <span
+            className={`text-xs px-2 py-0.5 rounded-full font-bold transition-colors ${
+              activeTab === 'LEVELS'
+                ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+            }`}
+          >
+            {levels.length}
+          </span>
         </button>
+
         <button
           type="button"
           onClick={() => setActiveTab('SESSIONS')}
-          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+          className={`py-3 px-3 sm:px-4 rounded-xl font-bold text-xs sm:text-sm md:text-base transition-all cursor-pointer flex items-center justify-center gap-2 sm:gap-2.5 ${
             activeTab === 'SESSIONS'
-              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm border border-slate-200/50 dark:border-slate-800'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-slate-700/40'
           }`}
         >
-          <Calendar className="w-4 h-4" />
-          <span>جلسات تقویمی ({sessions.length})</span>
+          <Calendar className="w-5 h-5 shrink-0" />
+          <span className="whitespace-nowrap">جلسات تقویمی</span>
+          <span
+            className={`text-xs px-2 py-0.5 rounded-full font-bold transition-colors ${
+              activeTab === 'SESSIONS'
+                ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+            }`}
+          >
+            {sessions.length}
+          </span>
         </button>
       </div>
 

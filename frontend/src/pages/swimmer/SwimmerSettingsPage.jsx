@@ -8,6 +8,7 @@ import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { LogoutModal } from '../../components/common/LogoutModal';
+import { validatePassword, PasswordRequirementsList } from '../../utils/passwordValidator';
 
 export const SwimmerSettingsPage = () => {
   const { user, logout } = useAuth();
