@@ -1105,7 +1105,7 @@ export const SupervisorUsersPage = () => {
                 type={showNewPassword ? 'text' : 'password'}
                 required
                 dir="ltr"
-                placeholder="حداقل ۶ نویسه"
+                placeholder="انگلیسی، حداقل ۸ نویسه"
                 value={passwordForm.newPassword}
                 onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                 className="w-full pl-9 pr-9 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
@@ -1118,6 +1118,7 @@ export const SupervisorUsersPage = () => {
                 {showNewPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
               </button>
             </div>
+            <PasswordRequirementsList password={passwordForm.newPassword} showAlways={true} className="mt-2" />
           </div>
 
           <div>
