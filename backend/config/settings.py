@@ -9,13 +9,43 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR))
 sys.path.insert(0, str(BASE_DIR / 'apps'))
 
-SECRET_KEY = os.environ.get(
-    'DJANGO_SECRET_KEY',
-    'django-insecure-iranswim-platform-super-secret-production-key-2026'
-)
+from django.core.exceptions import ImproperlyConfigured
 
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
+# Resolve DEBUG and ENVIRONMENT first before validating secrets
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True').lower() in ('true', '1', 'yes')
 ENVIRONMENT = os.environ.get('DJANGO_ENV', 'development' if DEBUG else 'production').lower()
+
+KNOWN_INSECURE_SECRET_KEYS = {
+    'django-insecure-iranswim-platform-super-secret-production-key-2026',
+    'iranswim-production-secure-key-2026',
+    'changeme',
+    'secret',
+    'your-secret-key-here',
+}
+
+raw_secret = os.environ.get('DJANGO_SECRET_KEY')
+
+if ENVIRONMENT == 'production' or not DEBUG:
+    if (
+        not raw_secret
+        or not raw_secret.strip()
+        or raw_secret.strip() in KNOWN_INSECURE_SECRET_KEYS
+        or raw_secret.strip().startswith('django-insecure-')
+    ):
+        raise ImproperlyConfigured(
+            'DJANGO_SECRET_KEY must be explicitly configured with a secure, non-default value in production. '
+            'Missing, blank, or insecure placeholder secret keys are strictly prohibited.'
+        )
+    SECRET_KEY = raw_secret.strip()
+else:
+    # Development / Testing fallback
+    SECRET_KEY = raw_secret.strip() if (raw_secret and raw_secret.strip()) else 'django-insecure-iranswim-dev-local-only-key'
+
+# X-Accel-Redirect delivery mode for internal Nginx file serving
+USE_X_ACCEL_REDIRECT = os.environ.get(
+    'DJANGO_USE_X_ACCEL_REDIRECT',
+    'True' if (ENVIRONMENT == 'production' and not DEBUG) else 'False'
+).lower() in ('true', '1', 'yes')
 
 # Security / OTP Policy:
 # In production, OTP is strictly dispatched via SMS and never returned in API responses.
@@ -23,7 +53,7 @@ ENVIRONMENT = os.environ.get('DJANGO_ENV', 'development' if DEBUG else 'producti
 # It is impossible to activate in production (strictly blocked when ENVIRONMENT == 'production' or DJANGO_DEBUG == 'False').
 EXPOSE_DEV_OTP = (
     ENVIRONMENT != 'production' and
-    os.environ.get('DJANGO_DEBUG', 'True').lower() != 'false' and
+    DEBUG and
     os.environ.get('DJANGO_EXPOSE_DEV_OTP', 'True').lower() == 'true'
 )
 

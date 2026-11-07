@@ -2,9 +2,21 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
+from django.http import HttpResponseNotFound
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+
+def block_sensitive_documents_direct_access(request, subpath=None):
+    """
+    مسدودسازی قطعی دسترسی مستقیم عمومی به مدارک هویتی در سطح وب‌سرور/جنگو
+    """
+    return HttpResponseNotFound("Not Found")
+
+
 urlpatterns = [
+    # Block direct public access to sensitive swimmer documents
+    path('media/swimmers/documents/<path:subpath>', block_sensitive_documents_direct_access),
+
     path('admin/', admin.site.urls),
 
     # OpenAPI Schema & Swagger Documentation

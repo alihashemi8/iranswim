@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import SwimmerProfile, SwimmerGuardianRelation
+from .validators import validate_document_file
 from apps.education.models import SkillLevel
 
 
@@ -44,6 +45,35 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def validate_birth_certificate_image(self, value):
+        return validate_document_file(value)
+
+    def validate_national_card_image(self, value):
+        return validate_document_file(value)
+
+    def validate_sports_insurance_image(self, value):
+        return validate_document_file(value)
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        request = self.context.get('request')
+
+        # Transform raw physical media URLs into secure authenticated API URLs
+        doc_fields = [
+            ('birth_certificate_image', 'birth_certificate'),
+            ('national_card_image', 'national_card'),
+            ('sports_insurance_image', 'sports_insurance'),
+        ]
+        for field_name, doc_type in doc_fields:
+            file_field = getattr(instance, field_name, None)
+            if file_field and file_field.name:
+                endpoint = f"/api/swimmers/{instance.id}/documents/{doc_type}/"
+                ret[field_name] = request.build_absolute_uri(endpoint) if request else endpoint
+            else:
+                ret[field_name] = None
+
+        return ret
 
     def get_current_enrollment(self, obj):
         latest = obj.enrollments.select_related('course', 'coach__user', 'group').filter(status='ACTIVE').first()

@@ -15,6 +15,15 @@ import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
 
+// Helper for today's local ISO date (YYYY-MM-DD)
+const getTodayIso = () => {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export const AdminAttendancePage = () => {
   const navigate = useNavigate();
   const [sessions, setSessions] = useState([]);
@@ -33,7 +42,7 @@ export const AdminAttendancePage = () => {
   const [selectedSessionStatus, setSelectedSessionStatus] = useState('');
   const [selectedPool, setSelectedPool] = useState('');
   const [filterType, setFilterType] = useState('ALL'); // ALL, UNRECORDED, RECORDED, TODAY
-  const [dateFilter, setDateFilter] = useState('');
+  const [dateFilter, setDateFilter] = useState(() => getTodayIso());
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 8;
 
@@ -78,9 +87,13 @@ export const AdminAttendancePage = () => {
       const params = {};
       if (filterType === 'UNRECORDED') params.attendance_status = 'UNRECORDED';
       else if (filterType === 'RECORDED') params.attendance_status = 'RECORDED';
-      else if (filterType === 'TODAY') params.date = new Date().toISOString().split('T')[0];
 
-      if (dateFilter) params.date = dateFilter;
+      if (dateFilter) {
+        params.date = dateFilter;
+      } else if (filterType === 'TODAY') {
+        params.date = getTodayIso();
+      }
+
       if (searchTerm.trim()) params.search = searchTerm.trim();
       if (selectedLevel) params.skill_level_id = selectedLevel;
       if (selectedCourse) params.course_id = selectedCourse;
@@ -106,6 +119,12 @@ export const AdminAttendancePage = () => {
     if (filter && ['ALL', 'UNRECORDED', 'RECORDED', 'TODAY', 'COMPLETED'].includes(filter)) {
       if (filter === 'COMPLETED') {
         setSelectedSessionStatus('COMPLETED');
+        setFilterType('ALL');
+      } else if (filter === 'TODAY') {
+        setDateFilter(getTodayIso());
+        setFilterType('ALL');
+      } else if (filter === 'ALL') {
+        setDateFilter('');
         setFilterType('ALL');
       } else {
         setFilterType(filter);
@@ -146,6 +165,7 @@ export const AdminAttendancePage = () => {
       if (selectedCoach && String(s.coach) !== String(selectedCoach)) return false;
       if (selectedSessionStatus && s.status !== selectedSessionStatus) return false;
       if (selectedPool && s.pool_location !== selectedPool) return false;
+      if (dateFilter && s.session_date && !s.session_date.startsWith(dateFilter)) return false;
       if (searchTerm.trim()) {
         const q = searchTerm.trim().toLowerCase();
         const matchGroup = s.group_name?.toLowerCase().includes(q);
@@ -164,6 +184,7 @@ export const AdminAttendancePage = () => {
     selectedCoach,
     selectedSessionStatus,
     selectedPool,
+    dateFilter,
     searchTerm,
   ]);
 
@@ -176,6 +197,7 @@ export const AdminAttendancePage = () => {
   );
 
   // Check if any filter is active
+  const isDefaultDate = dateFilter === getTodayIso();
   const hasActiveFilters = Boolean(
     searchTerm.trim() ||
     selectedLevel ||
@@ -183,7 +205,7 @@ export const AdminAttendancePage = () => {
     selectedCoach ||
     selectedSessionStatus ||
     selectedPool ||
-    dateFilter ||
+    !isDefaultDate ||
     filterType !== 'ALL'
   );
 
@@ -194,7 +216,7 @@ export const AdminAttendancePage = () => {
     setSelectedCoach('');
     setSelectedSessionStatus('');
     setSelectedPool('');
-    setDateFilter('');
+    setDateFilter(getTodayIso());
     setFilterType('ALL');
     setCurrentPage(1);
   };
@@ -252,30 +274,15 @@ export const AdminAttendancePage = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Button
             variant="outline"
             onClick={handleExportCsv}
-            className="w-full sm:w-auto justify-center gap-1.5 text-xs h-10 px-2 sm:px-3 truncate shadow-2xs"
+            className="w-full sm:w-auto justify-center gap-1.5 text-xs h-10 px-3 truncate shadow-2xs"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0" />
             <span className="truncate">خروجی اکسل جلسات</span>
           </Button>
-
-          {/* Persian Calendar Filter */}
-          <div className="w-full sm:w-44">
-            <PersianDatePicker
-              value={dateFilter}
-              onChange={(jalaliStr, gDate, gIso) => {
-                setDateFilter(gIso || '');
-                if (gIso) setFilterType('ALL');
-              }}
-              placeholder="تقویم"
-              clearable
-              align="left"
-              buttonClassName="h-10 justify-center sm:justify-between"
-            />
-          </div>
         </div>
       </div>
 
@@ -308,7 +315,10 @@ export const AdminAttendancePage = () => {
           <div className="w-full grid grid-cols-4 sm:flex sm:w-auto bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700 text-xs sm:shrink-0 select-none">
             <button
               type="button"
-              onClick={() => { setFilterType('ALL'); setDateFilter(''); }}
+              onClick={() => {
+                setFilterType('ALL');
+                setDateFilter('');
+              }}
               className={`px-1.5 sm:px-3 py-1.5 rounded-lg font-medium transition-colors text-center flex items-center justify-center whitespace-nowrap text-[11px] sm:text-xs cursor-pointer ${
                 filterType === 'ALL' && !dateFilter
                   ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs font-bold'
@@ -321,9 +331,9 @@ export const AdminAttendancePage = () => {
 
             <button
               type="button"
-              onClick={() => { setFilterType('UNRECORDED'); setDateFilter(''); }}
+              onClick={() => setFilterType('UNRECORDED')}
               className={`px-1.5 sm:px-3 py-1.5 rounded-lg font-medium transition-colors text-center flex items-center justify-center whitespace-nowrap text-[11px] sm:text-xs cursor-pointer ${
-                filterType === 'UNRECORDED' && !dateFilter
+                filterType === 'UNRECORDED'
                   ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
@@ -333,9 +343,9 @@ export const AdminAttendancePage = () => {
 
             <button
               type="button"
-              onClick={() => { setFilterType('RECORDED'); setDateFilter(''); }}
+              onClick={() => setFilterType('RECORDED')}
               className={`px-1.5 sm:px-3 py-1.5 rounded-lg font-medium transition-colors text-center flex items-center justify-center whitespace-nowrap text-[11px] sm:text-xs cursor-pointer ${
-                filterType === 'RECORDED' && !dateFilter
+                filterType === 'RECORDED'
                   ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
@@ -345,9 +355,12 @@ export const AdminAttendancePage = () => {
 
             <button
               type="button"
-              onClick={() => { setFilterType('TODAY'); setDateFilter(''); }}
+              onClick={() => {
+                setFilterType('ALL');
+                setDateFilter(getTodayIso());
+              }}
               className={`px-1.5 sm:px-3 py-1.5 rounded-lg font-medium transition-colors text-center flex items-center justify-center whitespace-nowrap text-[11px] sm:text-xs cursor-pointer ${
-                filterType === 'TODAY' && !dateFilter
+                filterType === 'ALL' && dateFilter === getTodayIso()
                   ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
@@ -419,22 +432,19 @@ export const AdminAttendancePage = () => {
             ]}
           />
 
-          {/* 4. Session Status */}
-          <CustomSelect
-            label="وضعیت برگزاری جلسه:"
-            value={selectedSessionStatus}
-            onChange={(val) => setSelectedSessionStatus(val)}
-            icon={Clock}
-            placeholder="همه وضعیت‌ها"
+          {/* 4. Session Date Calendar (Replaced "وضعیت برگزاری جلسه") */}
+          <PersianDatePicker
+            label="تاریخ برگزاری جلسه:"
+            value={dateFilter}
+            onChange={(jalaliStr, gDate, gIso) => {
+              setDateFilter(gIso || '');
+            }}
+            placeholder="همه تاریخ‌ها"
             clearable
             size="sm"
-            options={[
-              { value: '', label: 'همه وضعیت‌ها' },
-              { value: 'SCHEDULED', label: 'برنامه‌ریزی‌شده', description: 'در انتظار تشکیل' },
-              { value: 'COMPLETED', label: 'برگزارشده', description: 'کلاس تشکیل شده' },
-              { value: 'CANCELLED', label: 'لغوشده', description: 'کلاس لغو شده' },
-              { value: 'MAKEUP', label: 'جلسه جبرانی', description: 'جلسه جبرانی فوق‌العاده' },
-            ]}
+            icon={Calendar}
+            labelClassName="text-[11px] text-slate-500 dark:text-slate-400 font-semibold mb-1 truncate"
+            buttonClassName="!py-2 !px-2.5 text-xs bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700"
           />
 
           {/* 5. Pool Location */}
@@ -502,8 +512,16 @@ export const AdminAttendancePage = () => {
 
             {dateFilter && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 text-[11px] font-bold border border-indigo-200 dark:border-indigo-800">
-                تاریخ: {new Date(dateFilter).toLocaleDateString('fa-IR')}
-                <button type="button" onClick={() => setDateFilter('')} className="hover:opacity-75">
+                تاریخ: {(() => {
+                  try {
+                    const d = new Date(dateFilter.includes('T') ? dateFilter : `${dateFilter}T00:00:00`);
+                    return d.toLocaleDateString('fa-IR');
+                  } catch {
+                    return dateFilter;
+                  }
+                })()}
+                {dateFilter === getTodayIso() && ' (امروز)'}
+                <button type="button" onClick={() => setDateFilter('')} className="hover:opacity-75" title="نمایش همه تاریخ‌ها">
                   <X className="w-3 h-3" />
                 </button>
               </span>
@@ -540,12 +558,25 @@ export const AdminAttendancePage = () => {
           title="جلسه‌ای با فیلترها یا جستجوی انتخابی یافت نشد"
           description="با تغییر یا پاک کردن فیلترهای جستجو، دوره، مربی یا سطح مهارت، جلسات نمایش داده خواهند شد."
           action={
-            hasActiveFilters && (
-              <Button variant="outline" size="sm" onClick={handleResetFilters} className="mt-3 gap-1.5 text-xs">
-                <RotateCcw className="w-3.5 h-3.5" />
-                پاک کردن فیلترها
-              </Button>
-            )
+            <div className="flex items-center gap-2 justify-center flex-wrap">
+              {dateFilter && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setDateFilter('')}
+                  className="mt-3 gap-1.5 text-xs text-sky-600 dark:text-sky-400 border-sky-300 dark:border-sky-700 hover:bg-sky-50 dark:hover:bg-sky-950/50"
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  نمایش همه جلسات (بدون فیلتر تاریخ)
+                </Button>
+              )}
+              {hasActiveFilters && (
+                <Button variant="outline" size="sm" onClick={handleResetFilters} className="mt-3 gap-1.5 text-xs">
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  بازنشانی فیلترها به امروز
+                </Button>
+              )}
+            </div>
           }
         />
       ) : (

@@ -1,3 +1,7 @@
+import os
+import mimetypes
+from django.conf import settings
+from django.http import FileResponse, HttpResponse
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -16,13 +20,13 @@ def get_accessible_swimmer_profile(user, swimmer_id=None):
                 return profile
             if profile.user == user:
                 return profile
-            if SwimmerGuardianRelation.objects.filter(guardian=user, swimmer=profile).exists():
+            if SwimmerGuardianRelation.objects.filter(guardian=user, swimmer=profile, is_verified=True).exists():
                 return profile
         except SwimmerProfile.DoesNotExist:
             pass
 
-    # Check guardian relations first
-    relation = SwimmerGuardianRelation.objects.filter(guardian=user).first()
+    # Check verified guardian relations first
+    relation = SwimmerGuardianRelation.objects.filter(guardian=user, is_verified=True).first()
     if relation:
         return relation.swimmer
 
@@ -483,4 +487,128 @@ class SwimmerReviewDocumentsView(APIView):
                 'detail': f'مدارک شناگر «{swimmer.full_name}» رد شد و توضیحات نقص مدارک در قالب اعلان برای شناگر ارسال گردید.',
                 'swimmer': SwimmerProfileSerializer(swimmer, context={'request': request}).data
             }, status=status.HTTP_200_OK)
+
+
+class SwimmerDocumentDownloadView(APIView):
+    """
+    تحویل امن و کنترل‌شده مدارک هویتی محرمانه شناگران (شناسنامه، کارت ملی، بیمه ورزشی):
+    - احراز هویت اجباری
+    - مدیر آموزشگاه و سوپریوزر: مجاز
+    - ناظر فنی: مسدود (تفکیک نظارت فنی از محتوای اسناد هویتی اشخاص)
+    - شناگر: فقط و فقط مدارک خود یا فرزندان تحت سرپرستی
+    - مربی: فقط مدرک بیمه ورزشی شناگرانی که مربی فعال کلاس آن‌هاست
+    - مسدودسازی حملات IDOR
+    - هدرهای امنیتی ضد کش و عدم افشای ساختار دایرکتوری سرور
+    - پشتیبانی از X-Accel-Redirect انجین‌ایکس در محیط پروداکشن
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    DOCUMENT_FIELD_MAP = {
+        'birth_certificate': 'birth_certificate_image',
+        'national_card': 'national_card_image',
+        'sports_insurance': 'sports_insurance_image',
+    }
+
+    def get(self, request, pk, document_type):
+        user = request.user
+
+        if document_type not in self.DOCUMENT_FIELD_MAP:
+            return Response({'detail': 'نوع مدرک درخواستی نامعتبر است.'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            swimmer = SwimmerProfile.objects.select_related('user').get(pk=pk)
+        except SwimmerProfile.DoesNotExist:
+            return Response({'detail': 'شناگر مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # 1. Authorization: Technical Supervisor check
+        # Technical supervisors have architectural oversight, but no automatic access to personal ID documents
+        if user.role == 'SUPERVISOR' and not (swimmer.user_id and swimmer.user_id == user.id):
+            return Response({
+                'detail': 'ناظر فنی سامانه دسترسی مجاز به محتوای مدارک هویتی محرمانه اشخاص ندارد.'
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        # 2. Authorization: Admin or Superuser
+        is_admin = bool(user.role == 'ADMIN' or user.is_superuser)
+
+        # 3. Authorization: Swimmer / Guardian (Ownership & Anti-IDOR)
+        is_owner = bool(swimmer.user_id and swimmer.user_id == user.id)
+        is_guardian = False
+        if not is_owner and user.role == 'SWIMMER':
+            is_guardian = SwimmerGuardianRelation.objects.filter(
+                guardian=user,
+                swimmer=swimmer,
+                is_verified=True,
+            ).exists()
+
+        # 4. Authorization: Coach
+        is_authorized_coach = False
+        if user.role == 'COACH':
+            coach_profile = getattr(user, 'coach_profile', None)
+            if coach_profile:
+                from apps.education.models import Enrollment, SwimmerGroup
+                from django.db.models import Q
+                from django.utils import timezone
+                today = timezone.localdate() if hasattr(timezone, 'localdate') else timezone.now().date()
+
+                is_assigned = Enrollment.objects.filter(
+                    swimmer=swimmer,
+                    status='ACTIVE',
+                ).filter(
+                    Q(coach=coach_profile) |
+                    (
+                        Q(group__coach_assignments__coach=coach_profile) &
+                        (Q(group__coach_assignments__assigned_to__isnull=True) | Q(group__coach_assignments__assigned_to__gte=today))
+                    ) |
+                    Q(group__sessions__coach=coach_profile)
+                ).exists()
+
+                if is_assigned:
+                    # Coaches are strictly limited to sports insurance verification
+                    if document_type == 'sports_insurance':
+                        is_authorized_coach = True
+                    else:
+                        return Response({
+                            'detail': 'مربیان صرفاً مجاز به بررسی مدارک بیمه ورزشی شناگران کلاس خود می‌باشند.'
+                        }, status=status.HTTP_403_FORBIDDEN)
+
+        if not (is_admin or is_owner or is_guardian or is_authorized_coach):
+            return Response({
+                'detail': 'شما دسترسی لازم برای مشاهده این مدرک هویتی را ندارید.'
+            }, status=status.HTTP_403_FORBIDDEN)
+
+        # 5. Document existence check
+        field_name = self.DOCUMENT_FIELD_MAP[document_type]
+        file_field = getattr(swimmer, field_name, None)
+        if not file_field or not file_field.name:
+            return Response({'detail': 'مدرک مورد نظر برای این شناگر بارگذاری نشده است.'}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            file_path = file_field.path
+        except NotImplementedError:
+            file_path = None
+
+        if not file_path or not os.path.exists(file_path):
+            return Response({'detail': 'فایل فیزیکی مدرک در سرور یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        # 6. MIME type and safe download headers
+        content_type, _ = mimetypes.guess_type(file_path)
+        if not content_type:
+            ext = os.path.splitext(file_path)[1].lower()
+            content_type = 'image/jpeg' if ext in ['.jpg', '.jpeg'] else ('image/png' if ext == '.png' else 'application/octet-stream')
+
+        ext = os.path.splitext(file_path)[1].lower() or '.jpg'
+        safe_filename = f"{document_type}_{swimmer.id}{ext}"
+
+        # 7. Delivery: Nginx X-Accel-Redirect in production or FileResponse
+        use_x_accel = getattr(settings, 'USE_X_ACCEL_REDIRECT', False)
+        if use_x_accel:
+            response = HttpResponse(content_type=content_type)
+            response['X-Accel-Redirect'] = f"/protected_media/{file_field.name}"
+        else:
+            response = FileResponse(open(file_path, 'rb'), content_type=content_type)
+
+        response['Cache-Control'] = 'private, no-store, max-age=0'
+        response['X-Content-Type-Options'] = 'nosniff'
+        response['Content-Disposition'] = f'inline; filename="{safe_filename}"'
+        return response
 

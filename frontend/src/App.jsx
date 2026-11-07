@@ -34,6 +34,7 @@ import { AdminCoachSchedulePage } from './pages/admin/AdminCoachSchedulePage';
 import { AdminCoachAssignGroupPage } from './pages/admin/AdminCoachAssignGroupPage';
 import { AdminCoursesPage } from './pages/admin/AdminCoursesPage';
 import { AdminCreateCoursePage } from './pages/admin/AdminCreateCoursePage';
+import { AdminCourseDetailPage } from './pages/admin/AdminCourseDetailPage';
 import { AdminClassDetailPage } from './pages/admin/AdminClassDetailPage';
 import { AdminAttendancePage } from './pages/admin/AdminAttendancePage';
 import { AdminAttendanceDetailPage } from './pages/admin/AdminAttendanceDetailPage';
@@ -180,6 +181,8 @@ export default function App() {
                 <Route path="coaches/:id/assign-group" element={<AdminCoachAssignGroupPage />} />
                 <Route path="courses" element={<AdminCoursesPage />} />
                 <Route path="courses/new" element={<AdminCreateCoursePage />} />
+                <Route path="courses/:id" element={<AdminCourseDetailPage />} />
+                <Route path="courses/:id/swimmers" element={<AdminCourseDetailPage />} />
                 <Route path="classes/:id" element={<AdminClassDetailPage />} />
                 <Route path="attendance" element={<AdminAttendancePage />} />
                 <Route path="attendance/:sessionId" element={<AdminAttendanceDetailPage />} />
