@@ -107,14 +107,37 @@ class SwimmingPoolSerializer(serializers.ModelSerializer):
 class AnnouncementSerializer(serializers.ModelSerializer):
     target_group_name = serializers.CharField(source='target_group.name', read_only=True)
     audience_display = serializers.CharField(source='get_audience_display', read_only=True)
+    target_group_ids = serializers.ListField(
+        child=serializers.IntegerField(),
+        required=False,
+        write_only=True
+    )
+    target_groups_details = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Announcement
         fields = [
             'id', 'title', 'message', 'audience', 'audience_display',
-            'target_group', 'target_group_name', 'is_pinned', 'send_sms', 'created_at'
+            'target_group', 'target_group_name', 'target_group_ids',
+            'target_groups_details', 'is_pinned', 'send_sms', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
+    def get_target_groups_details(self, obj):
+        return [
+            {'id': g.id, 'name': g.name, 'course_name': g.course.name if g.course else ''}
+            for g in obj.target_groups.all()
+        ]
+
+    def create(self, validated_data):
+        group_ids = validated_data.pop('target_group_ids', [])
+        announcement = super().create(validated_data)
+        if group_ids:
+            announcement.target_groups.set(group_ids)
+            if not announcement.target_group_id:
+                announcement.target_group_id = group_ids[0]
+                announcement.save(update_fields=['target_group'])
+        return announcement
 
 
 class NotificationSerializer(serializers.ModelSerializer):

@@ -129,6 +129,12 @@ class Announcement(models.Model):
         related_name='announcements',
         verbose_name=_('گروه هدف (در صورت انتخاب گروه)')
     )
+    target_groups = models.ManyToManyField(
+        'education.SwimmerGroup',
+        blank=True,
+        related_name='multi_announcements',
+        verbose_name=_('کلاس‌های هدف چندگانه')
+    )
     is_pinned = models.BooleanField(_('پین شده / مهم'), default=False)
     send_sms = models.BooleanField(_('ارسال پیامک به مخاطبان'), default=False)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)

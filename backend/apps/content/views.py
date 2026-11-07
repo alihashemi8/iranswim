@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 from django.utils.text import slugify
 from rest_framework import generics, permissions, views, status
@@ -257,7 +258,11 @@ class AnnouncementListView(generics.ListCreateAPIView):
                 gender_filter.append('SWIMMERS_MALE')
             elif swimmer and swimmer.gender == 'FEMALE':
                 gender_filter.append('SWIMMERS_FEMALE')
-            return qs.filter(audience__in=['ALL', 'SWIMMERS', *gender_filter]) | qs.filter(target_group_id__in=group_ids)
+            return qs.filter(
+                Q(audience__in=['ALL', 'SWIMMERS', *gender_filter]) |
+                Q(target_group_id__in=group_ids) |
+                Q(target_groups__in=group_ids)
+            ).distinct()
         return Announcement.objects.none()
 
     def perform_create(self, serializer):
