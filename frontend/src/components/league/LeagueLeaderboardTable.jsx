@@ -131,9 +131,9 @@ export const LeagueLeaderboardTable = ({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 w-full">
       {/* 1. Dedicated Search & Filter Toolbar */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs space-y-3">
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs space-y-3 w-full">
         {/* Row 1: Primary Frequently Used Filters */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2.5 flex-1">
@@ -300,7 +300,7 @@ export const LeagueLeaderboardTable = ({
       </div>
 
       {/* 2. Leaderboard Table Container */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden w-full">
         {loading ? (
           <div className="p-6 space-y-4">
             <div className="animate-pulse space-y-3">
@@ -322,7 +322,7 @@ export const LeagueLeaderboardTable = ({
         ) : (
           <>
             {/* Desktop Table View */}
-            <div className="hidden lg:block overflow-x-auto">
+            <div className="hidden lg:block overflow-x-auto w-full">
               <table className="w-full text-sm text-right min-w-[780px]">
                 <thead className="bg-slate-50/80 text-xs font-semibold text-slate-600 border-b border-slate-200/80 select-none">
                   <tr>

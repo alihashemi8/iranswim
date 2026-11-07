@@ -15,7 +15,7 @@ export const LeaguePodium = ({ topSwimmers = [], onSelectSwimmer }) => {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4">
+    <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4 w-full">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
         <div className="flex items-center gap-2">

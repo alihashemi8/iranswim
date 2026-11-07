@@ -314,177 +314,172 @@ export const AdminLeaguesPage = () => {
           {/* 2. Top Statistics Overview (4 KPI Cards) */}
           <LeagueStatsCards stats={stats} />
 
-          {/* 3. Main Dashboard Layout (Sidebar + Content Area) */}
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {/* Sidebar (1 Col): League Information Panel & Seasons Switcher */}
-            <div className="md:col-span-1">
-              <LeagueInfoPanel
+          {/* 3. Active Season Overview & Competition Progress (Full-Width Banner) */}
+          <LeagueInfoPanel
+            leagues={leagues}
+            selectedLeague={selectedLeague}
+            onSelectLeague={(lg) => {
+              setSelectedLeague(lg);
+              setSelectedCategory('');
+            }}
+            onOpenCreateSeasonModal={() => {
+              setEditingSeason(null);
+              setSeasonModalOpen(true);
+            }}
+            onOpenEditSeasonModal={(lg) => {
+              setEditingSeason(lg);
+              setSeasonModalOpen(true);
+            }}
+            onOpenCreateCompetitionModal={() => {
+              setEditingComp(null);
+              setCompModalOpen(true);
+            }}
+            onSwitchToScoringTab={() => setActiveTab('scoring')}
+          />
+
+          {/* 4. Full-Width Navigation Tabs Bar */}
+          <div className="bg-white p-1.5 rounded-2xl border border-slate-200/80 shadow-xs grid grid-cols-2 sm:grid-cols-4 gap-1.5 w-full text-xs font-bold select-none">
+            <button
+              type="button"
+              onClick={() => setActiveTab('leaderboard')}
+              className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all w-full text-center cursor-pointer ${
+                activeTab === 'leaderboard'
+                  ? 'bg-blue-600 text-white shadow-xs font-bold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <Trophy className="w-4 h-4 shrink-0" />
+              <span>جدول رتبه‌بندی</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('competitions')}
+              className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all w-full text-center cursor-pointer ${
+                activeTab === 'competitions'
+                  ? 'bg-blue-600 text-white shadow-xs font-bold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <Calendar className="w-4 h-4 shrink-0" />
+              <span>مسابقات و رویدادها</span>
+              {competitions.length > 0 && (
+                <span className={`font-mono text-[10px] px-1.5 py-0.2 rounded-full ${activeTab === 'competitions' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                  {competitions.length}
+                </span>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('scoring')}
+              className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all w-full text-center cursor-pointer ${
+                activeTab === 'scoring'
+                  ? 'bg-blue-600 text-white shadow-xs font-bold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <Shield className="w-4 h-4 shrink-0" />
+              <span>قوانین و امتیازدهی</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('seasons')}
+              className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all w-full text-center cursor-pointer ${
+                activeTab === 'seasons'
+                  ? 'bg-blue-600 text-white shadow-xs font-bold'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+              }`}
+            >
+              <Archive className="w-4 h-4 shrink-0" />
+              <span>آرشیو و فصول</span>
+            </button>
+          </div>
+
+          {/* 5. Main Content Area (Full-Width 100% Spanning) */}
+          <div className="w-full space-y-4">
+            {/* Tab 1: Leaderboard Table & Championship Podium */}
+            {activeTab === 'leaderboard' && (
+              <div className="space-y-4 w-full">
+                {/* Top Three Swimmers Championship Podium */}
+                <LeaguePodium
+                  topSwimmers={leaderboard.slice(0, 3)}
+                  onSelectSwimmer={handleSelectSwimmer}
+                />
+
+                {/* Leaderboard Table with Search & Advanced Filter Toolbar (Occupies Full Container Width) */}
+                <LeagueLeaderboardTable
+                  leaderboard={leaderboard}
+                  categories={selectedLeague?.categories || []}
+                  selectedCategory={selectedCategory}
+                  onCategoryChange={setSelectedCategory}
+                  selectedGender={selectedGender}
+                  onGenderChange={setSelectedGender}
+                  searchQuery={searchQuery}
+                  onSearchChange={setSearchQuery}
+                  loading={boardLoading}
+                  onSelectSwimmer={handleSelectSwimmer}
+                  onExportCsv={handleExportCsv}
+                />
+              </div>
+            )}
+
+            {/* Tab 2: Competitions & Events Management */}
+            {activeTab === 'competitions' && (
+              <LeagueCompetitionsView
+                competitions={competitions}
+                loading={compLoading}
+                onOpenCreateModal={() => {
+                  setEditingComp(null);
+                  setCompModalOpen(true);
+                }}
+                onOpenEditModal={(comp) => {
+                  setEditingComp(comp);
+                  setCompModalOpen(true);
+                }}
+                onOpenRecordResultsModal={(comp) => {
+                  setActiveCompForResults(comp);
+                  setRecordResultsModalOpen(true);
+                }}
+                onDeleteCompetition={handleDeleteCompetition}
+                onSelectSwimmer={handleSelectSwimmer}
+              />
+            )}
+
+            {/* Tab 3: Scoring Rules & Matrix */}
+            {activeTab === 'scoring' && (
+              <LeagueScoringRulesView
+                league={selectedLeague}
+                onOpenManualScoreModal={() => {
+                  setManualScoreSwimmer(null);
+                  setManualScoreModalOpen(true);
+                }}
+                onRefreshLeague={handleRefreshAll}
+              />
+            )}
+
+            {/* Tab 4: Seasons Archive & Management */}
+            {activeTab === 'seasons' && (
+              <LeagueSeasonsArchive
                 leagues={leagues}
                 selectedLeague={selectedLeague}
                 onSelectLeague={(lg) => {
                   setSelectedLeague(lg);
                   setSelectedCategory('');
+                  setActiveTab('leaderboard');
                 }}
-                onOpenCreateSeasonModal={() => {
+                onOpenCreateModal={() => {
                   setEditingSeason(null);
                   setSeasonModalOpen(true);
                 }}
-                onOpenEditSeasonModal={(lg) => {
+                onOpenEditModal={(lg) => {
                   setEditingSeason(lg);
                   setSeasonModalOpen(true);
                 }}
-                onOpenCreateCompetitionModal={() => {
-                  setEditingComp(null);
-                  setCompModalOpen(true);
-                }}
-                onSwitchToScoringTab={() => setActiveTab('scoring')}
+                onToggleStatus={handleToggleSeasonStatus}
               />
-            </div>
-
-            {/* Main Content Area (3 Cols): Tabs + Podium + Table/Views */}
-            <div className="md:col-span-2 lg:col-span-3 space-y-4">
-              {/* Navigation Tabs Bar - Full Width Spanning */}
-              <div className="bg-white p-1.5 rounded-2xl border border-slate-200/80 shadow-xs grid grid-cols-2 sm:grid-cols-4 gap-1.5 w-full text-xs font-bold select-none">
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('leaderboard')}
-                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all w-full text-center cursor-pointer ${
-                    activeTab === 'leaderboard'
-                      ? 'bg-blue-600 text-white shadow-xs font-bold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <Trophy className="w-4 h-4 shrink-0" />
-                  <span>جدول رتبه‌بندی</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('competitions')}
-                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all w-full text-center cursor-pointer ${
-                    activeTab === 'competitions'
-                      ? 'bg-blue-600 text-white shadow-xs font-bold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <Calendar className="w-4 h-4 shrink-0" />
-                  <span>مسابقات و رویدادها</span>
-                  {competitions.length > 0 && (
-                    <span className={`font-mono text-[10px] px-1.5 py-0.2 rounded-full ${activeTab === 'competitions' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                      {competitions.length}
-                    </span>
-                  )}
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('scoring')}
-                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all w-full text-center cursor-pointer ${
-                    activeTab === 'scoring'
-                      ? 'bg-blue-600 text-white shadow-xs font-bold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <Shield className="w-4 h-4 shrink-0" />
-                  <span>قوانین و امتیازدهی</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('seasons')}
-                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all w-full text-center cursor-pointer ${
-                    activeTab === 'seasons'
-                      ? 'bg-blue-600 text-white shadow-xs font-bold'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <Archive className="w-4 h-4 shrink-0" />
-                  <span>آرشیو و فصول</span>
-                </button>
-              </div>
-
-              {/* Tab 1: Leaderboard Table & Championship Podium */}
-              {activeTab === 'leaderboard' && (
-                <div className="space-y-4">
-                  {/* Top Three Swimmers Championship Podium */}
-                  <LeaguePodium
-                    topSwimmers={leaderboard.slice(0, 3)}
-                    onSelectSwimmer={handleSelectSwimmer}
-                  />
-
-                  {/* Leaderboard Table with Search & Advanced Filter Toolbar */}
-                  <LeagueLeaderboardTable
-                    leaderboard={leaderboard}
-                    categories={selectedLeague?.categories || []}
-                    selectedCategory={selectedCategory}
-                    onCategoryChange={setSelectedCategory}
-                    selectedGender={selectedGender}
-                    onGenderChange={setSelectedGender}
-                    searchQuery={searchQuery}
-                    onSearchChange={setSearchQuery}
-                    loading={boardLoading}
-                    onSelectSwimmer={handleSelectSwimmer}
-                    onExportCsv={handleExportCsv}
-                  />
-                </div>
-              )}
-
-              {/* Tab 2: Competitions & Events Management */}
-              {activeTab === 'competitions' && (
-                <LeagueCompetitionsView
-                  competitions={competitions}
-                  loading={compLoading}
-                  onOpenCreateModal={() => {
-                    setEditingComp(null);
-                    setCompModalOpen(true);
-                  }}
-                  onOpenEditModal={(comp) => {
-                    setEditingComp(comp);
-                    setCompModalOpen(true);
-                  }}
-                  onOpenRecordResultsModal={(comp) => {
-                    setActiveCompForResults(comp);
-                    setRecordResultsModalOpen(true);
-                  }}
-                  onDeleteCompetition={handleDeleteCompetition}
-                  onSelectSwimmer={handleSelectSwimmer}
-                />
-              )}
-
-              {/* Tab 3: Scoring Rules & Matrix */}
-              {activeTab === 'scoring' && (
-                <LeagueScoringRulesView
-                  league={selectedLeague}
-                  onOpenManualScoreModal={() => {
-                    setManualScoreSwimmer(null);
-                    setManualScoreModalOpen(true);
-                  }}
-                  onRefreshLeague={handleRefreshAll}
-                />
-              )}
-
-              {/* Tab 4: Seasons Archive & Management */}
-              {activeTab === 'seasons' && (
-                <LeagueSeasonsArchive
-                  leagues={leagues}
-                  selectedLeague={selectedLeague}
-                  onSelectLeague={(lg) => {
-                    setSelectedLeague(lg);
-                    setSelectedCategory('');
-                    setActiveTab('leaderboard');
-                  }}
-                  onOpenCreateModal={() => {
-                    setEditingSeason(null);
-                    setSeasonModalOpen(true);
-                  }}
-                  onOpenEditModal={(lg) => {
-                    setEditingSeason(lg);
-                    setSeasonModalOpen(true);
-                  }}
-                  onToggleStatus={handleToggleSeasonStatus}
-                />
-              )}
-            </div>
+            )}
           </div>
         </>
       )}
