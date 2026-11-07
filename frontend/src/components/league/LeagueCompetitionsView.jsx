@@ -149,7 +149,7 @@ export const LeagueCompetitionsView = ({
                     <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
                       <span className="flex items-center gap-1 font-mono">
                         <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        {new Date(comp.held_at).toLocaleDateString('fa-IR')}
+                        {new Date(comp.held_at).toLocaleDateString('fa-IR-u-nu-latn')}
                       </span>
                       {comp.location && (
                         <span className="flex items-center gap-1">

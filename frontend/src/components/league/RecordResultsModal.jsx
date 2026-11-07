@@ -145,7 +145,7 @@ export const RecordResultsModal = ({
             <Trophy className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0" />
             <div>
               <span className="font-bold block">
-                {competition.stroke_display} {competition.distance_meters} متر ({new Date(competition.held_at).toLocaleDateString('fa-IR')})
+                {competition.stroke_display} {competition.distance_meters} متر ({new Date(competition.held_at).toLocaleDateString('fa-IR-u-nu-latn')})
               </span>
               <span className="text-[11px] text-amber-800 dark:text-amber-300">
                 رتبه‌بندی بر اساس کمترین زمان (ثانیه) به صورت خودکار محاسبه و امتیازدهی می‌شود.

@@ -686,7 +686,21 @@ export const SessionsScheduleTimetable = ({
             )}
 
             {/* Footer */}
-            <div className="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 gap-2">
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  const cId = selectedCourse.id;
+                  setSelectedCourse(null);
+                  navigate(`/admin/courses/${cId}`);
+                }}
+                className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-700 text-white"
+              >
+                <Users className="w-3.5 h-3.5" />
+                <span>صفحه جامع دوره و شناگران</span>
+              </Button>
+
               <Button
                 variant="outline"
                 size="sm"

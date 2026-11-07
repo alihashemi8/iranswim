@@ -11,8 +11,6 @@ import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { ProgressBar } from '../../components/common/Charts';
-import { CoachSelectorDropdown } from '../../components/common/CoachSelectorDropdown';
-import { SwimmerCourseCard } from '../../components/common/SwimmerCourseCard';
 import { SessionsScheduleTimetable } from '../../components/common/SessionsScheduleTimetable';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
@@ -69,34 +67,6 @@ export const AdminCoursesPage = () => {
     fetchData();
   }, []);
 
-  // Open Course Swimmers View
-  const handleOpenCourseSwimmers = async (course) => {
-    setSelectedCourseForSwimmers(course);
-    setLoadingEnrollments(true);
-    try {
-      const res = await api.get(`/education/enrollments/?course_id=${course.id}`);
-      setCourseEnrollments(res.data.results || res.data || []);
-    } catch (err) {
-      console.error(err);
-      toast.error('خطا در دریافت لیست شناگران دوره');
-    } finally {
-      setLoadingEnrollments(false);
-    }
-  };
-
-  // Assign Coach to Enrollment within Course Swimmers View
-  const handleAssignCoachToEnrollment = async (enrollmentId, coachId) => {
-    try {
-      const res = await api.post(`/education/enrollments/${enrollmentId}/assign-coach/`, { coach_id: coachId });
-      setCourseEnrollments((prev) =>
-        prev.map((e) => (e.id === enrollmentId ? res.data : e))
-      );
-      toast.success(coachId ? 'مربی با موفقیت به شناگر تخصیص یافت.' : 'تخصیص مربی با موفقیت حذف شد.');
-    } catch (err) {
-      console.error(err);
-      toast.error('خطا در تخصیص مربی به شناگر');
-    }
-  };
 
   // Handle Quick Action deep link
   useEffect(() => {
@@ -352,9 +322,14 @@ export const AdminCoursesPage = () => {
                       <BookOpen className="w-5 h-5" />
                     </div>
                     <div>
-                      <h3 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg">
-                        {course.name}
-                      </h3>
+                      <Link
+                        to={`/admin/courses/${course.id}`}
+                        className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors block"
+                      >
+                        <h3 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg">
+                          {course.name}
+                        </h3>
+                      </Link>
                       <div className="flex items-center gap-2 mt-0.5">
                         <Badge variant={course.status === 'ACTIVE' ? 'success' : 'neutral'}>
                           {course.status === 'ACTIVE' ? 'در حال برگزاری' : 'پیش‌ثبت‌نام'}
@@ -461,8 +436,8 @@ export const AdminCoursesPage = () => {
 
                 <div className="flex items-center gap-2">
                   <Button
-                    onClick={() => handleOpenCourseSwimmers(course)}
-                    className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-700 text-white"
+                    onClick={() => navigate(`/admin/courses/${course.id}`)}
+                    className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-700 text-white cursor-pointer"
                   >
                     <Users className="w-4 h-4" />
                     <span>شناگران دوره و تخصیص مربی</span>
@@ -513,214 +488,8 @@ export const AdminCoursesPage = () => {
           groups={groups}
           coaches={coaches}
           onRefresh={fetchData}
-          onOpenCourseSwimmers={handleOpenCourseSwimmers}
         />
       )}
-
-
-
-      {/* Modal: View Swimmers of Course & Assign Coaches */}
-      <Modal
-        isOpen={Boolean(selectedCourseForSwimmers)}
-        onClose={() => setSelectedCourseForSwimmers(null)}
-        title={selectedCourseForSwimmers ? `شناگران دوره: ${selectedCourseForSwimmers.name}` : ''}
-        maxWidth="max-w-4xl"
-      >
-        {selectedCourseForSwimmers && (
-          <div className="space-y-4">
-            {/* Header info */}
-            <div className="p-3.5 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200/70 dark:border-sky-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-sky-900 dark:text-sky-200 text-sm">
-                    {selectedCourseForSwimmers.name}
-                  </span>
-                  <Badge variant="info">
-                    {selectedCourseForSwimmers.gender_display || 'پسرانه'}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-4 text-slate-600 dark:text-slate-400">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                    {selectedCourseForSwimmers.pool_location || 'استخر شهید رئیسی'}
-                  </span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-slate-400" />
-                    {selectedCourseForSwimmers.days_of_week} ({selectedCourseForSwimmers.time_display || '۱۷:۰۰ الی ۱۹:۰۰'})
-                  </span>
-                </div>
-              </div>
-
-              {/* View Switcher */}
-              <div className="flex items-center gap-1 bg-white dark:bg-slate-900 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setSwimmerViewMode('cards')}
-                  className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer ${
-                    swimmerViewMode === 'cards'
-                      ? 'bg-sky-600 text-white shadow-2xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                  }`}
-                  title="نمای کارتی"
-                >
-                  <LayoutGrid className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">کارت‌ها</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setSwimmerViewMode('table')}
-                  className={`p-1.5 rounded-lg text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer ${
-                    swimmerViewMode === 'table'
-                      ? 'bg-sky-600 text-white shadow-2xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                  }`}
-                  title="نمای جدولی"
-                >
-                  <List className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">جدول</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Swimmers Content */}
-            {loadingEnrollments ? (
-              <LoadingState type="cards" count={3} message="در حال دریافت شناگران دوره..." />
-            ) : courseEnrollments.length === 0 ? (
-              <EmptyState
-                title="شناگری در این دوره ثبت‌نام نکرده است"
-                description="متقاضیان می‌توانند از طریق فرم درخواست آنلاین ثبت‌نام کنند یا مدیر می‌تواند شناگر را مستقیم در کلاس ثبت‌نام نماید."
-              />
-            ) : swimmerViewMode === 'cards' ? (
-              /* CARDS VIEW */
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto p-1">
-                {courseEnrollments.map((enr) => (
-                  <SwimmerCourseCard
-                    key={enr.id}
-                    swimmer={{
-                      full_name: enr.swimmer_name,
-                      avatar: enr.swimmer_avatar,
-                      phone: enr.swimmer_phone,
-                      national_id: enr.swimmer_national_id,
-                      level_name: enr.swimmer_level_name,
-                    }}
-                    course={{
-                      name: enr.course_name,
-                      pool_location: enr.course_pool,
-                      days_of_week: enr.course_days,
-                      time_display: enr.course_time,
-                    }}
-                    coach={
-                      enr.coach
-                        ? {
-                            id: enr.coach,
-                            full_name: enr.coach_name,
-                            avatar: enr.coach_avatar,
-                          }
-                        : null
-                    }
-                    availableCoaches={enr.course_coaches || selectedCourseForSwimmers.coaches || []}
-                    onSelectCoach={(coachId) => handleAssignCoachToEnrollment(enr.id, coachId)}
-                    onOpenDossier={() => navigate(`/admin/swimmers/${enr.swimmer}`)}
-                    status={enr.status}
-                    sessionsPurchased={enr.sessions_purchased}
-                    sessionsAttended={enr.sessions_attended}
-                  />
-                ))}
-              </div>
-            ) : (
-              /* TABLE VIEW */
-              <div className="overflow-x-auto max-h-[60vh] p-1">
-                <table className="w-full text-sm text-right min-w-[650px]">
-                  <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-800">
-                    <tr>
-                      <th className="px-4 py-3 rounded-r-xl">شناگر</th>
-                      <th className="px-4 py-3">کلاس / گروه</th>
-                      <th className="px-4 py-3">مربی تخصیص‌یافته</th>
-                      <th className="px-4 py-3">جلسات</th>
-                      <th className="px-4 py-3">وضعیت</th>
-                      <th className="px-4 py-3 text-center rounded-l-xl">عملیات</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
-                    {courseEnrollments.map((enr) => (
-                      <tr key={enr.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30 transition-colors">
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2.5">
-                            {enr.swimmer_avatar ? (
-                              <img
-                                src={enr.swimmer_avatar}
-                                alt={enr.swimmer_name}
-                                className="w-8 h-8 rounded-full object-cover border border-slate-200"
-                              />
-                            ) : (
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-xs">
-                                {enr.swimmer_name?.charAt(0) || 'ش'}
-                              </div>
-                            )}
-                            <div>
-                              <span className="font-bold text-slate-900 dark:text-white block text-xs">
-                                {enr.swimmer_name}
-                              </span>
-                              <span className="text-[10px] text-slate-400 font-mono">
-                                {enr.swimmer_phone}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-4 py-3 text-xs font-medium text-slate-700 dark:text-slate-300">
-                          {enr.group_name || 'بدون کلاس'}
-                        </td>
-                        <td className="px-4 py-3">
-                          <CoachSelectorDropdown
-                            currentCoach={
-                              enr.coach
-                                ? {
-                                    id: enr.coach,
-                                    full_name: enr.coach_name,
-                                    avatar: enr.coach_avatar,
-                                  }
-                                : null
-                            }
-                            availableCoaches={enr.course_coaches || selectedCourseForSwimmers.coaches || []}
-                            onSelectCoach={(coachId) => handleAssignCoachToEnrollment(enr.id, coachId)}
-                            placement="auto"
-                            size="sm"
-                          />
-                        </td>
-                        <td className="px-4 py-3 text-xs font-mono text-slate-500">
-                          {enr.sessions_attended} از {enr.sessions_purchased}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Badge variant={enr.status === 'ACTIVE' ? 'success' : 'neutral'}>
-                            {enr.status === 'ACTIVE' ? 'فعال' : enr.status}
-                          </Badge>
-                        </td>
-                        <td className="px-4 py-3 text-center">
-                          <button
-                            type="button"
-                            onClick={() => navigate(`/admin/swimmers/${enr.swimmer}`)}
-                            className="p-1.5 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-sky-600 dark:text-sky-400 transition-colors inline-flex items-center gap-1 text-xs cursor-pointer"
-                            title="مشاهده پرونده جامع"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>پرونده</span>
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-
-            <div className="flex justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
-              <Button variant="outline" onClick={() => setSelectedCourseForSwimmers(null)}>
-                بستن
-              </Button>
-            </div>
-          </div>
-        )}
-      </Modal>
 
       {/* Modal: Create SwimmerGroup */}
       <Modal

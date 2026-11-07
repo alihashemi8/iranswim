@@ -108,7 +108,7 @@ export const LeagueSeasonsArchive = ({
                 <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
                   <span>بازه زمانی برگزاری:</span>
                   <span className="font-mono text-slate-800 dark:text-slate-200 font-semibold">
-                    {new Date(lg.starts_at).toLocaleDateString('fa-IR')} تا {new Date(lg.ends_at).toLocaleDateString('fa-IR')}
+                    {new Date(lg.starts_at).toLocaleDateString('fa-IR-u-nu-latn')} تا {new Date(lg.ends_at).toLocaleDateString('fa-IR-u-nu-latn')}
                   </span>
                 </div>
                 {lg.rules_description && (
@@ -135,7 +135,7 @@ export const LeagueSeasonsArchive = ({
                 <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
                   <span className="text-[11px] text-slate-400 block">مجموع امتیاز</span>
                   <span className="text-sm font-mono font-bold text-amber-600 dark:text-amber-400">
-                    {Number(lg.total_points_sum || 0).toLocaleString('fa-IR')}
+                    {Number(lg.total_points_sum || 0).toLocaleString('en-US')}
                   </span>
                 </div>
               </div>

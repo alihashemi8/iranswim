@@ -238,7 +238,7 @@ export const LeagueLeaderboardTable = ({
 
                       {/* Total Points */}
                       <td className="px-3.5 py-3.5 text-left font-mono font-black text-amber-600 dark:text-amber-400 text-base">
-                        {Number(row.total_points).toLocaleString('fa-IR')}{' '}
+                        {Number(row.total_points).toLocaleString('en-US')}{' '}
                         <span className="text-[11px] font-normal text-slate-400">امتیاز</span>
                       </td>
 
@@ -288,7 +288,7 @@ export const LeagueLeaderboardTable = ({
                     </div>
 
                     <div className="text-left font-mono font-black text-amber-600 dark:text-amber-400 text-lg shrink-0">
-                      {Number(row.total_points).toLocaleString('fa-IR')} <span className="text-xs font-normal text-slate-400">امتیاز</span>
+                      {Number(row.total_points).toLocaleString('en-US')} <span className="text-xs font-normal text-slate-400">امتیاز</span>
                     </div>
                   </div>
 

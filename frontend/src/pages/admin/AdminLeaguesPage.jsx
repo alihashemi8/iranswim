@@ -371,14 +371,14 @@ export const AdminLeaguesPage = () => {
                   <div className="flex justify-between text-slate-500">
                     <span>تاریخ آغاز:</span>
                     <span className="font-mono text-slate-700 dark:text-slate-300">
-                      {new Date(selectedLeague.starts_at).toLocaleDateString('fa-IR')}
+                      {new Date(selectedLeague.starts_at).toLocaleDateString('fa-IR-u-nu-latn')}
                     </span>
                   </div>
 
                   <div className="flex justify-between text-slate-500">
                     <span>تاریخ پایان:</span>
                     <span className="font-mono text-slate-700 dark:text-slate-300">
-                      {new Date(selectedLeague.ends_at).toLocaleDateString('fa-IR')}
+                      {new Date(selectedLeague.ends_at).toLocaleDateString('fa-IR-u-nu-latn')}
                     </span>
                   </div>
 
@@ -405,31 +405,31 @@ export const AdminLeaguesPage = () => {
 
             {/* Main Tabs and Content (Col Span 2 or 3) */}
             <div className="md:col-span-2 lg:col-span-3 space-y-4">
-              {/* Navigation Tabs Bar */}
-              <div className="bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-1 overflow-x-auto text-xs font-bold select-none">
+              {/* Navigation Tabs Bar - Full Width Spanning */}
+              <div className="bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs grid grid-cols-2 sm:grid-cols-4 gap-1.5 w-full text-xs font-bold select-none">
                 <button
                   type="button"
                   onClick={() => setActiveTab('leaderboard')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all w-full text-center cursor-pointer ${
                     activeTab === 'leaderboard'
                       ? 'bg-amber-500 text-slate-950 shadow-xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <Trophy className="w-4 h-4" />
+                  <Trophy className="w-4 h-4 shrink-0" />
                   <span>جدول رتبه‌بندی</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab('competitions')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all w-full text-center cursor-pointer ${
                     activeTab === 'competitions'
                       ? 'bg-amber-500 text-slate-950 shadow-xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <Calendar className="w-4 h-4" />
+                  <Calendar className="w-4 h-4 shrink-0" />
                   <span>مسابقات و رویدادها</span>
                   {competitions.length > 0 && (
                     <span className="font-mono text-[10px] bg-slate-950/10 dark:bg-white/10 px-1.5 py-0.2 rounded-full">
@@ -441,26 +441,26 @@ export const AdminLeaguesPage = () => {
                 <button
                   type="button"
                   onClick={() => setActiveTab('scoring')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all w-full text-center cursor-pointer ${
                     activeTab === 'scoring'
                       ? 'bg-amber-500 text-slate-950 shadow-xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <Shield className="w-4 h-4" />
+                  <Shield className="w-4 h-4 shrink-0" />
                   <span>قوانین و امتیازدهی</span>
                 </button>
 
                 <button
                   type="button"
                   onClick={() => setActiveTab('seasons')}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all whitespace-nowrap cursor-pointer ${
+                  className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all w-full text-center cursor-pointer ${
                     activeTab === 'seasons'
                       ? 'bg-amber-500 text-slate-950 shadow-xs font-bold'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
-                  <Archive className="w-4 h-4" />
+                  <Archive className="w-4 h-4 shrink-0" />
                   <span>آرشیو و فصول</span>
                 </button>
               </div>

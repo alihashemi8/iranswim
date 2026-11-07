@@ -122,7 +122,7 @@ export const SwimmerPerformanceModal = ({
             <div className="bg-amber-50/70 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 p-3.5 rounded-2xl text-center space-y-1">
               <span className="text-[11px] font-bold text-amber-700 dark:text-amber-400 block">مجموع امتیازات</span>
               <span className="text-xl font-mono font-black text-amber-600 dark:text-amber-300">
-                {Number(entry.total_points).toLocaleString('fa-IR')}
+                {Number(entry.total_points).toLocaleString('en-US')}
               </span>
             </div>
 
@@ -186,7 +186,7 @@ export const SwimmerPerformanceModal = ({
                       {pb.formatted_time}
                     </span>
                     <span className="text-[10px] text-slate-400 font-mono block">
-                      {new Date(pb.recorded_at).toLocaleDateString('fa-IR')}
+                      {new Date(pb.recorded_at).toLocaleDateString('fa-IR-u-nu-latn')}
                     </span>
                   </div>
                 ))}
@@ -240,10 +240,10 @@ export const SwimmerPerformanceModal = ({
                           {r.medal === 'GOLD' ? 'طلا' : r.medal === 'SILVER' ? 'نقره' : r.medal === 'BRONZE' ? 'برنز' : '-'}
                         </td>
                         <td className="p-3 text-left font-mono font-black text-amber-600 dark:text-amber-400 text-sm">
-                          +{Number(r.score_points).toLocaleString('fa-IR')}
+                          +{Number(r.score_points).toLocaleString('en-US')}
                         </td>
                         <td className="p-3 font-mono text-slate-500">
-                          {new Date(r.recorded_at).toLocaleDateString('fa-IR')}
+                          {new Date(r.recorded_at).toLocaleDateString('fa-IR-u-nu-latn')}
                         </td>
                         <td className="p-3 text-slate-400 text-[11px]">
                           {r.notes || '-'}

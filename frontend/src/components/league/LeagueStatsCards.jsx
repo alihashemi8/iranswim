@@ -68,7 +68,7 @@ export const LeagueStatsCards = ({ stats, onSelectSwimmer }) => {
               </div>
               <div className="flex items-baseline gap-1.5">
                 <span className="text-2xl sm:text-3xl font-black font-mono text-slate-900 dark:text-white">
-                  {Number(c.count).toLocaleString('fa-IR')}
+                  {Number(c.count).toLocaleString('en-US')}
                 </span>
               </div>
               <div className="mt-1">
@@ -96,7 +96,7 @@ export const LeagueStatsCards = ({ stats, onSelectSwimmer }) => {
                 سکوی پیشتازان {stats.league_name}
               </span>
               <span className="text-[11px] text-amber-800/80 dark:text-amber-400/80">
-                مجموع امتیازات معتبر ثبت‌شده: {Number(stats.total_points_sum || 0).toLocaleString('fa-IR')} امتیاز
+                مجموع امتیازات معتبر ثبت‌شده: {Number(stats.total_points_sum || 0).toLocaleString('en-US')} امتیاز
               </span>
             </div>
           </div>
@@ -117,7 +117,7 @@ export const LeagueStatsCards = ({ stats, onSelectSwimmer }) => {
                   {pod.swimmer_name}
                 </span>
                 <span className="font-mono text-amber-600 dark:text-amber-400 font-bold bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded-lg text-[11px]">
-                  {Number(pod.total_points).toLocaleString('fa-IR')} امتیاز
+                  {Number(pod.total_points).toLocaleString('en-US')} امتیاز
                 </span>
               </button>
             ))}
