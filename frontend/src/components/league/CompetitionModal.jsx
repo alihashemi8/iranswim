@@ -110,7 +110,7 @@ export const CompetitionModal = ({
             name="title"
             value={formData.title}
             onChange={handleChange}
-            placeholder="مثال: مسابقه ۵۰ متر کرال سینه انتخابی باشگاه"
+            placeholder="مثال: مسابقه 50 متر کرال سینه انتخابی باشگاه"
             required
             className="w-full text-xs p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
           />
@@ -146,11 +146,11 @@ export const CompetitionModal = ({
               onChange={handleChange}
               className="w-full text-xs p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
             >
-              <option value="25">۲۵ متر</option>
-              <option value="50">۵۰ متر</option>
-              <option value="100">۱۰۰ متر</option>
-              <option value="200">۲۰۰ متر</option>
-              <option value="400">۴۰۰ متر</option>
+              <option value="25">25 متر</option>
+              <option value="50">50 متر</option>
+              <option value="100">100 متر</option>
+              <option value="200">200 متر</option>
+              <option value="400">400 متر</option>
             </select>
           </div>
         </div>
@@ -265,7 +265,7 @@ export const CompetitionModal = ({
           <Button
             type="submit"
             disabled={loading}
-            className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold"
+            className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
           >
             {loading ? 'در حال ثبت...' : initialData ? 'به‌روزرسانی مسابقه' : 'ایجاد مسابقه'}
           </Button>

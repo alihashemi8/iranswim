@@ -262,7 +262,7 @@ export const RecordResultsModal = ({
             <Button
               type="submit"
               disabled={loading}
-              className="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold"
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold"
             >
               {loading ? 'در حال ثبت و محاسبه امتیازات...' : 'ثبت قطعی نتایج و امتیازدهی لیگ'}
             </Button>

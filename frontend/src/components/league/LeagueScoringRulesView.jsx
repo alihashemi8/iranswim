@@ -95,7 +95,7 @@ export const LeagueScoringRulesView = ({
         <div className="flex items-center gap-2 shrink-0">
           <Button
             onClick={onOpenManualScoreModal}
-            className="gap-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold cursor-pointer"
+            className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>ثبت امتیاز تشویقی / دستی</span>
@@ -293,7 +293,7 @@ export const LeagueScoringRulesView = ({
             <Button
               onClick={() => handleSaveRules(false)}
               disabled={loading || recalculating}
-              className="gap-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold"
+              className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold"
             >
               <Save className="w-4 h-4" />
               <span>{loading ? 'در حال ذخیره...' : 'ذخیره فرمول امتیازدهی'}</span>

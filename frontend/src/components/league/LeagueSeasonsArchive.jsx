@@ -59,7 +59,7 @@ export const LeagueSeasonsArchive = ({
 
         <Button
           onClick={onOpenCreateModal}
-          className="gap-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold self-start sm:self-auto cursor-pointer"
+          className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>ایجاد دوره / فصل جدید</span>
@@ -147,7 +147,7 @@ export const LeagueSeasonsArchive = ({
                   size="sm"
                   onClick={() => onSelectLeague(lg)}
                   className={`text-xs h-8.5 font-bold ${
-                    !isCurrent ? 'bg-amber-500 hover:bg-amber-600 text-slate-950' : 'text-amber-700 dark:text-amber-300'
+                    !isCurrent ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'text-blue-700 border-blue-200'
                   }`}
                 >
                   {isCurrent ? 'فصل فعال در پنل' : 'انتخاب و مشاهده این فصل'}

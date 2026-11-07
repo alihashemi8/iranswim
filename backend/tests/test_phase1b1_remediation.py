@@ -387,6 +387,184 @@ def test_expired_coach_assignment_cannot_access_swimmer_sports_insurance(api_cli
     assert 'دسترسی لازم' in res.data['detail']
 
 
+@pytest.mark.django_db
+def test_expired_coach_with_historical_completed_session_is_denied(api_client, child_swimmer, expired_coach):
+    """
+    2. Expired coach with a historical COMPLETED session must be denied (HTTP 403).
+    """
+    from apps.scheduling.models import ClassSession
+
+    level = SkillLevel.objects.create(name='مقدماتی 3a', order=3)
+    course = Course.objects.create(
+        name='دوره تاریخی 1',
+        start_date=timezone.now().date() - datetime.timedelta(days=60),
+        end_date=timezone.now().date() + datetime.timedelta(days=30),
+        base_price=Decimal('1000000'),
+        sessions_count=10
+    )
+    group = SwimmerGroup.objects.create(course=course, name='گروه تاریخی 1', skill_level=level, capacity=10)
+
+    past_end = timezone.now().date() - datetime.timedelta(days=10)
+    past_start = past_end - datetime.timedelta(days=30)
+    GroupCoach.objects.create(
+        group=group,
+        coach=expired_coach,
+        is_primary=True,
+        assigned_from=past_start,
+        assigned_to=past_end
+    )
+    Enrollment.objects.create(swimmer=child_swimmer, course=course, group=group, status='ACTIVE')
+
+    # Historical COMPLETED session
+    ClassSession.objects.create(
+        group=group,
+        coach=expired_coach,
+        session_date=past_start + datetime.timedelta(days=5),
+        start_time=datetime.time(10, 0),
+        end_time=datetime.time(11, 0),
+        status=ClassSession.Status.COMPLETED
+    )
+
+    api_client.force_authenticate(user=expired_coach.user)
+
+    res = api_client.get(f'/api/swimmers/{child_swimmer.id}/documents/sports_insurance/')
+    assert res.status_code == 403
+    assert 'دسترسی لازم' in res.data['detail']
+
+
+@pytest.mark.django_db
+def test_expired_coach_with_historical_cancelled_session_is_denied(api_client, child_swimmer, expired_coach):
+    """
+    3. Expired coach with a historical CANCELLED session must be denied (HTTP 403).
+    """
+    from apps.scheduling.models import ClassSession
+
+    level = SkillLevel.objects.create(name='مقدماتی 3b', order=3)
+    course = Course.objects.create(
+        name='دوره تاریخی 2',
+        start_date=timezone.now().date() - datetime.timedelta(days=60),
+        end_date=timezone.now().date() + datetime.timedelta(days=30),
+        base_price=Decimal('1000000'),
+        sessions_count=10
+    )
+    group = SwimmerGroup.objects.create(course=course, name='گروه تاریخی 2', skill_level=level, capacity=10)
+
+    past_end = timezone.now().date() - datetime.timedelta(days=5)
+    past_start = past_end - datetime.timedelta(days=20)
+    GroupCoach.objects.create(
+        group=group,
+        coach=expired_coach,
+        is_primary=True,
+        assigned_from=past_start,
+        assigned_to=past_end
+    )
+    Enrollment.objects.create(swimmer=child_swimmer, course=course, group=group, status='ACTIVE')
+
+    # Historical CANCELLED session
+    ClassSession.objects.create(
+        group=group,
+        coach=expired_coach,
+        session_date=past_start + datetime.timedelta(days=2),
+        start_time=datetime.time(14, 0),
+        end_time=datetime.time(15, 30),
+        status=ClassSession.Status.CANCELLED,
+        cancellation_reason='تعطیلی عمومی استخر'
+    )
+
+    api_client.force_authenticate(user=expired_coach.user)
+
+    res = api_client.get(f'/api/swimmers/{child_swimmer.id}/documents/sports_insurance/')
+    assert res.status_code == 403
+    assert 'دسترسی لازم' in res.data['detail']
+
+
+@pytest.mark.django_db
+def test_expired_coach_with_future_scheduled_session_is_denied(api_client, child_swimmer, expired_coach):
+    """
+    4. Expired coach with a future scheduled session without active GroupCoach assignment is denied (HTTP 403).
+    """
+    from apps.scheduling.models import ClassSession
+
+    level = SkillLevel.objects.create(name='مقدماتی 3c', order=3)
+    course = Course.objects.create(
+        name='دوره آینده',
+        start_date=timezone.now().date() - datetime.timedelta(days=60),
+        end_date=timezone.now().date() + datetime.timedelta(days=60),
+        base_price=Decimal('1000000'),
+        sessions_count=10
+    )
+    group = SwimmerGroup.objects.create(course=course, name='گروه آینده', skill_level=level, capacity=10)
+
+    yesterday = timezone.now().date() - datetime.timedelta(days=1)
+    past_start = yesterday - datetime.timedelta(days=30)
+    GroupCoach.objects.create(
+        group=group,
+        coach=expired_coach,
+        is_primary=True,
+        assigned_from=past_start,
+        assigned_to=yesterday
+    )
+    Enrollment.objects.create(swimmer=child_swimmer, course=course, group=group, status='ACTIVE')
+
+    # Future session scheduled 5 days from now
+    future_date = timezone.now().date() + datetime.timedelta(days=5)
+    ClassSession.objects.create(
+        group=group,
+        coach=expired_coach,
+        session_date=future_date,
+        start_time=datetime.time(16, 0),
+        end_time=datetime.time(17, 30),
+        status=ClassSession.Status.SCHEDULED
+    )
+
+    api_client.force_authenticate(user=expired_coach.user)
+
+    res = api_client.get(f'/api/swimmers/{child_swimmer.id}/documents/sports_insurance/')
+    assert res.status_code == 403
+    assert 'دسترسی لازم' in res.data['detail']
+
+
+@pytest.mark.django_db
+def test_unrelated_coach_is_denied(api_client, child_swimmer):
+    """
+    6. Unrelated coach with no assignment is denied (HTTP 403).
+    """
+    unrelated_user = User.objects.create_user(
+        phone='09120010099',
+        password='UnrelatedCoachPass@2026',
+        first_name='مربی',
+        last_name='نامرتبط',
+        role=User.Role.COACH
+    )
+    CoachProfile.objects.create(user=unrelated_user, specialties='قورباغه')
+
+    api_client.force_authenticate(user=unrelated_user)
+
+    res = api_client.get(f'/api/swimmers/{child_swimmer.id}/documents/sports_insurance/')
+    assert res.status_code == 403
+
+
+@pytest.mark.django_db
+def test_active_direct_enrollment_coach_can_access_sports_insurance(api_client, child_swimmer, active_coach):
+    """
+    Direct coach assignment on active Enrollment (Q(coach=coach_profile)) continues to work.
+    """
+    level = SkillLevel.objects.create(name='مقدماتی خصوصی', order=1)
+    course = Course.objects.create(
+        name='کلاس خصوصی',
+        start_date=timezone.now().date(),
+        end_date=timezone.now().date() + datetime.timedelta(days=30),
+        base_price=Decimal('2000000'),
+        sessions_count=8
+    )
+    Enrollment.objects.create(swimmer=child_swimmer, course=course, coach=active_coach, status='ACTIVE')
+
+    api_client.force_authenticate(user=active_coach.user)
+
+    res = api_client.get(f'/api/swimmers/{child_swimmer.id}/documents/sports_insurance/')
+    assert res.status_code == 200
+
+
 # --------------------------------------------------------------------------
 # 4. PDF / ImageField Consistency Validation Tests
 # --------------------------------------------------------------------------
@@ -461,3 +639,29 @@ def test_document_download_file_response_mode(api_client, admin_user, child_swim
         assert 'X-Accel-Redirect' not in res.headers
         assert res.headers.get('Cache-Control') == 'private, no-store, max-age=0'
         assert res.headers.get('X-Content-Type-Options') == 'nosniff'
+
+
+@pytest.mark.django_db
+def test_x_accel_maps_to_physical_file_path_and_cannot_be_tampered(api_client, admin_user, child_swimmer):
+    """
+    MEDIUM: Verify that the X-Accel-Redirect header maps directly to the actual physical file
+    stored on disk, and that user input (query parameters, malicious headers) cannot influence
+    the internal redirect destination.
+    """
+    from django.conf import settings
+    api_client.force_authenticate(user=admin_user)
+
+    with override_settings(USE_X_ACCEL_REDIRECT=True):
+        res = api_client.get(f'/api/swimmers/{child_swimmer.id}/documents/sports_insurance/?path=../../etc/passwd')
+        assert res.status_code == 200
+        x_accel_path = res.headers['X-Accel-Redirect']
+
+        assert x_accel_path.startswith('/protected_media/')
+        relative_path = x_accel_path.removeprefix('/protected_media/')
+        expected_physical_path = os.path.join(settings.MEDIA_ROOT, relative_path)
+
+        assert os.path.exists(expected_physical_path)
+        assert relative_path == child_swimmer.sports_insurance_image.name
+        assert '..' not in x_accel_path
+        assert 'etc/passwd' not in x_accel_path
+

@@ -102,7 +102,7 @@ export const SwimmerPerformanceModal = ({
                     onOpenManualScoreForSwimmer(swimmer);
                   }
                 }}
-                className="gap-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold"
+                className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>ثبت امتیاز تشویقی/تعدیلی</span>

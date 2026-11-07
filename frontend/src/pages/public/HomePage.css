@@ -95,7 +95,7 @@
   -webkit-backdrop-filter: blur(12px) !important;
 }
 
-.pool-header > div:first-child :is(nav, nav a, a, button) {
+.pool-header nav a {
   color: #163247;
 }
 
@@ -107,9 +107,14 @@
   color: #087ea4 !important;
 }
 
-.pool-header nav a:hover,
-.pool-header > div:first-child a:hover {
+.pool-header nav a:hover {
   color: #087ea4;
+}
+
+.pool-header a[href="/login"],
+.pool-header a[href="/login"]:hover,
+.pool-header a[href="/login"] * {
+  color: #ffffff !important;
 }
 
 .landing-section,

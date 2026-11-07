@@ -269,11 +269,11 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 ) : (
                   <Link
                     to="/login"
-                    className="inline-flex items-center gap-1 md:gap-1.5 lg:gap-2 px-2.5 md:px-3 lg:px-4.5 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-bold text-white bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] rounded-xl shadow-xs hover:shadow-md hover:shadow-cyan-500/20 transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
+                    className="group inline-flex items-center gap-1 md:gap-1.5 lg:gap-2 px-2.5 md:px-3 lg:px-4.5 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-bold !text-white hover:!text-white bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] rounded-xl shadow-xs hover:shadow-md hover:shadow-cyan-500/25 transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                   >
-                    <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
-                    <span className="hidden sm:inline">ورود / ثبت‌نام</span>
-                    <span className="inline sm:hidden">ورود</span>
+                    <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 !text-white transition-transform duration-200 group-hover:-translate-x-0.5" />
+                    <span className="hidden sm:inline !text-white">ورود / ثبت‌نام</span>
+                    <span className="inline sm:hidden !text-white">ورود</span>
                   </Link>
                 )}
               </>
@@ -462,10 +462,10 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                   <Link
                     to="/login"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] text-white font-bold text-sm rounded-xl shadow-xs transition-all"
+                    className="group w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] !text-white hover:!text-white font-bold text-sm rounded-xl shadow-xs hover:shadow-md transition-all"
                   >
-                    <LogIn className="w-4 h-4 shrink-0" />
-                    <span>ورود / ثبت‌نام اعضا و شناگران</span>
+                    <LogIn className="w-4 h-4 shrink-0 !text-white transition-transform duration-200 group-hover:-translate-x-0.5" />
+                    <span className="!text-white">ورود / ثبت‌نام اعضا و شناگران</span>
                   </Link>
                 )
               ) : (

@@ -17,6 +17,7 @@ ENVIRONMENT = os.environ.get('DJANGO_ENV', 'development' if DEBUG else 'producti
 
 KNOWN_INSECURE_SECRET_KEYS = {
     'django-insecure-iranswim-platform-super-secret-production-key-2026',
+    'iranswim-production-secure-key-2026',
     'changeme',
     'secret',
     'your-secret-key-here',

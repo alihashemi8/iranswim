@@ -12,8 +12,10 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
 
-// League Components
+// League Redesigned Components
 import { LeagueStatsCards } from '../../components/league/LeagueStatsCards';
+import { LeaguePodium } from '../../components/league/LeaguePodium';
+import { LeagueInfoPanel } from '../../components/league/LeagueInfoPanel';
 import { LeagueLeaderboardTable } from '../../components/league/LeagueLeaderboardTable';
 import { LeagueCompetitionsView } from '../../components/league/LeagueCompetitionsView';
 import { LeagueScoringRulesView } from '../../components/league/LeagueScoringRulesView';
@@ -239,19 +241,35 @@ export const AdminLeaguesPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* 1. Header Bar */}
-      <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors">
+      {/* 1. Page Header (Modern SaaS Dashboard Header) */}
+      <div className="bg-white p-5 sm:p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-amber-500" />
-            مرکز مدیریت لیگ شنا و رویدادهای رقابتی آموزشگاه
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            مدیریت فصول، مسابقات، ثبت رکوردهای زمانی، قوانین شفاف امتیازدهی و جدول زنده رده‌بندی شناگران
+          <div className="flex items-center gap-2.5 mb-1">
+            <span className="p-2 rounded-xl bg-blue-50 text-blue-600 border border-blue-100">
+              <Trophy className="w-5 h-5" />
+            </span>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              مدیریت لیگ و مسابقات
+            </h1>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 mr-9">
+            رصد زنده امتیازات، جدول رده‌بندی، نتایج رویدادها و مدیریت فصول مسابقاتی آکادمی شنا
           </p>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
+        {/* Action Buttons Hierarchy */}
+        <div className="flex items-center gap-2 flex-wrap mr-9 md:mr-0">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleExportCsv}
+            disabled={!leaderboard.length}
+            className="gap-1.5 text-xs h-9 border-slate-200 text-slate-700 hover:bg-slate-50 font-bold"
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <span>خروجی اکسل</span>
+          </Button>
+
           <Button
             variant="outline"
             size="sm"
@@ -259,10 +277,10 @@ export const AdminLeaguesPage = () => {
               setEditingSeason(null);
               setSeasonModalOpen(true);
             }}
-            className="gap-1.5 text-xs h-9 cursor-pointer"
+            className="gap-1.5 text-xs h-9 border-slate-200 text-slate-700 hover:bg-slate-50 font-bold"
           >
-            <Plus className="w-3.5 h-3.5" />
-            <span>فصل جدید</span>
+            <Plus className="w-4 h-4" />
+            <span>ایجاد فصل جدید</span>
           </Button>
 
           <Button
@@ -271,9 +289,9 @@ export const AdminLeaguesPage = () => {
               setEditingComp(null);
               setCompModalOpen(true);
             }}
-            className="gap-1.5 text-xs h-9 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold cursor-pointer"
+            className="gap-1.5 text-xs h-9 bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer shadow-xs"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-4 h-4" />
             <span>تعریف مسابقه</span>
           </Button>
         </div>
@@ -293,127 +311,47 @@ export const AdminLeaguesPage = () => {
         />
       ) : (
         <>
-          {/* 2. Top Stats Dashboard (داشبورد آماری لیگ) */}
-          <LeagueStatsCards
-            stats={stats}
-            onSelectSwimmer={handleSelectSwimmer}
-          />
+          {/* 2. Top Statistics Overview (4 KPI Cards) */}
+          <LeagueStatsCards stats={stats} />
 
-          {/* 3. Main Layout: Sidebar & Content Area */}
+          {/* 3. Main Dashboard Layout (Sidebar + Content Area) */}
           <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-            {/* Sidebar (Col Span 1) */}
-            <div className="md:col-span-1 space-y-4">
-              {/* Seasons Selector Card */}
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs transition-colors">
-                <div className="flex items-center justify-between mb-2.5">
-                  <span className="text-xs font-bold text-slate-500 dark:text-slate-400">
-                    فصل‌های مسابقاتی
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEditingSeason(null);
-                      setSeasonModalOpen(true);
-                    }}
-                    className="text-[11px] font-bold text-amber-600 dark:text-amber-400 hover:underline cursor-pointer flex items-center gap-0.5"
-                  >
-                    <Plus className="w-3 h-3" />
-                    <span>ایجاد فصل</span>
-                  </button>
-                </div>
-
-                <div className="space-y-1.5">
-                  {leagues.map((lg) => {
-                    const isSelected = selectedLeague?.id === lg.id;
-                    return (
-                      <button
-                        key={lg.id}
-                        type="button"
-                        onClick={() => {
-                          setSelectedLeague(lg);
-                          setSelectedCategory('');
-                        }}
-                        className={`w-full text-right p-3 rounded-xl text-xs font-semibold transition-all flex items-center justify-between cursor-pointer ${
-                          isSelected
-                            ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300/80 dark:border-amber-800 font-bold shadow-2xs'
-                            : 'bg-slate-50 dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
-                        }`}
-                      >
-                        <div>
-                          <span className="block truncate">{lg.name}</span>
-                          <span className="text-[10px] text-slate-400 font-normal">
-                            {lg.season} {lg.status === 'COMPLETED' ? '• (پایان‌یافته)' : ''}
-                          </span>
-                        </div>
-                        {isSelected && <ChevronRight className="w-4 h-4 text-amber-600 shrink-0" />}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* League Rules Summary Card */}
-              {selectedLeague && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs text-xs space-y-2.5 transition-colors">
-                  <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
-                    <span className="font-bold text-slate-900 dark:text-white">
-                      قوانین و تاریخ دوره
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => setActiveTab('scoring')}
-                      className="text-[11px] text-amber-600 dark:text-amber-400 hover:underline font-bold"
-                    >
-                      ویرایش قوانین
-                    </button>
-                  </div>
-
-                  <div className="flex justify-between text-slate-500">
-                    <span>تاریخ آغاز:</span>
-                    <span className="font-mono text-slate-700 dark:text-slate-300">
-                      {new Date(selectedLeague.starts_at).toLocaleDateString('fa-IR-u-nu-latn')}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between text-slate-500">
-                    <span>تاریخ پایان:</span>
-                    <span className="font-mono text-slate-700 dark:text-slate-300">
-                      {new Date(selectedLeague.ends_at).toLocaleDateString('fa-IR-u-nu-latn')}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between text-slate-500">
-                    <span>وضعیت:</span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                      {selectedLeague.status === 'ACTIVE'
-                        ? 'فعال و در جریان'
-                        : selectedLeague.status === 'COMPLETED'
-                        ? 'پایان‌یافته'
-                        : 'پیش‌نویس'}
-                    </span>
-                  </div>
-
-                  {selectedLeague.rules_description && (
-                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-slate-600 dark:text-slate-400">
-                      <span className="font-bold block mb-1">فرمول امتیازدهی:</span>
-                      <p className="line-clamp-3">{selectedLeague.rules_description}</p>
-                    </div>
-                  )}
-                </div>
-              )}
+            {/* Sidebar (1 Col): League Information Panel & Seasons Switcher */}
+            <div className="md:col-span-1">
+              <LeagueInfoPanel
+                leagues={leagues}
+                selectedLeague={selectedLeague}
+                onSelectLeague={(lg) => {
+                  setSelectedLeague(lg);
+                  setSelectedCategory('');
+                }}
+                onOpenCreateSeasonModal={() => {
+                  setEditingSeason(null);
+                  setSeasonModalOpen(true);
+                }}
+                onOpenEditSeasonModal={(lg) => {
+                  setEditingSeason(lg);
+                  setSeasonModalOpen(true);
+                }}
+                onOpenCreateCompetitionModal={() => {
+                  setEditingComp(null);
+                  setCompModalOpen(true);
+                }}
+                onSwitchToScoringTab={() => setActiveTab('scoring')}
+              />
             </div>
 
-            {/* Main Tabs and Content (Col Span 2 or 3) */}
+            {/* Main Content Area (3 Cols): Tabs + Podium + Table/Views */}
             <div className="md:col-span-2 lg:col-span-3 space-y-4">
               {/* Navigation Tabs Bar - Full Width Spanning */}
-              <div className="bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs grid grid-cols-2 sm:grid-cols-4 gap-1.5 w-full text-xs font-bold select-none">
+              <div className="bg-white p-1.5 rounded-2xl border border-slate-200/80 shadow-xs grid grid-cols-2 sm:grid-cols-4 gap-1.5 w-full text-xs font-bold select-none">
                 <button
                   type="button"
                   onClick={() => setActiveTab('leaderboard')}
                   className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all w-full text-center cursor-pointer ${
                     activeTab === 'leaderboard'
-                      ? 'bg-amber-500 text-slate-950 shadow-xs font-bold'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
+                      ? 'bg-blue-600 text-white shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <Trophy className="w-4 h-4 shrink-0" />
@@ -425,14 +363,14 @@ export const AdminLeaguesPage = () => {
                   onClick={() => setActiveTab('competitions')}
                   className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all w-full text-center cursor-pointer ${
                     activeTab === 'competitions'
-                      ? 'bg-amber-500 text-slate-950 shadow-xs font-bold'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
+                      ? 'bg-blue-600 text-white shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <Calendar className="w-4 h-4 shrink-0" />
                   <span>مسابقات و رویدادها</span>
                   {competitions.length > 0 && (
-                    <span className="font-mono text-[10px] bg-slate-950/10 dark:bg-white/10 px-1.5 py-0.2 rounded-full">
+                    <span className={`font-mono text-[10px] px-1.5 py-0.2 rounded-full ${activeTab === 'competitions' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
                       {competitions.length}
                     </span>
                   )}
@@ -443,8 +381,8 @@ export const AdminLeaguesPage = () => {
                   onClick={() => setActiveTab('scoring')}
                   className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all w-full text-center cursor-pointer ${
                     activeTab === 'scoring'
-                      ? 'bg-amber-500 text-slate-950 shadow-xs font-bold'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
+                      ? 'bg-blue-600 text-white shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <Shield className="w-4 h-4 shrink-0" />
@@ -456,8 +394,8 @@ export const AdminLeaguesPage = () => {
                   onClick={() => setActiveTab('seasons')}
                   className={`flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl transition-all w-full text-center cursor-pointer ${
                     activeTab === 'seasons'
-                      ? 'bg-amber-500 text-slate-950 shadow-xs font-bold'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-50 dark:hover:bg-slate-800'
+                      ? 'bg-blue-600 text-white shadow-xs font-bold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
                   <Archive className="w-4 h-4 shrink-0" />
@@ -465,24 +403,33 @@ export const AdminLeaguesPage = () => {
                 </button>
               </div>
 
-              {/* Tab 1: Leaderboard Table */}
+              {/* Tab 1: Leaderboard Table & Championship Podium */}
               {activeTab === 'leaderboard' && (
-                <LeagueLeaderboardTable
-                  leaderboard={leaderboard}
-                  categories={selectedLeague?.categories || []}
-                  selectedCategory={selectedCategory}
-                  onCategoryChange={setSelectedCategory}
-                  selectedGender={selectedGender}
-                  onGenderChange={setSelectedGender}
-                  searchQuery={searchQuery}
-                  onSearchChange={setSearchQuery}
-                  loading={boardLoading}
-                  onSelectSwimmer={handleSelectSwimmer}
-                  onExportCsv={handleExportCsv}
-                />
+                <div className="space-y-4">
+                  {/* Top Three Swimmers Championship Podium */}
+                  <LeaguePodium
+                    topSwimmers={leaderboard.slice(0, 3)}
+                    onSelectSwimmer={handleSelectSwimmer}
+                  />
+
+                  {/* Leaderboard Table with Search & Advanced Filter Toolbar */}
+                  <LeagueLeaderboardTable
+                    leaderboard={leaderboard}
+                    categories={selectedLeague?.categories || []}
+                    selectedCategory={selectedCategory}
+                    onCategoryChange={setSelectedCategory}
+                    selectedGender={selectedGender}
+                    onGenderChange={setSelectedGender}
+                    searchQuery={searchQuery}
+                    onSearchChange={setSearchQuery}
+                    loading={boardLoading}
+                    onSelectSwimmer={handleSelectSwimmer}
+                    onExportCsv={handleExportCsv}
+                  />
+                </div>
               )}
 
-              {/* Tab 2: Competitions View */}
+              {/* Tab 2: Competitions & Events Management */}
               {activeTab === 'competitions' && (
                 <LeagueCompetitionsView
                   competitions={competitions}
@@ -516,7 +463,7 @@ export const AdminLeaguesPage = () => {
                 />
               )}
 
-              {/* Tab 4: Seasons Archive */}
+              {/* Tab 4: Seasons Archive & Management */}
               {activeTab === 'seasons' && (
                 <LeagueSeasonsArchive
                   leagues={leagues}

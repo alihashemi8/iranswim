@@ -558,8 +558,7 @@ class SwimmerDocumentDownloadView(APIView):
                     (
                         Q(group__coach_assignments__coach=coach_profile) &
                         (Q(group__coach_assignments__assigned_to__isnull=True) | Q(group__coach_assignments__assigned_to__gte=today))
-                    ) |
-                    Q(group__sessions__coach=coach_profile)
+                    )
                 ).exists()
 
                 if is_assigned:

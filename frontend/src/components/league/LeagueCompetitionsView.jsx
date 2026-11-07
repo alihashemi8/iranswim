@@ -93,7 +93,7 @@ export const LeagueCompetitionsView = ({
 
         <Button
           onClick={onOpenCreateModal}
-          className="gap-1.5 text-xs bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold self-start sm:self-auto cursor-pointer"
+          className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>تعریف مسابقه جدید</span>
@@ -170,7 +170,7 @@ export const LeagueCompetitionsView = ({
                       size="sm"
                       onClick={() => onOpenRecordResultsModal(comp)}
                       className={`gap-1.5 text-xs h-8.5 font-bold ${
-                        !isCompleted ? 'bg-amber-500 hover:bg-amber-600 text-slate-950' : ''
+                        !isCompleted ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''
                       }`}
                     >
                       <Trophy className="w-3.5 h-3.5" />
