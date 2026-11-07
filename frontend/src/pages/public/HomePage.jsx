@@ -558,47 +558,7 @@ export const HomePage = () => {
     setActiveFacilityDot(index);
   };
 
-  // Hero feature cards smooth scroll tracking for mobile
-  const heroFeaturesTrackRef = useRef(null);
-  const [activeHeroFeatureDot, setActiveHeroFeatureDot] = useState(0);
 
-  const handleHeroFeatureScroll = () => {
-    const track = heroFeaturesTrackRef.current;
-    if (!track) return;
-    const cards = Array.from(track.children);
-    if (!cards || cards.length === 0) return;
-
-    const trackRect = track.getBoundingClientRect();
-    const trackCenter = trackRect.left + trackRect.width / 2;
-    let closestIndex = 0;
-    let minDiff = Infinity;
-
-    cards.forEach((card, idx) => {
-      const cardRect = card.getBoundingClientRect();
-      const cardCenter = cardRect.left + cardRect.width / 2;
-      const diff = Math.abs(trackCenter - cardCenter);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIndex = idx;
-      }
-    });
-
-    setActiveHeroFeatureDot(closestIndex);
-  };
-
-  const scrollToHeroFeature = (index) => {
-    const track = heroFeaturesTrackRef.current;
-    if (!track) return;
-    const cards = Array.from(track.children);
-    const card = cards[index];
-    if (!card) return;
-
-    const trackRect = track.getBoundingClientRect();
-    const cardRect = card.getBoundingClientRect();
-    const delta = (cardRect.left + cardRect.width / 2) - (trackRect.left + trackRect.width / 2);
-    track.scrollBy({ left: delta, behavior: 'smooth' });
-    setActiveHeroFeatureDot(index);
-  };
 
   useEffect(() => {
     const fetchLandingData = async () => {
@@ -744,13 +704,9 @@ export const HomePage = () => {
   };
 
   const renderHeroFeatureCards = () => (
-    <div className="space-y-2">
-      <div
-        ref={heroFeaturesTrackRef}
-        onScroll={handleHeroFeatureScroll}
-        className="flex sm:grid sm:grid-cols-4 overflow-x-auto sm:overflow-visible gap-2.5 sm:gap-3.5 lg:gap-4 items-stretch landing-scroll-track pb-2 pt-1 px-1 -mx-1 snap-x snap-mandatory sm:snap-none"
-      >
-        <div className="hero-feature-card w-[72vw] max-w-[260px] sm:w-full shrink-0 snap-center sm:snap-none p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
+    <div className="w-full">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5 md:gap-3 lg:gap-4 items-stretch w-full">
+        <div className="hero-feature-card w-full p-2.5 sm:p-3 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
           <div className="hero-feature-header flex items-center gap-1.5 text-black text-xs sm:text-sm lg:text-[14px] font-black whitespace-nowrap">
             <Waves className="w-4 h-4 text-cyan-600 shrink-0" />
             <span className="hero-feature-title font-black text-black whitespace-nowrap">آموزش ۴ شنا</span>
@@ -758,7 +714,7 @@ export const HomePage = () => {
           <p className="hero-feature-desc text-xs sm:text-[13px] text-slate-800 font-semibold leading-snug sm:leading-relaxed">کرال سینه، پشت، قورباغه و پروانه</p>
         </div>
 
-        <div className="hero-feature-card w-[72vw] max-w-[260px] sm:w-full shrink-0 snap-center sm:snap-none p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
+        <div className="hero-feature-card w-full p-2.5 sm:p-3 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
           <div className="hero-feature-header flex items-center gap-1.5 text-black text-xs sm:text-sm lg:text-[14px] font-black whitespace-nowrap">
             <Award className="w-4 h-4 text-cyan-600 shrink-0" />
             <span className="hero-feature-title font-black text-black whitespace-nowrap">مربیان رسمی</span>
@@ -766,7 +722,7 @@ export const HomePage = () => {
           <p className="hero-feature-desc text-xs sm:text-[13px] text-slate-800 font-semibold leading-snug sm:leading-relaxed">دارای کارت مربیگری و نجات‌غریق</p>
         </div>
 
-        <div className="hero-feature-card w-[72vw] max-w-[260px] sm:w-full shrink-0 snap-center sm:snap-none p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
+        <div className="hero-feature-card w-full p-2.5 sm:p-3 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
           <div className="hero-feature-header flex items-center gap-1.5 text-black text-xs sm:text-sm lg:text-[14px] font-black whitespace-nowrap">
             <Users2 className="w-4 h-4 text-cyan-600 shrink-0" />
             <span className="hero-feature-title font-black text-black whitespace-nowrap">کودکان و بزرگسالان</span>
@@ -774,30 +730,13 @@ export const HomePage = () => {
           <p className="hero-feature-desc text-xs sm:text-[13px] text-slate-800 font-semibold leading-snug sm:leading-relaxed">از ۵ سال تا رده‌های بزرگسال</p>
         </div>
 
-        <div className="hero-feature-card w-[72vw] max-w-[260px] sm:w-full shrink-0 snap-center sm:snap-none p-3 sm:p-3.5 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
+        <div className="hero-feature-card w-full p-2.5 sm:p-3 lg:p-4 rounded-2xl bg-white/95 border-2 border-cyan-100/90 shadow-[0_4px_16px_rgba(0,0,0,0.08)] flex flex-col justify-start gap-1.5 hover:shadow-lg transition-all h-full">
           <div className="hero-feature-header flex items-center gap-1.5 text-black text-xs sm:text-sm lg:text-[14px] font-black whitespace-nowrap">
             <MapPin className="w-4 h-4 text-cyan-600 shrink-0" />
             <span className="hero-feature-title font-black text-black whitespace-nowrap">استخرهای قزوین</span>
           </div>
           <p className="hero-feature-desc text-xs sm:text-[13px] text-slate-800 font-semibold leading-snug sm:leading-relaxed">محیط تمیز، بهداشتی و ایمن</p>
         </div>
-      </div>
-
-      {/* Subtle indicator dots on mobile */}
-      <div className="flex sm:hidden items-center justify-center gap-1.5 pt-0.5" aria-hidden="true">
-        {[0, 1, 2, 3].map((idx) => (
-          <button
-            key={idx}
-            type="button"
-            onClick={() => scrollToHeroFeature(idx)}
-            className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-              activeHeroFeatureDot === idx
-                ? 'w-5 bg-cyan-400 shadow-xs'
-                : 'w-1.5 bg-cyan-900/30'
-            }`}
-            aria-label={`کارت ${idx + 1}`}
-          />
-        ))}
       </div>
     </div>
   );
@@ -1073,11 +1012,11 @@ export const HomePage = () => {
                 return (
                   <article
                     key={course.id}
-                    className={`landing-course landing-course--${index % 3} flex flex-col justify-between h-full`}
+                    className={`landing-course landing-course--${index % 3} flex flex-col justify-between h-full flex-1`}
                   >
-                    <div>
+                    <div className="flex-1 flex flex-col">
                       <div className="flex items-start justify-between gap-3">
-                        <div>
+                        <div className="flex-1 min-w-0">
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="landing-course__eyebrow">
                               {course.status === 'ACTIVE' ? 'ثبت‌نام فعال' : 'پیش‌ثبت‌نام'}
@@ -1088,15 +1027,15 @@ export const HomePage = () => {
                               </span>
                             )}
                           </div>
-                          <h3 className="mt-2 text-lg font-bold text-slate-900 dark:text-slate-100">
+                          <h3 className="mt-2 text-lg font-bold text-slate-900 dark:text-slate-100 min-h-[3.25rem] sm:min-h-[3.5rem] flex items-center leading-snug line-clamp-2">
                             {course.name}
                           </h3>
                         </div>
-                        <Waves className="w-6 h-6 shrink-0 text-cyan-600 dark:text-cyan-400" aria-hidden="true" />
+                        <Waves className="w-6 h-6 shrink-0 text-cyan-600 dark:text-cyan-400 mt-1" aria-hidden="true" />
                       </div>
 
                       {/* رده سنی و جنسیت */}
-                      <div className="mt-4 flex flex-wrap items-center gap-2">
+                      <div className="mt-3.5 sm:mt-4 flex flex-wrap items-center gap-2">
                         <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/70 border border-sky-300/70 dark:border-sky-800/60 text-sky-900 dark:text-sky-200 text-xs">
                           <Users2 className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
                           <span className="text-slate-500 dark:text-slate-400">رده سنی:</span>
@@ -1110,24 +1049,28 @@ export const HomePage = () => {
                       </div>
 
                       {/* چیزی که یاد میدن */}
-                      <div className="mt-4 p-3.5 rounded-xl bg-cyan-950/5 dark:bg-slate-900/60 border border-cyan-500/20 text-xs">
-                        <div className="flex items-center gap-1.5 font-bold text-cyan-900 dark:text-cyan-200 mb-1.5">
+                      <div className="mt-3.5 sm:mt-4 p-3.5 rounded-xl bg-cyan-950/5 dark:bg-slate-900/60 border border-cyan-500/20 text-xs flex-1 flex flex-col justify-start">
+                        <div className="flex items-center gap-1.5 font-bold text-cyan-900 dark:text-cyan-200 mb-1.5 shrink-0">
                           <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                           <span>آنچه در این دوره یاد می‌گیرید:</span>
                         </div>
-                        <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-justify">
+                        <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-justify line-clamp-3 min-h-[3.8rem]">
                           {details.whatYouLearn}
                         </p>
                       </div>
 
-                      {/* اطلاعات زمان‌بندی در صورت وجود */}
-                      {schedule && (
-                        <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
-                          <Clock className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
-                          <span className="text-slate-500 dark:text-slate-400">برنامه کلاسی:</span>
-                          <span className="font-semibold text-slate-800 dark:text-slate-200">{schedule}</span>
-                        </div>
-                      )}
+                      {/* اطلاعات زمان‌بندی در صورت وجود یا پیام هماهنگی سانس */}
+                      <div className="mt-3 flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300 min-h-[1.5rem]">
+                        <Clock className="w-3.5 h-3.5 text-cyan-600 dark:text-cyan-400 shrink-0" />
+                        {schedule ? (
+                          <>
+                            <span className="text-slate-500 dark:text-slate-400 shrink-0">برنامه کلاسی:</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">{schedule}</span>
+                          </>
+                        ) : (
+                          <span className="text-slate-400 dark:text-slate-500 text-[11px] truncate">برنامه کلاسی: هماهنگی سانس با پذیرش</span>
+                        )}
+                      </div>
 
                       {/* اطلاعات جلسات و سقف اقساط مجاز */}
                       <div className="mt-3.5 pt-3 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 border-t border-cyan-500/20">
@@ -1141,7 +1084,7 @@ export const HomePage = () => {
                     <button
                       type="button"
                       onClick={() => handleOpenEnroll(course)}
-                      className="landing-course__link mt-5 inline-flex items-center justify-between gap-2 pt-3 border-t border-cyan-500/20 font-bold w-full cursor-pointer text-right"
+                      className="landing-course__link mt-4 pt-3 border-t border-cyan-500/20 font-bold w-full cursor-pointer text-right inline-flex items-center justify-between gap-2 transition-colors hover:text-cyan-700"
                     >
                       <span>ثبت‌نام و انتخاب اقساط</span>
                       <ArrowLeft className="w-4 h-4" aria-hidden="true" />
@@ -1193,7 +1136,7 @@ export const HomePage = () => {
             renderItem={(pool) => {
               const poster = pool.poster_image_url || pool.poster_image || 'https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?auto=format&fit=crop&w=800&q=80';
               return (
-                <article className="landing-news-card group bg-white/95 rounded-3xl border-2 border-cyan-100 overflow-hidden shadow-sm hover:shadow-cyan-500/10 hover:border-cyan-400/50 transition-all duration-300 flex flex-col justify-between h-full">
+                <article className="landing-news-card group bg-white/95 rounded-3xl border-2 border-cyan-100 overflow-hidden shadow-sm hover:shadow-cyan-500/10 hover:border-cyan-400/50 transition-all duration-300 flex flex-col justify-between h-full flex-1">
                   <div>
                     {/* Primary Card: Poster Photo */}
                     <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-slate-900">
@@ -1518,7 +1461,7 @@ export const HomePage = () => {
               const imgUrl = getNewsImage(item, index);
               const CategoryIcon = getNewsCategoryIcon(item.category);
               return (
-                <article className="landing-news-card group bg-white/95 rounded-3xl border-2 border-cyan-100 overflow-hidden shadow-sm hover:shadow-cyan-500/10 hover:border-cyan-400/50 transition-all duration-300 flex flex-col justify-between h-full">
+                <article className="landing-news-card group bg-white/95 rounded-3xl border-2 border-cyan-100 overflow-hidden shadow-sm hover:shadow-cyan-500/10 hover:border-cyan-400/50 transition-all duration-300 flex flex-col justify-between h-full flex-1">
                   <div>
                     <div className="relative h-48 sm:h-52 w-full overflow-hidden bg-slate-900">
                       <img

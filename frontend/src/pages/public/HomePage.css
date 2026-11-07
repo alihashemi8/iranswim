@@ -445,14 +445,49 @@
   border-radius: 1.5rem 0.45rem 1.5rem 1.5rem;
 }
 
-.landing-carousel .landing-course,
-.landing-carousel .landing-course--1 {
-  margin-top: 0;
-  height: 100%;
-}
-
 .landing-course--2 {
   background: rgb(238 248 250 / 96%);
+}
+
+.landing-carousel .carousel-track {
+  display: flex !important;
+  align-items: stretch !important;
+}
+
+.landing-carousel .carousel-track > div {
+  display: flex !important;
+  flex-direction: column !important;
+  align-self: stretch !important;
+  height: auto !important;
+}
+
+.landing-carousel .carousel-track > div > div {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 0% !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.landing-carousel .carousel-track > div > div > * {
+  flex: 1 1 0% !important;
+  min-height: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.landing-carousel .landing-course,
+.landing-carousel .landing-course--0,
+.landing-carousel .landing-course--1,
+.landing-carousel .landing-course--2 {
+  margin-top: 0 !important;
+  height: 100% !important;
+  min-height: 100% !important;
+  flex: 1 1 0% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
 }
 
 .landing-course > div:first-child > svg {
@@ -1086,14 +1121,41 @@
 
 @media (max-width: 640px) {
   .landing-experience .landing-hero__panel .hero-feature-card {
-    min-height: 98px !important;
+    min-height: 94px !important;
+    padding: 0.65rem 0.6rem !important;
+  }
+
+  .landing-experience .landing-hero__panel .hero-feature-card .hero-feature-header {
+    gap: 0.3rem !important;
+  }
+
+  .landing-experience .landing-hero__panel .hero-feature-card .hero-feature-title {
+    font-size: 0.78rem !important;
   }
 
   .landing-experience .landing-hero__panel .hero-feature-card p,
   .landing-experience .landing-hero__panel .hero-feature-card .hero-feature-desc {
-    font-size: 0.85rem !important;
-    line-height: 1.4 !important;
-    min-height: 2.35rem !important;
+    font-size: 0.75rem !important;
+    line-height: 1.35 !important;
+    min-height: 2.1rem !important;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .landing-experience .landing-hero__panel .hero-feature-card {
+    min-height: 102px !important;
+    padding: 0.7rem 0.55rem !important;
+  }
+
+  .landing-experience .landing-hero__panel .hero-feature-card .hero-feature-title {
+    font-size: 0.82rem !important;
+  }
+
+  .landing-experience .landing-hero__panel .hero-feature-card p,
+  .landing-experience .landing-hero__panel .hero-feature-card .hero-feature-desc {
+    font-size: 0.78rem !important;
+    line-height: 1.35 !important;
+    min-height: 2.3rem !important;
   }
 }
 

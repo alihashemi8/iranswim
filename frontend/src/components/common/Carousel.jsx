@@ -342,12 +342,14 @@ export const Carousel = ({
               <div
                 key={item.id || index}
                 ref={(el) => (cardsRef.current[index] = el)}
-                className={`shrink-0 min-w-0 flex flex-col items-stretch h-full snap-center sm:snap-start w-[85vw] max-w-[340px] xs:w-[82vw] xs:max-w-[360px] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] px-2 sm:px-3 ${itemClassName}`}
+                className={`shrink-0 min-w-0 flex flex-col items-stretch self-stretch h-full snap-center sm:snap-start w-[85vw] max-w-[340px] xs:w-[82vw] xs:max-w-[360px] sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)] px-2 sm:px-3 ${itemClassName}`}
                 role="group"
                 aria-roledescription="slide"
                 aria-label={`${index + 1} از ${totalItems}`}
               >
-                {renderItem(item, index)}
+                <div className="w-full flex-1 flex flex-col h-full">
+                  {renderItem(item, index)}
+                </div>
               </div>
             ))}
           </div>
