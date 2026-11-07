@@ -197,31 +197,31 @@ export const AdminAnnouncementsPage = () => {
   });
 
   return (
-    <div className="space-y-6" dir="rtl">
+    <div className="space-y-4 sm:space-y-6" dir="rtl">
       {/* Header */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
+      <div className="bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4 transition-colors">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Bell className="w-5 h-5 text-sky-600" />
-            مرکز پیام‌ها و اعلان‌های مدیریت
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Bell className="w-5 h-5 text-sky-600 shrink-0" />
+            <span>مرکز پیام‌ها و اعلان‌های مدیریت</span>
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            مشاهده هشدارهای سیستمی و ارسال مدارک شناگران، به همراه ارسال اطلاعیه‌های عمومی به کاربران
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+            مشاهده هشدارهای سیستمی و ارسال مدارک شناگران، به همراه ارسال اطلاعیه‌های عمومی
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             type="button"
             onClick={fetchData}
             disabled={loading}
-            className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="p-2 sm:p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
             title="به‌روزرسانی لیست اعلان‌ها"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
           <Button
             onClick={() => navigate('/admin/announcements/new')}
-            className="gap-1.5 text-xs font-bold"
+            className="flex-1 sm:flex-none justify-center gap-1.5 text-xs font-bold"
           >
             <Send className="w-4 h-4" />
             <span>ارسال اطلاعیه جدید</span>
@@ -230,25 +230,27 @@ export const AdminAnnouncementsPage = () => {
       </div>
 
       {/* Navigation Tabs Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-3">
-        <div className="inline-flex items-center bg-slate-100 dark:bg-slate-800/90 p-1 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 shadow-2xs gap-1">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 border-b border-slate-200/80 dark:border-slate-800 pb-3">
+        {/* Responsive Segmented Tabs: 2-column grid on mobile, inline-flex on desktop */}
+        <div className="w-full sm:w-auto grid grid-cols-2 sm:inline-flex items-center bg-slate-100 dark:bg-slate-800/90 p-1 sm:p-1.5 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 shadow-2xs gap-1">
           <button
             type="button"
             onClick={() => handleTabChange('NOTIFICATIONS')}
-            className={`py-2 px-4 sm:px-5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-2 ${
+            className={`py-2 px-2 sm:px-5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 ${
               activeTab === 'NOTIFICATIONS'
                 ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-xs border border-slate-200/60 dark:border-slate-700/80'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/40'
             }`}
           >
-            <Inbox className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-            <span>اعلان‌های دریافتی مدیریت</span>
+            <Inbox className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+            <span className="sm:hidden">اعلان‌ها</span>
+            <span className="hidden sm:inline">اعلان‌های دریافتی مدیریت</span>
             {unreadNotifCount > 0 ? (
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-rose-500 text-white shadow-2xs animate-pulse">
-                {unreadNotifCount} جدید
+              <span className="px-1.5 sm:px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-bold bg-rose-500 text-white shadow-2xs animate-pulse shrink-0">
+                {unreadNotifCount} <span className="hidden xs:inline sm:inline">جدید</span>
               </span>
             ) : (
-              <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 font-mono">
+              <span className="text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 font-mono shrink-0">
                 {notifications.length}
               </span>
             )}
@@ -257,27 +259,28 @@ export const AdminAnnouncementsPage = () => {
           <button
             type="button"
             onClick={() => handleTabChange('ANNOUNCEMENTS')}
-            className={`py-2 px-4 sm:px-5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-2 ${
+            className={`py-2 px-2 sm:px-5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center justify-center gap-1.5 sm:gap-2 ${
               activeTab === 'ANNOUNCEMENTS'
                 ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-xs border border-slate-200/60 dark:border-slate-700/80'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/50 dark:hover:bg-slate-700/40'
             }`}
           >
-            <Bell className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-            <span>اطلاعیه‌های ارسالی آموزشگاه</span>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 font-mono">
+            <Bell className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+            <span className="sm:hidden">اطلاعیه‌ها</span>
+            <span className="hidden sm:inline">اطلاعیه‌های ارسالی آموزشگاه</span>
+            <span className="text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 font-mono shrink-0">
               {announcements.length}
             </span>
           </button>
         </div>
 
-        {/* Mark all as read button aligned neatly on the left */}
+        {/* Mark all as read button */}
         {activeTab === 'NOTIFICATIONS' && unreadNotifCount > 0 && (
           <button
             type="button"
             onClick={handleMarkAllNotifsAsRead}
             disabled={markingAll}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 dark:hover:bg-sky-900/60 border border-sky-200 dark:border-sky-800/80 transition-colors cursor-pointer self-start sm:self-auto"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 px-3.5 py-2 sm:py-1.5 rounded-xl text-xs font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 dark:hover:bg-sky-900/60 border border-sky-200 dark:border-sky-800/80 transition-colors cursor-pointer"
           >
             {markingAll ? (
               <Loader2 className="w-3.5 h-3.5 animate-spin text-sky-600" />
@@ -293,13 +296,13 @@ export const AdminAnnouncementsPage = () => {
       {/* TAB 1: INCOMING NOTIFICATIONS                                  */}
       {/* ============================================================= */}
       {activeTab === 'NOTIFICATIONS' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between px-1">
-            <span className="text-xs font-bold text-slate-600 dark:text-slate-300">
-              پیام‌های سیستمی، هشدارهای مدارک و گزارش‌های کاربری:
+        <div className="space-y-3 sm:space-y-4">
+          <div className="flex items-center justify-between px-1 text-xs">
+            <span className="font-bold text-slate-600 dark:text-slate-300 truncate">
+              هشدارهای سیستمی و مدارک شناگران:
             </span>
-            <span className="text-xs text-slate-400 font-mono">
-              مجموع: {notifications.length} اعلان ({unreadNotifCount} خوانده نشده)
+            <span className="text-slate-400 font-mono shrink-0 mr-2">
+              {unreadNotifCount > 0 ? `${unreadNotifCount} پیام خوانده‌نشده` : 'همه خوانده‌شده'}
             </span>
           </div>
 
@@ -325,7 +328,7 @@ export const AdminAnnouncementsPage = () => {
                   label: 'سیستمی',
                   color: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300 border-slate-200 dark:border-slate-700',
                 };
-                let catIcon = <Bell className="w-5 h-5" />;
+                let catIcon = <Bell className="w-4 h-4 sm:w-5 sm:h-5" />;
                 let iconBg = 'bg-sky-100 dark:bg-sky-950 text-sky-600 dark:text-sky-400';
                 let actionLabel = 'مشاهده جزئیات';
 
@@ -334,7 +337,7 @@ export const AdminAnnouncementsPage = () => {
                     label: 'مدارک شناگر',
                     color: 'bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800',
                   };
-                  catIcon = <ShieldCheck className="w-5 h-5" />;
+                  catIcon = <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5" />;
                   iconBg = 'bg-amber-100 dark:bg-amber-950 text-amber-600 dark:text-amber-400';
                   actionLabel = 'بررسی مدارک شناگر';
                 } else if (notif.category === 'REGISTRATION') {
@@ -342,7 +345,7 @@ export const AdminAnnouncementsPage = () => {
                     label: 'ثبت‌نام',
                     color: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
                   };
-                  catIcon = <UserPlus className="w-5 h-5" />;
+                  catIcon = <UserPlus className="w-4 h-4 sm:w-5 sm:h-5" />;
                   iconBg = 'bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400';
                   actionLabel = 'مشاهده پرونده شناگر';
                 } else if (
@@ -355,9 +358,9 @@ export const AdminAnnouncementsPage = () => {
                     label: 'امور مالی و شهریه',
                     color: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-950/80 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800',
                   };
-                  catIcon = <CreditCard className="w-5 h-5" />;
+                  catIcon = <CreditCard className="w-4 h-4 sm:w-5 sm:h-5" />;
                   iconBg = 'bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400';
-                  actionLabel = 'مشاهده وضعیت مالی و اقساط';
+                  actionLabel = 'مشاهده امور مالی و اقساط';
                 } else if (
                   notif.category === 'SCHEDULE' ||
                   notif.title?.includes('سانس') ||
@@ -367,7 +370,7 @@ export const AdminAnnouncementsPage = () => {
                     label: 'برنامه و سانس استخر',
                     color: 'bg-teal-100 text-teal-800 dark:bg-teal-950/80 dark:text-teal-300 border-teal-200 dark:border-teal-800',
                   };
-                  catIcon = <Calendar className="w-5 h-5" />;
+                  catIcon = <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />;
                   iconBg = 'bg-teal-100 dark:bg-teal-950 text-teal-600 dark:text-teal-400';
                   actionLabel = 'مشاهده برنامه سانس‌ها';
                 }
@@ -375,41 +378,38 @@ export const AdminAnnouncementsPage = () => {
                 return (
                   <div
                     key={notif.id}
-                    className={`p-4 sm:p-5 rounded-2xl border transition-all ${
+                    className={`p-3.5 sm:p-5 rounded-2xl border transition-all ${
                       notif.is_read
                         ? 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-slate-300'
                         : 'bg-gradient-to-r from-sky-50/70 via-white to-white dark:from-sky-950/30 dark:via-slate-900 dark:to-slate-900 border-sky-300 dark:border-sky-800/80 shadow-xs'
                     }`}
                   >
-                    <div className="flex items-start gap-3.5">
+                    <div className="flex items-start gap-3 sm:gap-3.5">
                       {/* Category Icon */}
-                      <div className={`p-2.5 rounded-xl shrink-0 mt-0.5 ${iconBg}`}>
+                      <div className={`p-2 sm:p-2.5 rounded-xl shrink-0 mt-0.5 ${iconBg}`}>
                         {catIcon}
                       </div>
 
-                      {/* Content */}
+                      {/* Content Container */}
                       <div className="flex-1 min-w-0 space-y-2">
-                        {/* Card Header */}
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`text-[11px] font-bold px-2.5 py-0.5 rounded-lg border ${catBadge.color}`}>
+                        {/* Row 1: Badges & Top Meta */}
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 flex-wrap">
+                            <span className={`text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md border ${catBadge.color}`}>
                               {catBadge.label}
                             </span>
-                            <h3 className="font-bold text-sm text-slate-900 dark:text-white">
-                              {notif.title}
-                            </h3>
                             {!notif.is_read && (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/60 px-2 py-0.5 rounded-md">
+                              <span className="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/60 px-1.5 py-0.5 rounded-md">
                                 <span className="w-1.5 h-1.5 rounded-full bg-sky-500 animate-pulse" />
                                 جدید
                               </span>
                             )}
                           </div>
 
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1.5">
-                              <Clock className="w-3.5 h-3.5 text-slate-400" />
-                              {formatPersianDate(notif.created_at, 'YYYY/MM/DD - HH:mm')}
+                          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+                            <span className="text-[11px] sm:text-xs text-slate-400 dark:text-slate-500 font-mono flex items-center gap-1">
+                              <Clock className="w-3 h-3 text-slate-400" />
+                              {formatPersianDate(notif.created_at, 'MM/DD - HH:mm')}
                             </span>
 
                             {/* Mark read toggle button */}
@@ -418,7 +418,7 @@ export const AdminAnnouncementsPage = () => {
                                 type="button"
                                 onClick={(e) => handleMarkNotifAsRead(notif.id, e)}
                                 disabled={isMarking}
-                                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-bold rounded-lg text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 hover:text-sky-700 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
+                                className="inline-flex items-center gap-1 px-2 py-1 text-[11px] font-bold rounded-lg text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-sky-100 hover:text-sky-700 dark:hover:bg-slate-700 transition-colors border border-slate-200 dark:border-slate-700 cursor-pointer"
                                 title="علامت‌گذاری به‌عنوان خوانده‌شده"
                               >
                                 {isMarking ? (
@@ -426,29 +426,34 @@ export const AdminAnnouncementsPage = () => {
                                 ) : (
                                   <Check className="w-3.5 h-3.5 text-slate-500" />
                                 )}
-                                <span>خوانده شد</span>
+                                <span className="hidden sm:inline">خوانده شد</span>
                               </button>
                             ) : (
-                              <span className="text-[11px] text-slate-400 font-medium flex items-center gap-1">
+                              <span className="text-[11px] text-slate-400 font-medium flex items-center gap-0.5">
                                 <CheckCheck className="w-3.5 h-3.5 text-emerald-500" />
-                                خوانده‌شده
+                                <span className="hidden sm:inline">خوانده‌شده</span>
                               </span>
                             )}
                           </div>
                         </div>
 
-                        {/* Message body */}
+                        {/* Row 2: Title */}
+                        <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white leading-snug">
+                          {notif.title}
+                        </h3>
+
+                        {/* Row 3: Message Body */}
                         <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                           {notif.message}
                         </p>
 
-                        {/* Action Button */}
+                        {/* Row 4: Action Button (Responsive full-width on mobile) */}
                         {notif.link && (
-                          <div className="pt-1.5">
+                          <div className="pt-1">
                             <Link
                               to={notif.link}
                               onClick={() => !notif.is_read && handleMarkNotifAsRead(notif.id)}
-                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white transition-colors shadow-2xs"
+                              className="inline-flex items-center justify-center gap-1.5 w-full sm:w-auto px-4 py-2 sm:py-1.5 rounded-xl text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white transition-colors shadow-2xs text-center"
                             >
                               <span>{actionLabel}</span>
                               <ArrowLeft className="w-3.5 h-3.5" />
@@ -471,7 +476,7 @@ export const AdminAnnouncementsPage = () => {
       {activeTab === 'ANNOUNCEMENTS' && (
         <div className="space-y-4">
           {/* Filters Bar */}
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-3 sm:p-4 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="relative w-full sm:w-72">
               <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
               <input
@@ -497,7 +502,7 @@ export const AdminAnnouncementsPage = () => {
           {loading ? (
             <LoadingState type="list" count={4} message="در حال دریافت اطلاعیه‌های ارسالی..." />
           ) : error ? (
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-900/60 p-8 text-center space-y-3">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-rose-200 dark:border-rose-900/60 p-6 sm:p-8 text-center space-y-3">
               <AlertCircle className="w-10 h-10 text-rose-500 mx-auto" />
               <h3 className="text-sm font-bold text-rose-700 dark:text-rose-400">{error}</h3>
               <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
@@ -528,7 +533,7 @@ export const AdminAnnouncementsPage = () => {
               description="لطفاً عبارت جستجو یا فیلتر دسته‌بندی مخاطبان را تغییر دهید."
             />
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {filteredAnnouncements.map((item) => {
                 const targetGroupName =
                   item.target_group &&
@@ -537,76 +542,81 @@ export const AdminAnnouncementsPage = () => {
                 return (
                   <div
                     key={item.id}
-                    className={`p-5 rounded-2xl border transition-colors shadow-xs ${
+                    className={`p-3.5 sm:p-5 rounded-2xl border transition-colors shadow-xs ${
                       item.is_pinned
-                        ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/60'
+                        ? 'bg-amber-50/40 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/60'
                         : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800'
                     }`}
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80 gap-2">
-                      <div className="flex items-center gap-2">
-                        {item.is_pinned && (
-                          <span className="flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/60 px-2 py-0.5 rounded-md">
-                            <Pin className="w-3 h-3 rotate-45" />
-                            مهم و پین‌شده
+                    <div className="space-y-2 pb-3 border-b border-slate-100 dark:border-slate-800/80">
+                      {/* Row 1: Badges & Actions */}
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <Badge
+                            variant={
+                              item.audience === 'ALL'
+                                ? 'info'
+                                : item.audience === 'GROUP'
+                                ? 'warning'
+                                : 'neutral'
+                            }
+                          >
+                            {targetGroupName
+                              ? `گروه: ${targetGroupName}`
+                              : audienceLabels[item.audience] || item.audience}
+                          </Badge>
+                          {item.is_pinned && (
+                            <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/60 px-2 py-0.5 rounded-md">
+                              <Pin className="w-3 h-3 rotate-45" />
+                              پین‌شده
+                            </span>
+                          )}
+                          {item.send_sms && (
+                            <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/60 px-2 py-0.5 rounded-md">
+                              <Smartphone className="w-3 h-3" />
+                              پیامک
+                            </span>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className="text-[11px] sm:text-xs text-slate-400 dark:text-slate-500 font-mono flex items-center gap-1">
+                            <Clock className="w-3 h-3 text-slate-400" />
+                            {formatPersianDate(item.created_at, 'YYYY/MM/DD')}
                           </span>
-                        )}
-                        {item.send_sms && (
-                          <span className="flex items-center gap-1 text-[11px] font-bold text-sky-700 dark:text-sky-300 bg-sky-100 dark:bg-sky-900/60 px-2 py-0.5 rounded-md">
-                            <Smartphone className="w-3 h-3" />
-                            پیامک
-                          </span>
-                        )}
-                        <h3 className="font-bold text-sm text-slate-900 dark:text-white">
-                          {item.title}
-                        </h3>
+                          {/* Pin toggle button */}
+                          <button
+                            type="button"
+                            onClick={() => handleTogglePin(item)}
+                            className={`p-1.5 rounded-lg border text-xs transition-colors cursor-pointer ${
+                              item.is_pinned
+                                ? 'text-amber-600 border-amber-200 dark:border-amber-800 hover:bg-amber-100/50'
+                                : 'text-slate-400 border-slate-200 dark:border-slate-700 hover:text-amber-600'
+                            }`}
+                            title={item.is_pinned ? 'حذف پین' : 'پین کردن اعلان'}
+                          >
+                            <Pin className="w-3.5 h-3.5" />
+                          </button>
+                          {/* Delete button */}
+                          <button
+                            type="button"
+                            onClick={() => handleDelete(item.id)}
+                            disabled={deletingId === item.id}
+                            className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-600 hover:border-rose-300 dark:hover:border-rose-800 transition-colors cursor-pointer disabled:opacity-50"
+                            title="حذف اعلان"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
 
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant={
-                            item.audience === 'ALL'
-                              ? 'info'
-                              : item.audience === 'GROUP'
-                              ? 'warning'
-                              : 'neutral'
-                          }
-                        >
-                          {targetGroupName
-                            ? `گروه: ${targetGroupName}`
-                            : audienceLabels[item.audience] || item.audience}
-                        </Badge>
-                        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono flex items-center gap-1">
-                          <Clock className="w-3.5 h-3.5 text-slate-400" />
-                          {formatPersianDate(item.created_at, 'YYYY/MM/DD')}
-                        </span>
-                        {/* Pin toggle button */}
-                        <button
-                          type="button"
-                          onClick={() => handleTogglePin(item)}
-                          className={`p-1.5 rounded-lg border text-xs transition-colors cursor-pointer ${
-                            item.is_pinned
-                              ? 'text-amber-600 border-amber-200 dark:border-amber-800 hover:bg-amber-100/50'
-                              : 'text-slate-400 border-slate-200 dark:border-slate-700 hover:text-amber-600'
-                          }`}
-                          title={item.is_pinned ? 'حذف پین' : 'پین کردن اعلان'}
-                        >
-                          <Pin className="w-3.5 h-3.5" />
-                        </button>
-                        {/* Delete button */}
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(item.id)}
-                          disabled={deletingId === item.id}
-                          className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-400 hover:text-rose-600 hover:border-rose-300 dark:hover:border-rose-800 transition-colors cursor-pointer disabled:opacity-50"
-                          title="حذف اعلان"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
+                      {/* Row 2: Title */}
+                      <h3 className="font-bold text-sm sm:text-base text-slate-900 dark:text-white leading-snug">
+                        {item.title}
+                      </h3>
                     </div>
 
-                    <div className="pt-3 text-xs text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
+                    <div className="pt-3 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-wrap">
                       {item.message}
                     </div>
                   </div>

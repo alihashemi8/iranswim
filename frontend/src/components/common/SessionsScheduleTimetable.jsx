@@ -1,15 +1,16 @@
 import React, { useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Calendar, Clock, User, MapPin, Download, Printer,
-  FileSpreadsheet, ChevronLeft, ChevronRight,
+  Calendar, Clock, MapPin, Download, Printer,
   BookOpen, GraduationCap, Users, ArrowRight,
-  Layers, CheckCircle2, Search, ExternalLink
+  User, Eye, DollarSign, Sparkles, CheckCircle2
 } from 'lucide-react';
 import { toPng } from 'html-to-image';
+import api from '../../api/client';
 import { Badge } from './Badge';
+import { Modal } from './Modal';
 import { Button } from './Button';
-import { exportToCsv } from '../../utils/exportCsv';
+import { LoadingState } from './LoadingState';
 import { useToast } from '../../context/ToastContext';
 
 // Persian days of the week starting from Saturday (index 0)
@@ -118,7 +119,6 @@ export const SessionsScheduleTimetable = ({
   groups = [],
   coaches = [],
   onRefresh,
-  onOpenCourseSwimmers,
 }) => {
   const navigate = useNavigate();
   const toast = useToast();
@@ -127,11 +127,17 @@ export const SessionsScheduleTimetable = ({
   // States
   const [isExportingPng, setIsExportingPng] = useState(false);
 
-  // Selected Day (0: Saturday ... 6: Friday, or 'ALL')
+  // Selected Day (0: Saturday ... 6: Friday)
   const [selectedDay, setSelectedDay] = useState(() => {
     const jsDay = new Date().getDay();
     return (jsDay + 1) % 7; // today's Persian weekday
   });
+
+  // Selected Course Space State (فضای اختصاصی دوره با یک کلیک)
+  const [selectedCourse, setSelectedCourse] = useState(null);
+  const [courseEnrollments, setCourseEnrollments] = useState([]);
+  const [loadingEnrollments, setLoadingEnrollments] = useState(false);
+  const [courseSpaceTab, setCourseSpaceTab] = useState('classes'); // 'classes' | 'swimmers' | 'info'
 
   // Prepared Course Items with parsed weekdays and times
   const scheduledCourses = useMemo(() => {
@@ -169,13 +175,26 @@ export const SessionsScheduleTimetable = ({
     return map;
   }, [scheduledCourses]);
 
-  // Active courses for current selection
+  // Active courses for current selected day
   const activeCourses = useMemo(() => {
-    if (selectedDay === 'ALL') {
-      return scheduledCourses;
-    }
     return dayCoursesMap[selectedDay] || [];
-  }, [selectedDay, scheduledCourses, dayCoursesMap]);
+  }, [selectedDay, dayCoursesMap]);
+
+  // Click on a course card -> opens the complete Course Space
+  const handleCourseClick = async (course) => {
+    setSelectedCourse(course);
+    setCourseSpaceTab('classes');
+    setLoadingEnrollments(true);
+    try {
+      const res = await api.get(`/education/enrollments/?course_id=${course.id}`);
+      setCourseEnrollments(res.data.results || res.data || []);
+    } catch (err) {
+      console.error(err);
+      setCourseEnrollments([]);
+    } finally {
+      setLoadingEnrollments(false);
+    }
+  };
 
   // High-Resolution PNG Export
   const handleDownloadHighResPng = async () => {
@@ -242,9 +261,9 @@ export const SessionsScheduleTimetable = ({
       {/* Main Container Card */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
         
-        {/* Top Header Bar */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-3">
+        {/* Header Bar */}
+        <div className="flex items-center justify-between gap-3 pb-4 border-b border-slate-100 dark:border-slate-800">
+          <div className="flex items-center gap-2.5">
             <span className="p-2 sm:p-2.5 rounded-2xl bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 border border-sky-200/60 dark:border-sky-800 shrink-0">
               <Calendar className="w-5 h-5 sm:w-6 sm:h-6" />
             </span>
@@ -252,29 +271,29 @@ export const SessionsScheduleTimetable = ({
               <h2 className="font-black text-base sm:text-xl text-slate-900 dark:text-white leading-tight">
                 برنامه هفتگی دوره‌های آموزشی استخر
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                مشاهده زمان‌بندی دوره‌ها، سانس‌های فعال و ورود مستقیم به کلاس‌های هر مربی
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                زمان‌بندی دوره‌ها · با کلیک روی هر کارت، وارد فضای اختصاصی دوره و کلاس‌های آن شوید
               </p>
             </div>
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center gap-2 no-print self-end sm:self-auto shrink-0">
+          <div className="flex items-center gap-2 no-print shrink-0">
             <button
               type="button"
               onClick={handleDownloadHighResPng}
               disabled={isExportingPng}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow-xs transition-all cursor-pointer disabled:opacity-60"
+              className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow-xs transition-all cursor-pointer disabled:opacity-60"
               title="دانلود تصویر باکیفیت"
             >
               <Download className="w-4 h-4" />
-              <span>{isExportingPng ? 'در حال تولید...' : 'دانلود تصویر'}</span>
+              <span className="hidden sm:inline">{isExportingPng ? 'در حال تولید...' : 'دانلود تصویر'}</span>
             </button>
 
             <button
               type="button"
               onClick={handlePrint}
-              className="p-2 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors"
+              className="p-2 text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
               title="چاپ برنامه"
             >
               <Printer className="w-4 h-4" />
@@ -282,11 +301,9 @@ export const SessionsScheduleTimetable = ({
           </div>
         </div>
 
-        {/* =========================================================================
-            DAY SELECTOR TABS (شنبه تا جمعه) - Universal across Desktop, Tablet & Mobile
-           ========================================================================= */}
-        <div className="pt-4 pb-2 no-print">
-          <div className="grid grid-cols-7 gap-1.5 sm:gap-2 bg-slate-100 dark:bg-slate-800/90 p-1.5 rounded-2xl border border-slate-200/70 dark:border-slate-700">
+        {/* Day Selector Tabs (شنبه تا جمعه) */}
+        <div className="pt-3 pb-2 no-print">
+          <div className="grid grid-cols-7 gap-1 sm:gap-2 bg-slate-100 dark:bg-slate-800/90 p-1 sm:p-1.5 rounded-2xl border border-slate-200/70 dark:border-slate-700">
             {WEEKDAYS.map((day) => {
               const count = (dayCoursesMap[day.index] || []).length;
               const isSelected = selectedDay === day.index;
@@ -295,17 +312,17 @@ export const SessionsScheduleTimetable = ({
                   key={day.index}
                   type="button"
                   onClick={() => setSelectedDay(day.index)}
-                  className={`py-2.5 sm:py-3 px-1 sm:px-3 rounded-xl font-bold transition-all flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 cursor-pointer ${
+                  className={`py-2 sm:py-2.5 px-1 sm:px-2 rounded-xl font-bold transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 cursor-pointer ${
                     isSelected
-                      ? 'bg-sky-600 text-white shadow-sm scale-101'
+                      ? 'bg-sky-600 text-white shadow-sm'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40'
                   }`}
                 >
-                  <span className="text-xs sm:text-sm sm:font-extrabold">{day.name}</span>
+                  <span className="text-xs sm:text-sm font-extrabold">{day.name}</span>
                   <span
                     className={`text-[10px] sm:text-xs px-1.5 py-0.2 rounded-full font-mono font-bold ${
                       isSelected
-                        ? 'bg-sky-700/90 text-white'
+                        ? 'bg-sky-700 text-white'
                         : count > 0
                         ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300'
                         : 'bg-slate-200/70 dark:bg-slate-700 text-slate-400'
@@ -319,8 +336,8 @@ export const SessionsScheduleTimetable = ({
           </div>
         </div>
 
-        {/* Printable Root for Content */}
-        <div id="print-schedule-root" ref={printContainerRef} className="pt-3">
+        {/* Printable Content Root */}
+        <div id="print-schedule-root" ref={printContainerRef} className="pt-2">
           {/* Header visible only in PNG & Print exports */}
           <div className="hidden print:block p-4 mb-4 border-b-2 border-slate-300 text-center space-y-1">
             <h2 className="text-xl font-black text-slate-900">مدرسه شنای ایران - جدول برنامه‌ریزی هفتگی دوره‌های آموزشی</h2>
@@ -329,27 +346,27 @@ export const SessionsScheduleTimetable = ({
             </p>
           </div>
 
-          {/* Active Day Title & Stats Bar */}
+          {/* Active Day Header */}
           <div className="flex items-center justify-between px-1 pb-3 text-xs sm:text-sm">
             <div className="flex items-center gap-2">
               <span className="font-extrabold text-slate-900 dark:text-white text-sm sm:text-base">
                 دوره‌های روز {WEEKDAYS.find((w) => w.index === selectedDay)?.name}
               </span>
               <span className="text-xs font-bold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded-lg border border-sky-200/60 dark:border-sky-800">
-                {activeCourses.length} دوره آموزشی
+                {activeCourses.length} دوره
               </span>
             </div>
 
             <span className="text-slate-400 text-xs hidden sm:inline">
-              برای مشاهده سایر روزها، روز مورد نظر را از نوار بالا انتخاب فرمایید
+              روی هر کارت کلیک کنید تا فضای اختصاصی دوره و کلاس‌های آن باز شود
             </span>
           </div>
 
           {/* =========================================================================
-              COURSES CARDS: Spacious, Responsive 2-Column Desktop & 1-Column Mobile
+              CLEAN CARDS: ONLY (اسم دوره، اسم استخر، روز، ساعت)
              ========================================================================= */}
           {activeCourses.length === 0 ? (
-            <div className="text-center py-16 rounded-3xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800 text-slate-400 text-xs sm:text-sm space-y-2">
+            <div className="text-center py-14 rounded-3xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800 text-slate-400 text-xs sm:text-sm space-y-2">
               <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mx-auto text-slate-400">
                 <Calendar className="w-6 h-6" />
               </div>
@@ -357,116 +374,51 @@ export const SessionsScheduleTimetable = ({
                 در روز {WEEKDAYS.find((w) => w.index === selectedDay)?.name} دوره‌ای برنامه‌ریزی نشده است.
               </p>
               <p className="text-xs text-slate-400">
-                برای مشاهده برنامه‌های آموزشی، یکی از روزهای دیگر هفته را از نوار بالا انتخاب فرمایید.
+                برای مشاهده برنامه‌ها، روز دیگری را از نوار بالا انتخاب فرمایید.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4">
               {activeCourses.map((course) => (
                 <div
                   key={course.id}
-                  className="rounded-3xl bg-white dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 p-5 sm:p-6 shadow-xs hover:border-sky-300 dark:hover:border-sky-600 transition-all flex flex-col justify-between gap-4"
+                  onClick={() => handleCourseClick(course)}
+                  className="p-5 rounded-2xl bg-white dark:bg-slate-800/90 border border-slate-200/90 dark:border-slate-700/80 shadow-xs hover:border-sky-400 dark:hover:border-sky-500 hover:shadow-md hover:-translate-y-0.5 transition-all cursor-pointer group flex flex-col justify-between gap-3 active:scale-[0.99]"
                 >
-                  <div className="space-y-3">
-                    {/* Time Pill & Metadata Badges */}
-                    <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-700/60 pb-3">
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-mono font-bold text-xs sm:text-sm border border-amber-200/70 dark:border-amber-800">
-                        <Clock className="w-4 h-4 text-amber-600 shrink-0" />
+                  <div className="space-y-2.5">
+                    {/* ۱. ساعت و ۲. روز */}
+                    <div className="flex items-center justify-between gap-2 border-b border-slate-100 dark:border-slate-700/60 pb-2.5">
+                      {/* ساعت */}
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 font-mono font-bold text-xs border border-sky-200/60 dark:border-sky-800">
+                        <Clock className="w-3.5 h-3.5 text-sky-600" />
                         <span>ساعت {course.timeSlot.label}</span>
                       </div>
 
-                      <div className="flex items-center gap-1.5">
-                        {course.age_range && (
-                          <span className="text-xs font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 px-2.5 py-1 rounded-lg border border-sky-200/60 dark:border-sky-800">
-                            {course.age_range}
-                          </span>
-                        )}
-                        <span className="text-xs font-semibold text-slate-500 bg-slate-100 dark:bg-slate-700/60 px-2.5 py-1 rounded-lg">
-                          {course.days_of_week || 'روزهای فرد'}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Course Title & Pool Location */}
-                    <div>
-                      <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white leading-snug">
-                        {course.name}
-                      </h3>
-                      <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1.5">
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span>{course.pool_location || 'استخر شهید رئیسی'}</span>
-                        </span>
-                        {course.sessions_count && (
-                          <>
-                            <span>•</span>
-                            <span>طول دوره: {course.sessions_count} جلسه</span>
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Embedded Classes & Coaches List */}
-                    <div className="pt-2 border-t border-slate-100 dark:border-slate-700/60 space-y-2">
-                      <div className="flex items-center justify-between text-xs font-bold text-slate-700 dark:text-slate-300">
-                        <span className="flex items-center gap-1.5">
-                          <GraduationCap className="w-4 h-4 text-sky-600" />
-                          <span>کلاس‌ها و مربیان دوره ({(course.groups || []).length} کلاس):</span>
-                        </span>
-                        <span className="text-slate-400 text-[11px] font-mono">ظرفیت لاین: ۱۵ نفر</span>
-                      </div>
-
-                      {(course.groups || []).length === 0 ? (
-                        <p className="text-xs text-slate-400 italic py-1">کلاسی برای این دوره تعریف نشده است.</p>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          {(course.groups || []).map((grp) => {
-                            const coachName = grp.coach_assignments?.[0]?.coach_name || grp.name;
-                            return (
-                              <div
-                                key={grp.id}
-                                onClick={() => navigate(`/admin/classes/${grp.id}`)}
-                                className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-700/50 hover:bg-sky-50 dark:hover:bg-slate-700 border border-slate-200/70 dark:border-slate-600 hover:border-sky-400 transition-all cursor-pointer group/grp active:scale-[0.99]"
-                                title="ورود به فضای این کلاس"
-                              >
-                                <div className="space-y-0.5">
-                                  <div className="font-bold text-xs text-slate-900 dark:text-white group-hover/grp:text-sky-600 transition-colors">
-                                    {grp.name}
-                                  </div>
-                                  <div className="text-[11px] text-slate-500 font-mono">
-                                    ظرفیت: {grp.capacity} نفر ({grp.remaining_capacity || grp.capacity} خالی)
-                                  </div>
-                                </div>
-
-                                <span className="text-xs font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1 group-hover/grp:translate-x-[-2px] transition-transform shrink-0">
-                                  <span>ورود</span>
-                                  <span className="text-sm">←</span>
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Card Bottom Action */}
-                  {onOpenCourseSwimmers && (
-                    <div className="pt-3 border-t border-slate-100 dark:border-slate-700/60 flex items-center justify-between text-xs">
-                      <button
-                        type="button"
-                        onClick={() => onOpenCourseSwimmers(course)}
-                        className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer"
-                      >
-                        <Users className="w-3.5 h-3.5" />
-                        <span>مشاهده کل شناگران دوره و تخصیص مربی ←</span>
-                      </button>
-
-                      <span className="text-slate-400 font-mono text-[11px]">
-                        {(course.groups || []).length} لاین فعال
+                      {/* روز */}
+                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-700/60 px-2.5 py-1 rounded-lg">
+                        {course.days_of_week || 'روزهای فرد'}
                       </span>
                     </div>
-                  )}
+
+                    {/* ۳. اسم دوره */}
+                    <h3 className="font-black text-base sm:text-lg text-slate-900 dark:text-white group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors leading-snug">
+                      {course.name}
+                    </h3>
+                  </div>
+
+                  {/* ۴. اسم استخر و راهنمای کلیک */}
+                  <div className="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-700/60 text-xs text-slate-500 dark:text-slate-400">
+                    {/* اسم استخر */}
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-4 h-4 text-slate-400 shrink-0" />
+                      <span className="font-medium text-slate-700 dark:text-slate-300">{course.pool_location || 'استخر شهید رئیسی'}</span>
+                    </div>
+
+                    {/* کلیک برای ورود به فضای دوره */}
+                    <span className="text-sky-600 dark:text-sky-400 font-bold group-hover:translate-x-[-2px] transition-transform text-[11px] shrink-0">
+                      فضای دوره ←
+                    </span>
+                  </div>
                 </div>
               ))}
             </div>
@@ -476,15 +428,276 @@ export const SessionsScheduleTimetable = ({
           <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <div className="flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-sky-500"></span>
-              <span>برای ورود به فضای اختصاصی هر کلاس و مشاهده حضور و غیاب، روی کارت همان کلاس کلیک کنید.</span>
+              <span>با کلیک بر روی هر کارت، فضای اختصاصی دوره شامل کلاس‌ها، لاین‌ها و شناگران باز می‌شود.</span>
             </div>
             <div className="font-mono font-bold text-sky-600">
-              {scheduledCourses.length} دوره آموزشی در برنامه هفتگی
+              {scheduledCourses.length} دوره آموزشی در سامانه
             </div>
           </div>
         </div>
 
       </div>
+
+      {/* =========================================================================
+          COURSE SPACE MODAL: فضای اختصاصی دوره با یک کلیک
+         ========================================================================= */}
+      <Modal
+        isOpen={Boolean(selectedCourse)}
+        onClose={() => setSelectedCourse(null)}
+        title={selectedCourse ? `فضای اختصاصی دوره: ${selectedCourse.name}` : ''}
+        maxWidth="max-w-3xl"
+      >
+        {selectedCourse && (
+          <div className="space-y-4">
+            {/* Course Header Banner */}
+            <div className="p-4 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200/70 dark:border-sky-800 text-xs space-y-2">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="space-y-1">
+                  <h3 className="font-extrabold text-base text-sky-900 dark:text-sky-200">
+                    {selectedCourse.name}
+                  </h3>
+                  <div className="flex items-center gap-3 text-slate-600 dark:text-slate-400 flex-wrap">
+                    <span className="flex items-center gap-1 font-mono font-bold">
+                      <Clock className="w-3.5 h-3.5 text-sky-600" />
+                      <span>{selectedCourse.timeSlot.label}</span>
+                    </span>
+                    <span>•</span>
+                    <span className="font-semibold">{selectedCourse.days_of_week || 'روزهای فرد'}</span>
+                    <span>•</span>
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                      <span>{selectedCourse.pool_location || 'استخر شهید رئیسی'}</span>
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 self-start sm:self-auto">
+                  {selectedCourse.age_range && (
+                    <Badge variant="teal">{selectedCourse.age_range}</Badge>
+                  )}
+                  {selectedCourse.status && (
+                    <Badge variant={selectedCourse.status === 'ACTIVE' ? 'success' : 'neutral'}>
+                      {selectedCourse.status === 'ACTIVE' ? 'فعال' : selectedCourse.status}
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Course Space Tabs: Classes | Swimmers | Details */}
+            <div className="grid grid-cols-3 bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/70 dark:border-slate-700 text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setCourseSpaceTab('classes')}
+                className={`py-2 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  courseSpaceTab === 'classes'
+                    ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                }`}
+              >
+                <GraduationCap className="w-4 h-4" />
+                <span>کلاس‌ها و لاین‌ها ({(selectedCourse.groups || []).length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCourseSpaceTab('swimmers')}
+                className={`py-2 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  courseSpaceTab === 'swimmers'
+                    ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                }`}
+              >
+                <Users className="w-4 h-4" />
+                <span>شناگران ثبت‌نام‌شده ({courseEnrollments.length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCourseSpaceTab('info')}
+                className={`py-2 px-2 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+                  courseSpaceTab === 'info'
+                    ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                }`}
+              >
+                <BookOpen className="w-4 h-4" />
+                <span>مشخصات کامل دوره</span>
+              </button>
+            </div>
+
+            {/* TAB 1: CLASSES OF THIS COURSE */}
+            {courseSpaceTab === 'classes' && (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between text-xs text-slate-500">
+                  <span className="font-bold text-slate-700 dark:text-slate-300">
+                    کلاس‌های تفکیکی مربیان در این دوره:
+                  </span>
+                  <span>برای ورود به صفحه کلاس، دکمه ورود را انتخاب نمایید</span>
+                </div>
+
+                {(selectedCourse.groups || []).length === 0 ? (
+                  <div className="text-center py-8 text-slate-400 text-xs bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/60">
+                    هنوز کلاسی برای این دوره تعریف نشده است.
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[50vh] overflow-y-auto p-0.5">
+                    {(selectedCourse.groups || []).map((grp) => {
+                      const coachName = grp.coach_assignments?.[0]?.coach_name || 'مربی مشخص نشده';
+                      return (
+                        <div
+                          key={grp.id}
+                          className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-700 flex flex-col justify-between gap-3 shadow-2xs hover:border-sky-400 transition-all"
+                        >
+                          <div className="space-y-1">
+                            <h4 className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">
+                              {grp.name}
+                            </h4>
+                            <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-400">
+                              <User className="w-3.5 h-3.5 text-sky-600 shrink-0" />
+                              <span>مربی: {coachName}</span>
+                            </div>
+                            <div className="text-[11px] text-slate-500 font-mono">
+                              ظرفیت لاین: {grp.capacity} نفر ({grp.remaining_capacity || grp.capacity} جای خالی)
+                            </div>
+                          </div>
+
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setSelectedCourse(null);
+                              navigate(`/admin/classes/${grp.id}`);
+                            }}
+                            className="w-full gap-1.5 text-xs font-bold bg-sky-600 hover:bg-sky-700 text-white"
+                          >
+                            <span>ورود به فضای اختصاصی کلاس</span>
+                            <span>←</span>
+                          </Button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 2: ENROLLED SWIMMERS */}
+            {courseSpaceTab === 'swimmers' && (
+              <div className="space-y-3">
+                {loadingEnrollments ? (
+                  <LoadingState type="cards" count={2} message="در حال دریافت شناگران دوره..." />
+                ) : courseEnrollments.length === 0 ? (
+                  <div className="text-center py-8 text-slate-400 text-xs bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-slate-200/60">
+                    شناگری در این دوره ثبت‌نام نکرده است.
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto max-h-[50vh] rounded-2xl border border-slate-200/70 dark:border-slate-800">
+                    <table className="w-full text-xs text-right min-w-[550px]">
+                      <thead className="bg-slate-50 dark:bg-slate-800 font-bold text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700">
+                        <tr>
+                          <th className="py-2.5 px-3">شناگر</th>
+                          <th className="py-2.5 px-3">کلاس تخصیصی</th>
+                          <th className="py-2.5 px-3">مربی</th>
+                          <th className="py-2.5 px-3">جلسات</th>
+                          <th className="py-2.5 px-3">وضعیت</th>
+                          <th className="py-2.5 px-3 text-center">عملیات</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                        {courseEnrollments.map((enr) => (
+                          <tr key={enr.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/30">
+                            <td className="py-2.5 px-3 font-bold text-slate-900 dark:text-white">
+                              {enr.swimmer_name}
+                            </td>
+                            <td className="py-2.5 px-3 text-slate-600 dark:text-slate-400">
+                              {enr.group_name || 'بدون کلاس'}
+                            </td>
+                            <td className="py-2.5 px-3 text-slate-700 dark:text-slate-300">
+                              {enr.coach_name || '—'}
+                            </td>
+                            <td className="py-2.5 px-3 font-mono">
+                              {enr.sessions_attended} از {enr.sessions_purchased}
+                            </td>
+                            <td className="py-2.5 px-3">
+                              <Badge variant={enr.status === 'ACTIVE' ? 'success' : 'neutral'}>
+                                {enr.status === 'ACTIVE' ? 'فعال' : enr.status}
+                              </Badge>
+                            </td>
+                            <td className="py-2.5 px-3 text-center">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setSelectedCourse(null);
+                                  navigate(`/admin/swimmers/${enr.swimmer}`);
+                                }}
+                                className="px-2 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 font-bold hover:underline"
+                              >
+                                پرونده
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* TAB 3: COURSE FULL INFO */}
+            {courseSpaceTab === 'info' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 space-y-2">
+                  <span className="font-bold text-slate-700 dark:text-slate-300 block border-b pb-1.5">
+                    مشخصات مالی و ثبت‌نام
+                  </span>
+                  <div className="flex justify-between py-1">
+                    <span className="text-slate-500">شهریه هر شناگر:</span>
+                    <span className="font-bold font-mono">{Number(selectedCourse.base_price || 0).toLocaleString('fa-IR')} تومان</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-slate-500">تعداد جلسات دوره:</span>
+                    <span className="font-bold font-mono">{selectedCourse.sessions_count || 12} جلسه</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-slate-500">شرایط پرداخت:</span>
+                    <span>{selectedCourse.installments_count > 1 ? `تا ${selectedCourse.installments_count} قسط` : 'یکجا'}</span>
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 space-y-2">
+                  <span className="font-bold text-slate-700 dark:text-slate-300 block border-b pb-1.5">
+                    مشخصات برگزاری
+                  </span>
+                  <div className="flex justify-between py-1">
+                    <span className="text-slate-500">محل برگزاری:</span>
+                    <span className="font-bold">{selectedCourse.pool_location}</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-slate-500">روزها:</span>
+                    <span>{selectedCourse.days_of_week}</span>
+                  </div>
+                  <div className="flex justify-between py-1">
+                    <span className="text-slate-500">ساعت سانس:</span>
+                    <span className="font-mono">{selectedCourse.timeSlot.label}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Footer */}
+            <div className="flex justify-end pt-2 border-t border-slate-100 dark:border-slate-800">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setSelectedCourse(null)}
+              >
+                بستن
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
