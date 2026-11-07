@@ -829,12 +829,16 @@ export const HomePage = () => {
                   {/* Subtle aquatic glow behind the swimmer */}
                   <div className="absolute w-64 h-64 sm:w-80 sm:h-80 rounded-full bg-cyan-400/20 blur-3xl pointer-events-none" />
 
-                  <img
-                    src="/images/swimmer-boy.png"
-                    alt="آموزشگاه شنای ایران - آموزش و استعدادیابی شنا"
-                    className="hero-swimmer-boy relative z-10 w-full max-w-[300px] sm:max-w-[360px] lg:max-w-[420px] h-auto object-contain select-none drop-shadow-[0_20px_35px_rgba(2,22,35,0.65)] hover:scale-105 transition-transform duration-500"
-                    loading="eager"
-                  />
+                  <picture>
+                    <source srcSet="/images/swimmer-boy.webp" type="image/webp" />
+                    <img
+                      src="/images/swimmer-boy.webp"
+                      alt="آموزشگاه شنای ایران - آموزش و استعدادیابی شنا"
+                      className="hero-swimmer-boy relative z-10 w-full max-w-[300px] sm:max-w-[360px] lg:max-w-[420px] h-auto object-contain select-none drop-shadow-[0_20px_35px_rgba(2,22,35,0.65)] hover:scale-105 transition-transform duration-500"
+                      loading="eager"
+                      fetchPriority="high"
+                    />
+                  </picture>
                 </div>
               </div>
 
