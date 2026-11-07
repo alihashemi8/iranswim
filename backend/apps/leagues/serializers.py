@@ -77,6 +77,7 @@ class LeagueEntrySerializer(serializers.ModelSerializer):
 
 
 class LeagueSerializer(serializers.ModelSerializer):
+    title = serializers.CharField(source='name', read_only=True)
     categories = LeagueCategorySerializer(many=True, read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     participants_count = serializers.SerializerMethodField()
@@ -87,7 +88,7 @@ class LeagueSerializer(serializers.ModelSerializer):
     class Meta:
         model = League
         fields = [
-            'id', 'name', 'season', 'starts_at', 'ends_at', 'status',
+            'id', 'name', 'title', 'season', 'starts_at', 'ends_at', 'status',
             'status_display', 'is_active', 'rules_description', 'scoring_rules',
             'categories', 'participants_count', 'competitions_count',
             'completed_competitions_count', 'total_points_sum', 'created_at'

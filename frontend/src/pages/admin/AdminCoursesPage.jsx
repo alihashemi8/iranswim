@@ -19,7 +19,9 @@ import { useToast } from '../../context/ToastContext';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 
 export const AdminCoursesPage = () => {
-  const [activeTab, setActiveTab] = useState('GROUPS'); // GROUPS, COURSES, LEVELS, SESSIONS
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'GROUPS';
+  const [activeTab, setActiveTab] = useState(initialTab); // GROUPS, COURSES, LEVELS, SESSIONS
   const [courses, setCourses] = useState([]);
   const [groups, setGroups] = useState([]);
   const [levels, setLevels] = useState([]);
@@ -28,13 +30,6 @@ export const AdminCoursesPage = () => {
   const [loading, setLoading] = useState(true);
   const toast = useToast();
   const navigate = useNavigate();
-  const [searchParams, setSearchParams] = useSearchParams();
-
-  // Swimmers of Course Modal / Drawer
-  const [selectedCourseForSwimmers, setSelectedCourseForSwimmers] = useState(null);
-  const [courseEnrollments, setCourseEnrollments] = useState([]);
-  const [loadingEnrollments, setLoadingEnrollments] = useState(false);
-  const [swimmerViewMode, setSwimmerViewMode] = useState('cards'); // 'cards' | 'table'
 
   // Create SwimmerGroup Modal
   const [isGroupModalOpen, setIsGroupModalOpen] = useState(false);
