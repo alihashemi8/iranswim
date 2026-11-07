@@ -149,11 +149,16 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               to="/"
               className="flex items-center gap-2 md:gap-2.5 lg:gap-3 text-[#083B5C] hover:opacity-95 transition-opacity shrink-0 select-none py-1"
             >
-              <img
-                src="/images/logo.png"
-                alt="لوگوی مدرسه شنای ایران"
-                className="w-12 h-12 sm:w-14 sm:h-14 lg:w-[62px] lg:h-[62px] object-contain shrink-0 drop-shadow-sm select-none transition-transform hover:scale-105 duration-200"
-              />
+              <picture>
+                <source srcSet="/images/logo.webp" type="image/webp" />
+                <img
+                  src="/images/logo.webp"
+                  alt="لوگوی مدرسه شنای ایران"
+                  className="w-12 h-12 sm:w-14 sm:h-14 lg:w-[62px] lg:h-[62px] object-contain shrink-0 drop-shadow-sm select-none transition-transform hover:scale-105 duration-200"
+                  loading="eager"
+                  fetchPriority="high"
+                />
+              </picture>
               <div className="flex flex-col xl:flex-col shrink-0 text-right">
                 <span className="font-extrabold text-xs sm:text-sm md:text-[13px] lg:text-base text-[#083B5C] tracking-tight leading-tight whitespace-nowrap">
                   مدرسه شنای ایران
@@ -349,11 +354,15 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 onClick={() => setMobileMenuOpen(false)}
                 className="flex items-center gap-2.5 text-[#083B5C] min-w-0"
               >
-                <img
-                  src="/images/logo.png"
-                  alt="لوگوی مدرسه شنای ایران"
-                  className="w-13 h-13 sm:w-14 sm:h-14 object-contain shrink-0 drop-shadow-sm"
-                />
+                <picture>
+                  <source srcSet="/images/logo.webp" type="image/webp" />
+                  <img
+                    src="/images/logo.webp"
+                    alt="لوگوی مدرسه شنای ایران"
+                    className="w-13 h-13 sm:w-14 sm:h-14 object-contain shrink-0 drop-shadow-sm"
+                    loading="lazy"
+                  />
+                </picture>
                 <div className="flex flex-col min-w-0">
                   <span className="font-extrabold text-sm text-[#083B5C] truncate">
                     مدرسه شنای ایران
