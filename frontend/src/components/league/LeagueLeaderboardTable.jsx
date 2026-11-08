@@ -176,7 +176,7 @@ export const LeagueLeaderboardTable = ({
                   setCurrentPage(1);
                 }}
                 placeholder="جستجوی نام شناگر..."
-                className="w-full text-xs pr-9 pl-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all h-9"
+                className="w-full text-xs sm:text-sm pr-9 pl-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all h-9"
               />
               {searchQuery && (
                 <button
@@ -246,14 +246,14 @@ export const LeagueLeaderboardTable = ({
             <button
               type="button"
               onClick={() => setShowAdvancedFilters((prev) => !prev)}
-              className={`p-2 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
+              className={`p-2 rounded-xl border text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-colors cursor-pointer ${
                 showAdvancedFilters || onlyMedalists || onlyWithMatches
                   ? 'bg-blue-50 border-blue-200 text-blue-700 font-bold'
                   : 'bg-slate-50 border-slate-200 text-slate-600 hover:bg-slate-100'
               }`}
               title="فیلترهای پیشرفته"
             >
-              <SlidersHorizontal className="w-3.5 h-3.5" />
+              <SlidersHorizontal className="w-4 h-4" />
               <span>فیلترهای بیشتر</span>
               {(onlyMedalists || onlyWithMatches) && (
                 <span className="w-2 h-2 rounded-full bg-blue-600" />
@@ -262,9 +262,9 @@ export const LeagueLeaderboardTable = ({
           </div>
 
           {/* Export Action & Counts */}
-          <div className="flex items-center justify-between lg:justify-end gap-3 text-xs border-t lg:border-t-0 pt-2 lg:pt-0">
-            <span className="text-slate-500 text-xs font-medium">
-              تعداد: <strong className="font-mono text-slate-900 font-bold">{totalItems}</strong> شناگر
+          <div className="flex items-center justify-between lg:justify-end gap-3 text-xs sm:text-sm border-t lg:border-t-0 pt-2 lg:pt-0">
+            <span className="text-slate-600 text-xs sm:text-sm font-medium">
+              تعداد: <strong className="font-mono text-slate-900 font-black">{totalItems}</strong> شناگر
             </span>
 
             <Button
@@ -272,9 +272,9 @@ export const LeagueLeaderboardTable = ({
               size="sm"
               onClick={onExportCsv}
               disabled={!leaderboard.length}
-              className="gap-1.5 text-xs h-8.5 border-slate-200 text-slate-700 hover:bg-slate-50 font-bold"
+              className="gap-1.5 text-xs sm:text-sm h-8.5 border-slate-200 text-slate-700 hover:bg-slate-50 font-bold"
             >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
               <span>خروجی اکسل</span>
             </Button>
           </div>
@@ -282,7 +282,7 @@ export const LeagueLeaderboardTable = ({
 
         {/* Row 2: Expandable Advanced Filters */}
         {showAdvancedFilters && (
-          <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 text-xs sm:text-sm">
             <div className="flex flex-wrap items-center gap-4">
               <label className="flex items-center gap-2 cursor-pointer font-medium text-slate-700 select-none">
                 <input
@@ -315,7 +315,7 @@ export const LeagueLeaderboardTable = ({
               <button
                 type="button"
                 onClick={handleResetFilters}
-                className="text-xs text-rose-600 hover:text-rose-800 font-semibold flex items-center gap-1 transition-colors cursor-pointer"
+                className="text-xs sm:text-sm text-rose-600 hover:text-rose-800 font-bold flex items-center gap-1 transition-colors cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
                 <span>پاک‌کردن همه فیلترها</span>
@@ -350,7 +350,7 @@ export const LeagueLeaderboardTable = ({
             {/* Desktop Table View */}
             <div className="hidden lg:block overflow-x-auto w-full">
               <table className="w-full text-sm text-right min-w-[780px]">
-                <thead className="bg-slate-50/80 text-xs font-semibold text-slate-600 border-b border-slate-200/80 select-none">
+                <thead className="bg-slate-50/80 text-xs sm:text-sm font-bold text-slate-700 border-b border-slate-200/80 select-none">
                   <tr>
                     <th
                       onClick={() => handleSort('rank')}
@@ -447,7 +447,7 @@ export const LeagueLeaderboardTable = ({
                               🥉
                             </span>
                           ) : (
-                            <span className="font-mono text-xs text-slate-500 font-bold">
+                            <span className="font-mono text-sm text-slate-600 font-bold">
                               #{row.rank}
                             </span>
                           )}
@@ -468,15 +468,15 @@ export const LeagueLeaderboardTable = ({
                               )}
                             </div>
                             <div>
-                              <div className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
+                              <div className="font-bold text-slate-900 text-sm sm:text-base group-hover:text-blue-600 transition-colors flex items-center gap-1.5">
                                 <span>{row.swimmer_name}</span>
                                 {row.rank <= 3 && (
-                                  <span className="text-[10px] bg-amber-100 text-amber-900 px-1.5 py-0.2 rounded font-normal">
+                                  <span className="text-xs bg-amber-100 text-amber-900 px-1.5 py-0.5 rounded font-bold">
                                     برتر
                                   </span>
                                 )}
                               </div>
-                              <span className="text-[11px] text-slate-400 block font-mono">
+                              <span className="text-xs text-slate-500 block font-mono font-medium">
                                 {row.age ? `${row.age} سال` : 'عضو آکادمی'}
                               </span>
                             </div>
@@ -484,14 +484,14 @@ export const LeagueLeaderboardTable = ({
                         </td>
 
                         {/* Age Category */}
-                        <td className="px-4 py-3.5 text-xs text-slate-600">
+                        <td className="px-4 py-3.5 text-xs sm:text-sm text-slate-700 font-medium">
                           {row.category_title}
                         </td>
 
                         {/* Gender */}
-                        <td className="px-4 py-3.5 text-center text-xs">
+                        <td className="px-4 py-3.5 text-center text-xs sm:text-sm">
                           <span
-                            className={`inline-block px-2 py-0.5 rounded-lg font-medium text-[11px] border ${
+                            className={`inline-block px-2.5 py-0.5 rounded-lg font-semibold text-xs border ${
                               row.gender === 'FEMALE'
                                 ? 'bg-rose-50 text-rose-700 border-rose-200'
                                 : 'bg-blue-50 text-blue-700 border-blue-200'
@@ -502,30 +502,30 @@ export const LeagueLeaderboardTable = ({
                         </td>
 
                         {/* Matches Count */}
-                        <td className="px-4 py-3.5 text-center font-mono text-xs font-bold text-slate-700">
+                        <td className="px-4 py-3.5 text-center font-mono text-xs sm:text-sm font-bold text-slate-800">
                           {row.matches_count || 0}
                         </td>
 
                         {/* Medals */}
                         <td className="px-4 py-3.5 text-center">
-                          <div className="flex items-center justify-center gap-1 text-[11px] font-mono">
+                          <div className="flex items-center justify-center gap-1 text-xs font-mono">
                             {row.gold_medals > 0 && (
-                              <span className="bg-amber-100 text-amber-950 px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5" title="مدال طلا">
+                              <span className="bg-amber-100 text-amber-950 px-2 py-0.5 rounded-md font-bold flex items-center gap-0.5" title="مدال طلا">
                                 🥇 {row.gold_medals}
                               </span>
                             )}
                             {row.silver_medals > 0 && (
-                              <span className="bg-slate-200 text-slate-800 px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5" title="مدال نقره">
+                              <span className="bg-slate-200 text-slate-800 px-2 py-0.5 rounded-md font-bold flex items-center gap-0.5" title="مدال نقره">
                                 🥈 {row.silver_medals}
                               </span>
                             )}
                             {row.bronze_medals > 0 && (
-                              <span className="bg-amber-800/20 text-amber-950 px-1.5 py-0.5 rounded-md font-bold flex items-center gap-0.5" title="مدال برنز">
+                              <span className="bg-amber-800/20 text-amber-950 px-2 py-0.5 rounded-md font-bold flex items-center gap-0.5" title="مدال برنز">
                                 🥉 {row.bronze_medals}
                               </span>
                             )}
                             {row.gold_medals === 0 && row.silver_medals === 0 && row.bronze_medals === 0 && (
-                              <span className="text-slate-300">-</span>
+                              <span className="text-slate-400 font-bold">-</span>
                             )}
                           </div>
                         </td>
@@ -533,24 +533,24 @@ export const LeagueLeaderboardTable = ({
                         {/* Rank Trend */}
                         <td className="px-4 py-3.5 text-center">
                           {row.rank_trend === 'UP' ? (
-                            <span className="inline-flex items-center gap-1 text-emerald-600 font-bold text-xs" title="روند صعودی">
-                              <TrendingUp className="w-3.5 h-3.5" />
+                            <span className="inline-flex items-center gap-1 text-emerald-600 font-bold text-xs sm:text-sm" title="روند صعودی">
+                              <TrendingUp className="w-4 h-4" />
                             </span>
                           ) : row.rank_trend === 'DOWN' ? (
-                            <span className="inline-flex items-center gap-1 text-rose-500 font-bold text-xs" title="روند نزولی">
-                              <TrendingDown className="w-3.5 h-3.5" />
+                            <span className="inline-flex items-center gap-1 text-rose-500 font-bold text-xs sm:text-sm" title="روند نزولی">
+                              <TrendingDown className="w-4 h-4" />
                             </span>
                           ) : (
-                            <span className="inline-flex items-center text-slate-300 text-xs" title="بدون تغییر">
-                              <Minus className="w-3.5 h-3.5" />
+                            <span className="inline-flex items-center text-slate-300 text-xs sm:text-sm" title="بدون تغییر">
+                              <Minus className="w-4 h-4" />
                             </span>
                           )}
                         </td>
 
                         {/* Total Points */}
-                        <td className="px-4 py-3.5 text-left font-mono font-black text-blue-700 text-base">
+                        <td className="px-4 py-3.5 text-left font-mono font-black text-blue-700 text-base sm:text-lg">
                           {Number(row.total_points).toLocaleString('en-US')}{' '}
-                          <span className="text-[11px] font-normal text-slate-400">pt</span>
+                          <span className="text-xs font-normal text-slate-400">pt</span>
                         </td>
 
                         {/* Action */}
@@ -586,38 +586,38 @@ export const LeagueLeaderboardTable = ({
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center font-bold shrink-0 text-base shadow-2xs">
                         {row.rank === 1 ? '🥇' : row.rank === 2 ? '🥈' : row.rank === 3 ? '🥉' : (
-                          <span className="font-mono text-xs text-slate-700 font-bold">#{row.rank}</span>
+                          <span className="font-mono text-sm text-slate-800 font-bold">#{row.rank}</span>
                         )}
                       </div>
                       <div>
-                        <h4 className="font-bold text-slate-900 text-sm">
+                        <h4 className="font-bold text-slate-900 text-base">
                           {row.swimmer_name}
                         </h4>
-                        <span className="text-slate-400 text-[11px] block mt-0.5">
+                        <span className="text-slate-500 text-xs sm:text-sm block mt-0.5 font-medium">
                           {row.category_title} • {row.gender === 'FEMALE' ? 'دختران' : 'پسران'}
                         </span>
                       </div>
                     </div>
 
-                    <div className="text-left font-mono font-black text-blue-700 text-base shrink-0">
+                    <div className="text-left font-mono font-black text-blue-700 text-base sm:text-lg shrink-0">
                       {Number(row.total_points).toLocaleString('en-US')}{' '}
                       <span className="text-xs font-normal text-slate-400">pt</span>
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs text-slate-500">
+                  <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-xs sm:text-sm text-slate-600">
                     <div className="flex items-center gap-3">
-                      <span>مسابقات: <strong className="font-mono text-slate-800">{row.matches_count || 0}</strong></span>
-                      <div className="flex items-center gap-1 font-mono text-[11px]">
-                        {row.gold_medals > 0 && <span>🥇{row.gold_medals}</span>}
-                        {row.silver_medals > 0 && <span>🥈{row.silver_medals}</span>}
-                        {row.bronze_medals > 0 && <span>🥉{row.bronze_medals}</span>}
+                      <span>مسابقات: <strong className="font-mono text-slate-900 font-bold">{row.matches_count || 0}</strong></span>
+                      <div className="flex items-center gap-1 font-mono text-xs">
+                        {row.gold_medals > 0 && <span className="font-bold">🥇{row.gold_medals}</span>}
+                        {row.silver_medals > 0 && <span className="font-bold">🥈{row.silver_medals}</span>}
+                        {row.bronze_medals > 0 && <span className="font-bold">🥉{row.bronze_medals}</span>}
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-1 text-blue-600 font-semibold text-[11px]">
+                    <div className="flex items-center gap-1 text-blue-600 font-bold text-xs sm:text-sm">
                       <span>مشاهده پرونده</span>
-                      <ChevronLeft className="w-3.5 h-3.5" />
+                      <ChevronLeft className="w-4 h-4" />
                     </div>
                   </div>
                 </div>

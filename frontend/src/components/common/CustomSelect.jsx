@@ -240,7 +240,7 @@ export const CustomSelect = ({
       {label && (
         <label
           className={`block font-semibold mb-1 truncate ${
-            labelClassName || (isCompact ? 'text-[11px] text-slate-500 dark:text-slate-400' : 'text-xs text-slate-700 dark:text-slate-300')
+            labelClassName || (isCompact ? 'text-xs text-slate-600 dark:text-slate-400' : 'text-xs sm:text-sm text-slate-700 dark:text-slate-300')
           }`}
         >
           {label}
@@ -254,7 +254,7 @@ export const CustomSelect = ({
         disabled={disabled}
         onClick={handleToggle}
         className={`w-full text-right border transition-all flex items-center justify-between gap-2 cursor-pointer select-none rounded-xl ${
-          isCompact ? 'px-2.5 py-2 text-xs min-h-[36px]' : 'px-3.5 py-2.5 text-xs sm:text-sm min-h-[42px]'
+          isCompact ? 'px-2.5 py-1.5 text-xs sm:text-sm min-h-[36px]' : 'px-3.5 py-2 text-sm sm:text-base min-h-[42px]'
         } ${
           disabled ? 'opacity-60 cursor-not-allowed bg-slate-100 dark:bg-slate-800' : ''
         } ${
@@ -290,7 +290,7 @@ export const CustomSelect = ({
           </span>
           {selectedOption && selectedOption.badge !== undefined && selectedOption.badge !== null && selectedOption.badge !== '' && (
             <span
-              className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold shrink-0 transition-colors ${
+              className={`text-xs px-1.5 py-0.5 rounded-md font-bold shrink-0 transition-colors ${
                 selectedOption.badgeClassName ||
                 (isSelectedActive
                   ? (colorStyles.selectedBadge || 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300')
@@ -357,7 +357,7 @@ export const CustomSelect = ({
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="جستجو در گزینه‌ها..."
-                  className={`w-full text-xs pr-8 pl-6 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 ${colorStyles.searchFocus}`}
+                  className={`w-full text-xs sm:text-sm pr-8 pl-6 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 ${colorStyles.searchFocus}`}
                 />
                 {searchTerm && (
                   <button
@@ -365,7 +365,7 @@ export const CustomSelect = ({
                     onClick={() => setSearchTerm('')}
                     className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                   >
-                    <X className="w-3 h-3" />
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>
@@ -373,9 +373,9 @@ export const CustomSelect = ({
           )}
 
           {/* Options List */}
-          <div className="max-h-60 overflow-y-auto p-1.5 space-y-1 divide-y-0 text-xs">
+          <div className="max-h-60 overflow-y-auto p-1.5 space-y-1 divide-y-0 text-xs sm:text-sm">
             {filteredOptions.length === 0 ? (
-              <div className="p-3 text-center text-slate-400 text-[11px]">
+              <div className="p-3 text-center text-slate-400 text-xs">
                 گزینه‌ای یافت نشد
               </div>
             ) : (
@@ -391,7 +391,7 @@ export const CustomSelect = ({
                     onClick={() => {
                       if (!isDisabled) handleSelect(opt.value);
                     }}
-                    className={`w-full text-right px-3 py-2 rounded-xl text-xs transition-colors flex items-center justify-between gap-2.5 ${
+                    className={`w-full text-right px-3 py-2 rounded-xl text-xs sm:text-sm transition-colors flex items-center justify-between gap-2.5 ${
                       isDisabled
                         ? 'opacity-50 cursor-not-allowed bg-slate-50/50 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500'
                         : isSelected
@@ -417,7 +417,7 @@ export const CustomSelect = ({
                           {opt.label}
                         </span>
                         {opt.description && (
-                          <span className="text-[10px] text-slate-400 dark:text-slate-500 block truncate font-normal mt-0.5">
+                          <span className="text-xs text-slate-400 dark:text-slate-500 block truncate font-normal mt-0.5">
                             {opt.description}
                           </span>
                         )}
@@ -427,7 +427,7 @@ export const CustomSelect = ({
                     <div className="flex items-center gap-1.5 shrink-0">
                       {(opt.badge !== undefined && opt.badge !== null && opt.badge !== '') && (
                         <span
-                          className={`text-[10px] px-2 py-0.5 rounded-md font-bold shrink-0 ${
+                          className={`text-xs px-2 py-0.5 rounded-md font-bold shrink-0 ${
                             opt.badgeClassName ||
                             (isSelected
                               ? (colorStyles.selectedBadge || 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300')

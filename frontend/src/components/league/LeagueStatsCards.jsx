@@ -55,7 +55,7 @@ export const LeagueStatsCards = ({ stats }) => {
             className="bg-white rounded-2xl p-3 sm:p-5 border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all duration-200 flex flex-col justify-between"
           >
             <div className="flex items-center justify-between gap-1.5">
-              <span className="text-[11px] sm:text-xs font-bold text-slate-500 truncate">
+              <span className="text-xs sm:text-sm font-bold text-slate-600 truncate">
                 {c.title}
               </span>
               <span className={`p-1.5 sm:p-2.5 rounded-xl shrink-0 ${c.iconBg}`}>
@@ -64,13 +64,13 @@ export const LeagueStatsCards = ({ stats }) => {
             </div>
 
             <div className="mt-2 sm:mt-3">
-              <span className="text-xl sm:text-3xl font-black font-mono text-slate-900 tracking-tight block">
+              <span className="text-2xl sm:text-3xl font-black font-mono text-slate-900 tracking-tight block">
                 {c.value}
               </span>
-              <span className="text-[11px] sm:text-xs font-semibold text-slate-700 block mt-0.5 sm:mt-1 truncate">
+              <span className="text-xs sm:text-sm font-bold text-slate-800 block mt-0.5 sm:mt-1 truncate">
                 {c.label}
               </span>
-              <span className="text-[10px] sm:text-[11px] text-slate-400 block mt-0.5 truncate">
+              <span className="text-xs text-slate-500 font-medium block mt-0.5 truncate">
                 {c.context}
               </span>
             </div>

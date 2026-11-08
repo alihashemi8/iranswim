@@ -18,15 +18,15 @@ export const LeaguePodium = ({ topSwimmers = [], onSelectSwimmer }) => {
     <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-4 w-full">
       {/* Header */}
       <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5">
           <span className="p-2 rounded-xl bg-amber-50 text-amber-600 border border-amber-200/60">
-            <Trophy className="w-4 h-4" />
+            <Trophy className="w-4 h-4 sm:w-5 sm:h-5" />
           </span>
           <div>
-            <h3 className="text-sm font-bold text-slate-900">
+            <h3 className="text-base sm:text-lg font-bold text-slate-900">
               سکوی قهرمانی و 3 شناگر برتر فصل
             </h3>
-            <p className="text-[11px] text-slate-500">
+            <p className="text-xs sm:text-sm font-medium text-slate-500">
               پیشتازان جدول رتبه‌بندی بر اساس مجموع امتیازات رسمی رقابت‌ها
             </p>
           </div>
@@ -41,11 +41,11 @@ export const LeaguePodium = ({ topSwimmers = [], onSelectSwimmer }) => {
             onClick={() => onSelectSwimmer && onSelectSwimmer(second.swimmer_id)}
             className="order-2 sm:order-1 bg-slate-50/80 hover:bg-slate-100/80 border border-slate-200/80 rounded-2xl p-4 text-center cursor-pointer transition-all duration-200 hover:shadow-xs group flex flex-col items-center justify-between min-h-[190px]"
           >
-            <div className="w-full flex justify-between items-center text-[11px] font-bold text-slate-500">
-              <span className="inline-flex items-center gap-1 bg-white px-2 py-0.5 rounded-lg border border-slate-200 text-slate-700 shadow-2xs font-mono">
+            <div className="w-full flex justify-between items-center text-xs sm:text-sm font-bold text-slate-600">
+              <span className="inline-flex items-center gap-1 bg-white px-2.5 py-0.5 rounded-lg border border-slate-200 text-slate-700 shadow-2xs font-mono font-bold">
                 🥈 رتبه 2
               </span>
-              <span className="text-slate-400">نایب‌قهرمان</span>
+              <span className="text-slate-500 font-medium">نایب‌قهرمان</span>
             </div>
 
             <div className="my-2 flex flex-col items-center">
@@ -57,29 +57,29 @@ export const LeaguePodium = ({ topSwimmers = [], onSelectSwimmer }) => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="font-bold text-slate-600 text-sm">
+                  <span className="font-bold text-slate-700 text-base">
                     {getInitials(second.swimmer_name)}
                   </span>
                 )}
               </div>
-              <h4 className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors">
+              <h4 className="font-bold text-slate-900 text-base group-hover:text-blue-600 transition-colors">
                 {second.swimmer_name}
               </h4>
-              <span className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+              <span className="text-xs sm:text-sm font-medium text-slate-500 line-clamp-1 mt-0.5">
                 {second.category_title || 'رده مسابقاتی'}
               </span>
             </div>
 
-            <div className="w-full pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
-              <span className="text-slate-400 text-[11px]">مجموع امتیاز:</span>
-              <span className="font-mono font-black text-slate-800 text-sm">
+            <div className="w-full pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs sm:text-sm">
+              <span className="text-slate-500 font-medium">مجموع امتیاز:</span>
+              <span className="font-mono font-black text-slate-900 text-base sm:text-lg">
                 {Number(second.total_points).toLocaleString('en-US')}{' '}
-                <span className="text-[10px] font-normal text-slate-400">pt</span>
+                <span className="text-xs font-normal text-slate-500">pt</span>
               </span>
             </div>
           </div>
         ) : (
-          <div className="order-2 sm:order-1 border border-dashed border-slate-200 rounded-2xl p-4 text-center text-xs text-slate-400 min-h-[190px] flex items-center justify-center">
+          <div className="order-2 sm:order-1 border border-dashed border-slate-200 rounded-2xl p-4 text-center text-xs sm:text-sm text-slate-400 min-h-[190px] flex items-center justify-center">
             در انتظار تعیین نفر دوم
           </div>
         )}
@@ -91,12 +91,12 @@ export const LeaguePodium = ({ topSwimmers = [], onSelectSwimmer }) => {
             className="order-1 sm:order-2 bg-gradient-to-b from-amber-50/70 to-white hover:from-amber-50 border-2 border-amber-300 rounded-2xl p-4 sm:p-5 text-center cursor-pointer transition-all duration-200 hover:shadow-md group flex flex-col items-center justify-between min-h-[220px] relative -top-1 sm:-top-2 shadow-xs"
           >
             {/* Crown / Top Badge */}
-            <div className="w-full flex justify-between items-center text-xs font-bold text-amber-800">
+            <div className="w-full flex justify-between items-center text-xs sm:text-sm font-bold text-amber-900">
               <span className="inline-flex items-center gap-1 bg-amber-400 text-amber-950 px-2.5 py-0.5 rounded-lg shadow-2xs font-mono font-black">
                 🥇 رتبه 1
               </span>
-              <span className="text-amber-700 font-bold flex items-center gap-1 text-[11px]">
-                <Sparkles className="w-3 h-3 text-amber-500" />
+              <span className="text-amber-800 font-bold flex items-center gap-1 text-xs sm:text-sm">
+                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
                 صدرنشین لیگ
               </span>
             </div>
@@ -110,24 +110,24 @@ export const LeaguePodium = ({ topSwimmers = [], onSelectSwimmer }) => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="font-black text-amber-800 text-base">
+                  <span className="font-black text-amber-800 text-lg">
                     {getInitials(first.swimmer_name)}
                   </span>
                 )}
               </div>
-              <h4 className="font-black text-slate-900 text-base group-hover:text-amber-700 transition-colors">
+              <h4 className="font-black text-slate-900 text-lg sm:text-xl group-hover:text-amber-700 transition-colors">
                 {first.swimmer_name}
               </h4>
-              <span className="text-[11px] font-medium text-amber-800/80 bg-amber-100/60 px-2 py-0.5 rounded-md mt-1">
+              <span className="text-xs sm:text-sm font-semibold text-amber-900 bg-amber-100/70 px-2.5 py-0.5 rounded-md mt-1">
                 {first.category_title || 'رده مسابقاتی'}
               </span>
             </div>
 
-            <div className="w-full pt-2 border-t border-amber-200/80 flex items-center justify-between text-xs">
-              <span className="text-amber-800 text-[11px] font-semibold">مجموع امتیاز:</span>
-              <span className="font-mono font-black text-amber-600 text-base">
+            <div className="w-full pt-2 border-t border-amber-200/80 flex items-center justify-between text-xs sm:text-sm">
+              <span className="text-amber-900 font-bold">مجموع امتیاز:</span>
+              <span className="font-mono font-black text-amber-600 text-lg sm:text-xl">
                 {Number(first.total_points).toLocaleString('en-US')}{' '}
-                <span className="text-[11px] font-normal text-amber-800/60">امتیاز</span>
+                <span className="text-xs font-normal text-amber-800/70">امتیاز</span>
               </span>
             </div>
           </div>
@@ -139,11 +139,11 @@ export const LeaguePodium = ({ topSwimmers = [], onSelectSwimmer }) => {
             onClick={() => onSelectSwimmer && onSelectSwimmer(third.swimmer_id)}
             className="order-3 bg-slate-50/80 hover:bg-slate-100/80 border border-slate-200/80 rounded-2xl p-4 text-center cursor-pointer transition-all duration-200 hover:shadow-xs group flex flex-col items-center justify-between min-h-[190px]"
           >
-            <div className="w-full flex justify-between items-center text-[11px] font-bold text-amber-900">
-              <span className="inline-flex items-center gap-1 bg-white px-2 py-0.5 rounded-lg border border-amber-200 text-amber-900 shadow-2xs font-mono">
+            <div className="w-full flex justify-between items-center text-xs sm:text-sm font-bold text-amber-900">
+              <span className="inline-flex items-center gap-1 bg-white px-2.5 py-0.5 rounded-lg border border-amber-200 text-amber-900 shadow-2xs font-mono font-bold">
                 🥉 رتبه 3
               </span>
-              <span className="text-slate-400">مقام سوم</span>
+              <span className="text-slate-500 font-medium">مقام سوم</span>
             </div>
 
             <div className="my-2 flex flex-col items-center">
@@ -155,29 +155,29 @@ export const LeaguePodium = ({ topSwimmers = [], onSelectSwimmer }) => {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="font-bold text-amber-900 text-sm">
+                  <span className="font-bold text-amber-900 text-base">
                     {getInitials(third.swimmer_name)}
                   </span>
                 )}
               </div>
-              <h4 className="font-bold text-slate-900 text-sm group-hover:text-blue-600 transition-colors">
+              <h4 className="font-bold text-slate-900 text-base group-hover:text-blue-600 transition-colors">
                 {third.swimmer_name}
               </h4>
-              <span className="text-[11px] text-slate-500 line-clamp-1 mt-0.5">
+              <span className="text-xs sm:text-sm font-medium text-slate-500 line-clamp-1 mt-0.5">
                 {third.category_title || 'رده مسابقاتی'}
               </span>
             </div>
 
-            <div className="w-full pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs">
-              <span className="text-slate-400 text-[11px]">مجموع امتیاز:</span>
-              <span className="font-mono font-black text-slate-800 text-sm">
+            <div className="w-full pt-2 border-t border-slate-200/60 flex items-center justify-between text-xs sm:text-sm">
+              <span className="text-slate-500 font-medium">مجموع امتیاز:</span>
+              <span className="font-mono font-black text-slate-900 text-base sm:text-lg">
                 {Number(third.total_points).toLocaleString('en-US')}{' '}
-                <span className="text-[10px] font-normal text-slate-400">pt</span>
+                <span className="text-xs font-normal text-slate-500">pt</span>
               </span>
             </div>
           </div>
         ) : (
-          <div className="order-3 border border-dashed border-slate-200 rounded-2xl p-4 text-center text-xs text-slate-400 min-h-[190px] flex items-center justify-center">
+          <div className="order-3 border border-dashed border-slate-200 rounded-2xl p-4 text-center text-xs sm:text-sm text-slate-400 min-h-[190px] flex items-center justify-center">
             در انتظار تعیین نفر سوم
           </div>
         )}

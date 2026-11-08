@@ -30,16 +30,16 @@ export const LeagueInfoPanel = ({
         {/* Mobile View: Clean Header & Full-Width CustomSelect Dropdown (Zero Horizontal Scrolling) */}
         <div className="sm:hidden space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-blue-600" />
+            <span className="text-sm font-bold text-slate-700 flex items-center gap-1.5">
+              <Calendar className="w-4 h-4 text-blue-600" />
               فصل‌های مسابقاتی:
             </span>
             <button
               type="button"
               onClick={onOpenCreateSeasonModal}
-              className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1 cursor-pointer"
+              className="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1 cursor-pointer"
             >
-              <Plus className="w-3.5 h-3.5" />
+              <Plus className="w-4 h-4" />
               <span>فصل جدید</span>
             </button>
           </div>
@@ -71,8 +71,8 @@ export const LeagueInfoPanel = ({
         {/* Tablet & Desktop View: Non-scrolling Flex-Wrap Pills Bar */}
         <div className="hidden sm:flex sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-bold text-slate-500 shrink-0 flex items-center gap-1.5 ml-1">
-              <Calendar className="w-3.5 h-3.5 text-blue-600" />
+            <span className="text-sm font-bold text-slate-600 shrink-0 flex items-center gap-1.5 ml-1">
+              <Calendar className="w-4 h-4 text-blue-600" />
               فصل‌های مسابقاتی:
             </span>
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -83,7 +83,7 @@ export const LeagueInfoPanel = ({
                     key={lg.id}
                     type="button"
                     onClick={() => onSelectLeague(lg)}
-                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
+                    className={`px-3 py-1.5 rounded-xl text-sm font-semibold shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
                       isSelected
                         ? 'bg-blue-600 text-white shadow-xs font-bold'
                         : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/60'
@@ -91,8 +91,8 @@ export const LeagueInfoPanel = ({
                   >
                     <span>{lg.name}</span>
                     <span
-                      className={`text-[10px] px-1.5 py-0.2 rounded-md ${
-                        isSelected ? 'bg-white/20 text-white' : 'bg-slate-200/60 text-slate-500'
+                      className={`text-xs px-1.5 py-0.5 rounded-md font-bold ${
+                        isSelected ? 'bg-white/20 text-white' : 'bg-slate-200/60 text-slate-600'
                       }`}
                     >
                       {lg.season}
@@ -106,9 +106,9 @@ export const LeagueInfoPanel = ({
           <button
             type="button"
             onClick={onOpenCreateSeasonModal}
-            className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
+            className="text-sm font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-4 h-4" />
             <span>ایجاد فصل مسابقاتی جدید</span>
           </button>
         </div>
@@ -119,10 +119,10 @@ export const LeagueInfoPanel = ({
         {/* Col 1: Active Season Title, Status, and Edit (4 cols) */}
         <div className="lg:col-span-4 space-y-1.5">
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <span className="text-[11px] font-bold text-slate-400">اطلاعات فصل فعال</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+            <span className="text-xs font-bold text-slate-500">اطلاعات فصل فعال</span>
             <span
-              className={`px-2 py-0.2 rounded-md text-[10px] font-bold border ${
+              className={`px-2 py-0.5 rounded-md text-xs font-bold border ${
                 selectedLeague.status === 'ACTIVE'
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                   : selectedLeague.status === 'COMPLETED'
@@ -139,7 +139,7 @@ export const LeagueInfoPanel = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <h3 className="text-sm sm:text-base font-black text-slate-900 tracking-tight">
+            <h3 className="text-base sm:text-lg font-black text-slate-900 tracking-tight">
               {selectedLeague.name}
             </h3>
             <button
@@ -148,21 +148,21 @@ export const LeagueInfoPanel = ({
               className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
               title="ویرایش مشخصات فصل"
             >
-              <Edit3 className="w-3.5 h-3.5" />
+              <Edit3 className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-slate-500">
+          <div className="flex items-center gap-3 text-xs sm:text-sm text-slate-600 font-medium">
             <span>
               آغاز:{' '}
-              <strong className="font-mono text-slate-800 font-semibold">
+              <strong className="font-mono text-slate-900 font-bold">
                 {new Date(selectedLeague.starts_at).toLocaleDateString('fa-IR-u-nu-latn')}
               </strong>
             </span>
             <span>•</span>
             <span>
               پایان:{' '}
-              <strong className="font-mono text-slate-800 font-semibold">
+              <strong className="font-mono text-slate-900 font-bold">
                 {new Date(selectedLeague.ends_at).toLocaleDateString('fa-IR-u-nu-latn')}
               </strong>
             </span>
@@ -171,12 +171,12 @@ export const LeagueInfoPanel = ({
 
         {/* Col 2: Competition Progress Bar (5 cols) */}
         <div className="lg:col-span-5 p-3 bg-slate-50 rounded-xl border border-slate-100 space-y-2">
-          <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-slate-700 flex items-center gap-1">
-              <Flag className="w-3.5 h-3.5 text-blue-600" />
+          <div className="flex items-center justify-between text-xs sm:text-sm">
+            <span className="font-bold text-slate-800 flex items-center gap-1.5">
+              <Flag className="w-4 h-4 text-blue-600" />
               پیشرفت تقویم مسابقات لیگ
             </span>
-            <span className="font-mono font-black text-blue-700 text-xs">
+            <span className="font-mono font-black text-blue-700 text-xs sm:text-sm">
               {progressPercent}%
             </span>
           </div>
@@ -189,18 +189,18 @@ export const LeagueInfoPanel = ({
             />
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-slate-500 pt-0.5">
+          <div className="flex items-center justify-between text-xs font-medium text-slate-600 pt-0.5">
             <span>
               برگزارشده:{' '}
-              <strong className="font-mono text-slate-800">{completedComps}</strong>
+              <strong className="font-mono text-slate-900 font-bold">{completedComps}</strong>
             </span>
             <span>
               باقیمانده:{' '}
-              <strong className="font-mono text-slate-800">{remainingComps}</strong>
+              <strong className="font-mono text-slate-900 font-bold">{remainingComps}</strong>
             </span>
             <span>
               کل رویدادها:{' '}
-              <strong className="font-mono text-slate-800">{totalComps}</strong>
+              <strong className="font-mono text-slate-900 font-bold">{totalComps}</strong>
             </span>
           </div>
         </div>
@@ -210,9 +210,9 @@ export const LeagueInfoPanel = ({
           <Button
             size="sm"
             onClick={onOpenCreateCompetitionModal}
-            className="w-full text-xs h-8.5 gap-1.5 justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer shadow-xs"
+            className="w-full text-xs sm:text-sm h-9 gap-1.5 justify-center bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer shadow-xs"
           >
-            <Plus className="w-3.5 h-3.5" />
+            <Plus className="w-4 h-4" />
             <span>تعریف مسابقه جدید</span>
           </Button>
 
@@ -220,9 +220,9 @@ export const LeagueInfoPanel = ({
             variant="outline"
             size="sm"
             onClick={onSwitchToScoringTab}
-            className="w-full text-xs h-8.5 gap-1.5 justify-center border-slate-200 text-slate-700 hover:bg-slate-50 font-bold cursor-pointer"
+            className="w-full text-xs sm:text-sm h-9 gap-1.5 justify-center border-slate-200 text-slate-700 hover:bg-slate-50 font-bold cursor-pointer"
           >
-            <Settings2 className="w-3.5 h-3.5 text-slate-500" />
+            <Settings2 className="w-4 h-4 text-slate-500" />
             <span>تنظیم قوانین امتیازدهی</span>
           </Button>
         </div>

@@ -51,17 +51,17 @@ export const LeagueCompetitionsView = ({
       {/* Top Header & Actions */}
       <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
         <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
-          <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 shrink-0">
+          <span className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 shrink-0">
             فیلتر وضعیت:
           </span>
-          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs w-full sm:w-auto justify-between sm:justify-start">
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs sm:text-sm w-full sm:w-auto justify-between sm:justify-start">
             <button
               type="button"
               onClick={() => setFilterStatus('ALL')}
-              className={`px-3 py-1.5 sm:py-1 rounded-lg font-medium transition-all cursor-pointer flex-1 sm:flex-initial text-center ${
+              className={`px-3 py-1.5 sm:py-1 rounded-lg transition-all cursor-pointer flex-1 sm:flex-initial text-center ${
                 filterStatus === 'ALL'
                   ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-bold'
-                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  : 'text-slate-600 font-medium hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
               همه ({competitions.length})
@@ -69,10 +69,10 @@ export const LeagueCompetitionsView = ({
             <button
               type="button"
               onClick={() => setFilterStatus('SCHEDULED')}
-              className={`px-3 py-1.5 sm:py-1 rounded-lg font-medium transition-all cursor-pointer flex-1 sm:flex-initial text-center ${
+              className={`px-3 py-1.5 sm:py-1 rounded-lg transition-all cursor-pointer flex-1 sm:flex-initial text-center ${
                 filterStatus === 'SCHEDULED'
                   ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-bold'
-                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  : 'text-slate-600 font-medium hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
               پیش‌رو
@@ -80,10 +80,10 @@ export const LeagueCompetitionsView = ({
             <button
               type="button"
               onClick={() => setFilterStatus('COMPLETED')}
-              className={`px-3 py-1.5 sm:py-1 rounded-lg font-medium transition-all cursor-pointer flex-1 sm:flex-initial text-center ${
+              className={`px-3 py-1.5 sm:py-1 rounded-lg transition-all cursor-pointer flex-1 sm:flex-initial text-center ${
                 filterStatus === 'COMPLETED'
                   ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-bold'
-                  : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                  : 'text-slate-600 font-medium hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
               پایان‌یافته
@@ -93,7 +93,7 @@ export const LeagueCompetitionsView = ({
 
         <Button
           onClick={onOpenCreateModal}
-          className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold w-full sm:w-auto justify-center cursor-pointer"
+          className="gap-1.5 text-xs sm:text-sm bg-blue-600 hover:bg-blue-700 text-white font-bold w-full sm:w-auto justify-center cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>تعریف مسابقه جدید</span>
@@ -123,12 +123,12 @@ export const LeagueCompetitionsView = ({
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                   <div className="space-y-1.5">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                      <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
                         {comp.title}
                       </h3>
 
                       <span
-                        className={`text-[11px] font-bold px-2 py-0.5 rounded-lg border ${getStrokeBadgeColor(
+                        className={`text-xs font-bold px-2.5 py-0.5 rounded-lg border ${getStrokeBadgeColor(
                           comp.stroke
                         )}`}
                       >
@@ -136,7 +136,7 @@ export const LeagueCompetitionsView = ({
                       </span>
 
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        className={`text-xs font-bold px-2.5 py-0.5 rounded-full ${
                           isCompleted
                             ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-900'
                             : 'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300 border border-sky-200 dark:border-sky-900'
@@ -146,7 +146,7 @@ export const LeagueCompetitionsView = ({
                       </span>
                     </div>
 
-                    <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                    <div className="flex flex-wrap items-center gap-3 text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-medium">
                       <span className="flex items-center gap-1 font-mono">
                         <Calendar className="w-3.5 h-3.5 text-slate-400" />
                         {new Date(comp.held_at).toLocaleDateString('fa-IR-u-nu-latn')}
@@ -158,7 +158,7 @@ export const LeagueCompetitionsView = ({
                         </span>
                       )}
                       <span>
-                        رده: <strong>{comp.category_title || 'عمومی'}</strong> ({comp.gender_display})
+                        رده: <strong className="text-slate-800 dark:text-slate-200">{comp.category_title || 'عمومی'}</strong> ({comp.gender_display})
                       </span>
                     </div>
                   </div>
@@ -169,11 +169,11 @@ export const LeagueCompetitionsView = ({
                       variant={isCompleted ? 'outline' : 'primary'}
                       size="sm"
                       onClick={() => onOpenRecordResultsModal(comp)}
-                      className={`gap-1.5 text-xs h-8.5 font-bold flex-1 sm:flex-initial justify-center ${
+                      className={`gap-1.5 text-xs sm:text-sm h-8.5 font-bold flex-1 sm:flex-initial justify-center ${
                         !isCompleted ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''
                       }`}
                     >
-                      <Trophy className="w-3.5 h-3.5" />
+                      <Trophy className="w-4 h-4" />
                       <span>{isCompleted ? 'ویرایش / مشاهده نتایج' : 'ثبت نتایج و زمان‌ها'}</span>
                     </Button>
 
@@ -199,7 +199,7 @@ export const LeagueCompetitionsView = ({
 
                 {/* Notes if available */}
                 {comp.notes && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/80">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 bg-slate-50 dark:bg-slate-800/40 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800/80 font-medium">
                     {comp.notes}
                   </p>
                 )}
@@ -209,19 +209,19 @@ export const LeagueCompetitionsView = ({
                   <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                        <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
                           نفرات برتر و سکو:
                         </span>
-                        <div className="flex flex-wrap items-center gap-1.5 text-xs">
+                        <div className="flex flex-wrap items-center gap-1.5 text-xs sm:text-sm">
                           {comp.results.slice(0, 3).map((r, idx) => (
                             <span
                               key={r.id}
                               onClick={() => onSelectSwimmer && onSelectSwimmer(r.swimmer_id)}
-                              className="inline-flex items-center gap-1 bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-2 py-0.5 rounded-lg font-semibold hover:border-amber-400 transition-colors cursor-pointer text-[11px]"
+                              className="inline-flex items-center gap-1 bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 px-2 py-0.5 rounded-lg font-semibold hover:border-amber-400 transition-colors cursor-pointer text-xs"
                             >
                               <span>{idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}</span>
-                              <span className="text-slate-800 dark:text-slate-200">{r.swimmer_name}</span>
-                              <span className="font-mono text-amber-600 dark:text-amber-400 font-bold">
+                              <span className="text-slate-900 dark:text-slate-200 font-bold">{r.swimmer_name}</span>
+                              <span className="font-mono text-amber-600 dark:text-amber-400 font-black">
                                 {r.formatted_time}
                               </span>
                             </span>
@@ -232,7 +232,7 @@ export const LeagueCompetitionsView = ({
                       <button
                         type="button"
                         onClick={() => toggleExpand(comp.id)}
-                        className="flex items-center gap-1 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 transition-colors cursor-pointer"
+                        className="flex items-center gap-1 text-xs sm:text-sm font-bold text-slate-600 hover:text-slate-900 dark:hover:text-slate-200 transition-colors cursor-pointer"
                       >
                         <span>{isExpanded ? 'بستن لیست' : `مشاهده تمام ${comp.results.length} شناگر`}</span>
                         {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -242,8 +242,8 @@ export const LeagueCompetitionsView = ({
                     {/* Detailed Results Table when expanded */}
                     {isExpanded && (
                       <div className="mt-3 overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
-                        <table className="w-full text-xs text-right">
-                          <thead className="bg-slate-50 dark:bg-slate-800 font-semibold text-slate-600 dark:text-slate-300">
+                        <table className="w-full text-xs sm:text-sm text-right">
+                          <thead className="bg-slate-50 dark:bg-slate-800 font-bold text-slate-700 dark:text-slate-300">
                             <tr>
                               <th className="p-2.5 text-center w-12">رتبه</th>
                               <th className="p-2.5">شناگر</th>
@@ -263,19 +263,19 @@ export const LeagueCompetitionsView = ({
                                 <td className="p-2.5 text-center font-bold font-mono">
                                   {res.rank === 1 ? '🥇' : res.rank === 2 ? '🥈' : res.rank === 3 ? '🥉' : res.rank}
                                 </td>
-                                <td className="p-2.5 font-bold text-slate-900 dark:text-white">
+                                <td className="p-2.5 font-bold text-slate-900 dark:text-white text-sm sm:text-base">
                                   {res.swimmer_name}
                                 </td>
-                                <td className="p-2.5 text-center font-mono font-bold text-slate-700 dark:text-slate-300">
+                                <td className="p-2.5 text-center font-mono font-bold text-slate-800 dark:text-slate-200">
                                   {res.formatted_time}
                                 </td>
-                                <td className="p-2.5 text-center">
+                                <td className="p-2.5 text-center font-semibold">
                                   {res.medal === 'GOLD' ? 'طلا' : res.medal === 'SILVER' ? 'نقره' : res.medal === 'BRONZE' ? 'برنز' : '-'}
                                 </td>
-                                <td className="p-2.5 text-left font-mono font-bold text-amber-600 dark:text-amber-400">
+                                <td className="p-2.5 text-left font-mono font-black text-amber-600 dark:text-amber-400 text-sm sm:text-base">
                                   +{res.score_points}
                                 </td>
-                                <td className="p-2.5 text-slate-400 text-[11px]">
+                                <td className="p-2.5 text-slate-500 text-xs">
                                   {res.notes || '-'}
                                 </td>
                               </tr>
