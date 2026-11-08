@@ -28,30 +28,6 @@ export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertif
   const [certFile, setCertFile] = useState(null);
   const [submittingCert, setSubmittingCert] = useState(false);
 
-  // Edit Personal & Professional Info Modal
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editForm, setEditForm] = useState({
-    first_name: coach.first_name || '',
-    last_name: coach.last_name || '',
-    phone: coach.phone || '',
-    national_id: coach.national_id || '',
-    personnel_id: coach.personnel_id || '',
-    gender: coach.gender || 'MALE',
-    date_of_birth: coach.date_of_birth || '',
-    emergency_contact_name: coach.emergency_contact_name || '',
-    emergency_contact_phone: coach.emergency_contact_phone || '',
-    address: coach.address || '',
-    internal_notes: coach.internal_notes || '',
-    specialties: coach.specialties || '',
-    lifeguard_certificate: coach.lifeguard_certificate || '',
-    lifeguard_expiration: coach.lifeguard_expiration || '',
-    years_of_experience: coach.years_of_experience || 0,
-    previous_experience: coach.previous_experience || '',
-    additional_skills: coach.additional_skills || '',
-    bio: coach.bio || '',
-  });
-  const [savingEdit, setSavingEdit] = useState(false);
-
   // Handle Add Certificate
   const handleAddCertSubmit = async (e) => {
     e.preventDefault();
@@ -108,28 +84,6 @@ export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertif
     }
   };
 
-  // Handle Save Edit Form
-  const handleSaveEditSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      setSavingEdit(true);
-      await api.patch(`/coaches/${coach.id}/`, {
-        ...editForm,
-        years_of_experience: Number(editForm.years_of_experience || 0),
-      });
-
-      toast.success('اطلاعات پرونده با موفقیت ذخیره شد.');
-      setIsEditModalOpen(false);
-      if (onCoachUpdated) onCoachUpdated();
-    } catch (err) {
-      console.error(err);
-      const msg = err.response?.data?.phone || err.response?.data?.detail || 'خطا در به‌روزرسانی مشخصات';
-      toast.error(typeof msg === 'string' ? msg : JSON.stringify(msg));
-    } finally {
-      setSavingEdit(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
       {/* Action Header for Edit */}
@@ -140,32 +94,10 @@ export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertif
         </h3>
         <Button
           variant="outline"
-          onClick={() => {
-            setEditForm({
-              first_name: coach.first_name || '',
-              last_name: coach.last_name || '',
-              phone: coach.phone || '',
-              national_id: coach.national_id || '',
-              personnel_id: coach.personnel_id || '',
-              gender: coach.gender || 'MALE',
-              date_of_birth: coach.date_of_birth || '',
-              emergency_contact_name: coach.emergency_contact_name || '',
-              emergency_contact_phone: coach.emergency_contact_phone || '',
-              address: coach.address || '',
-              internal_notes: coach.internal_notes || '',
-              specialties: coach.specialties || '',
-              lifeguard_certificate: coach.lifeguard_certificate || '',
-              lifeguard_expiration: coach.lifeguard_expiration || '',
-              years_of_experience: coach.years_of_experience || 0,
-              previous_experience: coach.previous_experience || '',
-              additional_skills: coach.additional_skills || '',
-              bio: coach.bio || '',
-            });
-            setIsEditModalOpen(true);
-          }}
-          className="gap-1.5 text-xs bg-white dark:bg-slate-900 shadow-xs"
+          onClick={() => navigate(`/admin/coaches/${coach.id}/edit`)}
+          className="gap-1.5 text-xs bg-white dark:bg-slate-900 shadow-xs hover:bg-sky-50 dark:hover:bg-sky-950/30 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800"
         >
-          <Edit3 className="w-4 h-4 text-sky-600" />
+          <Edit3 className="w-4 h-4 text-sky-600 dark:text-sky-400" />
           <span>ویرایش مشخصات پرونده</span>
         </Button>
       </div>
@@ -411,185 +343,6 @@ export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertif
           </div>
         )}
       </div>
-
-      {/* Modal: Edit Personal & Professional Info */}
-      <Modal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        title={`ویرایش مشخصات پرونده مربی: ${coach.full_name}`}
-        size="lg"
-      >
-        <form onSubmit={handleSaveEditSubmit} className="space-y-4 max-h-[75vh] overflow-y-auto px-1">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">نام</label>
-              <input
-                type="text"
-                value={editForm.first_name}
-                onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">نام خانوادگی</label>
-              <input
-                type="text"
-                value={editForm.last_name}
-                onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">شماره همراه</label>
-              <input
-                type="text"
-                value={editForm.phone}
-                onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">کد ملی</label>
-              <input
-                type="text"
-                value={editForm.national_id}
-                onChange={(e) => setEditForm({ ...editForm, national_id: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">کد پرسنلی</label>
-              <input
-                type="text"
-                value={editForm.personnel_id}
-                onChange={(e) => setEditForm({ ...editForm, personnel_id: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">جنسیت</label>
-              <select
-                value={editForm.gender}
-                onChange={(e) => setEditForm({ ...editForm, gender: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-              >
-                <option value="MALE">مرد (آقا)</option>
-                <option value="FEMALE">زن (خانم)</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">تاریخ تولد</label>
-              <input
-                type="date"
-                value={editForm.date_of_birth}
-                onChange={(e) => setEditForm({ ...editForm, date_of_birth: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">سابقه مربیگری (سال)</label>
-              <input
-                type="number"
-                value={editForm.years_of_experience}
-                onChange={(e) => setEditForm({ ...editForm, years_of_experience: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">نام مخاطب اضطراری</label>
-              <input
-                type="text"
-                value={editForm.emergency_contact_name}
-                onChange={(e) => setEditForm({ ...editForm, emergency_contact_name: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">تلفن اضطراری</label>
-              <input
-                type="text"
-                value={editForm.emergency_contact_phone}
-                onChange={(e) => setEditForm({ ...editForm, emergency_contact_phone: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
-              />
-            </div>
-
-            <div className="col-span-2">
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">تخصص‌ها (با کاما جدا کنید)</label>
-              <input
-                type="text"
-                value={editForm.specialties}
-                onChange={(e) => setEditForm({ ...editForm, specialties: e.target.value })}
-                placeholder="کرال سینه، شنای استقامتی، نجات غریق"
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-              />
-            </div>
-
-            <div className="col-span-2">
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">آدرس محل سکونت</label>
-              <input
-                type="text"
-                value={editForm.address}
-                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-              />
-            </div>
-
-            <div className="col-span-2">
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">سوابق کاری و باشگاه‌های قبلی</label>
-              <textarea
-                rows={2}
-                value={editForm.previous_experience}
-                onChange={(e) => setEditForm({ ...editForm, previous_experience: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-              />
-            </div>
-
-            <div className="col-span-2">
-              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">رزومه و بیوگرافی رسمی</label>
-              <textarea
-                rows={2}
-                value={editForm.bio}
-                onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-              />
-            </div>
-
-            <div className="col-span-2">
-              <label className="block text-xs font-bold text-amber-700 dark:text-amber-400 mb-1">
-                یادداشت محرمانه اداری (غیرقابل رویت برای مربی)
-              </label>
-              <textarea
-                rows={2}
-                value={editForm.internal_notes}
-                onChange={(e) => setEditForm({ ...editForm, internal_notes: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-amber-300 dark:border-amber-900 bg-amber-50/50 dark:bg-amber-950/20 text-slate-900 dark:text-white"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <Button variant="outline" type="button" onClick={() => setIsEditModalOpen(false)}>
-              انصراف
-            </Button>
-            <Button type="submit" disabled={savingEdit} className="bg-sky-600 hover:bg-sky-500 text-white">
-              {savingEdit ? 'در حال ذخیره...' : 'ذخیره تغییرات'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
     </div>
   );
 };

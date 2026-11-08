@@ -393,7 +393,7 @@ export const AdminCourseDetailPage = () => {
         {/* Metric 4 */}
         <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
           <div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">کلاس‌ها / لاین‌ها</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">کلاس‌های دوره</span>
             <div className="text-2xl font-black text-indigo-600 dark:text-indigo-400 font-mono mt-1">
               {groups.length}
               <span className="text-xs text-slate-400 mr-1 font-sans">کلاس</span>
@@ -461,7 +461,7 @@ export const AdminCourseDetailPage = () => {
           }`}
         >
           <Layers className="w-4 h-4 shrink-0" />
-          <span>کلاس‌ها و لاین‌های آموزشی</span>
+          <span>کلاس‌های دوره</span>
           <span
             className={`text-xs px-2 py-0.5 rounded-full font-bold transition-colors ${
               activeTab === 'groups'
@@ -934,7 +934,7 @@ export const AdminCourseDetailPage = () => {
                 <span>کادر مربیان دوره و کلاس‌های اختصاصی ({course.coaches?.length || 0} مربی)</span>
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                هر مربی در این دوره دارای یک کلاس/لاین اختصاصی است. می‌توانید مربی جدید اضافه کرده یا ظرفیت شاگردان هر کلاس را پایش کنید.
+                هر مربی در این دوره دارای کلاس اختصاصی است. می‌توانید مربی جدید اضافه کرده یا ظرفیت شاگردان هر کلاس را پایش کنید.
               </p>
             </div>
 
@@ -1021,7 +1021,7 @@ export const AdminCourseDetailPage = () => {
                           </span>
                         </div>
                         <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
-                          <span className="text-slate-400">ظرفیت مجاز لاین:</span>
+                          <span className="text-slate-400">ظرفیت مجاز کلاس:</span>
                           <span className="font-mono text-slate-700 dark:text-slate-300">
                             {capacity} نفر ({remaining} جای خالی)
                           </span>
@@ -1090,10 +1090,10 @@ export const AdminCourseDetailPage = () => {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-base font-bold text-slate-900 dark:text-white">
-                کلاس‌ها و لاین‌های آموزشی این دوره
+                کلاس‌های این دوره
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                هر کلاس به یک مربی و لاین مجزا در استخر اختصاص دارد
+                هر کلاس تحت نظر یک مربی و با ظرفیت مشخص تعریف شده است
               </p>
             </div>
             <Button
@@ -1150,7 +1150,7 @@ export const AdminCourseDetailPage = () => {
                         {/* Capacity Bar */}
                         <div className="pt-2">
                           <ProgressBar
-                            label="وضعیت پذیرش لاین"
+                            label="وضعیت پذیرش کلاس"
                             value={group.current_enrollments_count || 0}
                             max={group.capacity || 15}
                             color={isFull ? 'rose' : (group.remaining_capacity || 15) < 3 ? 'amber' : 'emerald'}

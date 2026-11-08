@@ -188,6 +188,15 @@ export const AdminCoachDetailPage = () => {
         <div className="flex items-center gap-2 flex-wrap">
           <Button
             variant="outline"
+            onClick={() => navigate(`/admin/coaches/${coach.id}/edit`)}
+            className="gap-1.5 text-xs bg-white dark:bg-slate-900 shadow-xs border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-300 hover:bg-sky-50 dark:hover:bg-sky-950/30"
+          >
+            <Edit3 className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+            <span>ویرایش مشخصات</span>
+          </Button>
+
+          <Button
+            variant="outline"
             onClick={() => {
               setNewStatus(coach.employment_status || 'ACTIVE');
               setStatusReason('');
@@ -384,19 +393,20 @@ export const AdminCoachDetailPage = () => {
       >
         <form onSubmit={handleStatusChangeSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
               وضعیت جدید همکاری <span className="text-rose-500">*</span>
             </label>
-            <select
+            <CustomSelect
               value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value)}
-              className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-            >
-              <option value="ACTIVE">فعال و مجاز (Active)</option>
-              <option value="SUSPENDED">معلق موقت (Suspended)</option>
-              <option value="INACTIVE">پایان همکاری / غیرفعال (Inactive)</option>
-              <option value="ARCHIVED">بایگانی پرونده (Archived)</option>
-            </select>
+              onChange={(val) => setNewStatus(val)}
+              options={[
+                { value: 'ACTIVE', label: 'فعال و مجاز (Active)', badge: 'مجاز' },
+                { value: 'SUSPENDED', label: 'معلق موقت (Suspended)', badge: 'معلق' },
+                { value: 'INACTIVE', label: 'پایان همکاری / غیرفعال (Inactive)', badge: 'غیرفعال' },
+                { value: 'ARCHIVED', label: 'بایگانی پرونده (Archived)', badge: 'بایگانی' },
+              ]}
+              menuClassName="w-full"
+            />
           </div>
 
           <div>

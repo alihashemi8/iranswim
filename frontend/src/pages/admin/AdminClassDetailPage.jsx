@@ -410,7 +410,7 @@ export const AdminClassDetailPage = () => {
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
             <h3 className="font-extrabold text-base text-slate-900 dark:text-white flex items-center gap-2">
               <MapPin className="w-5 h-5 text-sky-500" />
-              <span>محل استخر و وضعیت ظرفیت لاین</span>
+              <span>محل استخر و وضعیت ظرفیت کلاس</span>
             </h3>
 
             <div className="space-y-3 text-xs sm:text-sm">
@@ -419,7 +419,7 @@ export const AdminClassDetailPage = () => {
                 <span className="font-bold text-slate-800 dark:text-slate-200">{data.pool_location}</span>
               </div>
               <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">
-                <span className="text-slate-500">ظرفیت کل لاین:</span>
+                <span className="text-slate-500">ظرفیت کل کلاس:</span>
                 <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{data.capacity} نفر</span>
               </div>
               <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800">

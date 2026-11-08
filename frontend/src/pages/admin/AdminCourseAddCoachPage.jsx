@@ -387,7 +387,7 @@ export const AdminCourseAddCoachPage = () => {
                     کلاس مربی {c.full_name}
                   </span>
                   <span className="text-[11px] text-slate-400 block truncate mt-0.5">
-                    لاین اختصاصی - ظرفیت ۱۵ نفر
+                    کلاس اختصاصی - ظرفیت ۱۵ نفر
                   </span>
                 </div>
                 <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 shrink-0">

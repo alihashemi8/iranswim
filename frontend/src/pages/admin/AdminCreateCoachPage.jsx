@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useParams, Link } from 'react-router-dom';
 import {
   UserCheck, ArrowRight, Save, User, Phone, Hash, Calendar,
   Briefcase, MapPin, ShieldAlert, Award, CreditCard, Clock, Lock,
@@ -13,9 +13,12 @@ import { useToast } from '../../context/ToastContext';
 import { validatePassword, PasswordRequirementsList } from '../../utils/passwordValidator';
 
 export const AdminCreateCoachPage = () => {
+  const { id } = useParams();
+  const isEdit = Boolean(id);
   const navigate = useNavigate();
   const toast = useToast();
 
+  const [loadingCoach, setLoadingCoach] = useState(isEdit);
   const [form, setForm] = useState({
     first_name: '',
     last_name: '',
@@ -43,6 +46,51 @@ export const AdminCreateCoachPage = () => {
     contractual_weekly_hours: 20,
     internal_notes: '',
   });
+
+  useEffect(() => {
+    if (!id) return;
+    const fetchCoach = async () => {
+      try {
+        setLoadingCoach(true);
+        const res = await api.get(`/coaches/${id}/`);
+        const c = res.data;
+        setForm({
+          first_name: c.first_name || '',
+          last_name: c.last_name || '',
+          phone: c.phone || '',
+          national_id: c.national_id || '',
+          gender: c.gender || 'MALE',
+          date_of_birth: c.date_of_birth || '',
+          password: '',
+          emergency_contact_name: c.emergency_contact_name || '',
+          emergency_contact_phone: c.emergency_contact_phone || '',
+          address: c.address || '',
+          specialties: c.specialties || '',
+          years_of_experience: c.years_of_experience || 0,
+          lifeguard_certificate: c.lifeguard_certificate || '',
+          lifeguard_expiration: c.lifeguard_expiration || '',
+          previous_experience: c.previous_experience || '',
+          additional_skills: c.additional_skills || '',
+          bio: c.bio || '',
+          employment_status: c.employment_status || 'ACTIVE',
+          employment_type: c.employment_type || 'HOURLY',
+          hourly_rate: String(c.hourly_rate || '250000'),
+          fixed_monthly_salary: String(c.fixed_monthly_salary || '0'),
+          revenue_percentage: String(c.revenue_percentage || '0'),
+          percentage_revenue_basis: c.percentage_revenue_basis || 'COURSE_GROSS',
+          contractual_weekly_hours: c.contractual_weekly_hours || 20,
+          internal_notes: c.internal_notes || '',
+        });
+      } catch (err) {
+        console.error(err);
+        toast.error('خطا در دریافت اطلاعات مربی');
+        navigate('/admin/coaches');
+      } finally {
+        setLoadingCoach(false);
+      }
+    };
+    fetchCoach();
+  }, [id]);
 
   const [showPassword, setShowPassword] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -113,10 +161,16 @@ export const AdminCreateCoachPage = () => {
         internal_notes: form.internal_notes.trim(),
       };
 
-      const res = await api.post('/coaches/', payload);
-      toast.success(`پرونده پرسنلی مربی ${form.first_name} ${form.last_name} با موفقیت تشکیل شد.`);
-      const newId = res.data.id;
-      navigate(`/admin/coaches/${newId}`);
+      if (isEdit) {
+        await api.patch(`/coaches/${id}/`, payload);
+        toast.success(`مشخصات مربی ${form.first_name} ${form.last_name} با موفقیت به‌روزرسانی شد.`);
+        navigate(`/admin/coaches/${id}`);
+      } else {
+        const res = await api.post('/coaches/', payload);
+        toast.success(`پرونده پرسنلی مربی ${form.first_name} ${form.last_name} با موفقیت تشکیل شد.`);
+        const newId = res.data.id;
+        navigate(`/admin/coaches/${newId}`);
+      }
     } catch (err) {
       console.error(err);
       const errorData = err.response?.data;
@@ -169,11 +223,13 @@ export const AdminCreateCoachPage = () => {
               <span className="text-xs text-slate-300 dark:text-slate-700">/</span>
               <span className="text-xs font-bold text-slate-700 dark:text-slate-200">کادر مربیان</span>
               <span className="text-xs text-slate-300 dark:text-slate-700">/</span>
-              <span className="text-xs font-bold text-sky-600 dark:text-sky-400">افزودن مربی جدید</span>
+              <span className="text-xs font-bold text-sky-600 dark:text-sky-400">
+                {isEdit ? 'ویرایش مشخصات مربی' : 'افزودن مربی جدید'}
+              </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1 flex items-center gap-2">
               <UserCheck className="w-6 h-6 text-sky-600" />
-              تشکیل پرونده و استخدام مربی جدید
+              <span>{isEdit ? `ویرایش پرونده مربی: ${form.first_name} ${form.last_name}` : 'تشکیل پرونده و استخدام مربی جدید'}</span>
             </h1>
           </div>
         </div>
@@ -181,7 +237,7 @@ export const AdminCreateCoachPage = () => {
         <div className="flex items-center gap-2.5">
           <Button
             variant="outline"
-            onClick={() => navigate('/admin/coaches')}
+            onClick={() => navigate(isEdit ? `/admin/coaches/${id}` : '/admin/coaches')}
             className="text-xs"
           >
             انصراف
@@ -193,7 +249,7 @@ export const AdminCreateCoachPage = () => {
             className="gap-2 text-xs bg-sky-600 hover:bg-sky-500 text-white shadow-xs"
           >
             <Save className="w-4 h-4" />
-            <span>{submitting ? 'در حال ثبت پرونده...' : 'ثبت و تشکیل پرونده مربی'}</span>
+            <span>{submitting ? 'در حال ثبت...' : isEdit ? 'ذخیره تغییرات پرونده' : 'ثبت و تشکیل پرونده مربی'}</span>
           </Button>
         </div>
       </div>

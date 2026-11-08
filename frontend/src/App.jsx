@@ -186,6 +186,7 @@ export default function App() {
                 <Route path="coaches" element={<AdminCoachesPage />} />
                 <Route path="coaches/new" element={<AdminCreateCoachPage />} />
                 <Route path="coaches/:id" element={<AdminCoachDetailPage />} />
+                <Route path="coaches/:id/edit" element={<AdminCreateCoachPage />} />
                 <Route path="coaches/:id/schedule" element={<AdminCoachSchedulePage />} />
                 <Route path="coaches/:id/assign" element={<AdminCoachAssignGroupPage />} />
                 <Route path="coaches/:id/assign-group" element={<AdminCoachAssignGroupPage />} />
