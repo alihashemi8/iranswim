@@ -279,7 +279,10 @@ class CoachProfileSerializer(serializers.ModelSerializer):
     phone = serializers.CharField(required=False)
     first_name = serializers.CharField(required=False)
     last_name = serializers.CharField(required=False)
-    national_id = serializers.CharField(required=False, allow_blank=True)
+    national_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
+    date_of_birth = serializers.DateField(required=False, allow_null=True)
+    lifeguard_expiration = serializers.DateField(required=False, allow_null=True)
+    employment_start_date = serializers.DateField(required=False, allow_null=True)
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
     avatar = serializers.SerializerMethodField()
     gender_display = serializers.CharField(source='get_gender_display', read_only=True)
@@ -370,6 +373,25 @@ class CoachProfileSerializer(serializers.ModelSerializer):
         if value:
             validate_password_complexity(value)
         return value
+
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, 'copy') else dict(data)
+        for date_field in ['date_of_birth', 'lifeguard_expiration', 'employment_start_date']:
+            if date_field in data and (data[date_field] == '' or data[date_field] is None):
+                data[date_field] = None
+
+        for num_field in ['years_of_experience', 'contractual_weekly_hours', 'display_order']:
+            if num_field in data and (data[num_field] == '' or data[num_field] is None):
+                data[num_field] = 0
+
+        for dec_field in ['hourly_rate', 'fixed_monthly_salary', 'revenue_percentage']:
+            if dec_field in data and (data[dec_field] == '' or data[dec_field] is None):
+                data[dec_field] = '0'
+
+        if 'personnel_id' in data and not data['personnel_id']:
+            data['personnel_id'] = None
+
+        return super().to_internal_value(data)
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)
@@ -486,16 +508,20 @@ class CoachProfileSerializer(serializers.ModelSerializer):
 
         if instance.user:
             user_obj = instance.user
-            if phone and phone != user_obj.phone:
-                if User.objects.filter(phone=phone).exclude(pk=user_obj.pk).exists():
-                    raise serializers.ValidationError({'phone': 'این شماره همراه قبلاً در سیستم ثبت شده است.'})
-                user_obj.phone = phone
+            if phone is not None:
+                phone = str(phone).strip()
+                if not phone:
+                    raise serializers.ValidationError({'phone': 'شماره همراه نمی‌تواند خالی باشد.'})
+                if phone != user_obj.phone:
+                    if User.objects.filter(phone=phone).exclude(pk=user_obj.pk).exists():
+                        raise serializers.ValidationError({'phone': 'این شماره همراه قبلاً در سیستم برای کاربر دیگری ثبت شده است.'})
+                    user_obj.phone = phone
             if first_name is not None:
-                user_obj.first_name = first_name
+                user_obj.first_name = str(first_name).strip()
             if last_name is not None:
-                user_obj.last_name = last_name
+                user_obj.last_name = str(last_name).strip()
             if national_id is not None:
-                user_obj.national_id = national_id
+                user_obj.national_id = str(national_id).strip() or None
             if password:
                 user_obj.set_password(password)
 
