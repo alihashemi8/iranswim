@@ -469,37 +469,37 @@ export const CoachPayrollTab = ({ coach, payrolls, onPayrollsUpdated }) => {
           </div>
 
           {/* Financial Breakdown Cards */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs sm:text-sm">
             <div className="bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
               <span className="text-slate-400 block mb-1">دستمزد پایه (کارکرد جلسات):</span>
-              <span className="font-mono font-bold text-slate-900 dark:text-white text-sm">
+              <span className="font-mono font-bold text-slate-900 dark:text-white text-sm sm:text-base">
                 {formatPrice(selectedPayroll.base_compensation)} تومان
               </span>
-              <span className="text-[10px] text-slate-500 block mt-0.5">
+              <span className="text-[11px] text-slate-500 block mt-0.5">
                 {selectedPayroll.teaching_hours} ساعت تدریس ({selectedPayroll.completed_sessions_count} جلسه)
               </span>
             </div>
 
             <div className="bg-emerald-50/50 dark:bg-emerald-950/20 p-3 rounded-xl border border-emerald-100 dark:border-emerald-900/40">
               <span className="text-emerald-700 dark:text-emerald-300 block mb-1">پاداش‌ها و اضافه‌کاری:</span>
-              <span className="font-mono font-bold text-emerald-800 dark:text-emerald-200 text-sm">
+              <span className="font-mono font-bold text-emerald-800 dark:text-emerald-200 text-sm sm:text-base">
                 + {formatPrice(Number(selectedPayroll.bonuses_amount || 0) + Number(selectedPayroll.overtime_amount || 0))} تومان
               </span>
             </div>
 
             <div className="bg-rose-50/50 dark:bg-rose-950/20 p-3 rounded-xl border border-rose-100 dark:border-rose-900/40">
               <span className="text-rose-700 dark:text-rose-300 block mb-1">کسورات قانونی و غیبت:</span>
-              <span className="font-mono font-bold text-rose-800 dark:text-rose-200 text-sm">
+              <span className="font-mono font-bold text-rose-800 dark:text-rose-200 text-sm sm:text-base">
                 - {formatPrice(selectedPayroll.deductions_amount)} تومان
               </span>
             </div>
 
             <div className="bg-sky-50 dark:bg-sky-950/40 p-3 rounded-xl border border-sky-200 dark:border-sky-800">
               <span className="text-sky-800 dark:text-sky-200 block mb-1 font-bold">خالص قابل پرداخت:</span>
-              <span className="font-mono font-black text-sky-900 dark:text-sky-100 text-base">
+              <span className="font-mono font-black text-sky-900 dark:text-sky-100 text-base sm:text-lg">
                 {formatPrice(selectedPayroll.net_payable_amount)} تومان
               </span>
-              <div className="flex items-center justify-between text-[10px] text-slate-500 mt-1 pt-1 border-t border-sky-200/60 dark:border-sky-800">
+              <div className="flex items-center justify-between text-[11px] text-slate-500 mt-1 pt-1 border-t border-sky-200/60 dark:border-sky-800">
                 <span>پرداخت‌شده: {formatPrice(selectedPayroll.total_paid)}</span>
                 <span className="font-bold text-rose-600">مانده: {formatPrice(selectedPayroll.remaining_balance)}</span>
               </div>
@@ -508,11 +508,11 @@ export const CoachPayrollTab = ({ coach, payrolls, onPayrollsUpdated }) => {
 
           {/* Adjustments Sub-Table */}
           <div className="space-y-2">
-            <h5 className="font-bold text-slate-800 dark:text-slate-200 text-xs">
+            <h5 className="font-bold text-slate-800 dark:text-slate-200 text-xs sm:text-sm">
               ردیف‌های تعدیل، پاداش‌ها و کسورات مصوب
             </h5>
             {selectedPayroll.adjustments && selectedPayroll.adjustments.length > 0 ? (
-              <div className="rounded-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+              <div className="rounded-xl border border-slate-100 dark:border-slate-800 overflow-x-auto scrollbar-none">
                 <table className="w-full text-right text-xs">
                   <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400">
                     <tr>
@@ -561,7 +561,7 @@ export const CoachPayrollTab = ({ coach, payrolls, onPayrollsUpdated }) => {
             </div>
 
             {selectedPayroll.payments && selectedPayroll.payments.length > 0 ? (
-              <div className="rounded-xl border border-slate-100 dark:border-slate-800 overflow-hidden">
+              <div className="rounded-xl border border-slate-100 dark:border-slate-800 overflow-x-auto scrollbar-none">
                 <table className="w-full text-right text-xs">
                   <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400">
                     <tr>

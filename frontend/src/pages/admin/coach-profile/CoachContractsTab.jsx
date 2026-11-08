@@ -216,7 +216,7 @@ export const CoachContractsTab = ({ coach, contracts, onContractsUpdated }) => {
             )}
           </div>
 
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
             <div className="bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
               <span className="text-slate-400 block mb-1">مدل محاسبه دستمزد:</span>
               <span className="font-bold text-slate-800 dark:text-slate-200">
@@ -226,7 +226,7 @@ export const CoachContractsTab = ({ coach, contracts, onContractsUpdated }) => {
 
             <div className="bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
               <span className="text-slate-400 block mb-1">نرخ / مبلغ مصوب:</span>
-              <span className="font-bold font-mono text-slate-900 dark:text-white">
+              <span className="font-bold font-mono text-slate-900 dark:text-white text-sm sm:text-base">
                 {activeContract.employment_type === 'HOURLY' && `${Number(activeContract.hourly_rate).toLocaleString('fa-IR')} ت/ساعت`}
                 {activeContract.employment_type === 'FIXED' && `${Number(activeContract.fixed_salary).toLocaleString('fa-IR')} ت/ماه`}
                 {activeContract.employment_type === 'PERCENTAGE' && `${activeContract.percentage_rate}٪ از شهریه`}

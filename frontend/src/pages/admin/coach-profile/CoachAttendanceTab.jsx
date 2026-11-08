@@ -124,37 +124,37 @@ export const CoachAttendanceTab = ({ coach }) => {
 
       {/* Summary KPI Cards */}
       {data && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
             <span className="text-slate-400 block mb-1">کل ساعات برنامه‌ریزی‌شده:</span>
-            <span className="text-lg font-bold font-mono text-slate-900 dark:text-white">
+            <span className="text-lg sm:text-xl font-bold font-mono text-slate-900 dark:text-white">
               {Number(data.scheduled_hours || 0).toLocaleString('fa-IR')} ساعت
             </span>
           </div>
 
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-emerald-200 dark:border-emerald-900/60 p-4 shadow-xs bg-emerald-50/20 dark:bg-emerald-950/20">
             <span className="text-emerald-700 dark:text-emerald-300 block mb-1">ساعات مصوب برگزارشده:</span>
-            <span className="text-lg font-bold font-mono text-emerald-800 dark:text-emerald-200">
+            <span className="text-lg sm:text-xl font-bold font-mono text-emerald-800 dark:text-emerald-200">
               {Number(data.approved_hours || 0).toLocaleString('fa-IR')} ساعت
             </span>
-            <span className="text-[10px] text-emerald-600 block mt-0.5">
+            <span className="text-[11px] text-emerald-600 block mt-0.5">
               مبنای محاسبه حقوق ساعتی
             </span>
           </div>
 
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
             <span className="text-slate-400 block mb-1">جلسات تکمیل‌شده:</span>
-            <span className="text-lg font-bold font-mono text-slate-800 dark:text-slate-200">
+            <span className="text-lg sm:text-xl font-bold font-mono text-slate-800 dark:text-slate-200">
               {data.completed_sessions} جلسه
             </span>
           </div>
 
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-xs">
             <span className="text-slate-400 block mb-1">جلسات لغوشده:</span>
-            <span className="text-lg font-bold font-mono text-rose-600 dark:text-rose-400">
+            <span className="text-lg sm:text-xl font-bold font-mono text-rose-600 dark:text-rose-400">
               {data.cancelled_sessions} جلسه
             </span>
-            <span className="text-[10px] text-slate-400 block mt-0.5">
+            <span className="text-[11px] text-slate-400 block mt-0.5">
               عدم احتساب در کارکرد
             </span>
           </div>
@@ -164,13 +164,13 @@ export const CoachAttendanceTab = ({ coach }) => {
       {/* Sessions Detail Table */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs">
         <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-          <h4 className="font-bold text-slate-800 dark:text-slate-200 text-xs">
+          <h4 className="font-bold text-slate-800 dark:text-slate-200 text-xs sm:text-sm">
             ریز جلسات کلاسی و وضعیت برگزاری
           </h4>
           <span className="text-[11px] text-slate-400">امکان اصلاح دستی وضعیت جلسه با ثبت الزامی دلیل</span>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="overflow-x-auto scrollbar-none">
           <table className="w-full text-right text-xs">
             <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
               <tr>

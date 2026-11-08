@@ -15,6 +15,8 @@ import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { ProgressBar } from '../../components/common/Charts';
 import { CoachSelectorDropdown } from '../../components/common/CoachSelectorDropdown';
+import { CoachSelectField } from '../../components/common/CoachSelectField';
+import { CustomSelect } from '../../components/common/CustomSelect';
 import { SwimmerCourseCard } from '../../components/common/SwimmerCourseCard';
 import { useToast } from '../../context/ToastContext';
 
@@ -108,6 +110,12 @@ export const AdminCourseDetailPage = () => {
     const courseCoachIds = new Set((course?.coaches || []).map((c) => Number(c.id)));
     return allCoaches.filter((c) => !courseCoachIds.has(Number(c.id)));
   }, [allCoaches, course]);
+
+  // Selected coach object for modal preview
+  const selectedCoachObj = useMemo(() => {
+    if (!selectedNewCoach) return null;
+    return unassignedCoaches.find((c) => String(c.id) === String(selectedNewCoach)) || null;
+  }, [unassignedCoaches, selectedNewCoach]);
 
   // Helper to find SwimmerGroup for a coach
   const getCoachGroup = (coachId, coachName) => {
@@ -627,49 +635,59 @@ export const AdminCourseDetailPage = () => {
             {/* Filter Dropdowns & View Mode Switcher */}
             <div className="flex items-center gap-2 flex-wrap">
               {/* Filter by Coach */}
-              <select
+              <CustomSelect
                 value={coachFilter}
-                onChange={(e) => setCoachFilter(e.target.value)}
-                className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 font-medium focus:outline-hidden cursor-pointer"
-              >
-                <option value="ALL">همه مربیان</option>
-                <option value="UNASSIGNED">بدون مربی تخصیصی</option>
-                {availableCoaches.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    مربی: {c.full_name}
-                  </option>
-                ))}
-              </select>
+                onChange={setCoachFilter}
+                size="sm"
+                color="sky"
+                options={[
+                  { value: 'ALL', label: 'همه مربیان' },
+                  { value: 'UNASSIGNED', label: 'بدون مربی تخصیصی' },
+                  ...availableCoaches.map((c) => ({
+                    value: String(c.id),
+                    label: `مربی: ${c.full_name}`,
+                  })),
+                ]}
+                placeholder="فیلتر مربی..."
+                className="w-40 sm:w-44"
+              />
 
               {/* Filter by Group */}
               {groups.length > 0 && (
-                <select
+                <CustomSelect
                   value={groupFilter}
-                  onChange={(e) => setGroupFilter(e.target.value)}
-                  className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 font-medium focus:outline-hidden cursor-pointer"
-                >
-                  <option value="ALL">همه کلاس‌ها</option>
-                  <option value="UNASSIGNED">بدون کلاس</option>
-                  {groups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name}
-                    </option>
-                  ))}
-                </select>
+                  onChange={setGroupFilter}
+                  size="sm"
+                  color="sky"
+                  options={[
+                    { value: 'ALL', label: 'همه کلاس‌ها' },
+                    { value: 'UNASSIGNED', label: 'بدون کلاس' },
+                    ...groups.map((g) => ({
+                      value: String(g.id),
+                      label: g.name,
+                    })),
+                  ]}
+                  placeholder="فیلتر کلاس..."
+                  className="w-36 sm:w-40"
+                />
               )}
 
               {/* Filter by Status */}
-              <select
+              <CustomSelect
                 value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 font-medium focus:outline-hidden cursor-pointer"
-              >
-                <option value="ALL">همه وضعیت‌ها</option>
-                <option value="ACTIVE">فقط فعال</option>
-                <option value="PENDING_PAYMENT">در انتظار پرداخت</option>
-                <option value="COMPLETED">تکمیل‌شده</option>
-                <option value="CANCELLED">لغو شده</option>
-              </select>
+                onChange={setStatusFilter}
+                size="sm"
+                color="sky"
+                options={[
+                  { value: 'ALL', label: 'همه وضعیت‌ها' },
+                  { value: 'ACTIVE', label: 'فقط فعال' },
+                  { value: 'PENDING_PAYMENT', label: 'در انتظار پرداخت' },
+                  { value: 'COMPLETED', label: 'تکمیل‌شده' },
+                  { value: 'CANCELLED', label: 'لغو شده' },
+                ]}
+                placeholder="وضعیت..."
+                className="w-32 sm:w-36"
+              />
 
               {/* View Switcher: Table vs Cards */}
               <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
@@ -1286,24 +1304,47 @@ export const AdminCourseDetailPage = () => {
               انتخاب مربی از کادر آکادمی:
             </label>
             {unassignedCoaches.length === 0 ? (
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs text-slate-500 text-center">
-                همه مربیان موجود در سیستم در حال حاضر به این دوره تخصیص یافته‌اند.
+              <div className="p-4 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs text-amber-800 dark:text-amber-300 text-center flex items-center justify-center gap-2">
+                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                <span>همه مربیان موجود در سیستم در حال حاضر به این دوره تخصیص یافته‌اند.</span>
               </div>
             ) : (
-              <select
+              <CoachSelectField
+                coaches={unassignedCoaches}
                 value={selectedNewCoach}
-                onChange={(e) => setSelectedNewCoach(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium focus:outline-hidden focus:ring-2 focus:ring-sky-500 cursor-pointer"
-              >
-                <option value="">-- لطفاً یک مربی را انتخاب کنید --</option>
-                {unassignedCoaches.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    مربی: {c.full_name} {c.specialties ? `(${c.specialties})` : ''}
-                  </option>
-                ))}
-              </select>
+                onChange={setSelectedNewCoach}
+                placeholder="لطفاً یک مربی را از کادر آکادمی انتخاب کنید..."
+              />
             )}
           </div>
+
+          {/* Selected Coach Preview Card */}
+          {selectedCoachObj && (
+            <div className="p-3.5 rounded-2xl bg-sky-50/70 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/70 space-y-2 animate-in fade-in-50 duration-200">
+              <div className="flex items-center gap-2 text-sky-900 dark:text-sky-200 font-bold text-xs">
+                <Sparkles className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+                <span>مشخصات کلاسی که برای این مربی ایجاد خواهد شد:</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-0.5">
+                <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                  <span className="text-slate-400">نام کلاس اختصاصی:</span>
+                  <span className="font-bold text-slate-900 dark:text-white truncate">
+                    کلاس مربی {selectedCoachObj.full_name}
+                  </span>
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
+                  <span className="text-slate-400">ظرفیت لاین:</span>
+                  <span className="font-bold font-mono text-slate-900 dark:text-white">۱۵ نفر</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 sm:col-span-2">
+                  <span className="text-slate-400">استخر و برنامه:</span>
+                  <span className="font-medium text-slate-800 dark:text-slate-200 truncate">
+                    {course.pool_location || 'استخر دوره'} - {course.schedule_days || 'سانس‌های دوره'}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
             <Button

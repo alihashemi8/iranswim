@@ -176,7 +176,7 @@ export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertif
             الف) اطلاعات شناسنامه‌ای و تماس
           </h4>
 
-          <div className="grid grid-cols-2 gap-4 text-xs">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
             <div>
               <span className="text-slate-400 block mb-0.5">نام و نام خانوادگی:</span>
               <span className="font-bold text-slate-800 dark:text-slate-200">{coach.full_name}</span>
@@ -259,8 +259,8 @@ export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertif
             ب) سوابق حرفه‌ای و شایستگی‌ها
           </h4>
 
-          <div className="grid grid-cols-2 gap-4 text-xs">
-            <div className="col-span-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
+            <div className="col-span-1 sm:col-span-2">
               <span className="text-slate-400 block mb-0.5">تخصص‌های آموزشی شنا:</span>
               <div className="flex flex-wrap gap-1.5 mt-1">
                 {coach.specialties ? (

@@ -205,12 +205,18 @@ export const CoachScheduleTab = ({ coach }) => {
       </div>
 
       {/* Weekly Visual Timeline Matrix */}
-      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs space-y-3">
-        <h4 className="font-bold text-slate-800 dark:text-slate-200 text-xs">
-          نمای تقویم هفتگی سانس‌های مربی
-        </h4>
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-xs space-y-3">
+        <div className="flex items-center justify-between">
+          <h4 className="font-bold text-slate-800 dark:text-slate-200 text-xs sm:text-sm">
+            نمای تقویم هفتگی سانس‌های مربی
+          </h4>
+          <span className="text-[11px] text-slate-400 hidden sm:inline">
+            شنبه تا جمعه به تفکیک سانس و کلاس
+          </span>
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-7 gap-2 text-xs">
+        <div className="overflow-x-auto scrollbar-none pb-1">
+          <div className="grid grid-cols-1 sm:grid-cols-7 gap-2 text-xs min-w-full sm:min-w-[680px] lg:min-w-0">
           {WEEKDAYS.map((day) => {
             // Find all schedules on this day
             const daySchedules = [];
@@ -254,6 +260,7 @@ export const CoachScheduleTab = ({ coach }) => {
               </div>
             );
           })}
+          </div>
         </div>
       </div>
     </div>

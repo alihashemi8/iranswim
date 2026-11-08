@@ -374,59 +374,59 @@ export const AdminCoachesPage = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3.5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-3.5">
           {/* Total & Active Coaches */}
           <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
-            <span className="text-xs text-slate-400 block">کل مربیان / فعال:</span>
-            <div className="flex items-baseline gap-2">
-              <span className="text-xl font-black font-mono text-slate-900 dark:text-white">
+            <span className="text-xs sm:text-sm text-slate-400 block">کل مربیان / فعال:</span>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-xl sm:text-2xl font-black font-mono text-slate-900 dark:text-white">
                 {stats?.total_coaches || 0}
               </span>
-              <span className="text-xs font-bold text-emerald-600">
+              <span className="text-xs sm:text-sm font-bold text-emerald-600">
                 ({stats?.active_coaches || 0} نفر فعال)
               </span>
             </div>
-            <div className="text-[11px] text-slate-400">
+            <div className="text-[11px] sm:text-xs text-slate-400">
               {stats?.inactive_or_suspended_coaches || 0} نفر معلق یا غیرفعال
             </div>
           </div>
 
           {/* Currently Teaching */}
           <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
-            <span className="text-xs text-slate-400 block">مربیان در حال تدریس:</span>
-            <div className="flex items-baseline gap-2">
-              <span className="text-xl font-black font-mono text-sky-600 dark:text-sky-400">
+            <span className="text-xs sm:text-sm text-slate-400 block">مربیان در حال تدریس:</span>
+            <div className="flex items-baseline gap-2 flex-wrap">
+              <span className="text-xl sm:text-2xl font-black font-mono text-sky-600 dark:text-sky-400">
                 {stats?.teaching_coaches || 0}
               </span>
-              <span className="text-xs text-slate-400">نفر دارای کلاس جاری</span>
+              <span className="text-xs sm:text-sm text-slate-500">نفر دارای کلاس</span>
             </div>
-            <div className="text-[11px] text-slate-400">دارای گروه یا جلسه فعال</div>
+            <div className="text-[11px] sm:text-xs text-slate-400">دارای گروه یا جلسه فعال</div>
           </div>
 
           {/* Monthly Payroll Total */}
           <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
-            <span className="text-xs text-slate-400 block">کل تعهد حقوق این ماه:</span>
-            <div className="text-base font-black font-mono text-slate-900 dark:text-white truncate">
+            <span className="text-xs sm:text-sm text-slate-400 block">کل تعهد حقوق این ماه:</span>
+            <div className="text-sm sm:text-base font-black font-mono text-slate-900 dark:text-white truncate">
               {formatPrice(stats?.total_payroll_month)} تومان
             </div>
-            <div className="text-[11px] text-slate-400">
+            <div className="text-[11px] sm:text-xs text-slate-400">
               {stats?.fully_settled_coaches || 0} مربی کاملاً تسویه‌شده
             </div>
           </div>
 
           {/* Outstanding Liabilities */}
           <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-rose-200 dark:border-rose-900/60 shadow-xs space-y-1 bg-rose-50/20 dark:bg-rose-950/20">
-            <span className="text-xs text-rose-700 dark:text-rose-300 block font-semibold">مطالبات معوق حقوق:</span>
-            <div className="text-base font-black font-mono text-rose-600 dark:text-rose-400 truncate">
+            <span className="text-xs sm:text-sm text-rose-700 dark:text-rose-300 block font-semibold">مطالبات معوق حقوق:</span>
+            <div className="text-sm sm:text-base font-black font-mono text-rose-600 dark:text-rose-400 truncate">
               {formatPrice(stats?.outstanding_salary_payments)} تومان
             </div>
-            <div className="text-[11px] text-rose-600/80">مانده قابل پرداخت مربیان</div>
+            <div className="text-[11px] sm:text-xs text-rose-600/80">مانده قابل پرداخت مربیان</div>
           </div>
 
           {/* Contract Expiration & Leaves Alerts */}
-          <div className="col-span-2 sm:col-span-1 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-2">
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400">انقضای قرارداد (۳۰ روز):</span>
+          <div className="col-span-2 sm:col-span-2 lg:col-span-1 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-2">
+            <div className="flex items-center justify-between text-xs sm:text-sm">
+              <span className="text-slate-500">انقضای قرارداد (۳۰ روز):</span>
               <span className={`font-mono font-bold px-2 py-0.5 rounded-full text-xs ${
                 (stats?.expiring_contracts_count || 0) > 0 ? 'bg-amber-100 text-amber-800 animate-pulse' : 'bg-slate-100 text-slate-600'
               }`}>
@@ -434,8 +434,8 @@ export const AdminCoachesPage = () => {
               </span>
             </div>
 
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-slate-400">مرخصی در انتظار:</span>
+            <div className="flex items-center justify-between text-xs sm:text-sm">
+              <span className="text-slate-500">مرخصی در انتظار:</span>
               <span className={`font-mono font-bold px-2 py-0.5 rounded-full text-xs ${
                 (stats?.pending_leave_requests_count || 0) > 0 ? 'bg-rose-100 text-rose-800' : 'bg-slate-100 text-slate-600'
               }`}>
@@ -725,7 +725,7 @@ export const AdminCoachesPage = () => {
       ) : (
         /* Table View */
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs">
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto scrollbar-none">
             <table className="w-full text-right text-xs">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
                 <tr>
