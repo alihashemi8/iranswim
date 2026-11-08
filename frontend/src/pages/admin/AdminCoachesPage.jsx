@@ -334,7 +334,7 @@ export const AdminCoachesPage = () => {
         <div className="flex flex-wrap items-center gap-2.5">
           {/* Add Coach Button */}
           <Button
-            onClick={() => setIsAddCoachModalOpen(true)}
+            onClick={() => navigate('/admin/coaches/new')}
             className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-500 text-white shadow-xs"
           >
             <Plus className="w-4 h-4" />

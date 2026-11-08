@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   CreditCard, Plus, CheckCircle2, AlertCircle, Clock, DollarSign,
   FileText, Download, RotateCcw, AlertTriangle, ChevronDown, ChevronUp,
@@ -11,6 +12,7 @@ import { useToast } from '../../../context/ToastContext';
 import api from '../../../api/client';
 
 export const CoachPayrollTab = ({ coach, payrolls, onPayrollsUpdated }) => {
+  const navigate = useNavigate();
   const toast = useToast();
 
   // Selected payroll for inspection
@@ -235,21 +237,7 @@ export const CoachPayrollTab = ({ coach, payrolls, onPayrollsUpdated }) => {
         </div>
 
         <Button
-          onClick={() => {
-            const today = new Date();
-            const y = today.getFullYear();
-            const m = today.getMonth();
-            const firstDay = new Date(y, m, 1).toISOString().split('T')[0];
-            const lastDay = new Date(y, m + 1, 0).toISOString().split('T')[0];
-
-            setGenerateForm({
-              period_start: firstDay,
-              period_end: lastDay,
-              period_label: `حقوق ${today.toLocaleDateString('fa-IR', { month: 'long', year: 'numeric' })}`,
-            });
-            setPreviewData(null);
-            setIsGenerateModalOpen(true);
-          }}
+          onClick={() => navigate(`/admin/coaches/${coach.id}/payrolls/new`)}
           className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-500 text-white shadow-xs"
         >
           <Plus className="w-4 h-4" />
@@ -440,16 +428,7 @@ export const CoachPayrollTab = ({ coach, payrolls, onPayrollsUpdated }) => {
               {selectedPayroll.approval_status === 'APPROVED' && selectedPayroll.remaining_balance > 0 && (
                 <Button
                   size="sm"
-                  onClick={() => {
-                    setPaymentForm({
-                      amount: String(selectedPayroll.remaining_balance),
-                      payment_date: new Date().toISOString().split('T')[0],
-                      payment_method: 'BANK_TRANSFER',
-                      reference_number: '',
-                      description: `واریز حقوق ${selectedPayroll.period_label}`,
-                    });
-                    setIsPaymentModalOpen(true);
-                  }}
+                  onClick={() => navigate(`/admin/coaches/${coach.id}/payrolls/${selectedPayroll.id}/payments/new`)}
                   className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-500 text-white"
                 >
                   <DollarSign className="w-3.5 h-3.5" />

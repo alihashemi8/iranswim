@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   User, Phone, Hash, Calendar, MapPin, ShieldAlert, Award, FileText,
   Clock, Briefcase, Plus, Trash2, Download, AlertCircle, CheckCircle2,
@@ -11,6 +12,7 @@ import { useToast } from '../../../context/ToastContext';
 import api from '../../../api/client';
 
 export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertificatesUpdated }) => {
+  const navigate = useNavigate();
   const toast = useToast();
 
   // Add Certificate Modal State
@@ -334,7 +336,7 @@ export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertif
           </div>
           <Button
             size="sm"
-            onClick={() => setIsAddCertModalOpen(true)}
+            onClick={() => navigate(`/admin/coaches/${coach.id}/certificates/new`)}
             className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-500 text-white"
           >
             <Plus className="w-3.5 h-3.5" />

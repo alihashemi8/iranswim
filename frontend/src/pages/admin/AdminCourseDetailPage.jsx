@@ -10,12 +10,10 @@ import {
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
-import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { ProgressBar } from '../../components/common/Charts';
 import { CoachSelectorDropdown } from '../../components/common/CoachSelectorDropdown';
-import { CoachSelectField } from '../../components/common/CoachSelectField';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { SwimmerCourseCard } from '../../components/common/SwimmerCourseCard';
 import { useToast } from '../../context/ToastContext';
@@ -35,11 +33,6 @@ export const AdminCourseDetailPage = () => {
   // View state
   const [activeTab, setActiveTab] = useState('swimmers'); // 'swimmers' | 'coaches' | 'groups' | 'info'
   const [viewMode, setViewMode] = useState('table'); // 'table' | 'cards'
-
-  // Coach Management Modal state
-  const [isAddCoachModalOpen, setIsAddCoachModalOpen] = useState(false);
-  const [selectedNewCoach, setSelectedNewCoach] = useState('');
-  const [addingCoach, setAddingCoach] = useState(false);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -111,12 +104,6 @@ export const AdminCourseDetailPage = () => {
     return allCoaches.filter((c) => !courseCoachIds.has(Number(c.id)));
   }, [allCoaches, course]);
 
-  // Selected coach object for modal preview
-  const selectedCoachObj = useMemo(() => {
-    if (!selectedNewCoach) return null;
-    return unassignedCoaches.find((c) => String(c.id) === String(selectedNewCoach)) || null;
-  }, [unassignedCoaches, selectedNewCoach]);
-
   // Helper to find SwimmerGroup for a coach
   const getCoachGroup = (coachId, coachName) => {
     return groups.find((g) => {
@@ -130,32 +117,6 @@ export const AdminCourseDetailPage = () => {
   // Helper to get swimmer count for a coach in this course
   const getCoachSwimmersCount = (coachId) => {
     return enrollments.filter((e) => Number(e.coach) === Number(coachId)).length;
-  };
-
-  // Handle adding a coach to the course (automatically syncs/creates their class)
-  const handleAddCoachToCourse = async (selectedCoachId) => {
-    if (!selectedCoachId) return;
-    try {
-      setAddingCoach(true);
-      const currentCoachIds = (course.coaches || []).map((c) => c.id);
-      if (currentCoachIds.includes(Number(selectedCoachId))) {
-        toast.warning('این مربی در حال حاضر در این دوره حضور دارد.');
-        return;
-      }
-      const newCoachIds = [...currentCoachIds, Number(selectedCoachId)];
-      await api.patch(`/education/courses/${id}/`, {
-        coach_ids: newCoachIds,
-      });
-      toast.success('مربی با موفقیت به دوره افزوده شد و کلاس اختصاصی وی ایجاد گردید.');
-      setIsAddCoachModalOpen(false);
-      setSelectedNewCoach('');
-      await fetchData(true);
-    } catch (err) {
-      console.error('Error adding coach to course:', err);
-      toast.error(err.response?.data?.detail || 'خطا در افزودن مربی به دوره');
-    } finally {
-      setAddingCoach(false);
-    }
   };
 
   // Handle removing a coach from the course
@@ -978,7 +939,7 @@ export const AdminCourseDetailPage = () => {
             </div>
 
             <Button
-              onClick={() => setIsAddCoachModalOpen(true)}
+              onClick={() => navigate(`/admin/courses/${id}/add-coach`)}
               size="sm"
               className="gap-2 text-xs bg-sky-600 hover:bg-sky-700 text-white shrink-0 self-start sm:self-center cursor-pointer shadow-sm shadow-sky-500/20"
             >
@@ -995,7 +956,7 @@ export const AdminCourseDetailPage = () => {
               />
               <div className="pt-4 flex justify-center">
                 <Button
-                  onClick={() => setIsAddCoachModalOpen(true)}
+                  onClick={() => navigate(`/admin/courses/${id}/add-coach`)}
                   className="gap-2 text-xs bg-sky-600 hover:bg-sky-700 text-white"
                 >
                   <Plus className="w-4 h-4" />
@@ -1284,101 +1245,6 @@ export const AdminCourseDetailPage = () => {
           </div>
         </div>
       )}
-
-      {/* Modal: Add Coach to Course */}
-      <Modal
-        isOpen={isAddCoachModalOpen}
-        onClose={() => {
-          setIsAddCoachModalOpen(false);
-          setSelectedNewCoach('');
-        }}
-        title="افزودن مربی جدید به دوره و تشکیل کلاس اختصاصی"
-      >
-        <div className="space-y-4 py-2">
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-            با انتخاب مربی از کادر آموزشگاه، یک کلاس اختصاصی با عنوان «کلاس مربی [نام]» به طور خودکار به این دوره افزوده شده و برنامه زمانی و استخر دوره به آن منتسب خواهد شد.
-          </p>
-
-          <div className="space-y-1.5">
-            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
-              انتخاب مربی از کادر آکادمی:
-            </label>
-            {unassignedCoaches.length === 0 ? (
-              <div className="p-4 rounded-2xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/60 text-xs text-amber-800 dark:text-amber-300 text-center flex items-center justify-center gap-2">
-                <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                <span>همه مربیان موجود در سیستم در حال حاضر به این دوره تخصیص یافته‌اند.</span>
-              </div>
-            ) : (
-              <CoachSelectField
-                coaches={unassignedCoaches}
-                value={selectedNewCoach}
-                onChange={setSelectedNewCoach}
-                placeholder="لطفاً یک مربی را از کادر آکادمی انتخاب کنید..."
-              />
-            )}
-          </div>
-
-          {/* Selected Coach Preview Card */}
-          {selectedCoachObj && (
-            <div className="p-3.5 rounded-2xl bg-sky-50/70 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800/70 space-y-2 animate-in fade-in-50 duration-200">
-              <div className="flex items-center gap-2 text-sky-900 dark:text-sky-200 font-bold text-xs">
-                <Sparkles className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
-                <span>مشخصات کلاسی که برای این مربی ایجاد خواهد شد:</span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-0.5">
-                <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                  <span className="text-slate-400">نام کلاس اختصاصی:</span>
-                  <span className="font-bold text-slate-900 dark:text-white truncate">
-                    کلاس مربی {selectedCoachObj.full_name}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300">
-                  <span className="text-slate-400">ظرفیت لاین:</span>
-                  <span className="font-bold font-mono text-slate-900 dark:text-white">۱۵ نفر</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 sm:col-span-2">
-                  <span className="text-slate-400">استخر و برنامه:</span>
-                  <span className="font-medium text-slate-800 dark:text-slate-200 truncate">
-                    {course.pool_location || 'استخر دوره'} - {course.schedule_days || 'سانس‌های دوره'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setIsAddCoachModalOpen(false);
-                setSelectedNewCoach('');
-              }}
-              disabled={addingCoach}
-            >
-              انصراف
-            </Button>
-            <Button
-              size="sm"
-              onClick={() => handleAddCoachToCourse(selectedNewCoach)}
-              disabled={!selectedNewCoach || addingCoach}
-              className="gap-1.5 bg-sky-600 hover:bg-sky-700 text-white"
-            >
-              {addingCoach ? (
-                <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                  <span>در حال افزودن و همگام‌سازی...</span>
-                </>
-              ) : (
-                <>
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>افزودن مربی و تشکیل کلاس</span>
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };

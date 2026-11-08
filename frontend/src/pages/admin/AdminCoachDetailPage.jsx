@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   UserCheck, Calendar, Clock, MapPin, Users, Award, Shield,
   Phone, Edit3, ArrowRight, BookOpen, CheckCircle2, AlertTriangle,
@@ -23,6 +23,7 @@ import { CoachEvaluationAndRecordsTab } from './coach-profile/CoachEvaluationAnd
 
 export const AdminCoachDetailPage = () => {
   const { id } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -35,8 +36,20 @@ export const AdminCoachDetailPage = () => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Active Tab
-  const [activeTab, setActiveTab] = useState('INFO');
+  // Active Tab initialized from query parameter if present
+  const tabParam = searchParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabParam || 'INFO');
+
+  useEffect(() => {
+    if (tabParam && tabParam !== activeTab) {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
+
+  const handleTabChange = (tabId) => {
+    setActiveTab(tabId);
+    setSearchParams({ tab: tabId }, { replace: true });
+  };
 
   // Change Status Modal
   const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
@@ -291,7 +304,7 @@ export const AdminCoachDetailPage = () => {
             <button
               key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                 isActive
                   ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-xs'

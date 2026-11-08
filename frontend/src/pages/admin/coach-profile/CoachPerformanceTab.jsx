@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Award, Star, Plus, CheckCircle2, TrendingUp, UserCheck, MessageSquare,
   FileText, Shield, Eye
@@ -21,6 +22,7 @@ const EVAL_CRITERIA = [
 ];
 
 export const CoachPerformanceTab = ({ coach, evaluations, onEvaluationsUpdated }) => {
+  const navigate = useNavigate();
   const toast = useToast();
 
   const [isNewEvalModalOpen, setIsNewEvalModalOpen] = useState(false);
@@ -106,29 +108,7 @@ export const CoachPerformanceTab = ({ coach, evaluations, onEvaluationsUpdated }
         </div>
 
         <Button
-          onClick={() => {
-            const today = new Date();
-            setEvalForm({
-              period_label: `ارزیابی ${today.toLocaleDateString('fa-IR', { month: 'long', year: 'numeric' })}`,
-              evaluation_date: today.toISOString().split('T')[0],
-              criteria_ratings: {
-                teaching_quality: 5,
-                student_satisfaction: 5,
-                student_progress: 5,
-                punctuality: 5,
-                attendance_reliability: 5,
-                professional_conduct: 5,
-                class_completion: 5,
-                academy_standards: 5,
-              },
-              strengths: '',
-              weaknesses: '',
-              recommendations: '',
-              general_feedback: '',
-              is_shared_with_coach: true,
-            });
-            setIsNewEvalModalOpen(true);
-          }}
+          onClick={() => navigate(`/admin/coaches/${coach.id}/evaluations/new`)}
           className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-500 text-white shadow-xs"
         >
           <Plus className="w-4 h-4" />

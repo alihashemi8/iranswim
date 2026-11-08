@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FileText, Plus, RefreshCw, AlertTriangle, CheckCircle2, Download,
   Calendar, Clock, DollarSign, Shield, X
@@ -10,6 +11,7 @@ import { useToast } from '../../../context/ToastContext';
 import api from '../../../api/client';
 
 export const CoachContractsTab = ({ coach, contracts, onContractsUpdated }) => {
+  const navigate = useNavigate();
   const toast = useToast();
 
   const [isNewContractModalOpen, setIsNewContractModalOpen] = useState(false);
@@ -139,7 +141,7 @@ export const CoachContractsTab = ({ coach, contracts, onContractsUpdated }) => {
           {activeContract && (
             <Button
               variant="outline"
-              onClick={() => openRenewModal(activeContract)}
+              onClick={() => navigate(`/admin/coaches/${coach.id}/contracts/new?renew_id=${activeContract.id}`)}
               className="gap-1.5 text-xs bg-white dark:bg-slate-900 shadow-xs"
             >
               <RefreshCw className="w-3.5 h-3.5 text-teal-600" />
@@ -148,26 +150,7 @@ export const CoachContractsTab = ({ coach, contracts, onContractsUpdated }) => {
           )}
 
           <Button
-            onClick={() => {
-              const today = new Date().toISOString().split('T')[0];
-              const nextYear = new Date();
-              nextYear.setFullYear(new Date().getFullYear() + 1);
-              setContractForm({
-                contract_type: 'STANDARD',
-                start_date: today,
-                end_date: nextYear.toISOString().split('T')[0],
-                employment_type: coach.employment_type || 'HOURLY',
-                hourly_rate: coach.hourly_rate || 0,
-                fixed_salary: coach.fixed_monthly_salary || 0,
-                percentage_rate: coach.revenue_percentage || 0,
-                percentage_basis: 'COURSE_GROSS',
-                agreed_weekly_hours: coach.contractual_weekly_hours || 20,
-                terms_and_conditions: '',
-                internal_notes: '',
-                sync_to_profile: true,
-              });
-              setIsNewContractModalOpen(true);
-            }}
+            onClick={() => navigate(`/admin/coaches/${coach.id}/contracts/new`)}
             className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-500 text-white shadow-xs"
           >
             <Plus className="w-4 h-4" />

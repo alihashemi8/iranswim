@@ -29,12 +29,21 @@ import { AdminSwimmersPage } from './pages/admin/AdminSwimmersPage';
 import { AdminSwimmerDetailPage } from './pages/admin/AdminSwimmerDetailPage';
 import { AdminDirectEnrollPage } from './pages/admin/AdminDirectEnrollPage';
 import { AdminCoachesPage } from './pages/admin/AdminCoachesPage';
+import { AdminCreateCoachPage } from './pages/admin/AdminCreateCoachPage';
 import { AdminCoachDetailPage } from './pages/admin/AdminCoachDetailPage';
 import { AdminCoachSchedulePage } from './pages/admin/AdminCoachSchedulePage';
 import { AdminCoachAssignGroupPage } from './pages/admin/AdminCoachAssignGroupPage';
+import { AdminCoachCreateContractPage } from './pages/admin/coach-profile/AdminCoachCreateContractPage';
+import { AdminCoachCreatePayrollPage } from './pages/admin/coach-profile/AdminCoachCreatePayrollPage';
+import { AdminCoachRegisterPaymentPage } from './pages/admin/coach-profile/AdminCoachRegisterPaymentPage';
+import { AdminCoachAddCertificatePage } from './pages/admin/coach-profile/AdminCoachAddCertificatePage';
+import { AdminCoachCreateEvaluationPage } from './pages/admin/coach-profile/AdminCoachCreateEvaluationPage';
+import { AdminCoachCreateLeavePage } from './pages/admin/coach-profile/AdminCoachCreateLeavePage';
+import { AdminCoachCreateNotePage } from './pages/admin/coach-profile/AdminCoachCreateNotePage';
 import { AdminCoursesPage } from './pages/admin/AdminCoursesPage';
 import { AdminCreateCoursePage } from './pages/admin/AdminCreateCoursePage';
 import { AdminCourseDetailPage } from './pages/admin/AdminCourseDetailPage';
+import { AdminCourseAddCoachPage } from './pages/admin/AdminCourseAddCoachPage';
 import { AdminClassDetailPage } from './pages/admin/AdminClassDetailPage';
 import { AdminAttendancePage } from './pages/admin/AdminAttendancePage';
 import { AdminAttendanceDetailPage } from './pages/admin/AdminAttendanceDetailPage';
@@ -175,14 +184,23 @@ export default function App() {
                 <Route path="swimmers/:id/enroll" element={<AdminDirectEnrollPage />} />
                 <Route path="swimmers/enroll" element={<AdminDirectEnrollPage />} />
                 <Route path="coaches" element={<AdminCoachesPage />} />
+                <Route path="coaches/new" element={<AdminCreateCoachPage />} />
                 <Route path="coaches/:id" element={<AdminCoachDetailPage />} />
                 <Route path="coaches/:id/schedule" element={<AdminCoachSchedulePage />} />
                 <Route path="coaches/:id/assign" element={<AdminCoachAssignGroupPage />} />
                 <Route path="coaches/:id/assign-group" element={<AdminCoachAssignGroupPage />} />
+                <Route path="coaches/:id/contracts/new" element={<AdminCoachCreateContractPage />} />
+                <Route path="coaches/:id/payrolls/new" element={<AdminCoachCreatePayrollPage />} />
+                <Route path="coaches/:id/payrolls/:payrollId/payments/new" element={<AdminCoachRegisterPaymentPage />} />
+                <Route path="coaches/:id/certificates/new" element={<AdminCoachAddCertificatePage />} />
+                <Route path="coaches/:id/evaluations/new" element={<AdminCoachCreateEvaluationPage />} />
+                <Route path="coaches/:id/leaves/new" element={<AdminCoachCreateLeavePage />} />
+                <Route path="coaches/:id/notes/new" element={<AdminCoachCreateNotePage />} />
                 <Route path="courses" element={<AdminCoursesPage />} />
                 <Route path="courses/new" element={<AdminCreateCoursePage />} />
                 <Route path="courses/:id" element={<AdminCourseDetailPage />} />
                 <Route path="courses/:id/swimmers" element={<AdminCourseDetailPage />} />
+                <Route path="courses/:id/add-coach" element={<AdminCourseAddCoachPage />} />
                 <Route path="classes/:id" element={<AdminClassDetailPage />} />
                 <Route path="attendance" element={<AdminAttendancePage />} />
                 <Route path="attendance/:sessionId" element={<AdminAttendanceDetailPage />} />
