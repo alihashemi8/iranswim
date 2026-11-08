@@ -1,17 +1,28 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   UserCheck, Calendar, Clock, MapPin, Users, Award, Shield,
   Phone, Edit3, ArrowRight, BookOpen, CheckCircle2, AlertTriangle,
-  FileText, Plus, Save, Hash
+  FileText, Plus, Save, Hash, CreditCard, ClipboardCheck, History,
+  Star, ShieldAlert, Archive, RotateCcw
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
+import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
-import { CustomSelect } from '../../components/common/CustomSelect';
-import { StatsCard } from '../../components/common/StatsCard';
 import { useToast } from '../../context/ToastContext';
+
+// Tabs
+import { CoachPersonalTab } from './coach-profile/CoachPersonalTab';
+import { CoachContractsTab } from './coach-profile/CoachContractsTab';
+import { CoachPayrollTab } from './coach-profile/CoachPayrollTab';
+import { CoachAttendanceTab } from './coach-profile/CoachAttendanceTab';
+import { CoachLeavesTab } from './coach-profile/CoachLeavesTab';
+import { CoachPerformanceTab } from './coach-profile/CoachPerformanceTab';
+import { CoachScheduleTab } from './coach-profile/CoachScheduleTab';
+import { CoachNotesTab } from './coach-profile/CoachNotesTab';
+import { CoachTimelineTab } from './coach-profile/CoachTimelineTab';
 
 export const AdminCoachDetailPage = () => {
   const { id } = useParams();
@@ -19,109 +30,83 @@ export const AdminCoachDetailPage = () => {
   const toast = useToast();
 
   const [coach, setCoach] = useState(null);
-  const [assignedGroups, setAssignedGroups] = useState([]);
-  const [sessions, setSessions] = useState([]);
+  const [certificates, setCertificates] = useState([]);
+  const [contracts, setContracts] = useState([]);
+  const [payrolls, setPayrolls] = useState([]);
+  const [leaves, setLeaves] = useState([]);
+  const [evaluations, setEvaluations] = useState([]);
+  const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('INFO'); // 'INFO', 'GROUPS', 'SCHEDULE', 'EDIT'
 
-  // Edit Form State
-  const [editForm, setEditForm] = useState({
-    first_name: '',
-    last_name: '',
-    phone: '',
-    national_id: '',
-    specialties: '',
-    bio: '',
-    employment_status: 'ACTIVE',
-    hourly_rate: 0,
-  });
-  const [saving, setSaving] = useState(false);
+  // Active Tab
+  const [activeTab, setActiveTab] = useState('INFO');
 
-  const fetchData = async () => {
+  // Change Status Modal
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
+  const [newStatus, setNewStatus] = useState('ACTIVE');
+  const [statusReason, setStatusReason] = useState('');
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+
+  // Fetch all coach data in parallel
+  const fetchCoachData = async () => {
     if (!id) return;
     try {
       setLoading(true);
-      const [coachRes, assignedRes, sessionsRes] = await Promise.all([
+      const [coachRes, certsRes, contractsRes, payrollsRes, leavesRes, evalsRes, notesRes] = await Promise.all([
         api.get(`/coaches/${id}/`),
-        api.get(`/education/group-coaches/?coach_id=${id}`),
-        api.get(`/scheduling/sessions/?coach_id=${id}`),
+        api.get(`/coaches/${id}/certificates/`),
+        api.get(`/coaches/${id}/contracts/`),
+        api.get(`/coaches/${id}/payrolls/`),
+        api.get(`/coaches/${id}/leave-requests/`),
+        api.get(`/coaches/${id}/evaluations/`),
+        api.get(`/coaches/${id}/administrative-notes/`),
       ]);
 
-      const cData = coachRes.data;
-      setCoach(cData);
-      setAssignedGroups(assignedRes.data.results || assignedRes.data || []);
-      setSessions(sessionsRes.data.results || sessionsRes.data || []);
-
-      setEditForm({
-        first_name: cData.first_name || '',
-        last_name: cData.last_name || '',
-        phone: cData.phone || '',
-        national_id: cData.national_id || '',
-        specialties: cData.specialties || '',
-        bio: cData.bio || '',
-        employment_status: cData.employment_status || 'ACTIVE',
-        hourly_rate: cData.hourly_rate || 0,
-      });
+      setCoach(coachRes.data);
+      setCertificates(certsRes.data || []);
+      setContracts(contractsRes.data || []);
+      setPayrolls(payrollsRes.data || []);
+      setLeaves(leavesRes.data || []);
+      setEvaluations(evalsRes.data || []);
+      setNotes(notesRes.data || []);
+      setNewStatus(coachRes.data.employment_status || 'ACTIVE');
     } catch (err) {
-      console.error('Error fetching coach details:', err);
-      toast.error('خطا در دریافت پرونده مربی');
+      console.error(err);
+      toast.error('خطا در دریافت پرونده جامع مربی');
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchData();
+    fetchCoachData();
   }, [id]);
 
-  // Calculate total weekly hours
-  const totalWeeklyMinutes = useMemo(() => {
-    let mins = 0;
-    assignedGroups.forEach((assign) => {
-      (assign.schedules || []).forEach((sch) => {
-        const [sh, sm] = (sch.start_time || '00:00').slice(0, 5).split(':').map(Number);
-        const [eh, em] = (sch.end_time || '00:00').slice(0, 5).split(':').map(Number);
-        const diff = (eh * 60 + em) - (sh * 60 + sm);
-        if (diff > 0) mins += diff;
-      });
-    });
-    return mins;
-  }, [assignedGroups]);
-
-  const totalWeeklyHours = (totalWeeklyMinutes / 60).toFixed(1);
-
-  // Handle Edit Submit
-  const handleEditSubmit = async (e) => {
+  // Handle Status Change
+  const handleStatusChangeSubmit = async (e) => {
     e.preventDefault();
     try {
-      setSaving(true);
-      await api.patch(`/coaches/${id}/`, {
-        ...editForm,
-        hourly_rate: Number(editForm.hourly_rate || 0),
+      setUpdatingStatus(true);
+      await api.post(`/coaches/${id}/change-status/`, {
+        employment_status: newStatus,
+        reason: statusReason.trim(),
       });
-      toast.success('مشخصات مربی با موفقیت به‌روزرسانی شد.');
-      fetchData();
-      setActiveTab('INFO');
+      toast.success('وضعیت همکاری مربی با موفقیت به‌روزرسانی شد.');
+      setIsStatusModalOpen(false);
+      setStatusReason('');
+      fetchCoachData();
     } catch (err) {
       console.error(err);
-      toast.error(err.response?.data?.phone || err.response?.data?.detail || 'خطا در ذخیره تغییرات مربی');
+      toast.error(err.response?.data?.detail || 'خطا در تغییر وضعیت همکاری');
     } finally {
-      setSaving(false);
+      setUpdatingStatus(false);
     }
   };
 
-  const formatPrice = (v) => Number(v || 0).toLocaleString('fa-IR');
-
-  const statusOptions = [
-    { value: 'ACTIVE', label: 'فعال و مجاز (Active)' },
-    { value: 'SUSPENDED', label: 'معلق موقت (Suspended)' },
-    { value: 'INACTIVE', label: 'پایان همکاری / غیرفعال (Inactive)' },
-  ];
-
-  if (loading) {
+  if (loading && !coach) {
     return (
       <div className="py-12">
-        <LoadingState type="cards" count={3} message="در حال دریافت پرونده کامل مربی..." />
+        <LoadingState type="cards" count={3} message="در حال دریافت پرونده منابع انسانی و مالی مربی..." />
       </div>
     );
   }
@@ -138,9 +123,24 @@ export const AdminCoachDetailPage = () => {
     );
   }
 
+  const activeContract = contracts.find((c) => c.status === 'ACTIVE');
+  const formatPrice = (v) => Number(v || 0).toLocaleString('fa-IR');
+
+  const tabs = [
+    { id: 'INFO', label: 'مشخصات و مدارک', icon: UserCheck },
+    { id: 'CONTRACTS', label: 'احکام و قراردادها', icon: FileText, count: contracts.length },
+    { id: 'PAYROLL', label: 'حقوق و امور مالی', icon: CreditCard, count: payrolls.length },
+    { id: 'ATTENDANCE', label: 'حضور و کارکرد', icon: ClipboardCheck },
+    { id: 'LEAVES', label: 'مرخصی‌ها', icon: Calendar, count: leaves.filter((l) => l.status === 'PENDING').length, countColor: 'bg-amber-500' },
+    { id: 'PERFORMANCE', label: 'ارزیابی عملکرد', icon: Award, count: evaluations.length },
+    { id: 'SCHEDULE', label: 'برنامه کاری و کلاس‌ها', icon: Clock },
+    { id: 'NOTES', label: 'مکاتبات اداری', icon: ShieldAlert, count: notes.length },
+    { id: 'TIMELINE', label: 'تاریخچه زمانی', icon: History },
+  ];
+
   return (
     <div className="space-y-6 pb-12">
-      {/* Top Breadcrumb & Actions */}
+      {/* Top Breadcrumb & Action Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-2">
           <button
@@ -153,27 +153,40 @@ export const AdminCoachDetailPage = () => {
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs text-slate-400 font-medium">کادر مربیان</span>
+              <span className="text-xs text-slate-400 font-medium">مدیریت مربیان و منابع انسانی</span>
               <span className="text-xs text-slate-300 dark:text-slate-700">/</span>
               <span className="text-xs font-bold text-slate-700 dark:text-slate-200">
-                پروفایل مربی
+                پرونده مربی
               </span>
             </div>
             <h1 className="text-xl font-bold text-slate-900 dark:text-white mt-1 flex items-center gap-2">
               <UserCheck className="w-5 h-5 text-sky-600" />
-              پرونده مربی: {coach.full_name}
+              پرونده پرسنلی و مالی: {coach.full_name}
             </h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            variant="outline"
+            onClick={() => {
+              setNewStatus(coach.employment_status || 'ACTIVE');
+              setStatusReason('');
+              setIsStatusModalOpen(true);
+            }}
+            className="gap-1.5 text-xs bg-white dark:bg-slate-900 shadow-xs"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-amber-600" />
+            <span>تغییر وضعیت همکاری</span>
+          </Button>
+
           <Button
             variant="outline"
             onClick={() => navigate(`/admin/coaches/${coach.id}/schedule`)}
             className="gap-1.5 text-xs bg-white dark:bg-slate-900 shadow-xs"
           >
             <Calendar className="w-4 h-4 text-sky-600" />
-            <span>برنامه کلاسی (جدول روز در ساعت)</span>
+            <span>برنامه کلاسی</span>
           </Button>
 
           <Button
@@ -181,7 +194,7 @@ export const AdminCoachDetailPage = () => {
             className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-500 text-white shadow-xs"
           >
             <BookOpen className="w-4 h-4" />
-            <span>تخصیص گروه</span>
+            <span>تخصیص کلاس</span>
           </Button>
         </div>
       </div>
@@ -189,9 +202,9 @@ export const AdminCoachDetailPage = () => {
       {/* Hero Profile Banner */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-6 transition-colors">
         <div className="flex items-center gap-5">
-          <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-sky-600 via-cyan-500 to-indigo-600 text-white flex items-center justify-center font-bold text-2xl shadow-lg ring-4 ring-sky-50 dark:ring-sky-950/40 shrink-0">
+          <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-sky-600 via-cyan-500 to-indigo-600 text-white flex items-center justify-center font-bold text-2xl shadow-lg ring-4 ring-sky-50 dark:ring-sky-950/40 shrink-0 overflow-hidden">
             {coach.avatar ? (
-              <img src={coach.avatar} alt={coach.full_name} className="w-full h-full object-cover rounded-3xl" />
+              <img src={coach.avatar} alt={coach.full_name} className="w-full h-full object-cover" />
             ) : (
               coach.full_name?.charAt(0) || 'C'
             )}
@@ -201,21 +214,28 @@ export const AdminCoachDetailPage = () => {
               <h2 className="text-2xl font-black text-slate-900 dark:text-white">
                 {coach.full_name}
               </h2>
+
               <Badge
                 variant={
                   coach.employment_status === 'ACTIVE'
                     ? 'success'
                     : coach.employment_status === 'SUSPENDED'
                     ? 'warning'
+                    : coach.employment_status === 'ARCHIVED'
+                    ? 'neutral'
                     : 'neutral'
                 }
               >
-                {coach.employment_status === 'ACTIVE'
-                  ? 'فعال و مجاز'
-                  : coach.employment_status === 'SUSPENDED'
-                  ? 'معلق'
-                  : 'غیرفعال'}
+                {coach.employment_status_display || coach.employment_status}
               </Badge>
+
+              <span className="font-mono text-xs font-bold bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 px-2.5 py-0.5 rounded-lg border border-sky-100 dark:border-sky-900">
+                {coach.personnel_id || 'EMP-1001'}
+              </span>
+
+              <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-lg">
+                مدل: {coach.employment_type_display || coach.employment_type}
+              </span>
             </div>
 
             <div className="flex items-center gap-4 mt-2 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
@@ -223,456 +243,185 @@ export const AdminCoachDetailPage = () => {
                 <Phone className="w-3.5 h-3.5 text-sky-600" />
                 <span className="font-mono">{coach.phone}</span>
               </span>
+
               {coach.national_id && (
                 <span className="flex items-center gap-1">
                   <Hash className="w-3.5 h-3.5 text-emerald-600" />
                   <span>کد ملی: <strong className="font-mono">{coach.national_id}</strong></span>
                 </span>
               )}
+
               <span>•</span>
-              <span>تاریخ عضویت: {coach.created_at ? new Date(coach.created_at).toLocaleDateString('fa-IR') : '—'}</span>
+              <span>
+                تاریخ آغاز همکاری: {coach.employment_start_date ? new Date(coach.employment_start_date).toLocaleDateString('fa-IR') : '—'}
+              </span>
             </div>
           </div>
         </div>
 
-        {/* Action quick links */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={() => setActiveTab('EDIT')}
-            className="gap-1.5 text-xs"
-          >
-            <Edit3 className="w-4 h-4 text-sky-600" />
-            <span>ویرایش مشخصات</span>
-          </Button>
+        {/* Top Metric Cards */}
+        <div className="grid grid-cols-2 gap-3 shrink-0 text-xs">
+          <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+            <span className="text-slate-400 block mb-0.5">کلاس‌های فعال:</span>
+            <span className="font-bold font-mono text-slate-800 dark:text-slate-200 text-sm">
+              {coach.active_classes_count || coach.assigned_groups_count || 0} کلاس
+            </span>
+          </div>
+
+          <div className="bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+            <span className="text-slate-400 block mb-0.5">تعهد هفتگی:</span>
+            <span className="font-bold font-mono text-slate-800 dark:text-slate-200 text-sm">
+              {coach.contractual_weekly_hours} ساعت
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* 4 Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard
-          title="گروه‌های آموزشی فعال"
-          value={`${assignedGroups.length} گروه`}
-          subtitle="تحت آموزش این مربی"
-          icon={BookOpen}
-          color="sky"
-        />
-        <StatsCard
-          title="ساعات تدریس هفتگی"
-          value={`${totalWeeklyHours} ساعت`}
-          subtitle="مجموع زمان کلاس‌ها در هفته"
-          icon={Clock}
-          color="emerald"
-        />
-        <StatsCard
-          title="جلسات تقویمی ثبت‌شده"
-          value={`${sessions.length} جلسه`}
-          subtitle="در تقویم آموزشی آموزشگاه"
-          icon={Calendar}
-          color="indigo"
-        />
-        <StatsCard
-          title="نرخ ساعتی حق‌التدریس"
-          value={`${formatPrice(coach.hourly_rate)} تومان`}
-          subtitle="محاسبه در حقوق و دستمزد"
-          icon={Award}
-          color="amber"
-        />
-      </div>
-
-      {/* Navigation Tabs */}
-      <div className="border-b border-slate-200 dark:border-slate-800">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1">
-          <button
-            type="button"
-            onClick={() => setActiveTab('INFO')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-              activeTab === 'INFO'
-                ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <FileText className="w-4 h-4" />
-            <span>مشخصات فردی و تخصص‌ها</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('GROUPS')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-              activeTab === 'GROUPS'
-                ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <BookOpen className="w-4 h-4" />
-            <span>گروه‌های آموزشی تحت نظر ({assignedGroups.length})</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('SCHEDULE')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-              activeTab === 'SCHEDULE'
-                ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <Calendar className="w-4 h-4" />
-            <span>پیش‌نمایش برنامه کلاسی هفتگی</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('EDIT')}
-            className={`px-4 py-2.5 text-xs font-bold rounded-xl transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap ${
-              activeTab === 'EDIT'
-                ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 border border-sky-200 dark:border-sky-800'
-                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }`}
-          >
-            <Edit3 className="w-4 h-4" />
-            <span>ویرایش پرونده و دستمزد</span>
-          </button>
-        </div>
-      </div>
-
-      {/* TAB 1: PERSONAL INFO & BIO */}
-      {activeTab === 'INFO' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs space-y-4">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm pb-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
-                <Award className="w-4 h-4 text-sky-600" />
-                تخصص‌های آموزشی و حوزه‌های مربیگری
-              </h3>
-
-              <div className="flex flex-wrap gap-2">
-                {(coach.specialties || 'شنای عمومی، کرال سینه، شنای قورباغه')
-                  .split(/[,،]+/)
-                  .map((spec, sIdx) => (
-                    <span
-                      key={sIdx}
-                      className="px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 text-sky-700 dark:text-sky-300 text-xs font-semibold"
-                    >
-                      {spec.trim()}
-                    </span>
-                  ))}
-              </div>
-
-              {coach.bio && (
-                <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                  <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    بیوگرافی، مدارک و سوابق کاری:
-                  </h4>
-                  <p className="text-xs leading-relaxed text-slate-600 dark:text-slate-300 whitespace-pre-line bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
-                    {coach.bio}
-                  </p>
-                </div>
+      {/* Tabs Navigation Bar */}
+      <div className="flex items-center gap-1.5 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl overflow-x-auto">
+        {tabs.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = activeTab === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+                isActive
+                  ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 shadow-xs'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span>{tab.label}</span>
+              {tab.count !== undefined && tab.count > 0 && (
+                <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-mono text-white ${tab.countColor || 'bg-slate-400'}`}>
+                  {tab.count}
+                </span>
               )}
-            </div>
-          </div>
+            </button>
+          );
+        })}
+      </div>
 
-          <div className="space-y-6">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs space-y-4 text-xs">
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm pb-3 border-b border-slate-100 dark:border-slate-800">
-                مشخصات حساب کاربری
-              </h3>
+      {/* Tab Panels */}
+      <div>
+        {activeTab === 'INFO' && (
+          <CoachPersonalTab
+            coach={coach}
+            onCoachUpdated={fetchCoachData}
+            certificates={certificates}
+            onCertificatesUpdated={fetchCoachData}
+          />
+        )}
 
-              <div className="space-y-3 text-slate-600 dark:text-slate-300">
-                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-400">نام و نام خانوادگی:</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{coach.full_name}</span>
-                </div>
-                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-400">شماره همراه (نام کاربری):</span>
-                  <span className="font-mono font-semibold">{coach.phone}</span>
-                </div>
-                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-400">کد ملی:</span>
-                  <span className="font-mono">{coach.national_id || 'ثبت نشده'}</span>
-                </div>
-                <div className="flex justify-between items-center py-1 border-b border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-400">وضعیت همکاری:</span>
-                  <Badge variant={coach.employment_status === 'ACTIVE' ? 'success' : 'neutral'}>
-                    {coach.employment_status === 'ACTIVE' ? 'فعال و مجاز' : coach.employment_status}
-                  </Badge>
-                </div>
-                <div className="flex justify-between items-center py-1">
-                  <span className="text-slate-400">حق‌التدریس ساعتی:</span>
-                  <span className="font-bold font-mono text-sky-600 dark:text-sky-400">
-                    {formatPrice(coach.hourly_rate)} تومان
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+        {activeTab === 'CONTRACTS' && (
+          <CoachContractsTab
+            coach={coach}
+            contracts={contracts}
+            onContractsUpdated={fetchCoachData}
+          />
+        )}
 
-      {/* TAB 2: ASSIGNED GROUPS */}
-      {activeTab === 'GROUPS' && (
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <h3 className="font-bold text-slate-900 dark:text-white text-sm">
-              گروه‌های آموزشی تحت نظر مربی ({assignedGroups.length})
-            </h3>
-            <Button
-              onClick={() => navigate(`/admin/coaches/${coach.id}/assign`)}
-              className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-500 text-white"
+        {activeTab === 'PAYROLL' && (
+          <CoachPayrollTab
+            coach={coach}
+            payrolls={payrolls}
+            onPayrollsUpdated={fetchCoachData}
+          />
+        )}
+
+        {activeTab === 'ATTENDANCE' && (
+          <CoachAttendanceTab
+            coach={coach}
+          />
+        )}
+
+        {activeTab === 'LEAVES' && (
+          <CoachLeavesTab
+            coach={coach}
+            leaves={leaves}
+            onLeavesUpdated={fetchCoachData}
+          />
+        )}
+
+        {activeTab === 'PERFORMANCE' && (
+          <CoachPerformanceTab
+            coach={coach}
+            evaluations={evaluations}
+            onEvaluationsUpdated={fetchCoachData}
+          />
+        )}
+
+        {activeTab === 'SCHEDULE' && (
+          <CoachScheduleTab
+            coach={coach}
+          />
+        )}
+
+        {activeTab === 'NOTES' && (
+          <CoachNotesTab
+            coach={coach}
+            notes={notes}
+            onNotesUpdated={fetchCoachData}
+          />
+        )}
+
+        {activeTab === 'TIMELINE' && (
+          <CoachTimelineTab
+            coach={coach}
+          />
+        )}
+      </div>
+
+      {/* Modal: Change Status */}
+      <Modal
+        isOpen={isStatusModalOpen}
+        onClose={() => setIsStatusModalOpen(false)}
+        title={`تغییر وضعیت همکاری مربی: ${coach.full_name}`}
+      >
+        <form onSubmit={handleStatusChangeSubmit} className="space-y-4">
+          <div>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              وضعیت جدید همکاری <span className="text-rose-500">*</span>
+            </label>
+            <select
+              value={newStatus}
+              onChange={(e) => setNewStatus(e.target.value)}
+              className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
             >
-              <Plus className="w-4 h-4" />
-              <span>تخصیص به گروه جدید</span>
+              <option value="ACTIVE">فعال و مجاز (Active)</option>
+              <option value="SUSPENDED">معلق موقت (Suspended)</option>
+              <option value="INACTIVE">پایان همکاری / غیرفعال (Inactive)</option>
+              <option value="ARCHIVED">بایگانی پرونده (Archived)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+              دلیل و توضیح تصمیم اداری <span className="text-rose-500">*</span>
+            </label>
+            <textarea
+              rows={3}
+              value={statusReason}
+              onChange={(e) => setStatusReason(e.target.value)}
+              placeholder="مثال: پایان مدت قرارداد، تخلف انضباطی، درخواست مربی، شروع دوره جدید..."
+              className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+              required
+            />
+          </div>
+
+          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <Button variant="outline" type="button" onClick={() => setIsStatusModalOpen(false)}>
+              انصراف
+            </Button>
+            <Button type="submit" disabled={updatingStatus} className="bg-sky-600 hover:bg-sky-500 text-white">
+              {updatingStatus ? 'در حال اعمال...' : 'ثبت تغییر وضعیت'}
             </Button>
           </div>
-
-          {assignedGroups.length === 0 ? (
-            <div className="bg-white dark:bg-slate-900 p-8 rounded-2xl border border-slate-200 dark:border-slate-800 text-center text-xs text-slate-400">
-              هنوز گروه آموزشی‌ای به این مربی تخصیص نیافته است.
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {assignedGroups.map((assign) => (
-                <div
-                  key={assign.id}
-                  className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:border-sky-300 dark:hover:border-sky-700 transition-all flex flex-col justify-between gap-3 text-xs"
-                >
-                  <div>
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <h4 className="font-bold text-slate-900 dark:text-white text-sm">
-                          {assign.group_name}
-                        </h4>
-                        <span className="text-xs text-slate-400 block mt-0.5">
-                          {assign.course_name}
-                        </span>
-                      </div>
-                      <Badge variant="neutral" style={{ backgroundColor: assign.level_color || '#0284c7', color: '#fff' }}>
-                        {assign.level_name}
-                      </Badge>
-                    </div>
-
-                    <div className="mt-3 space-y-2 text-slate-600 dark:text-slate-300">
-                      <div className="flex items-center gap-1.5">
-                        <Clock className="w-3.5 h-3.5 text-sky-600 shrink-0" />
-                        <span className="font-mono">
-                          {(assign.schedules || [])
-                            .map((s) => `${s.weekday_display} ${s.start_time?.slice(0, 5)}`)
-                            .join('، ') || 'بدون زمان‌بندی'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span className="truncate">{assign.pool_location}</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Users className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                        <span>ظرفیت: {assign.capacity} نفر ({assign.enrolled_count || 0} شناگر ثبت‌نام‌شده)</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
-                    <Badge variant={assign.is_primary ? 'success' : 'neutral'}>
-                      {assign.is_primary ? 'مربی اصلی' : 'مربی کمکی'}
-                    </Badge>
-
-                    <Link
-                      to={`/admin/coaches/${coach.id}/assign`}
-                      className="text-sky-600 hover:text-sky-700 dark:text-sky-400 font-semibold"
-                    >
-                      مدیریت تخصیص ←
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* TAB 3: SCHEDULE PREVIEW */}
-      {activeTab === 'SCHEDULE' && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-            <div>
-              <h3 className="font-bold text-slate-900 dark:text-white text-sm">
-                خلاصه برنامه کلاسی هفتگی مربی
-              </h3>
-              <p className="text-xs text-slate-400 mt-0.5">
-                برای مشاهده و ویرایش جدول روز در ساعت کامل، روی دکمه مشاهده جدول کلیک کنید
-              </p>
-            </div>
-            <Button
-              onClick={() => navigate(`/admin/coaches/${coach.id}/schedule`)}
-              className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-500 text-white"
-            >
-              <Calendar className="w-4 h-4" />
-              <span>مشاهده جدول کامل روز در ساعت</span>
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {assignedGroups.map((grp) => (
-              <div
-                key={grp.id}
-                className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700 text-xs space-y-2"
-              >
-                <div className="flex items-center justify-between font-bold text-slate-900 dark:text-white">
-                  <span>{grp.group_name}</span>
-                  <Badge variant="neutral" style={{ backgroundColor: grp.level_color || '#0284c7', color: '#fff' }}>
-                    {grp.level_name}
-                  </Badge>
-                </div>
-                <div className="text-slate-500 dark:text-slate-400 space-y-1">
-                  {(grp.schedules || []).map((s, sIdx) => (
-                    <div key={sIdx} className="flex items-center justify-between font-mono">
-                      <span>{s.weekday_display}</span>
-                      <span className="text-sky-600 font-semibold">{s.start_time?.slice(0, 5)} تا {s.end_time?.slice(0, 5)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* TAB 4: EDIT FORM */}
-      {activeTab === 'EDIT' && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs max-w-3xl">
-          <h3 className="font-bold text-slate-900 dark:text-white text-sm pb-3 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2">
-            <Edit3 className="w-4 h-4 text-sky-600" />
-            ویرایش مشخصات، تخصص‌ها و وضعیت کاری مربی
-          </h3>
-
-          <form onSubmit={handleEditSubmit} className="mt-4 space-y-4 text-xs">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  نام *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editForm.first_name}
-                  onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-                />
-              </div>
-              <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  نام خانوادگی *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editForm.last_name}
-                  onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
-                  className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  شماره همراه (شناسه ورود) *
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={editForm.phone}
-                  onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                  className="w-full px-3 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-                />
-              </div>
-              <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  کد ملی
-                </label>
-                <input
-                  type="text"
-                  value={editForm.national_id}
-                  onChange={(e) => setEditForm({ ...editForm, national_id: e.target.value })}
-                  className="w-full px-3 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  وضعیت همکاری
-                </label>
-                <CustomSelect
-                  value={editForm.employment_status}
-                  onChange={(val) => setEditForm({ ...editForm, employment_status: val })}
-                  options={statusOptions}
-                  color="sky"
-                />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                  نرخ حق‌التدریس ساعتی (تومان)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="10000"
-                  value={editForm.hourly_rate}
-                  onChange={(e) => setEditForm({ ...editForm, hourly_rate: e.target.value })}
-                  className="w-full px-3 py-2 font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                تخصص‌های آموزشی (با کاما جدا کنید)
-              </label>
-              <input
-                type="text"
-                placeholder="کرال سینه، قورباغه، پروانه، نجات غریق..."
-                value={editForm.specialties}
-                onChange={(e) => setEditForm({ ...editForm, specialties: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
-              />
-            </div>
-
-            <div>
-              <label className="block font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                بیوگرافی و رزومه
-              </label>
-              <textarea
-                rows={4}
-                value={editForm.bio}
-                onChange={(e) => setEditForm({ ...editForm, bio: e.target.value })}
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500 leading-relaxed"
-              />
-            </div>
-
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setActiveTab('INFO')}
-              >
-                انصراف
-              </Button>
-              <Button
-                type="submit"
-                disabled={saving}
-                className="bg-sky-600 hover:bg-sky-500 text-white gap-1.5"
-              >
-                <Save className="w-4 h-4" />
-                <span>{saving ? 'در حال ذخیره...' : 'ذخیره تغییرات پرونده'}</span>
-              </Button>
-            </div>
-          </form>
-        </div>
-      )}
+        </form>
+      </Modal>
     </div>
   );
 };
