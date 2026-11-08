@@ -254,7 +254,7 @@ export const CustomSelect = ({
         disabled={disabled}
         onClick={handleToggle}
         className={`w-full text-right border transition-all flex items-center justify-between gap-2 cursor-pointer select-none rounded-xl ${
-          isCompact ? 'px-2.5 py-1.5 text-xs sm:text-sm min-h-[36px]' : 'px-3.5 py-2 text-sm sm:text-base min-h-[42px]'
+          isCompact ? 'px-2.5 py-1.5 text-xs sm:text-sm min-h-[36px]' : 'px-3.5 py-2.5 text-xs sm:text-sm min-h-[42px]'
         } ${
           disabled ? 'opacity-60 cursor-not-allowed bg-slate-100 dark:bg-slate-800' : ''
         } ${
@@ -335,7 +335,7 @@ export const CustomSelect = ({
         <div
           className={`absolute z-50 ${
             menuClassName?.includes('w-full')
-              ? 'left-0 right-0'
+              ? 'left-0 right-0 w-full'
               : alignLeft
               ? 'left-0'
               : 'right-0'
