@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   FileText, Plus, AlertTriangle, Award, ShieldAlert, AlertCircle,
   Download, Calendar, User, Shield
@@ -10,6 +11,7 @@ import { useToast } from '../../../context/ToastContext';
 import api from '../../../api/client';
 
 export const CoachNotesTab = ({ coach, notes, onNotesUpdated }) => {
+  const navigate = useNavigate();
   const toast = useToast();
 
   const [isAddNoteModalOpen, setIsAddNoteModalOpen] = useState(false);
@@ -81,17 +83,7 @@ export const CoachNotesTab = ({ coach, notes, onNotesUpdated }) => {
         </div>
 
         <Button
-          onClick={() => {
-            setNoteForm({
-              category: 'NOTE',
-              title: '',
-              description: '',
-              date: new Date().toISOString().split('T')[0],
-              severity: 'INFO',
-              is_confidential: false,
-            });
-            setIsAddNoteModalOpen(true);
-          }}
+          onClick={() => navigate(`/admin/coaches/${coach.id}/notes/new`)}
           className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-500 text-white shadow-xs"
         >
           <Plus className="w-4 h-4" />
@@ -177,124 +169,6 @@ export const CoachNotesTab = ({ coach, notes, onNotesUpdated }) => {
           })
         )}
       </div>
-
-      {/* Modal: Add Note */}
-      <Modal
-        isOpen={isAddNoteModalOpen}
-        onClose={() => setIsAddNoteModalOpen(false)}
-        title={`ثبت مورد اداری در پرونده مربی: ${coach.full_name}`}
-        size="lg"
-      >
-        <form onSubmit={handleSubmitNote} className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                دسته‌بندی موضوع <span className="text-rose-500">*</span>
-              </label>
-              <select
-                value={noteForm.category}
-                onChange={(e) => setNoteForm({ ...noteForm, category: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-              >
-                <option value="NOTE">یادداشت اداری / سوابق</option>
-                <option value="WARNING">تذکر یا اخطار کتبی انضباطی</option>
-                <option value="COMMENDATION">تشویق، تقدیر و امتیاز مثبت</option>
-                <option value="INCIDENT">گزارش حادثه یا رویداد در استخر</option>
-                <option value="MEETING">صورت‌جلسه مصاحبه یا هماهنگی</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                سطح اهمیت / شدت
-              </label>
-              <select
-                value={noteForm.severity}
-                onChange={(e) => setNoteForm({ ...noteForm, severity: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-              >
-                <option value="INFO">عادی / اطلاع‌رسانی</option>
-                <option value="LOW">تذکر شفاهی اولیه</option>
-                <option value="MEDIUM">اخطار کتبی رسمی</option>
-                <option value="HIGH">اخطار نهایی / تعلیق</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                عنوان موضوع <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="text"
-                value={noteForm.title}
-                onChange={(e) => setNoteForm({ ...noteForm, title: e.target.value })}
-                placeholder="مثال: تشویق جهت هدایت تیم در مسابقات استانی"
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                تاریخ رویداد <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="date"
-                value={noteForm.date}
-                onChange={(e) => setNoteForm({ ...noteForm, date: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-              شرح کامل واقعه یا متن اداری <span className="text-rose-500">*</span>
-            </label>
-            <textarea
-              rows={4}
-              value={noteForm.description}
-              onChange={(e) => setNoteForm({ ...noteForm, description: e.target.value })}
-              className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white leading-relaxed"
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
-              پیوست فایل / مدرک امضاشده (اختیاری)
-            </label>
-            <input
-              type="file"
-              onChange={(e) => setAttachmentFile(e.target.files[0])}
-              accept="image/*,.pdf"
-              className="w-full text-xs p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800"
-            />
-          </div>
-
-          <div className="pt-2">
-            <label className="flex items-center gap-2 cursor-pointer text-xs font-bold text-slate-700 dark:text-slate-300">
-              <input
-                type="checkbox"
-                checked={noteForm.is_confidential}
-                onChange={(e) => setNoteForm({ ...noteForm, is_confidential: e.target.checked })}
-                className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500"
-              />
-              <span>محرمانه (فقط مدیران ارشد مجاز به مشاهده باشند)</span>
-            </label>
-          </div>
-
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <Button variant="outline" type="button" onClick={() => setIsAddNoteModalOpen(false)}>
-              انصراف
-            </Button>
-            <Button type="submit" disabled={submitting} className="bg-sky-600 hover:bg-sky-500 text-white">
-              {submitting ? 'در حال ثبت...' : 'ثبت در پرونده مربی'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
     </div>
   );
 };
