@@ -172,12 +172,17 @@ class CoachListHRView(generics.ListCreateAPIView):
             'contracts', 'payrolls', 'assigned_groups'
         )
 
-        # اگر کاربر احراز هویت نشده یا عموم است، فقط مربیان فعال لندینگ
+        # اگر کاربر احراز هویت نشده یا عموم است
         if not (user and user.is_authenticated and (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser)):
             landing_param = self.request.query_params.get('landing')
             if landing_param and landing_param.lower() in ['true', '1']:
-                return qs.filter(show_on_landing=True, employment_status=CoachProfile.EmploymentStatus.ACTIVE)
-            return qs.filter(employment_status=CoachProfile.EmploymentStatus.ACTIVE)
+                qs = qs.filter(show_on_landing=True, employment_status=CoachProfile.EmploymentStatus.ACTIVE)
+            else:
+                qs = qs.filter(employment_status=CoachProfile.EmploymentStatus.ACTIVE)
+            gender_param = self.request.query_params.get('gender')
+            if gender_param:
+                qs = qs.filter(gender=gender_param)
+            return qs.order_by('display_order', 'id')
 
         params = self.request.query_params
 

@@ -389,12 +389,12 @@ class CoachProfileSerializer(serializers.ModelSerializer):
             else:
                 ret.pop('phone', None)
 
-            if is_admin or is_self:
+            if is_admin or is_self or is_supervisor:
                 ret['national_id'] = instance.user.national_id or ''
             else:
                 ret.pop('national_id', None)
         else:
-            if not (is_admin or is_self):
+            if not (is_admin or is_self or is_supervisor):
                 ret.pop('phone', None)
                 ret.pop('national_id', None)
 
@@ -403,10 +403,7 @@ class CoachProfileSerializer(serializers.ModelSerializer):
             ret.pop('internal_notes', None)
 
         if is_supervisor and not is_admin:
-            # Supervisors cannot view confidential payroll amounts
-            ret.pop('hourly_rate', None)
-            ret.pop('fixed_monthly_salary', None)
-            ret.pop('revenue_percentage', None)
+            # Supervisors cannot view monthly payroll status
             ret.pop('current_month_payroll_status', None)
 
         if not (is_admin or is_supervisor or is_self):
