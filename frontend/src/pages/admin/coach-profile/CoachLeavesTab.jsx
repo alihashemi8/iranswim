@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Calendar, Plus, CheckCircle2, XCircle, AlertCircle, Clock,
   FileText, Download, Check, X, ShieldAlert
@@ -10,6 +11,7 @@ import { useToast } from '../../../context/ToastContext';
 import api from '../../../api/client';
 
 export const CoachLeavesTab = ({ coach, leaves, onLeavesUpdated }) => {
+  const navigate = useNavigate();
   const toast = useToast();
 
   const [isSubmitLeaveModalOpen, setIsSubmitLeaveModalOpen] = useState(false);
@@ -114,17 +116,7 @@ export const CoachLeavesTab = ({ coach, leaves, onLeavesUpdated }) => {
         </div>
 
         <Button
-          onClick={() => {
-            const today = new Date().toISOString().split('T')[0];
-            setLeaveForm({
-              leave_type: 'CASUAL',
-              start_date: today,
-              end_date: today,
-              hours_requested: 0,
-              reason: '',
-            });
-            setIsSubmitLeaveModalOpen(true);
-          }}
+          onClick={() => navigate(`/admin/coaches/${coach.id}/leaves/new`)}
           className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-500 text-white shadow-xs"
         >
           <Plus className="w-4 h-4" />
