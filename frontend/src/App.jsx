@@ -40,6 +40,7 @@ import { AdminCoachAddCertificatePage } from './pages/admin/coach-profile/AdminC
 import { AdminCoachCreateEvaluationPage } from './pages/admin/coach-profile/AdminCoachCreateEvaluationPage';
 import { AdminCoachCreateLeavePage } from './pages/admin/coach-profile/AdminCoachCreateLeavePage';
 import { AdminCoachCreateNotePage } from './pages/admin/coach-profile/AdminCoachCreateNotePage';
+import { AdminCoachEditPage } from './pages/admin/coach-profile/AdminCoachEditPage';
 import { AdminCoursesPage } from './pages/admin/AdminCoursesPage';
 import { AdminCreateCoursePage } from './pages/admin/AdminCreateCoursePage';
 import { AdminCourseDetailPage } from './pages/admin/AdminCourseDetailPage';
@@ -186,7 +187,7 @@ export default function App() {
                 <Route path="coaches" element={<AdminCoachesPage />} />
                 <Route path="coaches/new" element={<AdminCreateCoachPage />} />
                 <Route path="coaches/:id" element={<AdminCoachDetailPage />} />
-                <Route path="coaches/:id/edit" element={<AdminCreateCoachPage />} />
+                <Route path="coaches/:id/edit" element={<AdminCoachEditPage />} />
                 <Route path="coaches/:id/schedule" element={<AdminCoachSchedulePage />} />
                 <Route path="coaches/:id/assign" element={<AdminCoachAssignGroupPage />} />
                 <Route path="coaches/:id/assign-group" element={<AdminCoachAssignGroupPage />} />
