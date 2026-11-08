@@ -1,4 +1,6 @@
 import React from 'react';
+import courseLogoLightWebp from '../../assets/course-logo-64.webp';
+import courseLogoDarkWebp from '../../assets/course-logo-dark.webp';
 
 /**
  * IranSwim Bespoke Aquatic & Sports SVG Icon Set
@@ -556,6 +558,35 @@ export const SwimCourseSpecsIcon = ({ className = 'w-6 h-6', ...props }) => (
     <circle cx="18" cy="16.5" r="0.45" fill="currentColor" />
     <path d="M18 18v2" />
   </svg>
+);
+
+// 22. Course Academic Swimmer Official Logo (لوگوی اختصاصی دوره‌های آموزشی شنا با پشتیبانی کامل از لایت و دارک مود)
+export const CourseLogoIcon = ({ className = 'w-5 h-5', ...props }) => (
+  <span
+    className={`inline-flex shrink-0 items-center justify-center select-none pointer-events-none relative ${className}`}
+    {...props}
+  >
+    {/* Light Mode Logo (Navy Swimmer & Cap + Cyan Waves) */}
+    <img
+      src={courseLogoLightWebp}
+      alt="دوره‌ها"
+      width="20"
+      height="20"
+      loading="eager"
+      decoding="sync"
+      className="w-full h-full object-contain dark:hidden"
+    />
+    {/* Dark Mode Logo (Luminous Ice-White Swimmer & Cap + Vibrant Cyan Waves) */}
+    <img
+      src={courseLogoDarkWebp}
+      alt="دوره‌ها"
+      width="20"
+      height="20"
+      loading="eager"
+      decoding="sync"
+      className="w-full h-full object-contain hidden dark:block"
+    />
+  </span>
 );
 
 

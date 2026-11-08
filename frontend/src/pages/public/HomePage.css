@@ -403,6 +403,13 @@
 
 #courses {
   color: #173b4b;
+  font-feature-settings: "ss01" 0, "cv01" 1 !important;
+}
+
+#courses *,
+.course-enrollment-modal,
+.course-enrollment-modal * {
+  font-feature-settings: "ss01" 0, "cv01" 1 !important;
 }
 
 #courses .landing-section__heading {

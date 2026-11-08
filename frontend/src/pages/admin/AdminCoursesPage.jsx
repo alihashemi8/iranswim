@@ -12,6 +12,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { ProgressBar } from '../../components/common/Charts';
 import { SessionsScheduleTimetable } from '../../components/common/SessionsScheduleTimetable';
 import { CustomSelect } from '../../components/common/CustomSelect';
+import { CourseLogoIcon } from '../../components/common/AquaticIcons';
 import { useToast } from '../../context/ToastContext';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 
@@ -113,15 +114,15 @@ export const AdminCoursesPage = () => {
     }
   };
 
-  const formatPrice = (v) => Number(v || 0).toLocaleString('fa-IR');
+  const formatPrice = (v) => Number(v || 0).toLocaleString('en-US');
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 admin-courses-section" style={{ fontFeatureSettings: '"ss01" 0, "cv01" 1' }}>
       {/* Header */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-sky-600" />
+            <CourseLogoIcon className="w-6 h-6 shrink-0" />
             <span>برنامه‌ریزی، دوره‌ها و کلاس‌های آموزشی</span>
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -147,7 +148,7 @@ export const AdminCoursesPage = () => {
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-white/40 dark:hover:bg-slate-700/40'
           }`}
         >
-          <BookOpen className="w-5 h-5 shrink-0" />
+          <CourseLogoIcon className="w-5 h-5 shrink-0" />
           <span className="whitespace-nowrap">دوره‌ها و کلاس‌ها</span>
           <span
             className={`text-xs px-2 py-0.5 rounded-full font-bold transition-colors ${

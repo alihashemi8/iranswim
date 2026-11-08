@@ -36,6 +36,13 @@ import { CoachProfileCard } from '../../components/common/CoachProfileCard';
 import { useLandingSections } from '../../context/LandingSectionsContext';
 import './HomePage.css';
 
+export const toEnglishDigits = (val) => {
+  if (val === null || val === undefined) return '';
+  return String(val)
+    .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+    .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)));
+};
+
 // Verified real database records for coaches and news in Qazvin
 const INITIAL_COURSES = [
   {
@@ -45,12 +52,12 @@ const INITIAL_COURSES = [
     sessions_count: 12,
     base_price: 2400000,
     installments_count: 3,
-    age_range: 'نونهالان و نوجوانان (۶ تا ۱۲ سال)',
+    age_range: 'نونهالان و نوجوانان (6 تا 12 سال)',
     gender: 'ALL',
     gender_display: 'عمومی (دختران و پسران)',
     what_you_learn: 'آزمون‌های فیزیولوژیک درون آب، پیکرسنجی و کشش عضلانی، سنجش توان قلبی‌عروقی و ارزیابی ورود به لیگ باشگاهی',
     groups: [
-      { id: 1, name: 'گروه استعدادیابی نونهالان (شنبه و چهارشنبه ۱۶:۰۰)', pool_location: 'استخر نیلگون انقلاب', remaining_capacity: 10 }
+      { id: 1, name: 'گروه استعدادیابی نونهالان (شنبه و چهارشنبه 16:00)', pool_location: 'استخر نیلگون انقلاب', remaining_capacity: 10 }
     ]
   },
   {
@@ -60,12 +67,12 @@ const INITIAL_COURSES = [
     sessions_count: 10,
     base_price: 1950000,
     installments_count: 2,
-    age_range: 'کودکان و خردسالان (۴ تا ۹ سال)',
+    age_range: 'کودکان و خردسالان (4 تا 9 سال)',
     gender: 'ALL',
     gender_display: 'عمومی (دختران و پسران)',
     what_you_learn: 'غلبه بر ترس از آب، اصول تنفس و غوطه‌وری، بازی‌های تعادلی و شناوری، آموزش مقدماتی پا زدن',
     groups: [
-      { id: 2, name: 'گروه نونهالان آب‌پری (پنج‌شنبه‌ها ۱۰:۰۰)', pool_location: 'استخر آموزشی سرپوشیده با دمای ۳۱ درجه', remaining_capacity: 5 }
+      { id: 2, name: 'گروه نونهالان آب‌پری (پنج‌شنبه‌ها 10:00)', pool_location: 'استخر آموزشی سرپوشیده با دمای 31 درجه', remaining_capacity: 5 }
     ]
   },
   {
@@ -75,27 +82,27 @@ const INITIAL_COURSES = [
     sessions_count: 12,
     base_price: 2800000,
     installments_count: 4,
-    age_range: 'نوجوانان و جوانان (۱۲ سال به بالا)',
+    age_range: 'نوجوانان و جوانان (12 سال به بالا)',
     gender: 'MALE',
     gender_display: 'پسران / آقایان',
     what_you_learn: 'تکنیک تخصصی موج دلفین، پرتاب دست و تنفس تک‌ضرب پروانه، استارت جهشی از سکو و چرخش‌های سالتو',
     groups: [
-      { id: 3, name: 'گروه پیشرفته صبحگاهی (روزهای زوج ۰۸:۰۰)', pool_location: 'استخر قهرمانی آزادی - لاین اختصاصی ۲', remaining_capacity: 3 }
+      { id: 3, name: 'گروه پیشرفته صبحگاهی (روزهای زوج 08:00)', pool_location: 'استخر قهرمانی آزادی - لاین اختصاصی 2', remaining_capacity: 3 }
     ]
   },
   {
     id: 4,
-    name: 'دوره جامع آموزش کرال سینه و استقامت پاییز ۱۴۰۵',
+    name: 'دوره جامع آموزش کرال سینه و استقامت پاییز 1405',
     status: 'ACTIVE',
     sessions_count: 12,
     base_price: 2600000,
     installments_count: 3,
-    age_range: 'نوجوانان و بزرگسالان (۱۰ سال به بالا)',
+    age_range: 'نوجوانان و بزرگسالان (10 سال به بالا)',
     gender: 'MALE',
     gender_display: 'پسران / آقایان',
     what_you_learn: 'اصلاح تکنیک دست و پای کرال سینه، تنفس ریتمیک دوطرفه، افزایش ظرفیت هوازی و شنای ممتد در لاین طولانی',
     groups: [
-      { id: 4, name: 'گروه A (روزهای فرد ساعت ۱۷:۰۰)', pool_location: 'استخر آزادی', remaining_capacity: 12 }
+      { id: 4, name: 'گروه A (روزهای فرد ساعت 17:00)', pool_location: 'استخر آزادی', remaining_capacity: 12 }
     ]
   },
   {
@@ -105,12 +112,12 @@ const INITIAL_COURSES = [
     sessions_count: 12,
     base_price: 2300000,
     installments_count: 3,
-    age_range: 'نونهالان و نوجوانان (۸ تا ۱۵ سال)',
+    age_range: 'نونهالان و نوجوانان (8 تا 15 سال)',
     gender: 'ALL',
     gender_display: 'عمومی (دختران و پسران)',
     what_you_learn: 'آموزش زاویه اصولی دست کرال، پای منظم با تخته شنا، تنفس منظم دوطرفه و رهاسازی عضلانی در آب',
     groups: [
-      { id: 5, name: 'گروه A عصرها (یکشنبه و سه‌شنبه ۱۷:۰۰)', pool_location: 'استخر ۵۰ متری المپیک - لاین ۳ و ۴', remaining_capacity: 7 }
+      { id: 5, name: 'گروه A عصرها (یکشنبه و سه‌شنبه 17:00)', pool_location: 'استخر 50 متری المپیک - لاین 3 و 4', remaining_capacity: 7 }
     ]
   }
 ];
@@ -269,13 +276,13 @@ const getCourseDetails = (course) => {
   if (!ageRange) {
     const name = course.name || '';
     if (name.includes('نونهال') || name.includes('کودک')) {
-      ageRange = 'کودکان و نونهالان (۶ تا ۱۲ سال)';
+      ageRange = 'کودکان و نونهالان (6 تا 12 سال)';
     } else if (name.includes('پروانه') || name.includes('قهرمانی')) {
-      ageRange = 'نوجوانان و جوانان (۱۲ سال به بالا)';
+      ageRange = 'نوجوانان و جوانان (12 سال به بالا)';
     } else if (name.includes('استقامت') || name.includes('پاییز')) {
-      ageRange = 'نوجوانان و بزرگسالان (۱۰ سال به بالا)';
+      ageRange = 'نوجوانان و بزرگسالان (10 سال به بالا)';
     } else {
-      ageRange = 'عموم رده‌های سنی (۸ تا ۱۶ سال)';
+      ageRange = 'عموم رده‌های سنی (8 تا 16 سال)';
     }
   }
 
@@ -315,7 +322,11 @@ const getCourseDetails = (course) => {
     }
   }
 
-  return { ageRange, gender, whatYouLearn };
+  return {
+    ageRange: toEnglishDigits(ageRange),
+    gender,
+    whatYouLearn: toEnglishDigits(whatYouLearn),
+  };
 };
 
 const getCourseScheduleAndCapacity = (course) => {
@@ -337,7 +348,10 @@ const getCourseScheduleAndCapacity = (course) => {
     ? group.remaining_capacity
     : null;
 
-  return { schedule, capacity };
+  return {
+    schedule: toEnglishDigits(schedule),
+    capacity: capacity !== null ? toEnglishDigits(capacity) : null,
+  };
 };
 
 export const HomePage = () => {
@@ -1047,7 +1061,7 @@ export const HomePage = () => {
               <p className="text-xs sm:text-sm text-slate-700 font-medium">کلاس‌های ثبت‌شده در سامانه، همراه با رده سنی، جنسیت و سرفصل‌های آموزشی</p>
             </div>
             <span className="text-xs font-mono font-bold text-cyan-900 dark:text-cyan-200 bg-white/90 dark:bg-slate-900/90 px-3.5 py-1.5 rounded-xl border border-cyan-300/60 dark:border-cyan-800 shrink-0 self-start sm:self-auto shadow-xs">
-              {courses.length} دوره آموزشی
+              {toEnglishDigits(courses.length)} دوره آموزشی
             </span>
           </div>
 
@@ -1075,7 +1089,7 @@ export const HomePage = () => {
                           : 'bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
                       }`}
                     >
-                      {cat.count}
+                      {toEnglishDigits(cat.count)}
                     </span>
                   </button>
                 );
@@ -1114,12 +1128,12 @@ export const HomePage = () => {
                             </span>
                             {capacity !== null && (
                               <span className="text-[10px] font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-md border border-teal-200/70 dark:border-teal-800/50">
-                                {capacity} نفر ظرفیت
+                                {toEnglishDigits(capacity)} نفر ظرفیت
                               </span>
                             )}
                           </div>
                           <h3 className="mt-2 text-lg font-bold text-slate-900 dark:text-slate-100 min-h-[3.25rem] sm:min-h-[3.5rem] flex items-center leading-snug line-clamp-2">
-                            {course.name}
+                            {toEnglishDigits(course.name)}
                           </h3>
                         </div>
                         <Waves className="w-6 h-6 shrink-0 text-cyan-600 dark:text-cyan-400 mt-1" aria-hidden="true" />
@@ -1130,7 +1144,7 @@ export const HomePage = () => {
                         <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/70 border border-sky-300/70 dark:border-sky-800/60 text-sky-900 dark:text-sky-200 text-xs">
                           <Users2 className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
                           <span className="text-slate-500 dark:text-slate-400">رده سنی:</span>
-                          <strong className="font-bold">{details.ageRange}</strong>
+                          <strong className="font-bold">{toEnglishDigits(details.ageRange)}</strong>
                         </div>
                         <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/70 border border-teal-300/70 dark:border-teal-800/60 text-teal-900 dark:text-teal-200 text-xs">
                           <Award className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400 shrink-0" />
@@ -1146,7 +1160,7 @@ export const HomePage = () => {
                           <span>آنچه در این دوره یاد می‌گیرید:</span>
                         </div>
                         <p className="text-slate-700 dark:text-slate-300 leading-relaxed text-justify line-clamp-3 min-h-[3.8rem]">
-                          {details.whatYouLearn}
+                          {toEnglishDigits(details.whatYouLearn)}
                         </p>
                       </div>
 
@@ -1156,7 +1170,7 @@ export const HomePage = () => {
                         {schedule ? (
                           <>
                             <span className="text-slate-500 dark:text-slate-400 shrink-0">برنامه کلاسی:</span>
-                            <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">{schedule}</span>
+                            <span className="font-semibold text-slate-800 dark:text-slate-200 truncate">{toEnglishDigits(schedule)}</span>
                           </>
                         ) : (
                           <span className="text-slate-400 dark:text-slate-500 text-[11px] truncate">برنامه کلاسی: هماهنگی سانس با پذیرش</span>
@@ -1166,18 +1180,18 @@ export const HomePage = () => {
                       {/* اطلاعات جلسات، شهریه و سقف اقساط مجاز */}
                       <div className="mt-3.5 pt-3 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 border-t border-cyan-500/20">
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          <span className="font-semibold text-slate-700 dark:text-slate-300">{course.sessions_count || 12} جلسه</span>
+                          <span className="font-semibold text-slate-700 dark:text-slate-300">{toEnglishDigits(course.sessions_count || 12)} جلسه</span>
                           {course.base_price ? (
                             <>
                               <span className="text-slate-300 dark:text-slate-600 hidden xs:inline">•</span>
                               <span className="font-mono font-bold text-cyan-800 dark:text-cyan-300">
-                                {Number(course.base_price).toLocaleString('fa-IR')} تومان
+                                {Number(course.base_price).toLocaleString('en-US')} تومان
                               </span>
                             </>
                           ) : null}
                         </div>
                         <span className="font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800/60 text-[11px] shrink-0">
-                          {course.installments_count > 1 ? `اقساط تا ${course.installments_count} ماه` : 'پرداخت نقدی'}
+                          {course.installments_count > 1 ? `اقساط تا ${toEnglishDigits(course.installments_count)} ماه` : 'پرداخت نقدی'}
                         </span>
                       </div>
                     </div>
@@ -1997,23 +2011,23 @@ export const HomePage = () => {
         title={enrollingCourse ? `ثبت‌نام در دوره: ${enrollingCourse.name}` : ''}
       >
         {enrollingCourse && (
-          <form onSubmit={handleEnrollSubmit} className="space-y-4">
+          <form onSubmit={handleEnrollSubmit} className="space-y-4 course-enrollment-modal">
             {/* Course Summary Box */}
             <div className="p-4 bg-sky-50/70 dark:bg-sky-950/40 rounded-2xl border border-sky-200/80 dark:border-sky-800 space-y-2 text-xs">
               <div className="flex justify-between items-center">
                 <span className="text-slate-500 dark:text-slate-400">شهریه کل دوره:</span>
                 <span className="text-sm font-mono font-black text-sky-800 dark:text-sky-200">
-                  {Number(enrollingCourse.base_price || 0).toLocaleString('fa-IR')} تومان
+                  {Number(enrollingCourse.base_price || 0).toLocaleString('en-US')} تومان
                 </span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 dark:text-slate-400">تعداد جلسات:</span>
-                <span className="font-bold text-slate-800 dark:text-slate-200">{enrollingCourse.sessions_count} جلسه</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200">{toEnglishDigits(enrollingCourse.sessions_count)} جلسه</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500 dark:text-slate-400">سقف اقساط مجاز دوره:</span>
                 <span className="font-bold text-emerald-700 dark:text-emerald-300">
-                  {enrollingCourse.installments_count > 1 ? `تا ${enrollingCourse.installments_count} قسط` : 'فقط پرداخت یکجا'}
+                  {enrollingCourse.installments_count > 1 ? `تا ${toEnglishDigits(enrollingCourse.installments_count)} قسط` : 'فقط پرداخت یکجا'}
                 </span>
               </div>
             </div>
@@ -2041,7 +2055,7 @@ export const HomePage = () => {
                 <input
                   type="tel"
                   required
-                  placeholder="۰۹۱۲۳۴۵۶۷۸۹"
+                  placeholder="09123456789"
                   value={enrollForm.applicant_phone}
                   onChange={(e) => setEnrollForm({ ...enrollForm, applicant_phone: e.target.value })}
                   dir="ltr"
@@ -2058,12 +2072,12 @@ export const HomePage = () => {
                   انتخاب نحوه پرداخت و تعداد اقساط:
                 </span>
                 <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded-lg border border-emerald-300 dark:border-emerald-700">
-                  {enrollForm.selected_installments > 1 ? `${enrollForm.selected_installments} قسط` : 'یکجا'}
+                  {enrollForm.selected_installments > 1 ? `${toEnglishDigits(enrollForm.selected_installments)} قسط` : 'یکجا'}
                 </span>
               </div>
 
               <p className="text-[11px] text-emerald-800/90 dark:text-emerald-300">
-                این دوره امکان تقسیط تا سقف {enrollingCourse.installments_count || 1} قسط را دارد. شما می‌توانید به دلخواه پرداخت یکجا یا اقساط کمتر را برگزینید:
+                این دوره امکان تقسیط تا سقف {toEnglishDigits(enrollingCourse.installments_count || 1)} قسط را دارد. شما می‌توانید به دلخواه پرداخت یکجا یا اقساط کمتر را برگزینید:
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
@@ -2083,10 +2097,10 @@ export const HomePage = () => {
                     >
                       <div>
                         <span className="text-xs font-bold block">
-                          {count === 1 ? 'پرداخت یکجا (نقدی)' : `${count} قسط مساوی`}
+                          {count === 1 ? 'پرداخت یکجا (نقدی)' : `${toEnglishDigits(count)} قسط مساوی`}
                         </span>
                         <span className={`text-[10px] block mt-0.5 ${isSelected ? 'text-emerald-100' : 'text-slate-400'}`}>
-                          هر قسط: {instAmount.toLocaleString('fa-IR')} تومان
+                          هر قسط: {Number(instAmount).toLocaleString('en-US')} تومان
                         </span>
                       </div>
                       <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${

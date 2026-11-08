@@ -30,6 +30,25 @@ export const AdminCoachesPage = () => {
   // View Mode: 'cards' | 'table'
   const [viewMode, setViewMode] = useState('cards');
 
+  // Responsive mobile detection (mobile forces cards; tablet & desktop allow switching)
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const effectiveViewMode = isMobile ? 'cards' : viewMode;
+
   // Month Filter for Statistics
   const [statsMonth, setStatsMonth] = useState(() => {
     const today = new Date();
@@ -467,7 +486,8 @@ export const AdminCoachesPage = () => {
             </button>
           </div>
 
-          <div className="flex items-center gap-2">
+          {/* View Switcher (HIDDEN on Mobile, VISIBLE on Desktop & Tablet) */}
+          <div className="hidden md:flex items-center gap-2">
             <span className="text-xs text-slate-400">حالت نمایش:</span>
             <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
               <button
@@ -497,13 +517,13 @@ export const AdminCoachesPage = () => {
 
       {/* 4. Coaches List (Cards View or Table View) */}
       {loading ? (
-        <LoadingState type="cards" count={6} message="در حال واکشی اطلاعات مربیان آموزشگاه..." />
+        <LoadingState type={effectiveViewMode === 'cards' ? 'cards' : 'table'} count={6} message="در حال واکشی اطلاعات مربیان آموزشگاه..." />
       ) : coaches.length === 0 ? (
         <EmptyState
           title="مربی با این مشخصات یافت نشد"
           description="با تنظیم مجدد فیلترها یا جستجوی نام دیگر، نتایج به‌روزرسانی خواهند شد."
         />
-      ) : viewMode === 'cards' ? (
+      ) : effectiveViewMode === 'cards' ? (
         /* Cards View */
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 items-stretch">
           {coaches.map((coach) => (

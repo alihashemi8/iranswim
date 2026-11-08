@@ -30,6 +30,25 @@ export const AdminEnrollmentsPage = () => {
   const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'table'
   const [loadingEnrollments, setLoadingEnrollments] = useState(true);
 
+  // Responsive mobile detection (mobile always shows cards; tablet & desktop allow switching)
+  const [isMobile, setIsMobile] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 768;
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const effectiveViewMode = isMobile ? 'cards' : viewMode;
+
   // Filters State
   const [searchSwimmer, setSearchSwimmer] = useState('');
   const [genderFilter, setGenderFilter] = useState(''); // '' | 'MALE' | 'FEMALE'
@@ -458,8 +477,8 @@ export const AdminEnrollmentsPage = () => {
                 )}
               </div>
 
-              {/* View Switcher: Cards vs Table */}
-              <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700 shrink-0 self-end sm:self-auto">
+              {/* View Switcher: Cards vs Table (HIDDEN on Mobile, VISIBLE on Desktop & Tablet) */}
+              <div className="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700 shrink-0 self-end sm:self-auto">
                 <button
                   type="button"
                   onClick={() => setViewMode('cards')}
@@ -635,7 +654,7 @@ export const AdminEnrollmentsPage = () => {
           {/* Content Area */}
           {loadingEnrollments ? (
             <LoadingState
-              type={viewMode === 'cards' ? 'cards' : 'table'}
+              type={effectiveViewMode === 'cards' ? 'cards' : 'table'}
               count={6}
               message="در حال بارگذاری ثبت‌نام‌های دوره‌ها..."
             />
@@ -651,7 +670,7 @@ export const AdminEnrollmentsPage = () => {
                 ) : null
               }
             />
-          ) : viewMode === 'cards' ? (
+          ) : effectiveViewMode === 'cards' ? (
             /* CARDS VIEW */
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 sm:gap-6">
               {paginatedEnrollments.map((enr) => (

@@ -5,6 +5,7 @@ import {
   UserCheck, BookOpen, ClipboardCheck, MessageSquare
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { CourseLogoIcon } from '../common/AquaticIcons';
 
 
 export const MobileBottomNav = () => {
@@ -156,7 +157,13 @@ export const MobileBottomNav = () => {
                   : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200'
               }`}
             >
-              <BookOpen className="w-5 h-5" />
+              <CourseLogoIcon
+                className={`w-5 h-5 transition-all ${
+                  isCoursesActive
+                    ? 'brightness-105 drop-shadow-xs scale-105'
+                    : 'opacity-75 grayscale-[25%] group-hover:opacity-100 group-hover:grayscale-0 dark:opacity-85'
+                }`}
+              />
             </div>
             <span
               className={`text-xs tracking-tight leading-tight mt-0.5 truncate max-w-full ${
