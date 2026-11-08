@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
+import { CustomSelect } from '../common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import api from '../../api/client';
 
@@ -115,21 +116,18 @@ export const LeagueSeasonModal = ({
             />
           </div>
 
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700 dark:text-slate-300 block">
-              وضعیت فصل *
-            </label>
-            <select
-              name="status"
-              value={formData.status}
-              onChange={handleChange}
-              className="w-full text-xs p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-            >
-              <option value="ACTIVE">فعال و در جریان</option>
-              <option value="DRAFT">پیش‌نویس</option>
-              <option value="COMPLETED">پایان‌یافته / آرشیو</option>
-            </select>
-          </div>
+          <CustomSelect
+            label="وضعیت فصل *"
+            value={formData.status}
+            onChange={(val) => setFormData((p) => ({ ...p, status: val }))}
+            color="blue"
+            size="sm"
+            options={[
+              { value: 'ACTIVE', label: 'فعال و در جریان' },
+              { value: 'DRAFT', label: 'پیش‌نویس' },
+              { value: 'COMPLETED', label: 'پایان‌یافته / آرشیو' },
+            ]}
+          />
         </div>
 
         {/* Start and End Dates */}

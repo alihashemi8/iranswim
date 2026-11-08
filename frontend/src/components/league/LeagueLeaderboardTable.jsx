@@ -1,13 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import {
   Trophy, Medal, Search, Filter, TrendingUp, TrendingDown,
-  Minus, ChevronRight, User, Eye, FileSpreadsheet, Printer,
-  ArrowUpDown, ChevronUp, ChevronDown, X, SlidersHorizontal, Award
+  Minus, ChevronRight, ChevronLeft, User, Eye, FileSpreadsheet, Printer,
+  ArrowUpDown, ChevronUp, ChevronDown, X, SlidersHorizontal, Award,
+  Users
 } from 'lucide-react';
 import { Button } from '../common/Button';
 import { Badge } from '../common/Badge';
 import { Pagination } from '../common/Pagination';
 import { EmptyState } from '../common/EmptyState';
+import { CustomSelect } from '../common/CustomSelect';
 
 export const LeagueLeaderboardTable = ({
   leaderboard = [],
@@ -130,15 +132,41 @@ export const LeagueLeaderboardTable = ({
     );
   };
 
+  // Category options for CustomSelect
+  const categoryOptions = useMemo(() => [
+    { value: '', label: 'همه رده‌های سنی' },
+    ...categories.map((cat) => ({
+      value: String(cat.id),
+      label: cat.title,
+      badge: cat.age_min != null && cat.age_max != null ? `${cat.age_min} تا ${cat.age_max} سال` : undefined,
+    })),
+  ], [categories]);
+
+  // Gender options for CustomSelect
+  const genderOptions = [
+    { value: '', label: 'همه جنسیت‌ها' },
+    { value: 'MALE', label: 'پسران', badge: 'پسر' },
+    { value: 'FEMALE', label: 'دختران', badge: 'دختر' },
+  ];
+
+  // Sort options for CustomSelect
+  const sortOptions = [
+    { value: 'rank-asc', label: 'مرتب‌سازی: رتبه لیگ' },
+    { value: 'points-desc', label: 'مرتب‌سازی: بیشترین امتیاز' },
+    { value: 'medals-desc', label: 'مرتب‌سازی: بیشترین مدال طلا' },
+    { value: 'matches-desc', label: 'مرتب‌سازی: بیشترین تعداد مسابقه' },
+    { value: 'name-asc', label: 'مرتب‌سازی: حروف الفبا' },
+  ];
+
   return (
     <div className="space-y-4 w-full">
       {/* 1. Dedicated Search & Filter Toolbar */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs space-y-3 w-full">
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-xs space-y-3 w-full relative z-20">
         {/* Row 1: Primary Frequently Used Filters */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2.5 flex-1">
             {/* Search Input */}
-            <div className="relative min-w-[220px] max-w-sm flex-1">
+            <div className="relative min-w-[200px] max-w-sm flex-1">
               <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
               <input
                 type="text"
@@ -148,7 +176,7 @@ export const LeagueLeaderboardTable = ({
                   setCurrentPage(1);
                 }}
                 placeholder="جستجوی نام شناگر..."
-                className="w-full text-xs pr-9 pl-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all"
+                className="w-full text-xs pr-9 pl-8 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all h-9"
               />
               {searchQuery && (
                 <button
@@ -162,58 +190,56 @@ export const LeagueLeaderboardTable = ({
             </div>
 
             {/* Age Category Dropdown */}
-            <div className="flex items-center gap-1.5 text-xs">
-              <select
-                value={selectedCategory}
-                onChange={(e) => {
-                  onCategoryChange(e.target.value);
+            <div className="w-full sm:w-auto min-w-[170px] sm:max-w-xs">
+              <CustomSelect
+                value={selectedCategory ? String(selectedCategory) : ''}
+                onChange={(val) => {
+                  onCategoryChange(val);
                   setCurrentPage(1);
                 }}
-                className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              >
-                <option value="">همه رده‌های سنی</option>
-                {categories.map((cat) => (
-                  <option key={cat.id} value={cat.id}>
-                    {cat.title} ({cat.age_min} تا {cat.age_max} سال)
-                  </option>
-                ))}
-              </select>
+                placeholder="همه رده‌های سنی"
+                icon={Award}
+                size="sm"
+                color="blue"
+                clearable
+                searchable={categories.length > 6}
+                options={categoryOptions}
+              />
             </div>
 
             {/* Gender Filter */}
-            <div className="flex items-center gap-1.5 text-xs">
-              <select
+            <div className="w-full sm:w-auto min-w-[130px]">
+              <CustomSelect
                 value={selectedGender}
-                onChange={(e) => {
-                  onGenderChange(e.target.value);
+                onChange={(val) => {
+                  onGenderChange(val);
                   setCurrentPage(1);
                 }}
-                className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              >
-                <option value="">همه جنسیت‌ها</option>
-                <option value="MALE">پسران</option>
-                <option value="FEMALE">دختران</option>
-              </select>
+                placeholder="همه جنسیت‌ها"
+                icon={Users}
+                size="sm"
+                color="blue"
+                clearable
+                options={genderOptions}
+              />
             </div>
 
             {/* Sort Dropdown */}
-            <div className="flex items-center gap-1.5 text-xs">
-              <select
+            <div className="w-full sm:w-auto min-w-[185px]">
+              <CustomSelect
                 value={`${sortField}-${sortOrder}`}
-                onChange={(e) => {
-                  const [f, o] = e.target.value.split('-');
+                onChange={(val) => {
+                  const [f, o] = val.split('-');
                   setSortField(f);
                   setSortOrder(o);
                   setCurrentPage(1);
                 }}
-                className="text-xs bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
-              >
-                <option value="rank-asc">مرتب‌سازی: رتبه لیگ</option>
-                <option value="points-desc">مرتب‌سازی: بیشترین امتیاز</option>
-                <option value="medals-desc">مرتب‌سازی: بیشترین مدال طلا</option>
-                <option value="matches-desc">مرتب‌سازی: بیشترین تعداد مسابقه</option>
-                <option value="name-asc">مرتب‌سازی: حروف الفبا</option>
-              </select>
+                icon={ArrowUpDown}
+                size="sm"
+                color="blue"
+                isActive={sortField !== 'rank' || sortOrder !== 'asc'}
+                options={sortOptions}
+              />
             </div>
 
             {/* Expand Advanced Filters Button */}
@@ -591,7 +617,7 @@ export const LeagueLeaderboardTable = ({
 
                     <div className="flex items-center gap-1 text-blue-600 font-semibold text-[11px]">
                       <span>مشاهده پرونده</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
+                      <ChevronLeft className="w-3.5 h-3.5" />
                     </div>
                   </div>
                 </div>

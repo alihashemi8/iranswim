@@ -50,15 +50,15 @@ export const LeagueCompetitionsView = ({
     <div className="space-y-4">
       {/* Top Header & Actions */}
       <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-colors">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
+          <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 shrink-0">
             فیلتر وضعیت:
           </span>
-          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs">
+          <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs w-full sm:w-auto justify-between sm:justify-start">
             <button
               type="button"
               onClick={() => setFilterStatus('ALL')}
-              className={`px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+              className={`px-3 py-1.5 sm:py-1 rounded-lg font-medium transition-all cursor-pointer flex-1 sm:flex-initial text-center ${
                 filterStatus === 'ALL'
                   ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-bold'
                   : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
@@ -69,7 +69,7 @@ export const LeagueCompetitionsView = ({
             <button
               type="button"
               onClick={() => setFilterStatus('SCHEDULED')}
-              className={`px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+              className={`px-3 py-1.5 sm:py-1 rounded-lg font-medium transition-all cursor-pointer flex-1 sm:flex-initial text-center ${
                 filterStatus === 'SCHEDULED'
                   ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-bold'
                   : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
@@ -80,7 +80,7 @@ export const LeagueCompetitionsView = ({
             <button
               type="button"
               onClick={() => setFilterStatus('COMPLETED')}
-              className={`px-3 py-1 rounded-lg font-medium transition-all cursor-pointer ${
+              className={`px-3 py-1.5 sm:py-1 rounded-lg font-medium transition-all cursor-pointer flex-1 sm:flex-initial text-center ${
                 filterStatus === 'COMPLETED'
                   ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-2xs font-bold'
                   : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
@@ -93,7 +93,7 @@ export const LeagueCompetitionsView = ({
 
         <Button
           onClick={onOpenCreateModal}
-          className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold self-start sm:self-auto cursor-pointer"
+          className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold w-full sm:w-auto justify-center cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>تعریف مسابقه جدید</span>
@@ -164,12 +164,12 @@ export const LeagueCompetitionsView = ({
                   </div>
 
                   {/* Actions buttons */}
-                  <div className="flex items-center gap-2 shrink-0 self-end md:self-auto">
+                  <div className="flex items-center justify-between sm:justify-start gap-2 shrink-0 w-full md:w-auto pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
                     <Button
                       variant={isCompleted ? 'outline' : 'primary'}
                       size="sm"
                       onClick={() => onOpenRecordResultsModal(comp)}
-                      className={`gap-1.5 text-xs h-8.5 font-bold ${
+                      className={`gap-1.5 text-xs h-8.5 font-bold flex-1 sm:flex-initial justify-center ${
                         !isCompleted ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''
                       }`}
                     >
@@ -212,7 +212,7 @@ export const LeagueCompetitionsView = ({
                         <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
                           نفرات برتر و سکو:
                         </span>
-                        <div className="flex items-center gap-1.5 text-xs">
+                        <div className="flex flex-wrap items-center gap-1.5 text-xs">
                           {comp.results.slice(0, 3).map((r, idx) => (
                             <span
                               key={r.id}

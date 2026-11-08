@@ -7,6 +7,7 @@ import api from '../../api/client';
 import { useSwimmer } from '../../context/SwimmerContext';
 import { Badge } from '../../components/common/Badge';
 import { LoadingState } from '../../components/common/LoadingState';
+import { CustomSelect } from '../../components/common/CustomSelect';
 
 export const SwimmerLeaguePage = () => {
   const { activeSwimmer, activeSwimmerId } = useSwimmer();
@@ -157,18 +158,20 @@ export const SwimmerLeaguePage = () => {
           {/* League Selector */}
           {leagues.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300">انتخاب فصل:</span>
-              <select
-                value={selectedLeagueId || ''}
-                onChange={(e) => handleLeagueChange(e.target.value)}
-                className="px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white outline-none cursor-pointer"
-              >
-                {leagues.map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {l.title} ({l.season})
-                  </option>
-                ))}
-              </select>
+              <span className="text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 shrink-0">انتخاب فصل:</span>
+              <div className="w-56">
+                <CustomSelect
+                  value={selectedLeagueId ? String(selectedLeagueId) : ''}
+                  onChange={(val) => handleLeagueChange(val)}
+                  color="blue"
+                  size="sm"
+                  options={leagues.map((l) => ({
+                    value: String(l.id),
+                    label: l.name || l.title,
+                    badge: l.season,
+                  }))}
+                />
+              </div>
             </div>
           )}
         </div>

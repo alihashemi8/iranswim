@@ -11,13 +11,15 @@ export const CustomSelect = ({
   icon: Icon,
   className = '',
   menuClassName = '',
+  buttonClassName = '',
   searchable = false,
   disabled = false,
   clearable = false,
   size = 'md', // 'sm' | 'md'
-  color = 'sky', // 'sky' | 'emerald'
+  color = 'sky', // 'sky' | 'emerald' | 'blue' | 'amber'
   align = 'auto', // 'auto' | 'left' | 'right'
   placement = 'auto', // 'auto' | 'top' | 'bottom'
+  isActive, // optional boolean override for active styling
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
@@ -173,17 +175,30 @@ export const CustomSelect = ({
   };
 
   const hasValue = selectedOption !== undefined;
-  const isSelectedActive = value !== undefined && value !== null && value !== '';
+  const isSelectedActive = isActive !== undefined
+    ? Boolean(isActive)
+    : (value !== undefined && value !== null && value !== '');
   const DisplayIcon = selectedOption?.icon || Icon;
 
   // Color schemes
   const colorStyles = {
+    blue: {
+      activeRing: 'ring-2 ring-blue-500/25 border-blue-500 dark:border-blue-500',
+      activeTrigger: 'bg-blue-50/60 dark:bg-blue-950/30 border-blue-300 dark:border-blue-700/80 text-blue-950 dark:text-blue-100',
+      activeIcon: 'text-blue-600 dark:text-blue-400',
+      selectedItem: 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-bold border border-blue-200/80 dark:border-blue-800/80',
+      selectedIconBox: 'bg-blue-100 dark:bg-blue-900/60 text-blue-600 dark:text-blue-400',
+      selectedBadge: 'bg-blue-100 dark:bg-blue-900/60 text-blue-700 dark:text-blue-300',
+      checkIcon: 'text-blue-600 dark:text-blue-400',
+      searchFocus: 'focus:ring-blue-500',
+    },
     sky: {
       activeRing: 'ring-2 ring-sky-500/25 border-sky-500 dark:border-sky-500',
       activeTrigger: 'bg-sky-50/50 dark:bg-sky-950/25 border-sky-300 dark:border-sky-700/80 text-sky-950 dark:text-sky-100',
       activeIcon: 'text-sky-600 dark:text-sky-400',
       selectedItem: 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border border-sky-200/80 dark:border-sky-800/80',
       selectedIconBox: 'bg-sky-100 dark:bg-sky-900/60 text-sky-600 dark:text-sky-400',
+      selectedBadge: 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300',
       checkIcon: 'text-sky-600 dark:text-sky-400',
       searchFocus: 'focus:ring-sky-500',
     },
@@ -193,8 +208,19 @@ export const CustomSelect = ({
       activeIcon: 'text-emerald-600 dark:text-emerald-400',
       selectedItem: 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 font-bold border border-emerald-200/80 dark:border-emerald-800/80',
       selectedIconBox: 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400',
+      selectedBadge: 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300',
       checkIcon: 'text-emerald-600 dark:text-emerald-400',
       searchFocus: 'focus:ring-emerald-500',
+    },
+    amber: {
+      activeRing: 'ring-2 ring-amber-500/25 border-amber-500 dark:border-amber-500',
+      activeTrigger: 'bg-amber-50/50 dark:bg-amber-950/25 border-amber-300 dark:border-amber-700/80 text-amber-950 dark:text-amber-100',
+      activeIcon: 'text-amber-600 dark:text-amber-400',
+      selectedItem: 'bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 font-bold border border-amber-200/80 dark:border-amber-800/80',
+      selectedIconBox: 'bg-amber-100 dark:bg-amber-900/60 text-amber-600 dark:text-amber-400',
+      selectedBadge: 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300',
+      checkIcon: 'text-amber-600 dark:text-amber-400',
+      searchFocus: 'focus:ring-amber-500',
     },
   }[color] || {
     activeRing: 'ring-2 ring-sky-500/25 border-sky-500 dark:border-sky-500',
@@ -202,6 +228,7 @@ export const CustomSelect = ({
     activeIcon: 'text-sky-600 dark:text-sky-400',
     selectedItem: 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-bold border border-sky-200/80 dark:border-sky-800/80',
     selectedIconBox: 'bg-sky-100 dark:bg-sky-900/60 text-sky-600 dark:text-sky-400',
+    selectedBadge: 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300',
     checkIcon: 'text-sky-600 dark:text-sky-400',
     searchFocus: 'focus:ring-sky-500',
   };
@@ -227,7 +254,7 @@ export const CustomSelect = ({
         disabled={disabled}
         onClick={handleToggle}
         className={`w-full text-right border transition-all flex items-center justify-between gap-2 cursor-pointer select-none rounded-xl ${
-          isCompact ? 'px-2.5 py-2 text-xs' : 'px-3.5 py-2.5 text-xs sm:text-sm'
+          isCompact ? 'px-2.5 py-2 text-xs min-h-[36px]' : 'px-3.5 py-2.5 text-xs sm:text-sm min-h-[42px]'
         } ${
           disabled ? 'opacity-60 cursor-not-allowed bg-slate-100 dark:bg-slate-800' : ''
         } ${
@@ -236,7 +263,7 @@ export const CustomSelect = ({
             : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600'
         } ${
           isOpen ? `${colorStyles.activeRing} bg-white dark:bg-slate-900 shadow-xs` : ''
-        }`}
+        } ${buttonClassName}`}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
       >
@@ -266,7 +293,7 @@ export const CustomSelect = ({
               className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold shrink-0 transition-colors ${
                 selectedOption.badgeClassName ||
                 (isSelectedActive
-                  ? 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300'
+                  ? (colorStyles.selectedBadge || 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300')
                   : 'bg-slate-200/70 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300')
               }`}
             >
@@ -313,7 +340,7 @@ export const CustomSelect = ({
               ? 'left-0'
               : 'right-0'
           } ${
-            menuClassName ? menuClassName : 'min-w-full w-max max-w-[min(380px,calc(100vw-2rem))]'
+            menuClassName ? menuClassName : 'min-w-full min-w-[200px] w-max max-w-[min(380px,calc(100vw-2rem))]'
           } py-1.5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/90 rounded-2xl shadow-xl overflow-hidden animate-in fade-in-50 zoom-in-95 ${
             openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
           }`}
@@ -403,7 +430,7 @@ export const CustomSelect = ({
                           className={`text-[10px] px-2 py-0.5 rounded-md font-bold shrink-0 ${
                             opt.badgeClassName ||
                             (isSelected
-                              ? 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300'
+                              ? (colorStyles.selectedBadge || 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300')
                               : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700')
                           }`}
                         >

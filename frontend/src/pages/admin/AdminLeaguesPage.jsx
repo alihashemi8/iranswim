@@ -252,19 +252,19 @@ export const AdminLeaguesPage = () => {
               مدیریت لیگ و مسابقات
             </h1>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 mr-9">
+          <p className="text-xs sm:text-sm text-slate-500 mr-0 sm:mr-9">
             رصد زنده امتیازات، جدول رده‌بندی، نتایج رویدادها و مدیریت فصول مسابقاتی آکادمی شنا
           </p>
         </div>
 
         {/* Action Buttons Hierarchy */}
-        <div className="flex items-center gap-2 flex-wrap mr-9 md:mr-0">
+        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto mt-1 md:mt-0">
           <Button
             variant="outline"
             size="sm"
             onClick={handleExportCsv}
             disabled={!leaderboard.length}
-            className="gap-1.5 text-xs h-9 border-slate-200 text-slate-700 hover:bg-slate-50 font-bold"
+            className="gap-1.5 text-xs h-9 border-slate-200 text-slate-700 hover:bg-slate-50 font-bold flex-1 sm:flex-initial justify-center"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
             <span>خروجی اکسل</span>
@@ -277,7 +277,7 @@ export const AdminLeaguesPage = () => {
               setEditingSeason(null);
               setSeasonModalOpen(true);
             }}
-            className="gap-1.5 text-xs h-9 border-slate-200 text-slate-700 hover:bg-slate-50 font-bold"
+            className="gap-1.5 text-xs h-9 border-slate-200 text-slate-700 hover:bg-slate-50 font-bold flex-1 sm:flex-initial justify-center"
           >
             <Plus className="w-4 h-4" />
             <span>ایجاد فصل جدید</span>
@@ -289,7 +289,7 @@ export const AdminLeaguesPage = () => {
               setEditingComp(null);
               setCompModalOpen(true);
             }}
-            className="gap-1.5 text-xs h-9 bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer shadow-xs"
+            className="gap-1.5 text-xs h-9 bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer shadow-xs w-full sm:w-auto justify-center"
           >
             <Plus className="w-4 h-4" />
             <span>تعریف مسابقه</span>

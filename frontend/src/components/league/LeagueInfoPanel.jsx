@@ -62,7 +62,7 @@ export const LeagueInfoPanel = ({
         <button
           type="button"
           onClick={onOpenCreateSeasonModal}
-          className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1 shrink-0 self-start sm:self-auto cursor-pointer"
+          className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1 shrink-0 pt-1 sm:pt-0 cursor-pointer"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>ایجاد فصل مسابقاتی جدید</span>
@@ -161,7 +161,7 @@ export const LeagueInfoPanel = ({
         </div>
 
         {/* Col 3: Quick Action Buttons (3 cols) */}
-        <div className="lg:col-span-3 flex flex-row lg:flex-col gap-2 justify-end">
+        <div className="lg:col-span-3 flex flex-col sm:flex-row lg:flex-col gap-2 justify-end w-full">
           <Button
             size="sm"
             onClick={onOpenCreateCompetitionModal}

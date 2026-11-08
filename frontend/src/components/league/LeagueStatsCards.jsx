@@ -46,31 +46,31 @@ export const LeagueStatsCards = ({ stats }) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 sm:gap-4">
       {cards.map((c, i) => {
         const Icon = c.icon;
         return (
           <div
             key={i}
-            className="bg-white rounded-2xl p-4 sm:p-5 border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all duration-200 flex flex-col justify-between"
+            className="bg-white rounded-2xl p-3 sm:p-5 border border-slate-200/80 shadow-xs hover:border-slate-300 transition-all duration-200 flex flex-col justify-between"
           >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500">
+            <div className="flex items-center justify-between gap-1.5">
+              <span className="text-[11px] sm:text-xs font-bold text-slate-500 truncate">
                 {c.title}
               </span>
-              <span className={`p-2.5 rounded-xl ${c.iconBg}`}>
-                <Icon className="w-4 h-4" />
+              <span className={`p-1.5 sm:p-2.5 rounded-xl shrink-0 ${c.iconBg}`}>
+                <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
               </span>
             </div>
 
-            <div className="mt-3">
-              <span className="text-2xl sm:text-3xl font-black font-mono text-slate-900 tracking-tight">
+            <div className="mt-2 sm:mt-3">
+              <span className="text-xl sm:text-3xl font-black font-mono text-slate-900 tracking-tight block">
                 {c.value}
               </span>
-              <span className="text-xs font-semibold text-slate-700 block mt-1">
+              <span className="text-[11px] sm:text-xs font-semibold text-slate-700 block mt-0.5 sm:mt-1 truncate">
                 {c.label}
               </span>
-              <span className="text-[11px] text-slate-400 block mt-0.5 truncate">
+              <span className="text-[10px] sm:text-[11px] text-slate-400 block mt-0.5 truncate">
                 {c.context}
               </span>
             </div>

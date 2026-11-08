@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Award, Plus } from 'lucide-react';
+import { Award, Plus, User } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
+import { CustomSelect } from '../common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import api from '../../api/client';
 
@@ -72,23 +73,23 @@ export const ManualScoreModal = ({
     >
       <form onSubmit={handleSubmit} className="space-y-4 text-xs">
         {/* Swimmer Select */}
-        <div className="space-y-1">
-          <label className="font-bold text-slate-700 dark:text-slate-300 block">
-            شناگر دریافت‌کننده امتیاز *
-          </label>
-          <select
-            value={formData.swimmer_id}
-            onChange={(e) => setFormData((p) => ({ ...p, swimmer_id: e.target.value }))}
-            className="w-full text-xs p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-          >
-            <option value="">انتخاب شناگر...</option>
-            {availableSwimmers.map((sw) => (
-              <option key={sw.id} value={sw.id}>
-                {sw.full_name} ({sw.gender === 'FEMALE' ? 'دختر' : 'پسر'})
-              </option>
-            ))}
-          </select>
-        </div>
+        <CustomSelect
+          label="شناگر دریافت‌کننده امتیاز *"
+          value={formData.swimmer_id ? String(formData.swimmer_id) : ''}
+          onChange={(val) => setFormData((p) => ({ ...p, swimmer_id: val }))}
+          color="blue"
+          icon={User}
+          searchable
+          placeholder="انتخاب شناگر..."
+          options={[
+            { value: '', label: 'انتخاب شناگر...' },
+            ...availableSwimmers.map((sw) => ({
+              value: String(sw.id),
+              label: sw.full_name,
+              badge: sw.gender === 'FEMALE' ? 'دختر' : 'پسر',
+            })),
+          ]}
+        />
 
         {/* Score Points */}
         <div className="space-y-1">

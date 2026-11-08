@@ -59,7 +59,7 @@ export const LeagueSeasonsArchive = ({
 
         <Button
           onClick={onOpenCreateModal}
-          className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold self-start sm:self-auto cursor-pointer"
+          className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold w-full sm:w-auto justify-center cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>ایجاد دوره / فصل جدید</span>
@@ -105,7 +105,7 @@ export const LeagueSeasonsArchive = ({
 
               {/* Dates & Rules */}
               <div className="bg-slate-50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800 text-xs space-y-1.5">
-                <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-slate-600 dark:text-slate-400">
                   <span>بازه زمانی برگزاری:</span>
                   <span className="font-mono text-slate-800 dark:text-slate-200 font-semibold">
                     {new Date(lg.starts_at).toLocaleDateString('fa-IR-u-nu-latn')} تا {new Date(lg.ends_at).toLocaleDateString('fa-IR-u-nu-latn')}
@@ -141,12 +141,12 @@ export const LeagueSeasonsArchive = ({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 gap-2">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between pt-2 border-t border-slate-100 dark:border-slate-800 gap-2">
                 <Button
                   variant={isCurrent ? 'outline' : 'primary'}
                   size="sm"
                   onClick={() => onSelectLeague(lg)}
-                  className={`text-xs h-8.5 font-bold ${
+                  className={`text-xs h-8.5 font-bold justify-center ${
                     !isCurrent ? 'bg-blue-600 hover:bg-blue-700 text-white' : 'text-blue-700 border-blue-200'
                   }`}
                 >

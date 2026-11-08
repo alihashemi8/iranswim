@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
+import { CustomSelect } from '../common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import api from '../../api/client';
 
@@ -118,79 +119,69 @@ export const CompetitionModal = ({
 
         {/* Stroke and Distance */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700 dark:text-slate-300 block">
-              ماده شنا *
-            </label>
-            <select
-              name="stroke"
-              value={formData.stroke}
-              onChange={handleChange}
-              className="w-full text-xs p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-            >
-              <option value="FREESTYLE">شنای آزاد (کرال سینه)</option>
-              <option value="BACKSTROKE">شنای کرال پشت</option>
-              <option value="BREASTSTROKE">شنای قورباغه</option>
-              <option value="BUTTERFLY">شنای پروانه</option>
-              <option value="MEDLEY">شنای مختلط انفرادی</option>
-            </select>
-          </div>
+          <CustomSelect
+            label="ماده شنا *"
+            value={formData.stroke}
+            onChange={(val) => setFormData((p) => ({ ...p, stroke: val }))}
+            color="blue"
+            size="sm"
+            options={[
+              { value: 'FREESTYLE', label: 'شنای آزاد (کرال سینه)' },
+              { value: 'BACKSTROKE', label: 'شنای کرال پشت' },
+              { value: 'BREASTSTROKE', label: 'شنای قورباغه' },
+              { value: 'BUTTERFLY', label: 'شنای پروانه' },
+              { value: 'MEDLEY', label: 'شنای مختلط انفرادی' },
+            ]}
+          />
 
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700 dark:text-slate-300 block">
-              مسافت (متر) *
-            </label>
-            <select
-              name="distance_meters"
-              value={formData.distance_meters}
-              onChange={handleChange}
-              className="w-full text-xs p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-            >
-              <option value="25">25 متر</option>
-              <option value="50">50 متر</option>
-              <option value="100">100 متر</option>
-              <option value="200">200 متر</option>
-              <option value="400">400 متر</option>
-            </select>
-          </div>
+          <CustomSelect
+            label="مسافت (متر) *"
+            value={String(formData.distance_meters)}
+            onChange={(val) => setFormData((p) => ({ ...p, distance_meters: Number(val) }))}
+            color="blue"
+            size="sm"
+            options={[
+              { value: '25', label: '25 متر' },
+              { value: '50', label: '50 متر' },
+              { value: '100', label: '100 متر' },
+              { value: '200', label: '200 متر' },
+              { value: '400', label: '400 متر' },
+            ]}
+          />
         </div>
 
         {/* Category & Gender */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700 dark:text-slate-300 block">
-              رده مسابقاتی مجاز
-            </label>
-            <select
-              name="category"
-              value={formData.category}
-              onChange={handleChange}
-              className="w-full text-xs p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-            >
-              <option value="">عمومی / تمام رده‌های سنی</option>
-              {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                  {cat.title} ({cat.age_min} تا {cat.age_max} سال)
-                </option>
-              ))}
-            </select>
-          </div>
+          <CustomSelect
+            label="رده مسابقاتی مجاز"
+            value={formData.category ? String(formData.category) : ''}
+            onChange={(val) => setFormData((p) => ({ ...p, category: val }))}
+            color="blue"
+            size="sm"
+            clearable
+            placeholder="عمومی / تمام رده‌های سنی"
+            options={[
+              { value: '', label: 'عمومی / تمام رده‌های سنی' },
+              ...categories.map((cat) => ({
+                value: String(cat.id),
+                label: cat.title,
+                badge: `${cat.age_min} تا ${cat.age_max} سال`,
+              })),
+            ]}
+          />
 
-          <div className="space-y-1">
-            <label className="font-bold text-slate-700 dark:text-slate-300 block">
-              جنسیت رقابت *
-            </label>
-            <select
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              className="w-full text-xs p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-            >
-              <option value="ALL">مختلط / عمومی</option>
-              <option value="MALE">پسران</option>
-              <option value="FEMALE">دختران</option>
-            </select>
-          </div>
+          <CustomSelect
+            label="جنسیت رقابت *"
+            value={formData.gender}
+            onChange={(val) => setFormData((p) => ({ ...p, gender: val }))}
+            color="blue"
+            size="sm"
+            options={[
+              { value: 'ALL', label: 'مختلط / عمومی' },
+              { value: 'MALE', label: 'پسران' },
+              { value: 'FEMALE', label: 'دختران' },
+            ]}
+          />
         </div>
 
         {/* Date & Location */}
@@ -225,22 +216,19 @@ export const CompetitionModal = ({
         </div>
 
         {/* Status */}
-        <div className="space-y-1">
-          <label className="font-bold text-slate-700 dark:text-slate-300 block">
-            وضعیت برگزاری
-          </label>
-          <select
-            name="status"
-            value={formData.status}
-            onChange={handleChange}
-            className="w-full text-xs p-2.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-          >
-            <option value="SCHEDULED">برنامه‌ریزی‌شده (پیش‌رو)</option>
-            <option value="IN_PROGRESS">در حال برگزاری</option>
-            <option value="COMPLETED">پایان‌یافته و ثبت نتایج</option>
-            <option value="CANCELLED">لغوشده</option>
-          </select>
-        </div>
+        <CustomSelect
+          label="وضعیت برگزاری"
+          value={formData.status}
+          onChange={(val) => setFormData((p) => ({ ...p, status: val }))}
+          color="blue"
+          size="sm"
+          options={[
+            { value: 'SCHEDULED', label: 'برنامه‌ریزی‌شده (پیش‌رو)' },
+            { value: 'IN_PROGRESS', label: 'در حال برگزاری' },
+            { value: 'COMPLETED', label: 'پایان‌یافته و ثبت نتایج' },
+            { value: 'CANCELLED', label: 'لغوشده' },
+          ]}
+        />
 
         {/* Notes */}
         <div className="space-y-1">

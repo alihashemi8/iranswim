@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Trophy, Plus, Trash2, Clock, Check, AlertCircle, Medal } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Trophy, Plus, Trash2, Clock, Check, AlertCircle, Medal, User } from 'lucide-react';
 import { Modal } from '../common/Modal';
 import { Button } from '../common/Button';
+import { CustomSelect } from '../common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import api from '../../api/client';
 
@@ -57,6 +58,15 @@ export const RecordResultsModal = ({
   const addRow = () => {
     setRows((prev) => [...prev, { swimmer_id: '', swimmer_name: '', duration_seconds: '', notes: '' }]);
   };
+
+  const swimmerOptions = useMemo(() => [
+    { value: '', label: 'انتخاب شناگر...' },
+    ...availableSwimmers.map((sw) => ({
+      value: String(sw.id),
+      label: sw.full_name,
+      badge: sw.gender === 'FEMALE' ? 'دختر' : 'پسر',
+    })),
+  ], [availableSwimmers]);
 
   const removeRow = (index) => {
     setRows((prev) => prev.filter((_, i) => i !== index));
@@ -181,19 +191,16 @@ export const RecordResultsModal = ({
                 </div>
 
                 {/* Swimmer Select */}
-                <div className="flex-1 min-w-[180px] w-full sm:w-auto">
-                  <select
-                    value={row.swimmer_id}
-                    onChange={(e) => handleRowChange(idx, 'swimmer_id', e.target.value)}
-                    className="w-full text-xs p-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-amber-500"
-                  >
-                    <option value="">انتخاب شناگر...</option>
-                    {availableSwimmers.map((sw) => (
-                      <option key={sw.id} value={sw.id}>
-                        {sw.full_name} ({sw.gender === 'FEMALE' ? 'دختر' : 'پسر'})
-                      </option>
-                    ))}
-                  </select>
+                <div className="flex-1 min-w-[200px] w-full sm:w-auto">
+                  <CustomSelect
+                    value={row.swimmer_id ? String(row.swimmer_id) : ''}
+                    onChange={(val) => handleRowChange(idx, 'swimmer_id', val)}
+                    placeholder="انتخاب شناگر..."
+                    size="sm"
+                    color="blue"
+                    searchable
+                    options={swimmerOptions}
+                  />
                 </div>
 
                 {/* Duration Input */}

@@ -92,10 +92,10 @@ export const LeagueScoringRulesView = ({
           </p>
         </div>
 
-        <div className="flex items-center gap-2 shrink-0">
+        <div className="flex items-center gap-2 w-full md:w-auto">
           <Button
             onClick={onOpenManualScoreModal}
-            className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer"
+            className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold cursor-pointer w-full sm:w-auto justify-center"
           >
             <Plus className="w-4 h-4" />
             <span>ثبت امتیاز تشویقی / دستی</span>
@@ -289,11 +289,11 @@ export const LeagueScoringRulesView = ({
           </div>
 
           {/* Action Buttons */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
             <Button
               onClick={() => handleSaveRules(false)}
               disabled={loading || recalculating}
-              className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold"
+              className="gap-1.5 text-xs bg-blue-600 hover:bg-blue-700 text-white font-bold justify-center"
             >
               <Save className="w-4 h-4" />
               <span>{loading ? 'در حال ذخیره...' : 'ذخیره فرمول امتیازدهی'}</span>
@@ -303,7 +303,7 @@ export const LeagueScoringRulesView = ({
               variant="outline"
               onClick={() => handleSaveRules(true)}
               disabled={loading || recalculating}
-              className="gap-1.5 text-xs text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800 hover:bg-amber-50 dark:hover:bg-amber-950/40"
+              className="gap-1.5 text-xs text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800 hover:bg-amber-50 dark:hover:bg-amber-950/40 justify-center"
             >
               <RefreshCw className={`w-4 h-4 ${recalculating ? 'animate-spin' : ''}`} />
               <span>{recalculating ? 'در حال بازمحاسبه...' : 'ذخیره و بازمحاسبه سراسری امتیازات لیگ'}</span>
