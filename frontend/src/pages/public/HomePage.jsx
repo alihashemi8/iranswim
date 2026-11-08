@@ -43,6 +43,8 @@ const INITIAL_COURSES = [
     name: 'دوره جامع استعدادیابی نخبگان نونهال',
     status: 'ACTIVE',
     sessions_count: 12,
+    base_price: 2400000,
+    installments_count: 3,
     age_range: 'نونهالان و نوجوانان (۶ تا ۱۲ سال)',
     gender: 'ALL',
     gender_display: 'عمومی (دختران و پسران)',
@@ -56,6 +58,8 @@ const INITIAL_COURSES = [
     name: 'مدرسه شنای نونهالان (آشنایی با آب و رفع ترس)',
     status: 'ACTIVE',
     sessions_count: 10,
+    base_price: 1950000,
+    installments_count: 2,
     age_range: 'کودکان و خردسالان (۴ تا ۹ سال)',
     gender: 'ALL',
     gender_display: 'عمومی (دختران و پسران)',
@@ -69,6 +73,8 @@ const INITIAL_COURSES = [
     name: 'دوره تخصصی شنای پروانه و استارت قهرمانی',
     status: 'ACTIVE',
     sessions_count: 12,
+    base_price: 2800000,
+    installments_count: 4,
     age_range: 'نوجوانان و جوانان (۱۲ سال به بالا)',
     gender: 'MALE',
     gender_display: 'پسران / آقایان',
@@ -82,6 +88,8 @@ const INITIAL_COURSES = [
     name: 'دوره جامع آموزش کرال سینه و استقامت پاییز ۱۴۰۵',
     status: 'ACTIVE',
     sessions_count: 12,
+    base_price: 2600000,
+    installments_count: 3,
     age_range: 'نوجوانان و بزرگسالان (۱۰ سال به بالا)',
     gender: 'MALE',
     gender_display: 'پسران / آقایان',
@@ -95,6 +103,8 @@ const INITIAL_COURSES = [
     name: 'دوره جامع آموزش کرال سینه و تکنیک تنفس',
     status: 'ACTIVE',
     sessions_count: 12,
+    base_price: 2300000,
+    installments_count: 3,
     age_range: 'نونهالان و نوجوانان (۸ تا ۱۵ سال)',
     gender: 'ALL',
     gender_display: 'عمومی (دختران و پسران)',
@@ -336,6 +346,7 @@ export const HomePage = () => {
   const { isSectionEnabled, sections: landingSections } = useLandingSections();
   const [courses, setCourses] = useState(INITIAL_COURSES);
   const [coursesLoading, setCoursesLoading] = useState(false);
+  const [courseFilter, setCourseFilter] = useState('ALL'); // 'ALL' | 'KIDS' | 'TEENS' | 'INSTALLMENTS'
   const [coaches, setCoaches] = useState(INITIAL_COACHES);
   const [coachGenderTab, setCoachGenderTab] = useState('ALL'); // 'ALL' | 'MALE' | 'FEMALE'
   const [news, setNews] = useState(INITIAL_NEWS);
@@ -650,6 +661,46 @@ export const HomePage = () => {
       return true;
     })
     .sort((a, b) => (a.display_order ?? 999) - (b.display_order ?? 999));
+
+  const filteredCourses = courses.filter((c) => {
+    if (courseFilter === 'ALL') return true;
+    const text = `${c.name || ''} ${c.age_range || ''}`;
+    if (courseFilter === 'KIDS') {
+      return text.includes('کودک') || text.includes('نونهال') || text.includes('خردسال');
+    }
+    if (courseFilter === 'TEENS') {
+      return text.includes('نوجوان') || text.includes('جوانان') || text.includes('بزرگسال');
+    }
+    if (courseFilter === 'INSTALLMENTS') {
+      return (c.installments_count || 1) > 1;
+    }
+    return true;
+  });
+
+  const courseCategories = [
+    { id: 'ALL', label: 'همه دوره‌ها', count: courses.length },
+    {
+      id: 'KIDS',
+      label: 'کودکان و نونهالان',
+      count: courses.filter((c) => {
+        const text = `${c.name || ''} ${c.age_range || ''}`;
+        return text.includes('کودک') || text.includes('نونهال') || text.includes('خردسال');
+      }).length,
+    },
+    {
+      id: 'TEENS',
+      label: 'نوجوانان و بزرگسالان',
+      count: courses.filter((c) => {
+        const text = `${c.name || ''} ${c.age_range || ''}`;
+        return text.includes('نوجوان') || text.includes('جوانان') || text.includes('بزرگسال');
+      }).length,
+    },
+    {
+      id: 'INSTALLMENTS',
+      label: 'دوره‌های اقساطی',
+      count: courses.filter((c) => (c.installments_count || 1) > 1).length,
+    },
+  ];
 
   const getNewsImage = (item, index) => {
     if (item?.image_url) return item.image_url;
@@ -995,13 +1046,48 @@ export const HomePage = () => {
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">دوره‌ها و کلاس‌های آموزشی</h2>
               <p className="text-xs sm:text-sm text-slate-700 font-medium">کلاس‌های ثبت‌شده در سامانه، همراه با رده سنی، جنسیت و سرفصل‌های آموزشی</p>
             </div>
+            <span className="text-xs font-mono font-bold text-cyan-900 dark:text-cyan-200 bg-white/90 dark:bg-slate-900/90 px-3.5 py-1.5 rounded-xl border border-cyan-300/60 dark:border-cyan-800 shrink-0 self-start sm:self-auto shadow-xs">
+              {courses.length} دوره آموزشی
+            </span>
           </div>
+
+          {/* Quick Category Filter for Desktop, Tablet & Mobile */}
+          {courses.length > 0 && (
+            <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none no-scrollbar">
+              {courseCategories.map((cat) => {
+                const isActive = courseFilter === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => setCourseFilter(cat.id)}
+                    className={`px-3 sm:px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer flex items-center gap-1.5 active:scale-95 ${
+                      isActive
+                        ? 'bg-cyan-600 text-white shadow-xs'
+                        : 'bg-white/80 dark:bg-slate-900/80 text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white border border-cyan-200/50 dark:border-cyan-800/40 hover:bg-white'
+                    }`}
+                  >
+                    <span>{cat.label}</span>
+                    <span
+                      className={`text-[10px] font-mono px-1.5 py-0.2 rounded-full font-bold ${
+                        isActive
+                          ? 'bg-cyan-700 text-white'
+                          : 'bg-slate-200/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300'
+                      }`}
+                    >
+                      {cat.count}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {coursesLoading ? (
             <LoadingState type="cards" count={3} message="در حال دریافت دوره‌های آموزشی..." />
-          ) : courses.length ? (
+          ) : filteredCourses.length ? (
             <Carousel
-              items={courses}
+              items={filteredCourses}
               className="landing-carousel"
               ariaLabel="گردونه دوره‌ها و کلاس‌های آموزشی"
               visibleItems={{ mobile: 1, tablet: 2, desktop: 3 }}
@@ -1009,6 +1095,7 @@ export const HomePage = () => {
               showPlayPause={false}
               showNavigation={true}
               showDots={true}
+              showProgress={true}
               pauseOnHover={true}
               renderItem={(course, index) => {
                 const details = getCourseDetails(course);
@@ -1076,11 +1163,21 @@ export const HomePage = () => {
                         )}
                       </div>
 
-                      {/* اطلاعات جلسات و سقف اقساط مجاز */}
+                      {/* اطلاعات جلسات، شهریه و سقف اقساط مجاز */}
                       <div className="mt-3.5 pt-3 flex items-center justify-between text-xs text-slate-600 dark:text-slate-400 border-t border-cyan-500/20">
-                        <span>{course.sessions_count} جلسه آموزشی</span>
-                        <span className="font-semibold text-emerald-700 dark:text-emerald-400">
-                          {course.installments_count > 1 ? `مجاز تا ${course.installments_count} قسط` : 'پرداخت یکجا'}
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className="font-semibold text-slate-700 dark:text-slate-300">{course.sessions_count || 12} جلسه</span>
+                          {course.base_price ? (
+                            <>
+                              <span className="text-slate-300 dark:text-slate-600 hidden xs:inline">•</span>
+                              <span className="font-mono font-bold text-cyan-800 dark:text-cyan-300">
+                                {Number(course.base_price).toLocaleString('fa-IR')} تومان
+                              </span>
+                            </>
+                          ) : null}
+                        </div>
+                        <span className="font-semibold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800/60 text-[11px] shrink-0">
+                          {course.installments_count > 1 ? `اقساط تا ${course.installments_count} ماه` : 'پرداخت نقدی'}
                         </span>
                       </div>
                     </div>
@@ -1088,17 +1185,19 @@ export const HomePage = () => {
                     <button
                       type="button"
                       onClick={() => handleOpenEnroll(course)}
-                      className="landing-course__link mt-4 pt-3 border-t border-cyan-500/20 font-bold w-full cursor-pointer text-right inline-flex items-center justify-between gap-2 transition-colors hover:text-cyan-700"
+                      className="landing-course__link mt-4 pt-3 border-t border-cyan-500/20 font-bold w-full cursor-pointer text-right inline-flex items-center justify-between gap-2 transition-all hover:text-cyan-700 dark:hover:text-cyan-300 group/btn"
                     >
-                      <span>ثبت‌نام و انتخاب اقساط</span>
-                      <ArrowLeft className="w-4 h-4" aria-hidden="true" />
+                      <span className="group-hover/btn:translate-x-[-2px] transition-transform">ثبت‌نام و انتخاب اقساط</span>
+                      <span className="w-7 h-7 rounded-xl bg-cyan-100/70 dark:bg-cyan-900/40 text-cyan-700 dark:text-cyan-300 flex items-center justify-center group-hover/btn:bg-cyan-600 group-hover/btn:text-white transition-all shadow-2xs">
+                        <ArrowLeft className="w-4 h-4 group-hover/btn:translate-x-[-2px] transition-transform" aria-hidden="true" />
+                      </span>
                     </button>
                   </article>
                 );
               }}
             />
           ) : (
-            <p className="landing-empty-state">در حال حاضر دوره‌ای برای نمایش ثبت نشده است. برای اطلاع از ثبت‌نام با پذیرش تماس بگیرید.</p>
+            <p className="landing-empty-state">دوره‌ای متناسب با فیلتر انتخابی یافت نشد. می‌توانید با کلیک روی «همه دوره‌ها» کلیه برنامه‌ها را مشاهده نمایید.</p>
           )}
         </div>
         </section>
@@ -1945,7 +2044,8 @@ export const HomePage = () => {
                   placeholder="۰۹۱۲۳۴۵۶۷۸۹"
                   value={enrollForm.applicant_phone}
                   onChange={(e) => setEnrollForm({ ...enrollForm, applicant_phone: e.target.value })}
-                  className="w-full px-3 py-2 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
+                  dir="ltr"
+                  className="w-full px-3 py-2 text-xs font-mono text-left bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
                 />
               </div>
             </div>

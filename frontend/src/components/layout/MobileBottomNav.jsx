@@ -79,8 +79,10 @@ export const MobileBottomNav = () => {
   if (user.role === 'ADMIN' && currentPath.startsWith('/admin')) {
     const isHomeActive = currentPath === '/admin';
     const isSwimmersActive = currentPath.startsWith('/admin/swimmers');
-    const isScheduleActive =
-      currentPath.startsWith('/admin/sessions') || currentPath.startsWith('/admin/courses');
+    const isCoursesActive =
+      currentPath.startsWith('/admin/courses') ||
+      currentPath.startsWith('/admin/classes') ||
+      currentPath.startsWith('/admin/sessions');
     const isFinanceActive = currentPath.startsWith('/admin/finance');
 
     return (
@@ -143,27 +145,27 @@ export const MobileBottomNav = () => {
           </NavLink>
 
           <NavLink
-            to="/admin/sessions"
+            to="/admin/courses"
             className="flex flex-col items-center justify-center h-full py-1 px-1 transition-colors group select-none"
-            aria-label="برنامه و سانس‌ها"
+            aria-label="دوره‌ها و کلاس‌ها"
           >
             <div
               className={`p-1.5 rounded-xl transition-all ${
-                isScheduleActive
+                isCoursesActive
                   ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 scale-105'
                   : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200'
               }`}
             >
-              <Calendar className="w-5 h-5" />
+              <BookOpen className="w-5 h-5" />
             </div>
             <span
               className={`text-xs tracking-tight leading-tight mt-0.5 truncate max-w-full ${
-                isScheduleActive
+                isCoursesActive
                   ? 'font-bold text-sky-600 dark:text-sky-400'
                   : 'font-semibold text-slate-500 dark:text-slate-400'
               }`}
             >
-              برنامه
+              دوره‌ها
             </span>
           </NavLink>
 

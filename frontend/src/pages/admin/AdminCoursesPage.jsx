@@ -178,7 +178,7 @@ export const AdminCoursesPage = () => {
                 : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
             }`}
           >
-            {courses.length}
+            {sessions.length || courses.length}
           </span>
         </button>
       </div>

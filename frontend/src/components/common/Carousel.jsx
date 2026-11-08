@@ -128,6 +128,14 @@ export const Carousel = ({
     setCurrentIndex(clampedIndex);
   }, [isReducedMotion]);
 
+  // Reset or clamp index safely when items array changes
+  useEffect(() => {
+    if (currentIndex >= items.length && items.length > 0) {
+      setCurrentIndex(0);
+      scrollToSlide(0, 'auto');
+    }
+  }, [items.length, currentIndex, scrollToSlide]);
+
   // Live calculation of the active card during finger/mouse scrolling
   const handleScroll = useCallback(() => {
     const track = trackRef.current;
