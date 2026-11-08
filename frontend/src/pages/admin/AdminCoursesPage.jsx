@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   BookOpen, Plus, Clock, MapPin, Users,
-  Calendar, GraduationCap, ChevronRight
+  Calendar, GraduationCap, ChevronLeft
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -291,7 +291,7 @@ export const AdminCoursesPage = () => {
                       className="gap-1 text-xs bg-sky-600 hover:bg-sky-700 text-white cursor-pointer shrink-0"
                     >
                       <span>ورود به دوره</span>
-                      <ChevronRight className="w-3.5 h-3.5" />
+                      <ChevronLeft className="w-3.5 h-3.5" />
                     </Button>
                   </div>
                 </div>
