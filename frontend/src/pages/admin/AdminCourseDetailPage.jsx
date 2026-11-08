@@ -4,11 +4,13 @@ import {
   BookOpen, Users, GraduationCap, Calendar, Clock, MapPin,
   ChevronRight, ArrowRight, Search, Filter, CheckCircle2,
   AlertCircle, Eye, LayoutGrid, List, Plus, RefreshCw,
-  Award, DollarSign, Sparkles, Layers, ShieldCheck, Phone
+  Award, DollarSign, Sparkles, Layers, ShieldCheck, Phone,
+  Trash2, UserPlus, UserCheck, AlertTriangle
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
+import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { ProgressBar } from '../../components/common/Charts';
@@ -29,8 +31,13 @@ export const AdminCourseDetailPage = () => {
   const [refreshing, setRefreshing] = useState(false);
 
   // View state
-  const [activeTab, setActiveTab] = useState('swimmers'); // 'swimmers' | 'groups' | 'info'
+  const [activeTab, setActiveTab] = useState('swimmers'); // 'swimmers' | 'coaches' | 'groups' | 'info'
   const [viewMode, setViewMode] = useState('table'); // 'table' | 'cards'
+
+  // Coach Management Modal state
+  const [isAddCoachModalOpen, setIsAddCoachModalOpen] = useState(false);
+  const [selectedNewCoach, setSelectedNewCoach] = useState('');
+  const [addingCoach, setAddingCoach] = useState(false);
 
   // Filters
   const [searchTerm, setSearchTerm] = useState('');
@@ -93,6 +100,83 @@ export const AdminCourseDetailPage = () => {
     } catch (err) {
       console.error('Error assigning coach:', err);
       toast.error('خطا در تخصیص مربی به شناگر');
+    }
+  };
+
+  // Available coaches not yet in this course
+  const unassignedCoaches = useMemo(() => {
+    const courseCoachIds = new Set((course?.coaches || []).map((c) => Number(c.id)));
+    return allCoaches.filter((c) => !courseCoachIds.has(Number(c.id)));
+  }, [allCoaches, course]);
+
+  // Helper to find SwimmerGroup for a coach
+  const getCoachGroup = (coachId, coachName) => {
+    return groups.find((g) => {
+      const hasAssignment = (g.coach_assignments || []).some(
+        (ca) => Number(ca.coach) === Number(coachId)
+      );
+      return hasAssignment || (coachName && g.name?.includes(coachName));
+    });
+  };
+
+  // Helper to get swimmer count for a coach in this course
+  const getCoachSwimmersCount = (coachId) => {
+    return enrollments.filter((e) => Number(e.coach) === Number(coachId)).length;
+  };
+
+  // Handle adding a coach to the course (automatically syncs/creates their class)
+  const handleAddCoachToCourse = async (selectedCoachId) => {
+    if (!selectedCoachId) return;
+    try {
+      setAddingCoach(true);
+      const currentCoachIds = (course.coaches || []).map((c) => c.id);
+      if (currentCoachIds.includes(Number(selectedCoachId))) {
+        toast.warning('این مربی در حال حاضر در این دوره حضور دارد.');
+        return;
+      }
+      const newCoachIds = [...currentCoachIds, Number(selectedCoachId)];
+      await api.patch(`/education/courses/${id}/`, {
+        coach_ids: newCoachIds,
+      });
+      toast.success('مربی با موفقیت به دوره افزوده شد و کلاس اختصاصی وی ایجاد گردید.');
+      setIsAddCoachModalOpen(false);
+      setSelectedNewCoach('');
+      await fetchData(true);
+    } catch (err) {
+      console.error('Error adding coach to course:', err);
+      toast.error(err.response?.data?.detail || 'خطا در افزودن مربی به دوره');
+    } finally {
+      setAddingCoach(false);
+    }
+  };
+
+  // Handle removing a coach from the course
+  const handleRemoveCoachFromCourse = async (coachId, coachName) => {
+    const assignedCount = getCoachSwimmersCount(coachId);
+    if (assignedCount > 0) {
+      toast.error(
+        `امکان حذف مربی «${coachName}» وجود ندارد؛ زیرا ${assignedCount} شناگر در کلاس این مربی ثبت‌نام دارند. ابتدا شناگران را به مربی دیگری تخصیص دهید.`
+      );
+      return;
+    }
+    if (!window.confirm(`آیا از حذف مربی «${coachName}» از این دوره آموزشی اطمینان دارید؟`)) {
+      return;
+    }
+    try {
+      const currentCoachIds = (course.coaches || []).map((c) => c.id);
+      const newCoachIds = currentCoachIds.filter((cid) => cid !== Number(coachId));
+      if (newCoachIds.length === 0) {
+        toast.error('دوره باید حداقل دارای یک مربی باشد.');
+        return;
+      }
+      await api.patch(`/education/courses/${id}/`, {
+        coach_ids: newCoachIds,
+      });
+      toast.success(`مربی «${coachName}» با موفقیت از این دوره حذف شد.`);
+      await fetchData(true);
+    } catch (err) {
+      console.error('Error removing coach from course:', err);
+      toast.error(err.response?.data?.detail || 'خطا در حذف مربی از دوره');
     }
   };
 
@@ -353,7 +437,7 @@ export const AdminCourseDetailPage = () => {
       </div>
 
       {/* 4. Tabs Navigation */}
-      <div className="grid grid-cols-3 bg-slate-200/70 dark:bg-slate-800/80 p-1.5 rounded-2xl gap-1 text-xs sm:text-sm font-bold border border-slate-200/80 dark:border-slate-700/60">
+      <div className="grid grid-cols-2 lg:grid-cols-4 bg-slate-200/70 dark:bg-slate-800/80 p-1.5 rounded-2xl gap-1 text-xs sm:text-sm font-bold border border-slate-200/80 dark:border-slate-700/60">
         <button
           type="button"
           onClick={() => setActiveTab('swimmers')}
@@ -364,7 +448,7 @@ export const AdminCourseDetailPage = () => {
           }`}
         >
           <Users className="w-4 h-4 shrink-0" />
-          <span>شناگران دوره و تخصیص مربی</span>
+          <span>شناگران دوره</span>
           <span
             className={`text-xs px-2 py-0.5 rounded-full font-bold transition-colors ${
               activeTab === 'swimmers'
@@ -373,6 +457,28 @@ export const AdminCourseDetailPage = () => {
             }`}
           >
             {enrollments.length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('coaches')}
+          className={`py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+            activeTab === 'coaches'
+              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm border border-slate-200/50 dark:border-slate-800'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+          }`}
+        >
+          <GraduationCap className="w-4 h-4 shrink-0" />
+          <span>کادر مربیان دوره</span>
+          <span
+            className={`text-xs px-2 py-0.5 rounded-full font-bold transition-colors ${
+              activeTab === 'coaches'
+                ? 'bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300'
+                : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+            }`}
+          >
+            {course.coaches?.length || 0}
           </span>
         </button>
 
@@ -408,13 +514,93 @@ export const AdminCourseDetailPage = () => {
           }`}
         >
           <BookOpen className="w-4 h-4 shrink-0" />
-          <span>مشخصات و سرفصل‌های دوره</span>
+          <span>مشخصات دوره</span>
         </button>
       </div>
 
       {/* 5. TAB 1: SWIMMERS & COACH ASSIGNMENT */}
       {activeTab === 'swimmers' && (
         <div className="space-y-4">
+          {/* Coach Quick Filter Bar (Pills with Avatars and Swimmer Counts) */}
+          <div className="bg-white dark:bg-slate-900 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-2.5 transition-colors">
+            <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1">
+              <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                <Filter className="w-3.5 h-3.5 text-sky-600" />
+                <span>فیلتر سریع شناگران بر اساس کلاس و مربی:</span>
+              </span>
+              <span className="text-[11px]">
+                {coachFilter === 'ALL' ? 'نمای کلی تمام شناگران دوره' : 'فیلتر تفکیکی بر اساس کلاس یک مربی'}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-thin">
+              <button
+                type="button"
+                onClick={() => setCoachFilter('ALL')}
+                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 border ${
+                  coachFilter === 'ALL'
+                    ? 'bg-sky-600 text-white border-sky-600 shadow-xs'
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-sky-400'
+                }`}
+              >
+                <span>نمای کلی دوره (همه شناگران)</span>
+                <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                  coachFilter === 'ALL' ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                }`}>
+                  {enrollments.length}
+                </span>
+              </button>
+
+              {(course.coaches || []).map((c) => {
+                const count = getCoachSwimmersCount(c.id);
+                const isSelected = String(coachFilter) === String(c.id);
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => setCoachFilter(String(c.id))}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-2 border ${
+                      isSelected
+                        ? 'bg-sky-600 text-white border-sky-600 shadow-xs'
+                        : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-sky-400'
+                    }`}
+                  >
+                    {c.avatar ? (
+                      <img src={c.avatar} alt={c.full_name} className="w-4 h-4 rounded-full object-cover" />
+                    ) : (
+                      <span className="w-4 h-4 rounded-full bg-sky-100 dark:bg-sky-900 text-sky-700 dark:text-sky-300 flex items-center justify-center text-[9px] font-bold">
+                        {c.full_name?.charAt(0)}
+                      </span>
+                    )}
+                    <span>کلاس {c.full_name}</span>
+                    <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                      isSelected ? 'bg-white/20 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
+                    }`}>
+                      {count} نفر
+                    </span>
+                  </button>
+                );
+              })}
+
+              {unassignedSwimmers > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setCoachFilter('UNASSIGNED')}
+                  className={`px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition-all cursor-pointer flex items-center gap-1.5 border ${
+                    coachFilter === 'UNASSIGNED'
+                      ? 'bg-amber-600 text-white border-amber-600 shadow-xs'
+                      : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-900/60 hover:border-amber-400'
+                  }`}
+                >
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-500" />
+                  <span>بدون مربی تخصیصی</span>
+                  <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-amber-200/60 dark:bg-amber-900/60">
+                    {unassignedSwimmers}
+                  </span>
+                </button>
+              )}
+            </div>
+          </div>
           {/* Controls: Search, Filters, and View Switcher */}
           <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors">
             {/* Search Input */}
@@ -759,6 +945,166 @@ export const AdminCourseDetailPage = () => {
         </div>
       )}
 
+      {/* 5.1. TAB: COURSE COACHES & DEDICATED CLASSES */}
+      {activeTab === 'coaches' && (
+        <div className="space-y-4">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
+            <div className="space-y-1">
+              <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <GraduationCap className="w-5 h-5 text-sky-600" />
+                <span>کادر مربیان دوره و کلاس‌های اختصاصی ({course.coaches?.length || 0} مربی)</span>
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                هر مربی در این دوره دارای یک کلاس/لاین اختصاصی است. می‌توانید مربی جدید اضافه کرده یا ظرفیت شاگردان هر کلاس را پایش کنید.
+              </p>
+            </div>
+
+            <Button
+              onClick={() => setIsAddCoachModalOpen(true)}
+              size="sm"
+              className="gap-2 text-xs bg-sky-600 hover:bg-sky-700 text-white shrink-0 self-start sm:self-center cursor-pointer shadow-sm shadow-sky-500/20"
+            >
+              <UserPlus className="w-4 h-4" />
+              <span>افزودن مربی جدید به دوره</span>
+            </Button>
+          </div>
+
+          {(course.coaches || []).length === 0 ? (
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200/80 dark:border-slate-800 shadow-xs text-center">
+              <EmptyState
+                title="هنوز مربی برای این دوره تعیین نشده است"
+                description="برای تشکیل کلاس‌های اختصاصی دوره، حداقل یک مربی از کادر آموزشگاه به دوره بیفزایید."
+              />
+              <div className="pt-4 flex justify-center">
+                <Button
+                  onClick={() => setIsAddCoachModalOpen(true)}
+                  className="gap-2 text-xs bg-sky-600 hover:bg-sky-700 text-white"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>افزودن اولین مربی به دوره</span>
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {(course.coaches || []).map((c) => {
+                const group = getCoachGroup(c.id, c.full_name);
+                const swimmerCount = getCoachSwimmersCount(c.id);
+                const capacity = group?.capacity || 15;
+                const remaining = Math.max(0, capacity - swimmerCount);
+                const isFull = remaining <= 0;
+
+                return (
+                  <div
+                    key={c.id}
+                    className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+                  >
+                    <div className="space-y-3.5">
+                      {/* Coach Header */}
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="relative shrink-0">
+                            {c.avatar ? (
+                              <img
+                                src={c.avatar}
+                                alt={c.full_name}
+                                className="w-12 h-12 rounded-2xl object-cover border-2 border-sky-400 shadow-2xs"
+                              />
+                            ) : (
+                              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-base shadow-2xs">
+                                {c.full_name?.charAt(0) || 'م'}
+                              </div>
+                            )}
+                            <span className="absolute -bottom-0.5 -left-0.5 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
+                          </div>
+
+                          <div className="min-w-0">
+                            <h3 className="font-bold text-slate-900 dark:text-white text-base truncate">
+                              مربی {c.full_name}
+                            </h3>
+                            <span className="text-xs text-sky-600 dark:text-sky-400 font-semibold block mt-0.5">
+                              {c.class_name || (group?.name ? group.name : `کلاس مربی ${c.full_name}`)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <Badge variant={isFull ? 'danger' : 'success'}>
+                          {isFull ? 'تکمیل ظرفیت' : 'ظرفیت پذیرش دارد'}
+                        </Badge>
+                      </div>
+
+                      {/* Class Specs Pill */}
+                      <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-2 text-xs">
+                        <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                          <span className="text-slate-400">شناگران اختصاصی کلاس:</span>
+                          <span className="font-black font-mono text-slate-900 dark:text-white text-sm">
+                            {swimmerCount} <span className="text-xs font-normal text-slate-400">نفر</span>
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                          <span className="text-slate-400">ظرفیت مجاز لاین:</span>
+                          <span className="font-mono text-slate-700 dark:text-slate-300">
+                            {capacity} نفر ({remaining} جای خالی)
+                          </span>
+                        </div>
+
+                        {/* Progress Bar */}
+                        <div className="pt-1">
+                          <ProgressBar
+                            value={swimmerCount}
+                            max={capacity}
+                            color={isFull ? 'rose' : remaining < 3 ? 'amber' : 'emerald'}
+                            height="h-2"
+                          />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Bottom Actions */}
+                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActiveTab('swimmers');
+                          setCoachFilter(String(c.id));
+                        }}
+                        className="px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                        title="مشاهده شاگردان کلاس این مربی"
+                      >
+                        <Users className="w-3.5 h-3.5" />
+                        <span>شاگردان ({swimmerCount})</span>
+                      </button>
+
+                      <div className="flex items-center gap-1.5">
+                        {group && (
+                          <Link
+                            to={`/admin/classes/${group.id}`}
+                            className="p-1.5 px-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-colors inline-flex items-center gap-1"
+                            title="ورود به فضای کلاس"
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                            <span>کلاس</span>
+                          </Link>
+                        )}
+
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveCoachFromCourse(c.id, c.full_name)}
+                          className="p-1.5 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-700 transition-colors cursor-pointer"
+                          title="حذف مربی از این دوره"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* 6. TAB 2: CLASSES & LANES */}
       {activeTab === 'groups' && (
         <div className="space-y-4">
@@ -920,6 +1266,78 @@ export const AdminCourseDetailPage = () => {
           </div>
         </div>
       )}
+
+      {/* Modal: Add Coach to Course */}
+      <Modal
+        isOpen={isAddCoachModalOpen}
+        onClose={() => {
+          setIsAddCoachModalOpen(false);
+          setSelectedNewCoach('');
+        }}
+        title="افزودن مربی جدید به دوره و تشکیل کلاس اختصاصی"
+      >
+        <div className="space-y-4 py-2">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+            با انتخاب مربی از کادر آموزشگاه، یک کلاس اختصاصی با عنوان «کلاس مربی [نام]» به طور خودکار به این دوره افزوده شده و برنامه زمانی و استخر دوره به آن منتسب خواهد شد.
+          </p>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block">
+              انتخاب مربی از کادر آکادمی:
+            </label>
+            {unassignedCoaches.length === 0 ? (
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800 text-xs text-slate-500 text-center">
+                همه مربیان موجود در سیستم در حال حاضر به این دوره تخصیص یافته‌اند.
+              </div>
+            ) : (
+              <select
+                value={selectedNewCoach}
+                onChange={(e) => setSelectedNewCoach(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium focus:outline-hidden focus:ring-2 focus:ring-sky-500 cursor-pointer"
+              >
+                <option value="">-- لطفاً یک مربی را انتخاب کنید --</option>
+                {unassignedCoaches.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    مربی: {c.full_name} {c.specialties ? `(${c.specialties})` : ''}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setIsAddCoachModalOpen(false);
+                setSelectedNewCoach('');
+              }}
+              disabled={addingCoach}
+            >
+              انصراف
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => handleAddCoachToCourse(selectedNewCoach)}
+              disabled={!selectedNewCoach || addingCoach}
+              className="gap-1.5 bg-sky-600 hover:bg-sky-700 text-white"
+            >
+              {addingCoach ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>در حال افزودن و همگام‌سازی...</span>
+                </>
+              ) : (
+                <>
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>افزودن مربی و تشکیل کلاس</span>
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };

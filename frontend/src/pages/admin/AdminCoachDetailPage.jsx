@@ -17,12 +17,9 @@ import { useToast } from '../../context/ToastContext';
 import { CoachPersonalTab } from './coach-profile/CoachPersonalTab';
 import { CoachContractsTab } from './coach-profile/CoachContractsTab';
 import { CoachPayrollTab } from './coach-profile/CoachPayrollTab';
-import { CoachAttendanceTab } from './coach-profile/CoachAttendanceTab';
-import { CoachLeavesTab } from './coach-profile/CoachLeavesTab';
-import { CoachPerformanceTab } from './coach-profile/CoachPerformanceTab';
+import { CoachWorkAndLeavesTab } from './coach-profile/CoachWorkAndLeavesTab';
 import { CoachScheduleTab } from './coach-profile/CoachScheduleTab';
-import { CoachNotesTab } from './coach-profile/CoachNotesTab';
-import { CoachTimelineTab } from './coach-profile/CoachTimelineTab';
+import { CoachEvaluationAndRecordsTab } from './coach-profile/CoachEvaluationAndRecordsTab';
 
 export const AdminCoachDetailPage = () => {
   const { id } = useParams();
@@ -130,12 +127,20 @@ export const AdminCoachDetailPage = () => {
     { id: 'INFO', label: 'مشخصات و مدارک', icon: UserCheck },
     { id: 'CONTRACTS', label: 'احکام و قراردادها', icon: FileText, count: contracts.length },
     { id: 'PAYROLL', label: 'حقوق و امور مالی', icon: CreditCard, count: payrolls.length },
-    { id: 'ATTENDANCE', label: 'حضور و کارکرد', icon: ClipboardCheck },
-    { id: 'LEAVES', label: 'مرخصی‌ها', icon: Calendar, count: leaves.filter((l) => l.status === 'PENDING').length, countColor: 'bg-amber-500' },
-    { id: 'PERFORMANCE', label: 'ارزیابی عملکرد', icon: Award, count: evaluations.length },
+    {
+      id: 'WORK_AND_LEAVES',
+      label: 'کارکرد و مرخصی‌ها',
+      icon: ClipboardCheck,
+      count: leaves.filter((l) => l.status === 'PENDING').length,
+      countColor: 'bg-amber-500',
+    },
     { id: 'SCHEDULE', label: 'برنامه کاری و کلاس‌ها', icon: Clock },
-    { id: 'NOTES', label: 'مکاتبات اداری', icon: ShieldAlert, count: notes.length },
-    { id: 'TIMELINE', label: 'تاریخچه زمانی', icon: History },
+    {
+      id: 'EVALUATION_AND_RECORDS',
+      label: 'ارزیابی و سوابق',
+      icon: Award,
+      count: (evaluations.length + notes.length) || undefined,
+    },
   ];
 
   return (
@@ -332,25 +337,11 @@ export const AdminCoachDetailPage = () => {
           />
         )}
 
-        {activeTab === 'ATTENDANCE' && (
-          <CoachAttendanceTab
-            coach={coach}
-          />
-        )}
-
-        {activeTab === 'LEAVES' && (
-          <CoachLeavesTab
+        {activeTab === 'WORK_AND_LEAVES' && (
+          <CoachWorkAndLeavesTab
             coach={coach}
             leaves={leaves}
             onLeavesUpdated={fetchCoachData}
-          />
-        )}
-
-        {activeTab === 'PERFORMANCE' && (
-          <CoachPerformanceTab
-            coach={coach}
-            evaluations={evaluations}
-            onEvaluationsUpdated={fetchCoachData}
           />
         )}
 
@@ -360,17 +351,13 @@ export const AdminCoachDetailPage = () => {
           />
         )}
 
-        {activeTab === 'NOTES' && (
-          <CoachNotesTab
+        {activeTab === 'EVALUATION_AND_RECORDS' && (
+          <CoachEvaluationAndRecordsTab
             coach={coach}
+            evaluations={evaluations}
+            onEvaluationsUpdated={fetchCoachData}
             notes={notes}
             onNotesUpdated={fetchCoachData}
-          />
-        )}
-
-        {activeTab === 'TIMELINE' && (
-          <CoachTimelineTab
-            coach={coach}
           />
         )}
       </div>

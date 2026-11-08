@@ -4,7 +4,7 @@ import {
   Calendar, CreditCard, Award, Trophy, Sparkles, Bell, Pin,
   CheckCircle2, FileText, Clock, MapPin, User, ChevronLeft,
   AlertTriangle, TrendingUp, HelpCircle, Waves, Medal, Timer,
-  AlertCircle, Check
+  AlertCircle, Check, BookOpen, GraduationCap
 } from 'lucide-react';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
@@ -95,6 +95,7 @@ export const SwimmerDashboardPage = () => {
   }
 
   const swimmerName = profile?.full_name || activeSwimmer?.full_name || user?.full_name || 'شناگر عزیز';
+  const activeEnrollment = enrollments.find((e) => e.status === 'ACTIVE') || enrollments[0];
   const totalRemainingSessions = enrollments.reduce((acc, curr) => acc + (curr.remaining_sessions || 0), 0);
   const totalDebt = invoices.reduce((acc, curr) => acc + Number(curr.remaining_balance || 0), 0);
   const formatPrice = (val) => Number(val || 0).toLocaleString('fa-IR');
@@ -317,6 +318,75 @@ export const SwimmerDashboardPage = () => {
           >
             تقویم هفتگی
           </Link>
+        </div>
+      )}
+
+      {/* 3.1. Active Enrolled Course & Dedicated Coach/Class Banner */}
+      {activeEnrollment && (
+        <div className="bg-gradient-to-l from-sky-500/10 via-cyan-500/5 to-transparent dark:from-sky-950/30 dark:to-transparent rounded-3xl p-5 sm:p-6 border border-sky-200/80 dark:border-sky-900/60 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-5 transition-all">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center shadow-md shadow-sky-500/20 shrink-0">
+              <BookOpen className="w-6 h-6" />
+            </div>
+            <div className="space-y-1.5 min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs font-bold text-sky-800 dark:text-sky-200 bg-sky-100 dark:bg-sky-950/80 px-2.5 py-0.5 rounded-lg border border-sky-200 dark:border-sky-800">
+                  دوره آموزشی فعال شما
+                </span>
+                <Badge variant={activeEnrollment.status === 'ACTIVE' ? 'success' : 'warning'}>
+                  {activeEnrollment.status_display || (activeEnrollment.status === 'ACTIVE' ? 'فعال' : 'در انتظار پرداخت')}
+                </Badge>
+              </div>
+
+              <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white truncate">
+                {activeEnrollment.course_name}
+              </h2>
+
+              <div className="flex items-center gap-3.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300 flex-wrap pt-0.5">
+                {activeEnrollment.group_name && (
+                  <span className="font-bold text-sky-700 dark:text-sky-300 flex items-center gap-1.5">
+                    <GraduationCap className="w-4 h-4 text-sky-600" />
+                    <span>کلاس: {activeEnrollment.group_name}</span>
+                  </span>
+                )}
+                {activeEnrollment.coach_name && (
+                  <span className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-semibold">
+                    <User className="w-4 h-4 text-slate-400" />
+                    <span>مربی اختصاصی: {activeEnrollment.coach_name}</span>
+                  </span>
+                )}
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="w-4 h-4 text-slate-400" />
+                  <span>{activeEnrollment.course_pool || 'استخر شهید رئیسی'}</span>
+                </span>
+                {activeEnrollment.course_days && (
+                  <span className="flex items-center gap-1.5">
+                    <Clock className="w-4 h-4 text-slate-400" />
+                    <span>{activeEnrollment.course_days} ({activeEnrollment.course_time || ''})</span>
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row md:flex-col items-start md:items-end justify-between gap-2.5 shrink-0 w-full md:w-auto pt-3 md:pt-0 border-t md:border-t-0 border-sky-100 dark:border-sky-900/40">
+            <div className="text-right md:text-left">
+              <span className="text-xs text-slate-400 block">مانده سهمیه جلسات دوره:</span>
+              <span className="text-lg font-black text-slate-900 dark:text-white font-mono">
+                {activeEnrollment.remaining_sessions ?? (activeEnrollment.sessions_purchased - activeEnrollment.sessions_attended)} جلسه
+              </span>
+              <span className="text-[11px] text-slate-400 block font-mono">
+                ({activeEnrollment.sessions_attended} از {activeEnrollment.sessions_purchased} جلسه مصرف‌شده)
+              </span>
+            </div>
+            <Link
+              to="/swimmer/schedule"
+              className="text-xs font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400 inline-flex items-center gap-1 hover:underline cursor-pointer"
+            >
+              <span>مشاهده برنامه جلسات و تقویم</span>
+              <ChevronLeft className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
       )}
 
