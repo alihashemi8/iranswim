@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '../common/Badge';
 import { Button } from '../common/Button';
+import { CustomSelect } from '../common/CustomSelect';
 
 export const LeagueInfoPanel = ({
   leagues = [],
@@ -25,48 +26,92 @@ export const LeagueInfoPanel = ({
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 p-4 sm:p-5 shadow-xs space-y-4 w-full">
       {/* 1. Seasons Switcher Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
-          <span className="text-xs font-bold text-slate-500 shrink-0 flex items-center gap-1.5 ml-1">
-            <Calendar className="w-3.5 h-3.5 text-blue-600" />
-            فصل‌های مسابقاتی:
-          </span>
-          <div className="flex items-center gap-1.5 flex-nowrap">
-            {leagues.map((lg) => {
-              const isSelected = selectedLeague?.id === lg.id;
-              return (
-                <button
-                  key={lg.id}
-                  type="button"
-                  onClick={() => onSelectLeague(lg)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
-                    isSelected
-                      ? 'bg-blue-600 text-white shadow-xs font-bold'
-                      : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/60'
-                  }`}
-                >
-                  <span>{lg.name}</span>
-                  <span
-                    className={`text-[10px] px-1.5 py-0.2 rounded-md ${
-                      isSelected ? 'bg-white/20 text-white' : 'bg-slate-200/60 text-slate-500'
-                    }`}
-                  >
-                    {lg.season}
-                  </span>
-                </button>
-              );
-            })}
+      <div className="border-b border-slate-100 pb-3 space-y-2.5">
+        {/* Mobile View: Clean Header & Full-Width CustomSelect Dropdown (Zero Horizontal Scrolling) */}
+        <div className="sm:hidden space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-600 flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-blue-600" />
+              فصل‌های مسابقاتی:
+            </span>
+            <button
+              type="button"
+              onClick={onOpenCreateSeasonModal}
+              className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1 cursor-pointer"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>فصل جدید</span>
+            </button>
           </div>
+
+          <CustomSelect
+            value={String(selectedLeague.id)}
+            onChange={(val) => {
+              const matched = leagues.find((l) => String(l.id) === String(val));
+              if (matched) onSelectLeague(matched);
+            }}
+            color="blue"
+            size="sm"
+            options={leagues.map((lg) => ({
+              value: String(lg.id),
+              label: lg.name,
+              badge: lg.season,
+              badgeClassName: lg.status === 'ACTIVE'
+                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                : 'bg-slate-100 text-slate-600',
+              description: lg.status === 'ACTIVE'
+                ? 'فصل فعال و در جریان'
+                : lg.status === 'COMPLETED'
+                ? 'پایان‌یافته / آرشیو'
+                : 'پیش‌نویس',
+            }))}
+          />
         </div>
 
-        <button
-          type="button"
-          onClick={onOpenCreateSeasonModal}
-          className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1 shrink-0 pt-1 sm:pt-0 cursor-pointer"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          <span>ایجاد فصل مسابقاتی جدید</span>
-        </button>
+        {/* Tablet & Desktop View: Non-scrolling Flex-Wrap Pills Bar */}
+        <div className="hidden sm:flex sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-bold text-slate-500 shrink-0 flex items-center gap-1.5 ml-1">
+              <Calendar className="w-3.5 h-3.5 text-blue-600" />
+              فصل‌های مسابقاتی:
+            </span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {leagues.map((lg) => {
+                const isSelected = selectedLeague?.id === lg.id;
+                return (
+                  <button
+                    key={lg.id}
+                    type="button"
+                    onClick={() => onSelectLeague(lg)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold shrink-0 transition-all cursor-pointer flex items-center gap-1.5 ${
+                      isSelected
+                        ? 'bg-blue-600 text-white shadow-xs font-bold'
+                        : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200/60'
+                    }`}
+                  >
+                    <span>{lg.name}</span>
+                    <span
+                      className={`text-[10px] px-1.5 py-0.2 rounded-md ${
+                        isSelected ? 'bg-white/20 text-white' : 'bg-slate-200/60 text-slate-500'
+                      }`}
+                    >
+                      {lg.season}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={onOpenCreateSeasonModal}
+            className="text-xs font-bold text-blue-600 hover:text-blue-800 transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            <span>ایجاد فصل مسابقاتی جدید</span>
+          </button>
+        </div>
       </div>
 
       {/* 2. Active Season Overview & Competition Progress (Horizontal Grid) */}
