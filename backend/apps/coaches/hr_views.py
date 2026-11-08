@@ -5,6 +5,7 @@ from django.db import models, transaction
 from django.db.models import Q, Count, Sum
 from django.http import HttpResponse
 from rest_framework import generics, permissions, status
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError, PermissionDenied
@@ -264,6 +265,7 @@ class CoachDetailHRView(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = CoachProfile.objects.all().select_related('user')
     serializer_class = CoachProfileSerializer
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
     def get_serializer_class(self):
         user = self.request.user if hasattr(self, 'request') else None
