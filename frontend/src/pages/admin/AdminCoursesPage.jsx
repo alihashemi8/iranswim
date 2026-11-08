@@ -201,7 +201,7 @@ export const AdminCoursesPage = () => {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid grid-cols-1 gap-3 sm:gap-4">
             {courses.map((course) => {
               // Find all classes/groups belonging to this course
               const courseGroups = (course.groups && course.groups.length > 0)
@@ -218,197 +218,81 @@ export const AdminCoursesPage = () => {
               return (
                 <div
                   key={course.id}
-                  className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs hover:shadow-md transition-all flex flex-col justify-between gap-5"
+                  className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-xs hover:border-sky-300 dark:hover:border-sky-700 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                 >
-                  <div className="space-y-4">
-                    {/* Course Header */}
-                    <div className="flex flex-wrap items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-                      <div className="flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-2xl bg-sky-50 dark:bg-sky-950/80 text-sky-600 dark:text-sky-300 flex items-center justify-center shrink-0 border border-sky-200/60 dark:border-sky-800 shadow-2xs">
-                          <BookOpen className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <Link
-                            to={`/admin/courses/${course.id}`}
-                            className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors block"
-                          >
-                            <h3 className="font-bold text-slate-900 dark:text-white text-base sm:text-lg">
-                              {course.name}
-                            </h3>
-                          </Link>
-                          <div className="flex items-center gap-2 mt-1 flex-wrap">
-                            <Badge variant={course.status === 'ACTIVE' ? 'success' : 'neutral'}>
-                              {course.status === 'ACTIVE' ? 'در حال برگزاری' : 'پیش‌ثبت‌نام'}
-                            </Badge>
-                            <Badge variant={course.gender === 'FEMALE' ? 'warning' : 'info'}>
-                              {course.gender_display || (course.gender === 'FEMALE' ? 'دختران / بانوان' : 'پسران / آقایان')}
-                            </Badge>
-                            {course.age_range && (
-                              <Badge variant="violet">
-                                {course.age_range}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="text-left font-mono">
-                        <span className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100 block">
-                          {formatPrice(course.base_price)} تومان
-                        </span>
-                        <span className="text-xs text-slate-400">
-                          شهریه هر شناگر ({course.sessions_count} جلسه
-                          {course.installments_count && course.installments_count > 1
-                            ? ` • تا ${course.installments_count} قسط مجاز`
-                            : ' • پرداخت یکجا'}
-                          )
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Course Description */}
-                    {course.description && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                        {course.description}
-                      </p>
-                    )}
-
-                    {/* Course Metadata (Pool, Days, Hours) */}
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/60 text-xs text-slate-600 dark:text-slate-300">
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-sky-500 shrink-0" />
-                        <span className="font-semibold">{course.pool_location || 'استخر شهید رئیسی'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-amber-500 shrink-0" />
-                        <span>{course.days_of_week || 'سه‌شنبه و پنج‌شنبه'} ({course.time_display || '۱۷:۰۰ الی ۱۹:۰۰'})</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <Calendar className="w-4 h-4 text-emerald-500 shrink-0" />
-                        <span className="font-mono text-[11px]">
-                          {new Date(course.start_date).toLocaleDateString('fa-IR')} تا {new Date(course.end_date).toLocaleDateString('fa-IR')}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Overall Course Capacity Bar */}
-                    {totalCapacity > 0 && (
-                      <div className="pt-1">
-                        <ProgressBar
-                          label="وضعیت پذیرش و ظرفیت کل دوره"
-                          value={totalEnrolled}
-                          max={totalCapacity}
-                          color={isCourseFull ? 'rose' : totalRemaining < 5 ? 'amber' : 'emerald'}
-                          subtitle={`${totalEnrolled} نفر ثبت‌نام‌شده از مجموع ${totalCapacity} نفر (${totalRemaining} جای خالی)`}
-                        />
-                      </div>
-                    )}
-
-                    {/* Unified Classes of this Course */}
-                    <div className="pt-2 space-y-2.5">
-                      <div className="flex items-center justify-between pb-1">
-                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                          <Users className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-                          <span>کلاس‌های این دوره ({courseGroups.length} کلاس):</span>
-                        </span>
-                        <span className="text-[11px] text-slate-400">
-                          اطلاعات ظرفیت و مربی هر کلاس
-                        </span>
-                      </div>
-
-                      {courseGroups.length === 0 ? (
-                        <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 text-xs text-slate-400 text-center">
-                          هنوز کلاسی برای این دوره ثبت نشده است.
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                          {courseGroups.map((g) => {
-                            const gRemaining = g.remaining_capacity !== undefined
-                              ? g.remaining_capacity
-                              : Math.max(0, (g.capacity || 0) - (g.current_enrollments_count || 0));
-                            const gIsFull = gRemaining <= 0;
-                            const coachAssignment = (g.coach_assignments && g.coach_assignments.length > 0)
-                              ? g.coach_assignments[0]
-                              : null;
-                            const coachName = coachAssignment?.coach_name;
-
-                            return (
-                              <div
-                                key={g.id}
-                                className="bg-slate-50/80 dark:bg-slate-800/60 p-3.5 rounded-2xl border border-slate-200/70 dark:border-slate-700/70 flex flex-col justify-between gap-3 hover:border-sky-300 dark:hover:border-sky-700 transition-colors"
-                              >
-                                <div className="space-y-2">
-                                  <div className="flex items-center justify-between gap-2">
-                                    <Link
-                                      to={`/admin/classes/${g.id}`}
-                                      className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white hover:text-sky-600 dark:hover:text-sky-400 truncate block"
-                                    >
-                                      {g.name}
-                                    </Link>
-                                    <Badge variant={gIsFull ? 'danger' : 'success'} size="sm">
-                                      {gIsFull ? 'تکمیل' : `${gRemaining} خالی`}
-                                    </Badge>
-                                  </div>
-
-                                  {coachName && (
-                                    <div className="flex items-center gap-1.5 text-xs text-slate-600 dark:text-slate-300">
-                                      <GraduationCap className="w-3.5 h-3.5 text-sky-500 shrink-0" />
-                                      <span>مربی: {coachName}</span>
-                                    </div>
-                                  )}
-
-                                  {g.level_name && (
-                                    <span className="inline-block text-[10px] font-semibold text-slate-500 dark:text-slate-400 bg-slate-200/60 dark:bg-slate-700/60 px-2 py-0.5 rounded-md">
-                                      {g.level_name}
-                                    </span>
-                                  )}
-                                </div>
-
-                                <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between text-xs">
-                                  <span className="font-mono text-slate-500 text-[11px]">
-                                    {g.current_enrollments_count || 0} / {g.capacity || 0} نفر
-                                  </span>
-                                  <Link
-                                    to={`/admin/classes/${g.id}`}
-                                    className="text-sky-600 dark:text-sky-400 font-bold hover:underline inline-flex items-center gap-1 text-xs"
-                                  >
-                                    <span>ورود به کلاس</span>
-                                    <span className="text-[10px]">←</span>
-                                  </Link>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
+                  <div className="space-y-2 min-w-0 flex-1">
+                    <div className="flex items-center gap-2.5 flex-wrap">
+                      <Link
+                        to={`/admin/courses/${course.id}`}
+                        className="font-bold text-slate-900 dark:text-white text-base hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+                      >
+                        {course.name}
+                      </Link>
+                      <Badge variant={course.status === 'ACTIVE' ? 'success' : 'neutral'} size="sm">
+                        {course.status === 'ACTIVE' ? 'در حال برگزاری' : 'پیش‌ثبت‌نام'}
+                      </Badge>
+                      {course.gender && (
+                        <Badge variant={course.gender === 'FEMALE' ? 'warning' : 'info'} size="sm">
+                          {course.gender_display || (course.gender === 'FEMALE' ? 'بانوان' : 'آقایان')}
+                        </Badge>
                       )}
+                      {course.age_range && (
+                        <Badge variant="violet" size="sm">
+                          {course.age_range}
+                        </Badge>
+                      )}
+                    </div>
+
+                    {/* Compact Meta in one clean line */}
+                    <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{course.pool_location || 'استخر شهید رئیسی'}</span>
+                      </span>
+                      <span>•</span>
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <span>{course.days_of_week} {course.time_display ? `(${course.time_display})` : ''}</span>
+                      </span>
+                      <span>•</span>
+                      <span className="font-mono text-slate-700 dark:text-slate-300 font-semibold">
+                        {formatPrice(course.base_price)} تومان
+                      </span>
+                      <span className="text-[11px] text-slate-400">({course.sessions_count || 12} جلسه)</span>
                     </div>
                   </div>
 
-                  {/* Bottom Actions */}
-                  <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
-                    <div className="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-2">
-                      <span>ظرفیت کل دوره:</span>
-                      <span className="font-bold text-slate-800 dark:text-slate-200 font-mono">
-                        {totalEnrolled} از {totalCapacity} نفر
-                      </span>
-                      {totalRemaining > 0 ? (
-                        <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
-                          ({totalRemaining} جای خالی برای ثبت‌نام)
-                        </span>
-                      ) : (
-                        <span className="text-rose-500 font-semibold">(ظرفیت تکمیل)</span>
-                      )}
-                    </div>
+                  {/* Compact Capacity & Action */}
+                  <div className="flex items-center justify-between sm:justify-end gap-4 shrink-0 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
+                    {totalCapacity > 0 ? (
+                      <div className="text-right sm:text-left min-w-[120px]">
+                        <div className="flex items-center justify-between text-xs font-mono text-slate-600 dark:text-slate-300 mb-1">
+                          <span className="text-[11px] text-slate-400">ظرفیت:</span>
+                          <span className="font-bold text-slate-900 dark:text-white">
+                            {totalEnrolled} / {totalCapacity} نفر
+                          </span>
+                        </div>
+                        <div className="w-28 sm:w-32 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                          <div
+                            className={`h-full rounded-full transition-all ${
+                              isCourseFull ? 'bg-rose-500' : totalRemaining < 5 ? 'bg-amber-500' : 'bg-emerald-500'
+                            }`}
+                            style={{ width: `${Math.min(100, Math.round((totalEnrolled / totalCapacity) * 100))}%` }}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <span className="text-xs text-slate-400">بدون کلاس</span>
+                    )}
 
-                    <div className="flex items-center gap-2">
-                      <Button
-                        onClick={() => navigate(`/admin/courses/${course.id}`)}
-                        className="gap-1.5 text-xs bg-sky-600 hover:bg-sky-700 text-white cursor-pointer"
-                      >
-                        <Users className="w-4 h-4" />
-                        <span>مدیریت دوره و شناگران</span>
-                      </Button>
-                    </div>
+                    <Button
+                      onClick={() => navigate(`/admin/courses/${course.id}`)}
+                      size="sm"
+                      className="gap-1 text-xs bg-sky-600 hover:bg-sky-700 text-white cursor-pointer shrink-0"
+                    >
+                      <span>ورود به دوره</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </Button>
                   </div>
                 </div>
               );
