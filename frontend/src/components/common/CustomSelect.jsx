@@ -28,6 +28,7 @@ export const CustomSelect = ({
   const containerRef = useRef(null);
   const triggerRef = useRef(null);
   const searchInputRef = useRef(null);
+  const menuRef = useRef(null);
 
   // Normalize options: can be strings or objects { value, label, icon, description, badge }
   const normalizedOptions = options.map((opt) =>
@@ -126,16 +127,33 @@ export const CustomSelect = ({
     } else if (align === 'right') {
       setAlignLeft(false);
     } else {
+      const vw = window.innerWidth;
       // In RTL, standard anchoring to right:0 extends to the left.
-      // If rect.right - minMenuWidth < 16, it clips on the viewport's left side.
-      const menuMinW = 210;
-      if (rect.right - menuMinW < 16) {
+      // If the trigger is in the left half of the viewport, or rect.right < 360, anchoring to right:0 clips on the left!
+      const estimatedWidth = 360;
+      const isLeftOriented = (rect.left + rect.right) / 2 < vw / 2;
+      if (rect.right - estimatedWidth < 16 || isLeftOriented) {
         setAlignLeft(true);
       } else {
         setAlignLeft(false);
       }
     }
   };
+
+  useEffect(() => {
+    if (!isOpen || !menuRef.current) return;
+    const raf = requestAnimationFrame(() => {
+      if (!menuRef.current) return;
+      const mRect = menuRef.current.getBoundingClientRect();
+      const vw = window.innerWidth;
+      if (mRect.left < 8 && !alignLeft) {
+        setAlignLeft(true);
+      } else if (mRect.right > vw - 8 && alignLeft) {
+        setAlignLeft(false);
+      }
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [isOpen, alignLeft]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -333,14 +351,15 @@ export const CustomSelect = ({
       {/* Custom Dropdown Menu */}
       {isOpen && (
         <div
+          ref={menuRef}
           className={`absolute z-50 ${
             menuClassName?.includes('w-full')
               ? 'left-0 right-0 w-full'
               : alignLeft
-              ? 'left-0'
-              : 'right-0'
+              ? 'left-0 right-auto'
+              : 'right-0 left-auto'
           } ${
-            menuClassName ? menuClassName : 'min-w-full min-w-[200px] w-max max-w-[min(380px,calc(100vw-2rem))]'
+            menuClassName ? menuClassName : 'min-w-full min-w-[200px] w-max max-w-[min(420px,calc(100vw-2rem))]'
           } py-1.5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/90 rounded-2xl shadow-xl overflow-hidden animate-in fade-in-50 zoom-in-95 ${
             openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
           }`}
