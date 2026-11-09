@@ -338,7 +338,7 @@ export const AdminCoachesPage = () => {
       <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4 transition-colors">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-            <CoachWhistleIcon className="w-6 h-6 sm:w-7 sm:h-7 text-sky-600 shrink-0" />
+            <Whistle className="w-6 h-6 sm:w-7 sm:h-7 text-sky-600 shrink-0" />
             <span>سامانه جامع مدیریت مربیان و منابع انسانی</span>
           </h1>
           <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
