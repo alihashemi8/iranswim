@@ -11,6 +11,7 @@ from .serializers import (
     CoachClassListSerializer, CoachSwimmerDetailSerializer
 )
 from apps.accounts.permissions import IsAdminOrCoach, IsAdminUserRole
+from apps.accounts.models import User
 from apps.scheduling.models import ClassSession
 from apps.education.models import SwimmerGroup, Enrollment, Skill, SkillLevel
 from apps.attendance.models import AttendanceRecord
