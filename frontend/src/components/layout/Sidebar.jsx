@@ -7,7 +7,7 @@ import {
   ClipboardCheck, Award, Trophy, Bell, BarChart3,
   UserCheck, X, LogOut, ChevronLeft, ChevronRight,
   TrendingUp, MessageSquareQuote, FileText, Settings,
-  MessageSquare, Globe, Server, Radio, GitBranch, Database, Sliders
+  MessageSquare, Globe, Server, Radio, GitBranch, Database, Sliders, Whistle
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -15,7 +15,7 @@ import { useToast } from '../../context/ToastContext';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import api from '../../api/client';
 import { LogoutModal } from '../common/LogoutModal';
-import { CourseLogoIcon, CoachWhistleIcon } from '../common/AquaticIcons';
+import { CourseLogoIcon } from '../common/AquaticIcons';
 
 export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const { user, logout } = useAuth();
@@ -109,7 +109,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
           badge: pendingRequestsCount > 0 ? pendingRequestsCount : null,
           badgeColor: 'bg-sky-500 text-white',
         },
-        { to: '/admin/coaches', label: 'کادر مربیان', icon: CoachWhistleIcon },
+        { to: '/admin/coaches', label: 'کادر مربیان', icon: Whistle },
         { to: '/admin/courses', label: 'کلاس‌ها و دوره‌ها', icon: CourseLogoIcon },
         { to: '/admin/attendance', label: 'حضور و غیاب', icon: ClipboardCheck },
       ],
