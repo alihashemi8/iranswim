@@ -201,7 +201,7 @@ export const CoachProfilePage = () => {
   ];
 
   return (
-    <div className="space-y-6 pb-12 max-w-5xl mx-auto">
+    <div className="space-y-6 pb-12 max-w-5xl mx-auto coach-panel">
       {/* Header */}
       <div>
         <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
@@ -379,7 +379,7 @@ export const CoachProfilePage = () => {
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="حداقل ۸ نویسه..."
+                  placeholder="حداقل 8 نویسه..."
                   className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white font-mono text-sm sm:text-base"
                   required
                 />
@@ -451,8 +451,8 @@ export const CoachProfilePage = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
                     <div>نوع: <strong className="text-slate-900 dark:text-slate-100 font-bold">{c.contract_type_display}</strong></div>
                     <div>مدل: <strong className="text-slate-900 dark:text-slate-100 font-bold">{c.employment_type_display}</strong></div>
-                    <div>شروع: <strong className="font-mono text-slate-900 dark:text-slate-100 font-bold">{new Date(c.start_date).toLocaleDateString('fa-IR')}</strong></div>
-                    <div>پایان: <strong className="font-mono text-slate-900 dark:text-slate-100 font-bold">{new Date(c.end_date).toLocaleDateString('fa-IR')}</strong></div>
+                    <div>شروع: <strong className="font-mono text-slate-900 dark:text-slate-100 font-bold">{new Date(c.start_date).toLocaleDateString('fa-IR-u-nu-latn')}</strong></div>
+                    <div>پایان: <strong className="font-mono text-slate-900 dark:text-slate-100 font-bold">{new Date(c.end_date).toLocaleDateString('fa-IR-u-nu-latn')}</strong></div>
                   </div>
                 </div>
               ))}
@@ -546,8 +546,8 @@ export const CoachProfilePage = () => {
                   {leaves.map((l) => (
                     <tr key={l.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
                       <td className="py-3 px-3.5 font-bold text-slate-900 dark:text-slate-100 text-sm sm:text-base">{l.leave_type_display}</td>
-                      <td className="py-3 px-3.5 font-mono text-sm sm:text-base">{new Date(l.start_date).toLocaleDateString('fa-IR')}</td>
-                      <td className="py-3 px-3.5 font-mono text-sm sm:text-base">{new Date(l.end_date).toLocaleDateString('fa-IR')}</td>
+                      <td className="py-3 px-3.5 font-mono text-sm sm:text-base">{new Date(l.start_date).toLocaleDateString('fa-IR-u-nu-latn')}</td>
+                      <td className="py-3 px-3.5 font-mono text-sm sm:text-base">{new Date(l.end_date).toLocaleDateString('fa-IR-u-nu-latn')}</td>
                       <td className="py-3 px-3.5 text-sm sm:text-base text-slate-800 dark:text-slate-200">{l.reason}</td>
                       <td className="py-3 px-3.5">
                         <Badge variant={l.status === 'APPROVED' ? 'success' : l.status === 'PENDING' ? 'warning' : 'error'} className="text-xs sm:text-sm font-bold">
@@ -581,7 +581,7 @@ export const CoachProfilePage = () => {
                   <div className="flex items-center justify-between">
                     <span className="font-black text-slate-900 dark:text-white text-base sm:text-lg">{ev.period_label}</span>
                     <span className="font-mono font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/50 px-3 py-1 rounded-full text-sm sm:text-base">
-                      ★ نمره: {ev.overall_score} از ۵
+                      ★ نمره: {ev.overall_score} از 5
                     </span>
                   </div>
 
