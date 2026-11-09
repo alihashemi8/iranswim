@@ -166,7 +166,7 @@ export const CoachAttendancePage = () => {
   );
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 coach-panel">
       {/* 1. Header & Session Selection */}
       <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-20">
         <div>
