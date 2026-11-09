@@ -102,7 +102,7 @@ export const CoachExamsPage = () => {
   }
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 coach-panel">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -171,7 +171,7 @@ export const CoachExamsPage = () => {
                   )}
 
                   <span className="text-xs text-slate-400 block font-mono font-medium">
-                    تاریخ ثبت: {new Date(prop.created_at).toLocaleDateString('fa-IR')}
+                    تاریخ ثبت: {new Date(prop.created_at).toLocaleDateString('fa-IR-u-nu-latn')}
                   </span>
                 </div>
 

@@ -26,6 +26,7 @@ class Command(BaseCommand):
 
         STANDARD_PASS = '12345678'
         today = timezone.now().date()  # 2026-11-09
+        now = timezone.now()
 
         # -------------------------------------------------------------
         # 1. کاربران مدیر و مربیان
@@ -206,7 +207,10 @@ class Command(BaseCommand):
         group1.pool_location = 'استخر قهرمانی آزادی (استخر ۲۵ متر)'
         group1.status = 'OPEN'
         group1.save()
-        GroupCoach.objects.get_or_create(group=group1, coach=coach_profile, defaults={'is_primary': True})
+        GroupCoach.objects.get_or_create(
+            group=group1, coach=coach_profile,
+            defaults={'is_primary': True, 'assigned_from': today - datetime.timedelta(days=60)}
+        )
 
         GroupSchedule.objects.get_or_create(
             group=group1, weekday=1,  # یک‌شنبه
@@ -232,7 +236,10 @@ class Command(BaseCommand):
         group2.pool_location = 'استخر مروارید ولنجک'
         group2.status = 'OPEN'
         group2.save()
-        GroupCoach.objects.get_or_create(group=group2, coach=coach_profile, defaults={'is_primary': True})
+        GroupCoach.objects.get_or_create(
+            group=group2, coach=coach_profile,
+            defaults={'is_primary': True, 'assigned_from': today - datetime.timedelta(days=60)}
+        )
 
         GroupSchedule.objects.get_or_create(
             group=group2, weekday=2,  # دوشنبه
@@ -258,7 +265,10 @@ class Command(BaseCommand):
         group3.pool_location = 'استخر شهید چمران (بولینگ عبدو)'
         group3.status = 'OPEN'
         group3.save()
-        GroupCoach.objects.get_or_create(group=group3, coach=coach_profile, defaults={'is_primary': True})
+        GroupCoach.objects.get_or_create(
+            group=group3, coach=coach_profile,
+            defaults={'is_primary': True, 'assigned_from': today - datetime.timedelta(days=60)}
+        )
 
         GroupSchedule.objects.get_or_create(
             group=group3, weekday=0,  # شنبه
@@ -331,7 +341,9 @@ class Command(BaseCommand):
                     'coach': coach_profile,
                     'status': 'ACTIVE',
                     'sessions_purchased': 12,
-                    'sessions_attended': 7
+                    'sessions_attended': 7,
+                    'notes': 'ثبت‌نام رسمی دوره کرال سینه',
+                    'enrolled_at': now - datetime.timedelta(days=30),
                 }
             )
             en.status = 'ACTIVE'
@@ -348,7 +360,9 @@ class Command(BaseCommand):
                     'coach': coach_profile,
                     'status': 'ACTIVE',
                     'sessions_purchased': 16,
-                    'sessions_attended': 10
+                    'sessions_attended': 10,
+                    'notes': 'تیم نخبگان و مسابقات پایه',
+                    'enrolled_at': now - datetime.timedelta(days=40),
                 }
             )
             en.status = 'ACTIVE'
@@ -365,7 +379,9 @@ class Command(BaseCommand):
                     'coach': coach_profile,
                     'status': 'ACTIVE',
                     'sessions_purchased': 10,
-                    'sessions_attended': 4
+                    'sessions_attended': 4,
+                    'notes': 'مدرسه پایه آشنایی با آب',
+                    'enrolled_at': now - datetime.timedelta(days=20),
                 }
             )
             en.status = 'ACTIVE'
@@ -387,7 +403,9 @@ class Command(BaseCommand):
                 'end_time': datetime.time(19, 30),
                 'pool_location': group2.pool_location,
                 'status': ClassSession.Status.SCHEDULED,
-                'session_notes': 'جلسه تمرین اصلی پروانه و استارت قهرمانی - لطفا تخته و کفی شنا همراه داشته باشند.'
+                'session_notes': 'جلسه تمرین اصلی پروانه و استارت قهرمانی - لطفا تخته و کفی شنا همراه داشته باشند.',
+                'cancellation_reason': '',
+                'coach_evaluation': '',
             }
         )
         today_next_session.coach = coach_profile
@@ -404,7 +422,9 @@ class Command(BaseCommand):
                 'end_time': datetime.time(15, 15),
                 'pool_location': group3.pool_location,
                 'status': ClassSession.Status.COMPLETED,
-                'session_notes': 'تمرین موفق غوطه‌وری و رفع ترس نوآموزان با اسباب‌بازی‌های غوطه‌ور.'
+                'session_notes': 'تمرین موفق غوطه‌وری و رفع ترس نوآموزان با اسباب‌بازی‌های غوطه‌ور.',
+                'cancellation_reason': '',
+                'coach_evaluation': 'رضایت‌بخش',
             }
         )
         today_done_session.coach = coach_profile
@@ -424,6 +444,7 @@ class Command(BaseCommand):
                     'status': stat,
                     'recorded_by': coach_user,
                     'note': note_text,
+                    'change_reason': '',
                     'consumed_quota': True,
                 }
             )
@@ -438,7 +459,9 @@ class Command(BaseCommand):
                 'end_time': datetime.time(17, 15),
                 'pool_location': group1.pool_location,
                 'status': ClassSession.Status.COMPLETED,
-                'session_notes': 'جلسه تمرینی دست کرال سینه - نیازمند ثبت فوری حضور و غیاب'
+                'session_notes': 'جلسه تمرینی دست کرال سینه - نیازمند ثبت فوری حضور و غیاب',
+                'cancellation_reason': '',
+                'coach_evaluation': '',
             }
         )
         today_unrecorded_session.coach = coach_profile
@@ -466,6 +489,9 @@ class Command(BaseCommand):
                     'end_time': et,
                     'pool_location': grp.pool_location,
                     'status': ClassSession.Status.COMPLETED,
+                    'cancellation_reason': '',
+                    'session_notes': 'جلسه برگزار شده عادی',
+                    'coach_evaluation': 'خوب',
                 }
             )
             sess.coach = coach_profile
@@ -492,6 +518,7 @@ class Command(BaseCommand):
                             'status': s_status,
                             'recorded_by': coach_user,
                             'note': s_note,
+                            'change_reason': '',
                             'consumed_quota': (s_status in [AttendanceRecord.Status.PRESENT, AttendanceRecord.Status.LATE]),
                         }
                     )
@@ -517,6 +544,9 @@ class Command(BaseCommand):
                     'end_time': et,
                     'pool_location': grp.pool_location,
                     'status': ClassSession.Status.SCHEDULED,
+                    'cancellation_reason': '',
+                    'session_notes': 'جلسه آینده طبق برنامه هفتگی',
+                    'coach_evaluation': '',
                 }
             )
             f_sess.coach = coach_profile
@@ -643,6 +673,7 @@ class Command(BaseCommand):
                     'recorded_by': coach_user,
                     'verification_status': SwimmingRecord.VerificationStatus.VERIFIED,
                     'verified_by': admin,
+                    'rejection_reason': '',
                     'notes': 'ثبت رسمی در پایان دوره با کرنومتر دیجیتال و تأیید سرداور'
                 }
             )
@@ -856,6 +887,7 @@ class Command(BaseCommand):
                 'hours_requested': 3,
                 'reason': 'انجام امور اداری و تمدید دفترچه درمانی',
                 'status': CoachLeaveRequest.Status.PENDING,
+                'admin_notes': '',
             }
         )
 

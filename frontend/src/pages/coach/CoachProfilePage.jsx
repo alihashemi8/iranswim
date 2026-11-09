@@ -186,7 +186,7 @@ export const CoachProfilePage = () => {
     }
   };
 
-  const formatPrice = (v) => Number(v || 0).toLocaleString('fa-IR');
+  const formatPrice = (v) => Number(v || 0).toLocaleString('en-US');
 
   if (loading) {
     return <LoadingState type="dashboard" message="در حال دریافت اطلاعات پرونده مربی..." />;
