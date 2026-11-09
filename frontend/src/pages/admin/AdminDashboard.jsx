@@ -915,11 +915,8 @@ export const AdminDashboard = () => {
             valueFormatter={(v) => `${v} نفر`}
           />
 
-          <div className="pt-2 text-xs text-slate-500 dark:text-slate-400 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div className="pt-2 text-xs text-slate-500 dark:text-slate-400">
             <span>مجموع ثبت‌نام‌های هفته جاری: <strong className="text-slate-800 dark:text-slate-200 font-bold">{formatNum(weekEnrollmentsTotal)} نفر</strong></span>
-            <Link to="/admin/reports" className="text-sky-600 dark:text-sky-400 hover:underline font-medium whitespace-nowrap">
-              مشاهده گزارش جامع تحلیلی ←
-            </Link>
           </div>
 
           {/* Operational Decision Aid: Underfilled Groups with High Empty Capacity */}

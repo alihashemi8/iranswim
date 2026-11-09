@@ -4,7 +4,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Activity, Bug, ShieldCheck, Zap,
   LayoutDashboard, BookOpen, Users, CreditCard, Calendar,
-  ClipboardCheck, Award, Trophy, Bell, BarChart3,
+  ClipboardCheck, Award, Trophy, Bell,
   UserCheck, X, LogOut, ChevronLeft, ChevronRight,
   TrendingUp, MessageSquareQuote, FileText, Settings,
   MessageSquare, Globe, Server, Radio, GitBranch, Database, Sliders, Whistle
@@ -126,12 +126,6 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       items: [
         { to: '/admin/website', label: 'مدیریت وبسایت', icon: Globe },
         { to: '/admin/announcements', label: 'پیام‌ها و اعلان‌ها', icon: Bell },
-      ],
-    },
-    {
-      groupTitle: 'گزارش‌ها و تحلیل',
-      items: [
-        { to: '/admin/reports', label: 'گزارش‌های جامع', icon: BarChart3 },
       ],
     },
   ];

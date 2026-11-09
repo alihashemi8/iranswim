@@ -593,26 +593,26 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
           </div>
           <div>
             <div className="flex items-center gap-2.5">
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white">
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
                 پروفایل و مدیریت سیستم
               </h1>
-              <span className="px-2.5 py-0.5 rounded-lg text-xs font-bold bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200/70 dark:border-sky-800">
+              <span className="px-3 py-1 rounded-lg text-xs sm:text-sm font-bold bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200/70 dark:border-sky-800">
                 مدیر آموزشگاه
               </span>
             </div>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
               مشخصات فردی، پیکربندی قوانین و سیاست‌های آموزشگاه، و مدیریت کاربران و دسترسی‌ها
             </p>
           </div>
         </div>
 
         {/* Quick User Identity Badge */}
-        <div className="hidden lg:flex items-center gap-3 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 rounded-xl border border-slate-200/70 dark:border-slate-700/70 text-xs">
+        <div className="hidden lg:flex items-center gap-3 bg-slate-50 dark:bg-slate-800/60 px-4 py-2.5 rounded-xl border border-slate-200/70 dark:border-slate-700/70 text-sm">
           <div className="text-right">
-            <span className="font-bold text-slate-800 dark:text-slate-200 block">
+            <span className="font-bold text-slate-800 dark:text-slate-200 block text-sm">
               {user?.full_name}
             </span>
-            <span className="font-mono text-slate-400 text-[11px]">
+            <span className="font-mono text-slate-400 text-xs">
               {user?.phone}
             </span>
           </div>
@@ -621,7 +621,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
       </div>
 
       {/* Main Page Navigation Tabs */}
-      <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 text-xs sm:text-sm font-bold gap-1 sm:gap-2">
+      <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 text-sm sm:text-base font-bold gap-1 sm:gap-2">
         <button
           type="button"
           onClick={() => handleTabChange('PROFILE')}
@@ -631,7 +631,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          <User className="w-4 h-4 shrink-0" />
+          <User className="w-5 h-5 shrink-0" />
           <span>مشخصات و پروفایل</span>
         </button>
 
@@ -644,7 +644,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          <Settings className="w-4 h-4 shrink-0" />
+          <Settings className="w-5 h-5 shrink-0" />
           <span>تنظیمات آموزشگاه</span>
         </button>
 
@@ -657,7 +657,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          <ShieldAlert className="w-4 h-4 shrink-0" />
+          <ShieldAlert className="w-5 h-5 shrink-0" />
           <span>کاربران و امنیت</span>
         </button>
       </div>
@@ -674,8 +674,8 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 <BadgeCheck className="w-6 h-6" />
               </div>
               <div className="min-w-0">
-                <span className="text-xs text-slate-400 block font-medium">نقش سازمانی</span>
-                <span className="text-sm font-bold text-slate-800 dark:text-slate-100">مدیریت کل آموزشگاه</span>
+                <span className="text-xs sm:text-sm text-slate-400 block font-medium">نقش سازمانی</span>
+                <span className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">مدیریت کل آموزشگاه</span>
               </div>
             </div>
 
@@ -684,8 +684,8 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 <CheckCircle2 className="w-6 h-6" />
               </div>
               <div className="min-w-0">
-                <span className="text-xs text-slate-400 block font-medium">وضعیت حساب</span>
-                <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400">فعال و تأییدشده</span>
+                <span className="text-xs sm:text-sm text-slate-400 block font-medium">وضعیت حساب</span>
+                <span className="text-base sm:text-lg font-bold text-emerald-600 dark:text-emerald-400">فعال و تأییدشده</span>
               </div>
             </div>
 
@@ -694,8 +694,8 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 <Shield className="w-6 h-6" />
               </div>
               <div className="min-w-0">
-                <span className="text-xs text-slate-400 block font-medium">سطح دسترسی</span>
-                <span className="text-sm font-bold text-slate-800 dark:text-slate-100">دسترسی کامل (Super Admin)</span>
+                <span className="text-xs sm:text-sm text-slate-400 block font-medium">سطح دسترسی</span>
+                <span className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">دسترسی کامل (Super Admin)</span>
               </div>
             </div>
           </div>
@@ -708,10 +708,10 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                   <UserCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+                  <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white">
                     مشخصات هویتی و فردی مدیر
                   </h3>
-                  <span className="text-xs text-slate-400">
+                  <span className="text-xs sm:text-sm text-slate-400">
                     ویرایش نام، نام خانوادگی و اطلاعات شناسنامه‌ای
                   </span>
                 </div>
@@ -720,7 +720,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               <form onSubmit={handleUpdateProfile} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       نام:
                     </label>
                     <input
@@ -729,12 +729,12 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                       value={profileForm.first_name}
                       onChange={(e) => setProfileForm({ ...profileForm, first_name: e.target.value })}
                       placeholder="مثال: علی"
-                      className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 transition-all"
+                      className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       نام خانوادگی:
                     </label>
                     <input
@@ -743,29 +743,29 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                       value={profileForm.last_name}
                       onChange={(e) => setProfileForm({ ...profileForm, last_name: e.target.value })}
                       placeholder="مثال: حسینی"
-                      className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 transition-all"
+                      className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       شماره تلفن همراه (شناسه ورود):
                     </label>
                     <div className="relative">
-                      <Phone className="w-4 h-4 text-slate-400 absolute right-3.5 top-3" />
+                      <Phone className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
                       <input
                         type="text"
                         disabled
                         value={profileForm.phone}
-                        className="w-full pr-10 pl-3 py-2.5 text-xs font-mono bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 cursor-not-allowed"
+                        className="w-full pr-10 pl-3 py-2.5 text-sm font-mono bg-slate-100 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 cursor-not-allowed"
                       />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       کد ملی:
                     </label>
                     <input
@@ -773,13 +773,13 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                       value={profileForm.national_id}
                       onChange={(e) => setProfileForm({ ...profileForm, national_id: e.target.value })}
                       placeholder="۱۰ رقم بدون خط تیره"
-                      className="w-full px-3.5 py-2.5 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 transition-all"
+                      className="w-full px-3.5 py-2.5 text-sm font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 transition-all"
                     />
                   </div>
                 </div>
 
                 <div className="pt-2 flex justify-end">
-                  <Button type="submit" loading={savingProfile} className="gap-2 text-xs font-bold px-5">
+                  <Button type="submit" loading={savingProfile} className="gap-2 text-sm font-bold px-5">
                     <Save className="w-4 h-4" />
                     <span>ذخیره تغییرات مشخصات</span>
                   </Button>
@@ -795,10 +795,10 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                     <KeyRound className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-bold text-sm text-slate-900 dark:text-white">
+                    <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white">
                       تغییر رمز عبور ورود
                     </h3>
-                    <span className="text-xs text-slate-400">
+                    <span className="text-xs sm:text-sm text-slate-400">
                       تعیین کلمه عبور جدید برای ورود ایمن به سامانه
                     </span>
                   </div>
@@ -810,7 +810,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
 
                   {/* رمز جدید و تکرار زیر هم */}
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       رمز عبور جدید (انگلیسی، حداقل ۸ نویسه):
                     </label>
                     <input
@@ -820,12 +820,12 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                       placeholder="رمز عبور جدید"
-                      className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 transition-all"
+                      className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 transition-all"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       تکرار رمز عبور جدید:
                     </label>
                     <input
@@ -835,12 +835,12 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                       value={passwordForm.confirmPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
                       placeholder="تکرار رمز عبور"
-                      className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 transition-all"
+                      className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500 transition-all"
                     />
                   </div>
 
                   <div className="pt-2 flex justify-end">
-                    <Button type="submit" variant="secondary" loading={savingPassword} className="gap-2 text-xs font-bold px-5">
+                    <Button type="submit" variant="secondary" loading={savingPassword} className="gap-2 text-sm font-bold px-5">
                       <KeyRound className="w-4 h-4" />
                       <span>به‌روزرسانی رمز عبور</span>
                     </Button>
@@ -849,7 +849,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               </div>
 
               {/* Security Hint */}
-              <div className="mt-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 text-[11px] text-slate-500 dark:text-slate-400">
+              <div className="mt-4 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-700/60 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                 💡 جهت حفظ امنیت، از انتخاب رمزهای ساده یا شماره موبایل پرهیز نمایید.
               </div>
             </div>
@@ -863,7 +863,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
       {activeMainTab === 'SETTINGS' && (
         <div className="space-y-6 animate-fade-in">
           {/* Subtabs for Settings */}
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-xs w-fit overflow-x-auto">
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-sm font-bold w-fit overflow-x-auto gap-1">
             {[
               { key: 'ACADEMY', label: 'اطلاعات آموزشگاه و استخر', icon: Building2 },
               { key: 'CLASS', label: 'قوانین کلاس‌ها و ظرفیت', icon: Clock },
@@ -876,13 +876,13 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                   key={tab.key}
                   type="button"
                   onClick={() => setSettingsActiveSubTab(tab.key)}
-                  className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap ${
+                  className={`px-4 py-2.5 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap text-sm ${
                     settingsActiveSubTab === tab.key
                       ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                   }`}
                 >
-                  <Icon className="w-4 h-4" />
+                  <Icon className="w-4.5 h-4.5" />
                   <span>{tab.label}</span>
                 </button>
               );
@@ -893,64 +893,64 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
             <form onSubmit={handleSaveSettings} className="space-y-6">
               {settingsActiveSubTab === 'ACADEMY' && (
                 <div className="space-y-4">
-                  <h3 className="font-bold text-sm text-slate-900 dark:text-white pb-2 border-b border-slate-100 dark:border-slate-800">
+                  <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white pb-2.5 border-b border-slate-100 dark:border-slate-800">
                     مشخصات عمومی و تماس آکادمی
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         نام رسمی آموزشگاه
                       </label>
                       <input
                         type="text"
                         value={settings.academyName}
                         onChange={(e) => setSettings({ ...settings, academyName: e.target.value })}
-                        className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                        className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         نام استخر و مجموعه اصلی
                       </label>
                       <input
                         type="text"
                         value={settings.poolName}
                         onChange={(e) => setSettings({ ...settings, poolName: e.target.value })}
-                        className="w-full px-3.5 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                        className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         شماره تماس ثابت آموزشگاه
                       </label>
                       <input
                         type="text"
                         value={settings.phone}
                         onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-                        className="w-full px-3.5 py-2.5 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                        className="w-full px-3.5 py-2.5 text-sm font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         شماره همراه پشتیبانی / ثبت‌نام
                       </label>
                       <input
                         type="text"
                         value={settings.supportMobile}
                         onChange={(e) => setSettings({ ...settings, supportMobile: e.target.value })}
-                        className="w-full px-3.5 py-2.5 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                        className="w-full px-3.5 py-2.5 text-sm font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                       نشانی پستی مجموعه ورزشی
                     </label>
                     <textarea
                       rows={2}
                       value={settings.address}
                       onChange={(e) => setSettings({ ...settings, address: e.target.value })}
-                      className="w-full px-3.5 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                      className="w-full px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
                     />
                   </div>
                 </div>
@@ -958,52 +958,52 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
 
               {settingsActiveSubTab === 'CLASS' && (
                 <div className="space-y-4">
-                  <h3 className="font-bold text-sm text-slate-900 dark:text-white pb-2 border-b border-slate-100 dark:border-slate-800">
+                  <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white pb-2.5 border-b border-slate-100 dark:border-slate-800">
                     ضوابط برگزاری و ظرفیت جلسات شنا
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         مدت زمان پیش‌فرض هر سانس (دقیقه)
                       </label>
                       <input
                         type="number"
                         value={settings.defaultSessionDurationMinutes}
                         onChange={(e) => setSettings({ ...settings, defaultSessionDurationMinutes: Number(e.target.value) })}
-                        className="w-full px-3.5 py-2.5 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                        className="w-full px-3.5 py-2.5 text-sm font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         ظرفیت استاندارد کلاس‌های گروهی
                       </label>
                       <input
                         type="number"
                         value={settings.defaultGroupCapacity}
                         onChange={(e) => setSettings({ ...settings, defaultGroupCapacity: Number(e.target.value) })}
-                        className="w-full px-3.5 py-2.5 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                        className="w-full px-3.5 py-2.5 text-sm font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         مهلت مجاز لغو جلسه توسط شاگرد (ساعت قبل از سانس)
                       </label>
                       <input
                         type="number"
                         value={settings.cancellationNoticeHours}
                         onChange={(e) => setSettings({ ...settings, cancellationNoticeHours: Number(e.target.value) })}
-                        className="w-full px-3.5 py-2.5 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                        className="w-full px-3.5 py-2.5 text-sm font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         حداکثر سهمیه جلسات جبرانی در هر ترم
                       </label>
                       <input
                         type="number"
                         value={settings.maxMakeupPerCourse}
                         onChange={(e) => setSettings({ ...settings, maxMakeupPerCourse: Number(e.target.value) })}
-                        className="w-full px-3.5 py-2.5 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                        className="w-full px-3.5 py-2.5 text-sm font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
                       />
                     </div>
                   </div>
@@ -1012,41 +1012,41 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
 
               {settingsActiveSubTab === 'FINANCE' && (
                 <div className="space-y-4">
-                  <h3 className="font-bold text-sm text-slate-900 dark:text-white pb-2 border-b border-slate-100 dark:border-slate-800">
+                  <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white pb-2.5 border-b border-slate-100 dark:border-slate-800">
                     قوانین مالی و پرداخت شهریه
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         واحد پولی سیستم
                       </label>
                       <input
                         type="text"
                         disabled
                         value={settings.currency}
-                        className="w-full px-3.5 py-2.5 text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 cursor-not-allowed"
+                        className="w-full px-3.5 py-2.5 text-sm bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 cursor-not-allowed"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         تعداد پیش‌فرض اقساط شهریه
                       </label>
                       <input
                         type="number"
                         value={settings.installmentCountDefault}
                         onChange={(e) => setSettings({ ...settings, installmentCountDefault: Number(e.target.value) })}
-                        className="w-full px-3.5 py-2.5 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                        className="w-full px-3.5 py-2.5 text-sm font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         مهلت ارفاق پرداخت سررسید (روز)
                       </label>
                       <input
                         type="number"
                         value={settings.overdueGraceDays}
                         onChange={(e) => setSettings({ ...settings, overdueGraceDays: Number(e.target.value) })}
-                        className="w-full px-3.5 py-2.5 text-xs font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                        className="w-full px-3.5 py-2.5 text-sm font-mono bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
                       />
                     </div>
                   </div>
@@ -1055,30 +1055,30 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
 
               {settingsActiveSubTab === 'SYSTEM' && (
                 <div className="space-y-4">
-                  <h3 className="font-bold text-sm text-slate-900 dark:text-white pb-2 border-b border-slate-100 dark:border-slate-800">
+                  <h3 className="font-bold text-base sm:text-lg text-slate-900 dark:text-white pb-2.5 border-b border-slate-100 dark:border-slate-800">
                     پیکربندی زمان، زبان و تقویم
                   </h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         منطقه زمانی سامانه
                       </label>
                       <input
                         type="text"
                         disabled
                         value={settings.timezone}
-                        className="w-full px-3.5 py-2.5 text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 cursor-not-allowed font-mono"
+                        className="w-full px-3.5 py-2.5 text-sm bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 cursor-not-allowed font-mono"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
                         سیستم تقویم و گاه‌شمار
                       </label>
                       <input
                         type="text"
                         disabled
                         value={settings.calendarSystem}
-                        className="w-full px-3.5 py-2.5 text-xs bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 cursor-not-allowed"
+                        className="w-full px-3.5 py-2.5 text-sm bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 cursor-not-allowed"
                       />
                     </div>
                   </div>
@@ -1086,7 +1086,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               )}
 
               <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-end">
-                <Button type="submit" loading={savingSettings} className="gap-2 text-xs font-bold px-6">
+                <Button type="submit" loading={savingSettings} className="gap-2 text-sm font-bold px-6">
                   <Save className="w-4 h-4" />
                   <span>ذخیره کلیه تنظیمات آموزشگاه</span>
                 </Button>
@@ -1102,30 +1102,30 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
       {activeMainTab === 'USERS' && (
         <div className="space-y-6 animate-fade-in">
           {/* Subtabs: Users List vs Audit Logs */}
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-xs w-fit">
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-sm font-bold w-fit gap-1">
             <button
               type="button"
               onClick={() => setSecuritySubTab('USERS')}
-              className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+              className={`px-4 py-2.5 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 text-sm ${
                 securitySubTab === 'USERS'
                   ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
               }`}
             >
-              <UserCheck className="w-4 h-4" />
+              <UserCheck className="w-4.5 h-4.5" />
               <span>فهرست کاربران و نقش‌ها</span>
             </button>
 
             <button
               type="button"
               onClick={() => setSecuritySubTab('AUDIT_LOGS')}
-              className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+              className={`px-4 py-2.5 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 text-sm ${
                 securitySubTab === 'AUDIT_LOGS'
                   ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
               }`}
             >
-              <FileText className="w-4 h-4" />
+              <FileText className="w-4.5 h-4.5" />
               <span>لاگ‌های ممیزی امنیتی (Audit)</span>
             </button>
           </div>
@@ -1136,30 +1136,30 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
             <div className="space-y-4">
               {/* Stats Counters */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-                  <span className="text-[11px] text-slate-400 block font-medium">کل کاربران تحت مدیریت</span>
-                  <div className="text-lg font-bold text-slate-800 dark:text-slate-100 font-mono mt-1">
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+                  <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 block font-medium">کل کاربران تحت مدیریت</span>
+                  <div className="text-xl sm:text-2xl font-bold text-slate-800 dark:text-slate-100 font-mono mt-1">
                     {userStats.total}
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-cyan-200/60 dark:border-cyan-900/40 shadow-2xs">
-                  <span className="text-[11px] text-cyan-600 dark:text-cyan-400 block font-medium">شناگران و اولیا</span>
-                  <div className="text-lg font-bold text-cyan-700 dark:text-cyan-300 font-mono mt-1">
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-cyan-200/60 dark:border-cyan-900/40 shadow-2xs">
+                  <span className="text-xs sm:text-sm text-cyan-600 dark:text-cyan-400 block font-medium">شناگران و اولیا</span>
+                  <div className="text-xl sm:text-2xl font-bold text-cyan-700 dark:text-cyan-300 font-mono mt-1">
                     {userStats.swimmers}
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-emerald-200/60 dark:border-emerald-900/40 shadow-2xs">
-                  <span className="text-[11px] text-emerald-600 dark:text-emerald-400 block font-medium">کادر مربیان</span>
-                  <div className="text-lg font-bold text-emerald-700 dark:text-emerald-300 font-mono mt-1">
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-emerald-200/60 dark:border-emerald-900/40 shadow-2xs">
+                  <span className="text-xs sm:text-sm text-emerald-600 dark:text-emerald-400 block font-medium">کادر مربیان</span>
+                  <div className="text-xl sm:text-2xl font-bold text-emerald-700 dark:text-emerald-300 font-mono mt-1">
                     {userStats.coaches}
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-rose-200/60 dark:border-rose-900/40 shadow-2xs">
-                  <span className="text-[11px] text-rose-600 dark:text-rose-400 block font-medium">کاربران معلق / مسدود</span>
-                  <div className="text-lg font-bold text-rose-700 dark:text-rose-300 font-mono mt-1">
+                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-rose-200/60 dark:border-rose-900/40 shadow-2xs">
+                  <span className="text-xs sm:text-sm text-rose-600 dark:text-rose-400 block font-medium">کاربران معلق / مسدود</span>
+                  <div className="text-xl sm:text-2xl font-bold text-rose-700 dark:text-rose-300 font-mono mt-1">
                     {userStats.suspended}
                   </div>
                 </div>
@@ -1168,7 +1168,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               {/* Filter & Search Bar */}
               <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-3">
                 <div className="relative flex-1 max-w-sm">
-                  <Search className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
+                  <Search className="w-4 h-4 text-slate-400 absolute right-3 top-3.5" />
                   <input
                     type="text"
                     value={userSearch}
@@ -1177,7 +1177,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                       setCurrentPage(1);
                     }}
                     placeholder="جستجو با نام، موبایل یا کد ملی..."
-                    className="w-full pr-9 pl-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500"
+                    className="w-full pr-9 pl-3 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:bg-white dark:focus:bg-slate-800 focus:outline-hidden focus:ring-2 focus:ring-sky-500"
                   />
                 </div>
 
@@ -1215,7 +1215,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                   <button
                     type="button"
                     onClick={fetchUsersData}
-                    className="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+                    className="p-2.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                     title="به‌روزرسانی جدول"
                   >
                     <RefreshCw className="w-4 h-4" />
@@ -1224,7 +1224,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                   <Button
                     variant="primary"
                     onClick={handleOpenAddModal}
-                    className="gap-1.5 text-xs py-2 px-3.5 shadow-sm"
+                    className="gap-1.5 text-sm font-bold py-2.5 px-4 shadow-sm"
                   >
                     <UserPlus className="w-4 h-4" />
                     <span>افزودن کاربر جدید</span>
@@ -1238,16 +1238,16 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                   <EmptyState message="کاربری با معیارهای جستجو یافت نشد." />
                 ) : (
                   <div className="overflow-x-auto">
-                    <table className="w-full text-right text-xs">
-                      <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 border-b border-slate-100 dark:border-slate-800 font-bold">
+                    <table className="w-full text-right text-sm">
+                      <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800 font-bold text-xs sm:text-sm">
                         <tr>
-                          <th className="px-4 py-3">کاربر و نام</th>
-                          <th className="px-4 py-3">شماره تماس (موبایل)</th>
-                          <th className="px-4 py-3">کد ملی</th>
-                          <th className="px-4 py-3">نقش کاربری</th>
-                          <th className="px-4 py-3 text-center">وضعیت حساب</th>
-                          <th className="px-4 py-3">تاریخ ثبت‌نام</th>
-                          <th className="px-4 py-3 text-center">عملیات مدیریت</th>
+                          <th className="px-4 py-3.5">کاربر و نام</th>
+                          <th className="px-4 py-3.5">شماره تماس (موبایل)</th>
+                          <th className="px-4 py-3.5">کد ملی</th>
+                          <th className="px-4 py-3.5">نقش کاربری</th>
+                          <th className="px-4 py-3.5 text-center">وضعیت حساب</th>
+                          <th className="px-4 py-3.5">تاریخ ثبت‌نام</th>
+                          <th className="px-4 py-3.5 text-center">عملیات مدیریت</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -1257,15 +1257,15 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                           return (
                             <tr key={u.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                               {/* Name & Avatar */}
-                              <td className="px-4 py-3 font-semibold text-slate-800 dark:text-slate-100">
+                              <td className="px-4 py-3.5 font-semibold text-slate-800 dark:text-slate-100 text-sm">
                                 <div className="flex items-center gap-2.5">
-                                  <div className="w-7 h-7 rounded-lg bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 font-bold flex items-center justify-center text-xs shrink-0">
+                                  <div className="w-8 h-8 rounded-lg bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 font-bold flex items-center justify-center text-xs shrink-0">
                                     {u.first_name ? u.first_name.charAt(0) : 'U'}
                                   </div>
                                   <div className="flex items-center gap-1.5">
                                     <span>{u.full_name || 'بدون نام'}</span>
                                     {isCurrent && (
-                                      <span className="text-[10px] bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300 px-1.5 py-0.5 rounded-md font-bold">
+                                      <span className="text-xs bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300 px-1.5 py-0.5 rounded-md font-bold">
                                         شما
                                       </span>
                                     )}
@@ -1274,7 +1274,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                               </td>
 
                               {/* Phone */}
-                              <td className="px-4 py-3 font-mono text-slate-600 dark:text-slate-400">
+                              <td className="px-4 py-3.5 font-mono text-slate-600 dark:text-slate-300 text-sm">
                                 <div className="flex items-center gap-1.5">
                                   <span>{u.phone}</span>
                                   <button
@@ -1284,21 +1284,21 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                                     title="کپی شماره تماس"
                                   >
                                     {copiedPhone === u.phone ? (
-                                      <Check className="w-3 h-3 text-emerald-500" />
+                                      <Check className="w-3.5 h-3.5 text-emerald-500" />
                                     ) : (
-                                      <Copy className="w-3 h-3" />
+                                      <Copy className="w-3.5 h-3.5" />
                                     )}
                                   </button>
                                 </div>
                               </td>
 
                               {/* National ID */}
-                              <td className="px-4 py-3 font-mono text-slate-600 dark:text-slate-400">
+                              <td className="px-4 py-3.5 font-mono text-slate-600 dark:text-slate-300 text-sm">
                                 {u.national_id || '-'}
                               </td>
 
                               {/* Role */}
-                              <td className="px-4 py-3">
+                              <td className="px-4 py-3.5">
                                 <Badge
                                   variant={
                                     u.role === 'ADMIN' ? 'primary' :
@@ -1310,9 +1310,9 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                               </td>
 
                               {/* Status (فعال / معلق) */}
-                              <td className="px-4 py-3 text-center">
+                              <td className="px-4 py-3.5 text-center">
                                 <span
-                                  className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold ${
+                                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
                                     u.is_active
                                       ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50'
                                       : 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/50'
@@ -1324,12 +1324,12 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                               </td>
 
                               {/* Created At */}
-                              <td className="px-4 py-3 text-slate-400 font-mono text-[11px]">
+                              <td className="px-4 py-3.5 text-slate-500 dark:text-slate-400 font-mono text-xs sm:text-sm">
                                 {formatPersianDate(u.created_at)}
                               </td>
 
                               {/* Actions: ادیت، معلق، دیلیت */}
-                              <td className="px-4 py-3 text-center">
+                              <td className="px-4 py-3.5 text-center">
                                 <div className="flex items-center justify-center gap-1">
                                   {/* Edit (ادیت) */}
                                   <button
@@ -1422,32 +1422,32 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 <EmptyState message="هیچ لاگ ممیزی در سامانه ثبت نشده است." />
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-right text-xs">
-                    <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 border-b border-slate-100 dark:border-slate-800 font-bold">
+                  <table className="w-full text-right text-sm">
+                    <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800 font-bold text-xs sm:text-sm">
                       <tr>
-                        <th className="px-4 py-3">زمان رخداد</th>
-                        <th className="px-4 py-3">نوع عملیات</th>
-                        <th className="px-4 py-3">کاربر</th>
-                        <th className="px-4 py-3">آدرس IP</th>
-                        <th className="px-4 py-3">جزئیات عملیات</th>
+                        <th className="px-4 py-3.5">زمان رخداد</th>
+                        <th className="px-4 py-3.5">نوع عملیات</th>
+                        <th className="px-4 py-3.5">کاربر</th>
+                        <th className="px-4 py-3.5">آدرس IP</th>
+                        <th className="px-4 py-3.5">جزئیات عملیات</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       {auditLogs.map((log) => (
                         <tr key={log.id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
-                          <td className="px-4 py-3 font-mono text-slate-500 whitespace-nowrap">
+                          <td className="px-4 py-3.5 font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap text-xs sm:text-sm">
                             {formatPersianDate(log.created_at)}
                           </td>
-                          <td className="px-4 py-3">
-                            <span className="font-semibold text-slate-800 dark:text-slate-200">
+                          <td className="px-4 py-3.5">
+                            <span className="font-semibold text-slate-800 dark:text-slate-200 text-sm">
                               {actionLabels[log.action] || log.action}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-slate-700 dark:text-slate-300 font-mono">
+                          <td className="px-4 py-3.5 text-slate-700 dark:text-slate-300 font-mono text-sm">
                             {log.user_phone || 'سیستم'}
                           </td>
-                          <td className="px-4 py-3 font-mono text-slate-500 text-[11px]">{log.ip_address || '-'}</td>
-                          <td className="px-4 py-3 text-slate-600 dark:text-slate-400 max-w-xs truncate">
+                          <td className="px-4 py-3.5 font-mono text-slate-500 dark:text-slate-400 text-xs sm:text-sm">{log.ip_address || '-'}</td>
+                          <td className="px-4 py-3.5 text-slate-600 dark:text-slate-300 text-xs sm:text-sm max-w-xs truncate">
                             {typeof log.details === 'object' ? JSON.stringify(log.details) : (log.details || '-')}
                           </td>
                         </tr>
@@ -1471,13 +1471,13 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
         maxWidth="max-w-xl"
       >
         <form onSubmit={handleCreateUser} className="space-y-4">
-          <div className="p-3 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 rounded-xl text-xs text-sky-800 dark:text-sky-300">
+          <div className="p-3 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 rounded-xl text-sm text-sky-800 dark:text-sky-300">
             شما به عنوان مدیر آموزشگاه می‌توانید شناگران و مربیان جدید را به سیستم اضافه کنید.
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                 شماره تلفن همراه (شناسه ورود) <span className="text-rose-500">*</span>
               </label>
               <div className="relative">
@@ -1489,13 +1489,13 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                   placeholder="09123456789"
                   value={addForm.phone}
                   onChange={(e) => setAddForm({ ...addForm, phone: e.target.value })}
-                  className="w-full pl-3 pr-9 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                  className="w-full pl-3 pr-9 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                 کد ملی
               </label>
               <input
@@ -1505,12 +1505,12 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 placeholder="۱۰ رقم بدون خط تیره"
                 value={addForm.national_id}
                 onChange={(e) => setAddForm({ ...addForm, national_id: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                className="w-full px-3 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                 نام <span className="text-rose-500">*</span>
               </label>
               <input
@@ -1519,12 +1519,12 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 placeholder="مثلاً علی"
                 value={addForm.first_name}
                 onChange={(e) => setAddForm({ ...addForm, first_name: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                className="w-full px-3 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                 نام خانوادگی <span className="text-rose-500">*</span>
               </label>
               <input
@@ -1533,14 +1533,14 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 placeholder="مثلاً حسینی"
                 value={addForm.last_name}
                 onChange={(e) => setAddForm({ ...addForm, last_name: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                className="w-full px-3 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
               />
             </div>
           </div>
 
           {/* Role Selection */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-2">
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-2">
               نقش کاربری در آموزشگاه <span className="text-rose-500">*</span>
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -1572,8 +1572,8 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <IconComponent className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-                        <span className="font-semibold text-xs text-slate-800 dark:text-slate-100">
+                        <IconComponent className="w-4.5 h-4.5 text-sky-600 dark:text-sky-400" />
+                        <span className="font-semibold text-sm text-slate-800 dark:text-slate-100">
                           {roleItem.label}
                         </span>
                       </div>
@@ -1581,7 +1581,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                         isSelected ? 'border-sky-600 bg-sky-600' : 'border-slate-300 dark:border-slate-600'
                       }`} />
                     </div>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 line-clamp-2">
                       {roleItem.desc}
                     </p>
                   </div>
@@ -1592,21 +1592,21 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
 
           {/* Password (تنظیم کلمه عبور بدون امکان مشاهده توسط مدیر) */}
           <div className="space-y-2">
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200">
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
               کلمه عبور ورود به سامانه
             </label>
             {!addForm.password ? (
               <div className="p-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                     طبق ضوابط امنیتی، مدیر کلمه عبور کاربر را نمی‌بیند. می‌توانید کلمه عبور تصادفی تولید و کپی کنید، یا فیلد را خالی بگذارید تا ورود کاربر از طریق کد پیامکی OTP یا کد ملی انجام شود.
                   </p>
                   <button
                     type="button"
                     onClick={handleGenerateAddPassword}
-                    className="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                    className="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
                   >
-                    <KeyRound className="w-3.5 h-3.5" />
+                    <KeyRound className="w-4 h-4" />
                     <span>تولید رمز تصادفی و کپی</span>
                   </button>
                 </div>
@@ -1614,14 +1614,14 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
             ) : (
               <div className="p-3 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50/50 dark:bg-sky-950/30 space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-sky-900 dark:text-sky-200 flex items-center gap-1.5">
-                    <KeyRound className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                  <span className="text-xs sm:text-sm font-semibold text-sky-900 dark:text-sky-200 flex items-center gap-1.5">
+                    <KeyRound className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                     کلمه عبور امن تصادفی تولید و در کلیپ‌بورد کپی شد
                   </span>
                   <button
                     type="button"
                     onClick={() => setAddForm((prev) => ({ ...prev, password: '' }))}
-                    className="text-[11px] text-rose-500 hover:underline cursor-pointer"
+                    className="text-xs text-rose-500 hover:underline cursor-pointer"
                   >
                     حذف رمز (ورود با کد ملی / پیامک)
                   </button>
@@ -1633,15 +1633,15 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                       type="password"
                       readOnly
                       value={addForm.password}
-                      className="w-full pl-3 pr-9 py-2 text-xs font-mono bg-white dark:bg-slate-900 border border-sky-300 dark:border-sky-700 rounded-xl text-slate-500 cursor-not-allowed select-none tracking-widest"
+                      className="w-full pl-3 pr-9 py-2.5 text-sm font-mono bg-white dark:bg-slate-900 border border-sky-300 dark:border-sky-700 rounded-xl text-slate-500 cursor-not-allowed select-none tracking-widest"
                     />
                   </div>
                   <button
                     type="button"
                     onClick={() => copyToClipboard(addForm.password, 'کلمه عبور مجدداً در کلیپ‌بورد کپی شد.')}
-                    className="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                    className="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
                   >
-                    <Copy className="w-3.5 h-3.5" />
+                    <Copy className="w-4 h-4" />
                     <span>کپی رمز عبور</span>
                   </button>
                   <button
@@ -1650,10 +1650,10 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                     className="p-2 border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl transition-colors cursor-pointer"
                     title="تولید مجدد رمز"
                   >
-                    <RefreshCw className="w-3.5 h-3.5" />
+                    <RefreshCw className="w-4 h-4" />
                   </button>
                 </div>
-                <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   کاراکترهای رمز به دلایل امنیتی برای مدیر نمایش داده نمی‌شوند؛ رمز در کلیپ‌بورد شماست و می‌توانید مستقیماً برای کاربر ارسال کنید.
                 </p>
               </div>
@@ -1669,7 +1669,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               onChange={(e) => setAddForm({ ...addForm, is_active: e.target.checked })}
               className="w-4 h-4 text-sky-600 rounded-md border-slate-300 dark:border-slate-600 focus:ring-sky-500 cursor-pointer"
             />
-            <label htmlFor="add_is_active" className="text-xs text-slate-700 dark:text-slate-300 select-none cursor-pointer">
+            <label htmlFor="add_is_active" className="text-sm text-slate-700 dark:text-slate-300 select-none cursor-pointer">
               حساب کاربری از ابتدا <strong>فعال</strong> باشد و کاربر معلق نباشد.
             </label>
           </div>
@@ -1681,6 +1681,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               variant="outline"
               onClick={() => setIsAddModalOpen(false)}
               disabled={addingUser}
+              className="text-sm font-medium"
             >
               انصراف
             </Button>
@@ -1688,16 +1689,16 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               type="submit"
               variant="primary"
               disabled={addingUser}
-              className="gap-2"
+              className="gap-2 text-sm font-bold"
             >
               {addingUser ? (
                 <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <RefreshCw className="w-4 h-4 animate-spin" />
                   <span>در حال افزودن...</span>
                 </>
               ) : (
                 <>
-                  <UserPlus className="w-3.5 h-3.5" />
+                  <UserPlus className="w-4 h-4" />
                   <span>ثبت و ایجاد کاربر</span>
                 </>
               )}
@@ -1718,7 +1719,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
         <form onSubmit={handleUpdateUser} className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                 نام
               </label>
               <input
@@ -1726,12 +1727,12 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 required
                 value={editForm.first_name}
                 onChange={(e) => setEditForm({ ...editForm, first_name: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                className="w-full px-3 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                 نام خانوادگی
               </label>
               <input
@@ -1739,12 +1740,12 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 required
                 value={editForm.last_name}
                 onChange={(e) => setEditForm({ ...editForm, last_name: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                className="w-full px-3 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                 شماره تلفن همراه
               </label>
               <input
@@ -1753,12 +1754,12 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 dir="ltr"
                 value={editForm.phone}
                 onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                className="w-full px-3 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
                 کد ملی
               </label>
               <input
@@ -1766,14 +1767,14 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 dir="ltr"
                 value={editForm.national_id}
                 onChange={(e) => setEditForm({ ...editForm, national_id: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
+                className="w-full px-3 py-2.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
               />
             </div>
           </div>
 
           {/* Role */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200 mb-1.5">
               نقش و سطح دسترسی کاربر
             </label>
             {selectedUser?.role === 'ADMIN' ? (
@@ -1781,7 +1782,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 type="text"
                 disabled
                 value="مدیر آموزشگاه (ADMIN) - حساب کاربری جاری"
-                className="w-full px-3 py-2 text-xs bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 cursor-not-allowed"
+                className="w-full px-3 py-2.5 text-sm bg-slate-100 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 cursor-not-allowed"
               />
             ) : (
               <CustomSelect
@@ -1809,21 +1810,21 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
           {/* Password (تنظیم کلمه عبور بدون دسترسی یا مشاهده توسط مدیر) */}
           {selectedUser?.role !== 'ADMIN' && (
             <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200">
+              <label className="block text-sm font-semibold text-slate-700 dark:text-slate-200">
                 کلمه عبور ورود به سامانه
               </label>
               {!editForm.password ? (
                 <div className="p-3 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-slate-50/60 dark:bg-slate-800/40">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                       رمزهای عبور کاربران هش‌شده و برای هیچ‌کس (از جمله مدیر) قابل مشاهده نیست. در صورت درخواست کاربر، می‌توانید کلمه عبور تصادفی جدید صادر و در کلیپ‌بورد کپی فرمایید.
                     </p>
                     <button
                       type="button"
                       onClick={handleGenerateEditPassword}
-                      className="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                      className="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shrink-0"
                     >
-                      <KeyRound className="w-3.5 h-3.5" />
+                      <KeyRound className="w-4 h-4" />
                       <span>تولید رمز تصادفی و کپی</span>
                     </button>
                   </div>
@@ -1831,14 +1832,14 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               ) : (
                 <div className="p-3 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50/50 dark:bg-sky-950/30 space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-semibold text-sky-900 dark:text-sky-200 flex items-center gap-1.5">
-                      <KeyRound className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                    <span className="text-xs sm:text-sm font-semibold text-sky-900 dark:text-sky-200 flex items-center gap-1.5">
+                      <KeyRound className="w-4 h-4 text-sky-600 dark:text-sky-400" />
                       کلمه عبور تصادفی جدید آماده ثبت و در کلیپ‌بورد کپی شد
                     </span>
                     <button
                       type="button"
                       onClick={() => setEditForm((prev) => ({ ...prev, password: '' }))}
-                      className="text-[11px] text-rose-500 hover:underline cursor-pointer"
+                      className="text-xs text-rose-500 hover:underline cursor-pointer"
                     >
                       انصراف از تغییر رمز
                     </button>
@@ -1850,15 +1851,15 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                         type="password"
                         readOnly
                         value={editForm.password}
-                        className="w-full pl-3 pr-9 py-2 text-xs font-mono bg-white dark:bg-slate-900 border border-sky-300 dark:border-sky-700 rounded-xl text-slate-500 cursor-not-allowed select-none tracking-widest"
+                        className="w-full pl-3 pr-9 py-2.5 text-sm font-mono bg-white dark:bg-slate-900 border border-sky-300 dark:border-sky-700 rounded-xl text-slate-500 cursor-not-allowed select-none tracking-widest"
                       />
                     </div>
                     <button
                       type="button"
                       onClick={() => copyToClipboard(editForm.password, 'کلمه عبور جدید مجدداً در کلیپ‌بورد کپی شد.')}
-                      className="px-3 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
+                      className="px-3.5 py-2 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-1.5 transition-colors cursor-pointer shrink-0"
                     >
-                      <Copy className="w-3.5 h-3.5" />
+                      <Copy className="w-4 h-4" />
                       <span>کپی رمز عبور</span>
                     </button>
                     <button
@@ -1867,10 +1868,10 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                       className="p-2 border border-slate-200 dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl transition-colors cursor-pointer"
                       title="تولید مجدد رمز"
                     >
-                      <RefreshCw className="w-3.5 h-3.5" />
+                      <RefreshCw className="w-4 h-4" />
                     </button>
                   </div>
-                  <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     با کلیک بر روی «ذخیره مشخصات»، این رمز اعمال می‌شود. کاراکترها به مدیر نمایش داده نمی‌شوند و در کلیپ‌بورد کپی شده‌اند.
                   </p>
                 </div>
@@ -1888,7 +1889,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 onChange={(e) => setEditForm({ ...editForm, is_active: e.target.checked })}
                 className="w-4 h-4 text-sky-600 rounded-md border-slate-300 dark:border-slate-600 focus:ring-sky-500 cursor-pointer"
               />
-              <label htmlFor="edit_is_active" className="text-xs text-slate-700 dark:text-slate-300 select-none cursor-pointer">
+              <label htmlFor="edit_is_active" className="text-sm text-slate-700 dark:text-slate-300 select-none cursor-pointer">
                 وضعیت حساب کاربری فعال باشد (معلق نباشد).
               </label>
             </div>
@@ -1901,6 +1902,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               variant="outline"
               onClick={() => setIsEditModalOpen(false)}
               disabled={updatingUser}
+              className="text-sm font-medium"
             >
               انصراف
             </Button>
@@ -1908,16 +1910,16 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               type="submit"
               variant="primary"
               disabled={updatingUser}
-              className="gap-2"
+              className="gap-2 text-sm font-bold"
             >
               {updatingUser ? (
                 <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <RefreshCw className="w-4 h-4 animate-spin" />
                   <span>در حال ذخیره...</span>
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <CheckCircle2 className="w-4 h-4" />
                   <span>ذخیره تغییرات</span>
                 </>
               )}
@@ -1936,7 +1938,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
         maxWidth="max-w-md"
       >
         <div className="space-y-4">
-          <div className="flex items-start gap-3 p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-xl text-rose-800 dark:text-rose-200 text-xs">
+          <div className="flex items-start gap-3 p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-xl text-rose-800 dark:text-rose-200 text-sm">
             <AlertTriangle className="w-5 h-5 shrink-0 text-rose-600 dark:text-rose-400 mt-0.5" />
             <div className="leading-relaxed">
               <strong>هشدار مدیریتی:</strong> آیا از حذف کامل کاربر{' '}
@@ -1944,18 +1946,18 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
             </div>
           </div>
 
-          <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl text-xs space-y-2 text-slate-600 dark:text-slate-300">
+          <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl text-sm space-y-2 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60">
             <div className="flex justify-between">
-              <span>شماره تلفن:</span>
-              <span className="font-mono font-bold">{selectedUser?.phone}</span>
+              <span className="text-slate-500 dark:text-slate-400">شماره تلفن:</span>
+              <span className="font-mono font-bold text-slate-800 dark:text-slate-100">{selectedUser?.phone}</span>
             </div>
             <div className="flex justify-between">
-              <span>کد ملی:</span>
-              <span className="font-mono">{selectedUser?.national_id || '—'}</span>
+              <span className="text-slate-500 dark:text-slate-400">کد ملی:</span>
+              <span className="font-mono text-slate-800 dark:text-slate-100">{selectedUser?.national_id || '—'}</span>
             </div>
             <div className="flex justify-between">
-              <span>نقش:</span>
-              <span>{roleLabels[selectedUser?.role] || selectedUser?.role}</span>
+              <span className="text-slate-500 dark:text-slate-400">نقش:</span>
+              <span className="font-semibold text-slate-800 dark:text-slate-100">{roleLabels[selectedUser?.role] || selectedUser?.role}</span>
             </div>
           </div>
 
@@ -1965,6 +1967,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               variant="outline"
               onClick={() => setIsDeleteModalOpen(false)}
               disabled={deletingUser}
+              className="text-sm font-medium"
             >
               انصراف
             </Button>
@@ -1973,16 +1976,16 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               variant="danger"
               onClick={handleDeleteUser}
               disabled={deletingUser}
-              className="gap-2 bg-rose-600 hover:bg-rose-700 text-white"
+              className="gap-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-bold"
             >
               {deletingUser ? (
                 <>
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <RefreshCw className="w-4 h-4 animate-spin" />
                   <span>در حال حذف...</span>
                 </>
               ) : (
                 <>
-                  <Trash2 className="w-3.5 h-3.5" />
+                  <Trash2 className="w-4 h-4" />
                   <span>حذف قطعی کاربر</span>
                 </>
               )}
@@ -2006,9 +2009,9 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
         <div className="space-y-4">
           {!generatedResetPassword ? (
             <>
-              <div className="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-xs text-amber-800 dark:text-amber-300 leading-relaxed space-y-1.5">
+              <div className="p-3.5 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-xl text-sm text-amber-800 dark:text-amber-300 leading-relaxed space-y-1.5">
                 <div className="flex items-center gap-1.5 font-bold text-amber-900 dark:text-amber-200">
-                  <ShieldAlert className="w-4 h-4 text-amber-600 shrink-0" />
+                  <ShieldAlert className="w-4.5 h-4.5 text-amber-600 shrink-0" />
                   <span>حفظ امنیت و محرمانگی کلمه عبور کاربر</span>
                 </div>
                 <p>
@@ -2016,7 +2019,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 </p>
               </div>
 
-              <div className="p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 text-xs space-y-1.5">
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 text-sm space-y-2">
                 <div className="flex justify-between">
                   <span className="text-slate-500 dark:text-slate-400">نام کاربر:</span>
                   <span className="font-semibold text-slate-800 dark:text-slate-100">{selectedUser?.full_name || 'بدون نام'}</span>
@@ -2037,6 +2040,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                   variant="outline"
                   onClick={() => setIsResetPasswordModalOpen(false)}
                   disabled={resettingUser}
+                  className="text-sm font-medium"
                 >
                   انصراف
                 </Button>
@@ -2045,16 +2049,16 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                   variant="primary"
                   onClick={handleExecuteResetPassword}
                   disabled={resettingUser}
-                  className="gap-2"
+                  className="gap-2 text-sm font-bold"
                 >
                   {resettingUser ? (
                     <>
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <RefreshCw className="w-4 h-4 animate-spin" />
                       <span>در حال صدور و ثبت...</span>
                     </>
                   ) : (
                     <>
-                      <KeyRound className="w-3.5 h-3.5" />
+                      <KeyRound className="w-4 h-4" />
                       <span>تولید، ثبت و کپی کلمه عبور جدید</span>
                     </>
                   )}
@@ -2067,18 +2071,18 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 <div className="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-300 flex items-center justify-center mx-auto">
                   <CheckCircle2 className="w-5 h-5" />
                 </div>
-                <h4 className="font-bold text-sm text-emerald-900 dark:text-emerald-100">
+                <h4 className="font-bold text-base text-emerald-900 dark:text-emerald-100">
                   کلمه عبور جدید با موفقیت ثبت شد
                 </h4>
-                <p className="text-xs text-emerald-800 dark:text-emerald-300 leading-relaxed">
+                <p className="text-sm text-emerald-800 dark:text-emerald-300 leading-relaxed">
                   رمز عبور تصادفی جدید در کلیپ‌بورد سیستم شما کپی گردید. لطفاً آن را از طریق پیامک یا پیام‌رسان به کاربر اعلام فرمایید.
                 </p>
               </div>
 
-              <div className="p-3 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-slate-400" />
-                  <span className="font-mono text-sm tracking-widest text-slate-600 dark:text-slate-300 select-none">
+                  <Lock className="w-4.5 h-4.5 text-slate-400" />
+                  <span className="font-mono text-base tracking-widest text-slate-600 dark:text-slate-300 select-none">
                     ••••••••••••••
                   </span>
                 </div>
@@ -2086,9 +2090,9 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                   type="button"
                   variant="outline"
                   onClick={() => copyToClipboard(generatedResetPassword, 'کلمه عبور مجدداً در کلیپ‌بورد کپی شد.')}
-                  className="gap-1.5 text-xs py-1.5 px-3"
+                  className="gap-1.5 text-xs sm:text-sm py-1.5 px-3 font-semibold"
                 >
-                  <Copy className="w-3.5 h-3.5" />
+                  <Copy className="w-4 h-4" />
                   <span>کپی مجدد رمز عبور</span>
                 </Button>
               </div>
@@ -2101,6 +2105,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                     setIsResetPasswordModalOpen(false);
                     setGeneratedResetPassword(null);
                   }}
+                  className="text-sm font-bold"
                 >
                   متوجه شدم و بستن
                 </Button>
