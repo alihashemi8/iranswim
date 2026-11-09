@@ -64,6 +64,7 @@ import { AdminSessionsPage } from './pages/admin/AdminSessionsPage';
 // Coach Pages
 import { CoachDashboard } from './pages/coach/CoachDashboard';
 import { CoachClassesPage } from './pages/coach/CoachClassesPage';
+import { CoachClassesArchivePage } from './pages/coach/CoachClassesArchivePage';
 import { CoachClassDetailPage } from './pages/coach/CoachClassDetailPage';
 import { CoachAttendancePage } from './pages/coach/CoachAttendancePage';
 import { CoachProgressPage } from './pages/coach/CoachProgressPage';
@@ -248,6 +249,7 @@ export default function App() {
 
                 {/* 2. My Classes */}
                 <Route path="classes" element={<CoachClassesPage />} />
+                <Route path="classes/archive" element={<CoachClassesArchivePage />} />
                 <Route path="classes/:id" element={<CoachClassDetailPage />} />
 
                 {/* 3. Attendance */}
