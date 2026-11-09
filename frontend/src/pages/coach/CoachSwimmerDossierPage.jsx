@@ -144,7 +144,7 @@ export const CoachSwimmerDossierPage = () => {
   const skillLevels = data.skill_levels || [];
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 coach-panel">
       {/* 1. Header & Navigation */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -364,7 +364,7 @@ export const CoachSwimmerDossierPage = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">نمره (از ۱۰۰):</label>
+                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">نمره (از 100):</label>
                   <input
                     type="number"
                     min="0"
