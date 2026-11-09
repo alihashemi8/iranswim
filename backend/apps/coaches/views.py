@@ -104,7 +104,7 @@ class CoachReorderView(APIView):
 
 class CoachDashboardOverviewView(APIView):
     """
-    پیشخوان مربی: نقطه ورود و مرکز عملیات روزانه مربی.
+    داشبورد مربی: نقطه ورود و مرکز عملیات روزانه مربی.
     داده‌های زنده امروز، جلسه بعدی، جلسات نیازمند ثبت حضور و آمار تجمیعی کلاس‌های تخصیص‌یافته.
     """
     permission_classes = [IsAdminOrCoach]

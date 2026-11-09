@@ -172,6 +172,14 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               <div className="flex items-center gap-2 mr-1">
                 {user.role === 'SWIMMER' ? (
                   <ChildSwitcher />
+                ) : user.role === 'COACH' ? (
+                  <Link
+                    to="/coach/profile"
+                    className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs sm:text-sm font-bold bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/80 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 transition-colors"
+                    title="مشاهده پروفایل مربی"
+                  >
+                    <span>{user.full_name || 'مربی'}</span>
+                  </Link>
                 ) : (
                   <span className="hidden sm:inline-block px-3 py-1 rounded-lg text-xs sm:text-sm font-bold bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200/70 dark:border-sky-800/80">
                     {roleTitles[user.role] || 'داشبورد کاربری'}

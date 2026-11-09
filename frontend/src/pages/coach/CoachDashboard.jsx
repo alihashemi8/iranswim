@@ -22,7 +22,7 @@ export const CoachDashboard = () => {
         setData(res.data);
       } catch (err) {
         console.error('Error fetching coach dashboard:', err);
-        toast.error('خطا در دریافت اطلاعات پیشخوان مربی');
+        toast.error('خطا در دریافت اطلاعات داشبورد مربی');
       } finally {
         setLoading(false);
       }
@@ -47,10 +47,18 @@ export const CoachDashboard = () => {
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-sm font-semibold mb-3">
               <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
-              پیشخوان روزانه مربی شنا
+              داشبورد روزانه مربی شنا
             </div>
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight">
-              درود، {coach.full_name || 'مربی گرامی'}!
+              درود،{' '}
+              <Link
+                to="/coach/profile"
+                className="hover:underline hover:text-emerald-200 transition-colors"
+                title="مشاهده پروفایل مربی"
+              >
+                {coach.full_name || 'مربی گرامی'}
+              </Link>
+              !
             </h1>
             <p className="text-emerald-100 text-base sm:text-lg mt-1.5 max-w-xl font-normal leading-relaxed">
               برنامه تمرینات، حضور و غیاب کنار استخر و پیشرفت شناگران امروز در یک نگاه.

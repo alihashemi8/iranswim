@@ -34,7 +34,7 @@ const ROLE_DEFINITIONS = {
     label: 'مربی آکادمی',
     variant: 'success',
     bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
-    description: 'دسترسی به پیشخوان مربی، کلاس‌ها، حضور و غیاب و ارزیابی'
+    description: 'دسترسی به داشبورد مربی، کلاس‌ها، حضور و غیاب و ارزیابی'
   },
   SWIMMER: {
     label: 'شناگر / اولیا',

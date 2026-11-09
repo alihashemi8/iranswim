@@ -159,12 +159,12 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     },
   ];
 
-  // Coach Navigation (9 modules in 4 logical workflow groups)
+  // Coach Navigation (8 modules in 4 logical workflow groups)
   const coachGroups = [
     {
       groupTitle: 'مدیریت و کلاس‌های روزانه',
       items: [
-        { to: '/coach', label: 'پیشخوان مربی', icon: LayoutDashboard, end: true },
+        { to: '/coach', label: 'داشبورد', icon: LayoutDashboard, end: true },
         { to: '/coach/classes', label: 'کلاس‌های من', icon: BookOpen },
         { to: '/coach/attendance', label: 'ثبت حضور و غیاب', icon: ClipboardCheck },
       ],
@@ -183,10 +183,9 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       ],
     },
     {
-      groupTitle: 'ارتباطات و حساب فردی',
+      groupTitle: 'ارتباطات',
       items: [
         { to: '/coach/messages', label: 'پیام‌ها و اطلاعیه‌ها', icon: MessageSquare },
-        { to: '/coach/profile', label: 'پروفایل و تنظیمات', icon: Settings },
       ],
     },
   ];
@@ -252,7 +251,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   // Fixed Top User Profile Header (Click navigates directly to user's page without dropdown)
   const renderTopProfile = (isMobile = false) => {
     const profilePath = user.role === 'ADMIN' ? '/admin/profile' :
-      user.role === 'COACH' ? '/coach' :
+      user.role === 'COACH' ? '/coach/profile' :
       user.role === 'SWIMMER' ? '/swimmer' :
       user.role === 'SUPERVISOR' ? '/supervisor' : '/';
 
@@ -270,7 +269,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                     : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
                 }`
               }
-              title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : 'مشاهده پروفایل'}
+              title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : 'مشاهده پروفایل'}
             >
               <div className={`w-11 h-11 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-base shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}>
                 {user.full_name ? user.full_name.charAt(0) : 'U'}
@@ -317,7 +316,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                   : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
               }`
             }
-            title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : 'مشاهده پروفایل'}
+            title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : 'مشاهده پروفایل'}
           >
             <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-base shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}>
               {user.full_name ? user.full_name.charAt(0) : 'U'}
@@ -367,7 +366,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
               <div className="text-xs font-bold text-sky-400 mt-0.5">{roleTitles[user.role] || 'کاربر سیستم'}</div>
               {user.phone && <div className="text-xs text-slate-300 font-mono mt-0.5">{user.phone}</div>}
               <div className="text-xs text-slate-300 border-t border-slate-700/60 mt-1 pt-1 font-medium">
-                کلیک برای ورود به صفحه
+                {user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : 'کلیک برای ورود به صفحه'}
               </div>
               <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-y-4 border-y-transparent border-l-4 border-l-slate-900/95 dark:border-l-slate-800/95" />
             </div>
