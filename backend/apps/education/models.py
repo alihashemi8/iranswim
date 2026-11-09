@@ -163,13 +163,25 @@ class Course(models.Model):
                         }
                     )
 
-        # Clean up empty groups for coaches no longer assigned to this course
         current_coach_ids = set(self.coaches.values_list('id', flat=True))
+
+        # Unassign swimmers and requests whose coach is no longer in this course -> become "بدون مربی"
+        self.enrollments.exclude(coach_id__in=current_coach_ids).update(
+            coach=None,
+            group=None
+        )
+        self.enrollment_requests.exclude(coach_id__in=current_coach_ids).update(
+            coach=None,
+            group=None
+        )
+
+        # Clean up empty groups for coaches no longer assigned to this course
         for grp in self.groups.all():
-            assigned_coaches = list(grp.coach_assignments.values_list('coach_id', flat=True))
-            if assigned_coaches and not any(cid in current_coach_ids for cid in assigned_coaches):
-                if grp.enrollments.count() == 0 and grp.enrollment_requests.count() == 0:
-                    grp.delete()
+            assigned_coaches = set(grp.coach_assignments.values_list('coach_id', flat=True))
+            if not assigned_coaches.intersection(current_coach_ids):
+                self.enrollments.filter(group=grp).update(coach=None, group=None)
+                self.enrollment_requests.filter(group=grp).update(coach=None, group=None)
+                grp.delete()
 
 
 class SwimmerGroup(models.Model):

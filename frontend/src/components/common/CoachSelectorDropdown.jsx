@@ -196,13 +196,13 @@ export const CoachSelectorDropdown = ({
           type="button"
           onClick={handleToggle}
           disabled={disabled || loading}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50/90 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-dashed border-amber-300 dark:border-amber-700/60 font-bold text-xs transition-colors cursor-pointer shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shrink-0 ${
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-50/90 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 border border-dashed border-amber-300 dark:border-amber-700/60 font-bold text-xs transition-colors cursor-pointer shadow-2xs disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap shrink-0 ${
             size === 'sm' ? 'text-[11px] py-1 px-2' : ''
           }`}
-          title="کلیک جهت انتخاب مربی برای این شناگر"
+          title="این شناگر بدون مربی است. کلیک جهت انتخاب و تخصیص مربی"
         >
-          <GraduationCap className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
-          <span className="whitespace-nowrap">تخصیص مربی</span>
+          <UserX className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400 shrink-0" />
+          <span className="whitespace-nowrap font-bold">بدون مربی</span>
           {loading ? (
             <Loader2 className="w-3 h-3 animate-spin text-amber-600 shrink-0" />
           ) : isOpen ? (

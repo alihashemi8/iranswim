@@ -126,25 +126,6 @@ class CourseSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({
                     'coach_ids': 'حداقل یک مربی برای دوره آموزشی باید انتخاب شود.'
                 })
-        elif 'coach_ids' in attrs:
-            new_coach_ids = set(attrs.get('coach_ids') or [])
-            current_coaches = self.instance.coaches.all()
-            for coach in current_coaches:
-                if coach.id not in new_coach_ids:
-                    # Check if coach has active enrollments in this course
-                    has_enrollments = self.instance.enrollments.filter(
-                        coach=coach,
-                        status__in=['ACTIVE', 'PENDING_PAYMENT']
-                    ).exists()
-                    if not has_enrollments:
-                        has_enrollments = self.instance.groups.filter(
-                            coach_assignments__coach=coach,
-                            enrollments__status__in=['ACTIVE', 'PENDING_PAYMENT']
-                        ).exists()
-                    if has_enrollments:
-                        raise serializers.ValidationError({
-                            'coach_ids': f"امکان حذف مربی «{coach.full_name}» وجود ندارد؛ زیرا در کلاس این مربی در این دوره شناگر فعال ثبت‌نام شده است. ابتدا شناگران را به مربی دیگری منتقل کنید."
-                        })
 
         inst_count = attrs.get('installments_count')
         if inst_count is not None and inst_count < 1:
@@ -173,8 +154,8 @@ class CourseSerializer(serializers.ModelSerializer):
 
 class EnrollmentRequestSerializer(serializers.ModelSerializer):
     course_name = serializers.CharField(source='course.name', read_only=True)
-    group_name = serializers.CharField(source='group.name', read_only=True)
-    coach_name = serializers.CharField(source='coach.full_name', read_only=True)
+    group_name = serializers.CharField(source='group.name', read_only=True, default=None, allow_null=True)
+    coach_name = serializers.CharField(source='coach.full_name', read_only=True, default=None, allow_null=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     course_max_installments = serializers.IntegerField(source='course.installments_count', read_only=True)
     course_base_price = serializers.DecimalField(source='course.base_price', max_digits=12, decimal_places=2, read_only=True)
@@ -220,8 +201,8 @@ class EnrollmentSerializer(serializers.ModelSerializer):
     course_time = serializers.SerializerMethodField()
     course_gender = serializers.CharField(source='course.gender', read_only=True)
 
-    group_name = serializers.CharField(source='group.name', read_only=True)
-    coach_name = serializers.CharField(source='coach.full_name', read_only=True)
+    group_name = serializers.CharField(source='group.name', read_only=True, default=None, allow_null=True)
+    coach_name = serializers.CharField(source='coach.full_name', read_only=True, default=None, allow_null=True)
     coach_avatar = serializers.SerializerMethodField()
 
     course_coaches = serializers.SerializerMethodField()

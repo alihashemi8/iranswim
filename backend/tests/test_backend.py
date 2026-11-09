@@ -982,7 +982,7 @@ def test_remove_coach_from_course(api_client, admin_user, coach_user, swimmer_us
 
     # 2. Add an enrollment for coach1
     group1 = course.groups.first()
-    Enrollment.objects.create(
+    enr = Enrollment.objects.create(
         swimmer=swimmer_user.swimmer_profile,
         course=course,
         group=group1,
@@ -990,22 +990,20 @@ def test_remove_coach_from_course(api_client, admin_user, coach_user, swimmer_us
         status=Enrollment.Status.ACTIVE
     )
 
-    # 3. Trying to remove coach1 who has active enrollments should fail (HTTP 400)
-    fail_res = api_client.patch(f'/api/education/courses/{course.id}/', {
+    # 3. Removing coach1 should succeed and turn their students into "بدون مربی" (coach=None, group=None)
+    res_remove = api_client.patch(f'/api/education/courses/{course.id}/', {
         'coach_ids': []
     }, format='json')
-    assert fail_res.status_code == 400
-    assert 'شناگر' in str(fail_res.data)
-
-    # 4. If enrollment is deleted, removing coach1 is allowed and cleans up groups
-    Enrollment.objects.filter(course=course, coach=coach1).delete()
-    success_res = api_client.patch(f'/api/education/courses/{course.id}/', {
-        'coach_ids': []
-    }, format='json')
-    assert success_res.status_code == 200
+    assert res_remove.status_code == 200
     course.refresh_from_db()
     assert course.coaches.count() == 0
     assert course.groups.count() == 0
+
+    # Verify student is now "بدون مربی"
+    enr.refresh_from_db()
+    assert enr.coach is None
+    assert enr.group is None
+    assert enr.status == Enrollment.Status.ACTIVE
 
 
 

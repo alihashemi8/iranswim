@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   BookOpen, Users, GraduationCap, Calendar, Clock, MapPin,
   ChevronRight, ArrowRight, Search, Filter, CheckCircle2,
   AlertCircle, Eye, LayoutGrid, List, Plus, RefreshCw,
   Award, DollarSign, Sparkles, Layers, ShieldCheck, Phone,
-  Trash2, UserPlus, UserCheck, AlertTriangle, UserCog
+  Trash2, UserPlus, UserCheck, AlertTriangle, UserCog,
+  CheckSquare, Square, Whistle, UserX, Check
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -16,11 +17,13 @@ import { ProgressBar } from '../../components/common/Charts';
 import { CoachSelectorDropdown } from '../../components/common/CoachSelectorDropdown';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { SwimmerCourseCard } from '../../components/common/SwimmerCourseCard';
+import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
 
 export const AdminCourseDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const toast = useToast();
 
   const [course, setCourse] = useState(null);
@@ -30,8 +33,28 @@ export const AdminCourseDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // View state
-  const [activeTab, setActiveTab] = useState('swimmers'); // 'swimmers' | 'classes' | 'info'
+  // Tab state synced with URL search params (?tab=classes or swimmers or info)
+  const initialTab = searchParams.get('tab') || 'swimmers';
+  const [activeTab, setActiveTab] = useState(
+    ['swimmers', 'classes', 'info'].includes(initialTab) ? initialTab : 'swimmers'
+  );
+
+  useEffect(() => {
+    const tabFromUrl = searchParams.get('tab');
+    if (tabFromUrl && ['swimmers', 'classes', 'info'].includes(tabFromUrl) && tabFromUrl !== activeTab) {
+      setActiveTab(tabFromUrl);
+    }
+  }, [searchParams]);
+
+  const handleTabChange = (newTab) => {
+    setActiveTab(newTab);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('tab', newTab);
+      return next;
+    }, { replace: true });
+  };
+
   const [viewMode, setViewMode] = useState('table'); // 'table' | 'cards' for desktop/tablet
 
   // Mobile detection for responsive view (mobile always shows cards, tablet/desktop allows toggle)
@@ -58,6 +81,13 @@ export const AdminCourseDetailPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [classCoachFilter, setClassCoachFilter] = useState('ALL');
   const [statusFilter, setStatusFilter] = useState('ALL');
+
+  // Coach Management states inside Tab 2
+  const [coachSearchQuery, setCoachSearchQuery] = useState('');
+  const [selectedCoachIds, setSelectedCoachIds] = useState([]);
+  const [submittingCoaches, setSubmittingCoaches] = useState(false);
+  const [coachToDelete, setCoachToDelete] = useState(null);
+  const [removingCoachId, setRemovingCoachId] = useState(null);
 
   const fetchData = async (isRefresh = false) => {
     try {
@@ -109,7 +139,7 @@ export const AdminCourseDetailPage = () => {
       toast.success(
         coachId
           ? 'مربی با موفقیت به شناگر تخصیص یافت.'
-          : 'تخصیص مربی با موفقیت حذف شد.'
+          : 'تخصیص مربی با موفقیت حذف شد و شناگر به وضعیت «بدون مربی» تبدیل شد.'
       );
     } catch (err) {
       console.error('Error assigning coach:', err);
@@ -117,11 +147,83 @@ export const AdminCourseDetailPage = () => {
     }
   };
 
+  // Set of coach IDs already in this course
+  const currentCourseCoachIds = useMemo(() => {
+    return new Set((course?.coaches || []).map((c) => Number(c.id)));
+  }, [course]);
+
   // Available coaches not yet in this course
   const unassignedCoaches = useMemo(() => {
-    const courseCoachIds = new Set((course?.coaches || []).map((c) => Number(c.id)));
-    return allCoaches.filter((c) => !courseCoachIds.has(Number(c.id)));
-  }, [allCoaches, course]);
+    return allCoaches.filter((c) => !currentCourseCoachIds.has(Number(c.id)));
+  }, [allCoaches, currentCourseCoachIds]);
+
+  // Coaches currently assigned to this course
+  const assignedCoaches = useMemo(() => {
+    return course?.coaches || [];
+  }, [course]);
+
+  // Filtered unassigned coaches by search query
+  const filteredUnassignedCoaches = useMemo(() => {
+    const q = coachSearchQuery.trim().toLowerCase();
+    if (!q) return unassignedCoaches;
+    return unassignedCoaches.filter((c) => {
+      const name = (c.full_name || '').toLowerCase();
+      const spec = (c.specialties || '').toLowerCase();
+      return name.includes(q) || spec.includes(q);
+    });
+  }, [unassignedCoaches, coachSearchQuery]);
+
+  // Selected coach objects for live preview
+  const selectedCoachesList = useMemo(() => {
+    return allCoaches.filter((c) => selectedCoachIds.includes(c.id));
+  }, [allCoaches, selectedCoachIds]);
+
+  // Toggle selection for coach
+  const toggleCoachSelection = (coachId) => {
+    setSelectedCoachIds((prev) =>
+      prev.includes(coachId) ? prev.filter((cid) => cid !== coachId) : [...prev, coachId]
+    );
+  };
+
+  // Select / Deselect all filtered coaches
+  const handleSelectAllCoaches = () => {
+    const ids = filteredUnassignedCoaches.map((c) => c.id);
+    const allSelected = ids.every((cid) => selectedCoachIds.includes(cid));
+    if (allSelected) {
+      setSelectedCoachIds((prev) => prev.filter((cid) => !ids.includes(cid)));
+    } else {
+      setSelectedCoachIds((prev) => Array.from(new Set([...prev, ...ids])));
+    }
+  };
+
+  // Submit adding selected coaches to this course
+  const handleAddCoachesSubmit = async () => {
+    if (selectedCoachIds.length === 0) {
+      toast.warning('لطفاً حداقل یک مربی را با زدن تیک انتخاب کنید.');
+      return;
+    }
+
+    try {
+      setSubmittingCoaches(true);
+      const existingIds = (course.coaches || []).map((c) => Number(c.id));
+      const finalCoachIds = Array.from(new Set([...existingIds, ...selectedCoachIds.map(Number)]));
+
+      await api.patch(`/education/courses/${id}/`, {
+        coach_ids: finalCoachIds,
+      });
+
+      toast.success(
+        `${selectedCoachIds.length} مربی با موفقیت به دوره افزوده شد و کلاس‌های اختصاصی تشکیل گردید.`
+      );
+      setSelectedCoachIds([]);
+      await fetchData(true);
+    } catch (err) {
+      console.error('Error adding coaches to course:', err);
+      toast.error(err.response?.data?.detail || 'خطا در افزودن مربیان به دوره');
+    } finally {
+      setSubmittingCoaches(false);
+    }
+  };
 
   // Helper to find SwimmerGroup for a coach
   const getCoachGroup = (coachId, coachName) => {
@@ -138,35 +240,42 @@ export const AdminCourseDetailPage = () => {
     return enrollments.filter((e) => Number(e.coach) === Number(coachId)).length;
   };
 
-  // Handle removing a coach from the course
-  const handleRemoveCoachFromCourse = async (coachId, coachName) => {
-    const assignedCount = getCoachSwimmersCount(coachId);
-    if (assignedCount > 0) {
-      toast.error(
-        `امکان حذف مربی «${coachName}» وجود ندارد؛ زیرا ${assignedCount} شناگر در کلاس این مربی ثبت‌نام دارند. ابتدا شناگران را به مربی دیگری تخصیص دهید.`
-      );
-      return;
-    }
-    if (!window.confirm(`آیا از حذف مربی «${coachName}» از این دوره آموزشی اطمینان دارید؟`)) {
-      return;
-    }
+  // Request removing a coach (opens confirmation modal)
+  const handleRequestRemoveCoach = (coach) => {
+    const swimmersCount = getCoachSwimmersCount(coach.id);
+    setCoachToDelete({
+      ...coach,
+      swimmersCount,
+    });
+  };
+
+  // Execute confirmed coach removal
+  const handleConfirmRemoveCoach = async () => {
+    if (!coachToDelete) return;
+
     try {
-      const currentCoachIds = (course.coaches || []).map((c) => c.id);
-      const newCoachIds = currentCoachIds.filter((cid) => cid !== Number(coachId));
-      if (newCoachIds.length === 0) {
-        if (!window.confirm('توجه: این مربی تنها مربی این دوره است. با حذف وی، دوره موقتاً بدون مربی خواهد شد. آیا از ادامه مطمئن هستید؟')) {
-          return;
-        }
-      }
+      setRemovingCoachId(coachToDelete.id);
+      const currentCoachIds = (course.coaches || []).map((c) => Number(c.id));
+      const newCoachIds = currentCoachIds.filter((cid) => cid !== Number(coachToDelete.id));
+
       await api.patch(`/education/courses/${id}/`, {
         coach_ids: newCoachIds,
       });
-      toast.success(`مربی «${coachName}» با موفقیت از این دوره حذف شد.`);
+
+      toast.success(
+        coachToDelete.swimmersCount > 0
+          ? `مربی «${coachToDelete.full_name}» حذف شد و ${coachToDelete.swimmersCount} شناگر به وضعیت «بدون مربی» تبدیل شدند.`
+          : `مربی «${coachToDelete.full_name}» با موفقیت از این دوره حذف شد.`
+      );
+
+      setCoachToDelete(null);
       await fetchData(true);
     } catch (err) {
       console.error('Error removing coach from course:', err);
       const errMsg = err.response?.data?.coach_ids?.[0] || err.response?.data?.detail || 'خطا در حذف مربی از دوره';
       toast.error(errMsg);
+    } finally {
+      setRemovingCoachId(null);
     }
   };
 
@@ -189,7 +298,7 @@ export const AdminCourseDetailPage = () => {
       // Filter Class & Coach (unified because Coach = Class)
       if (classCoachFilter !== 'ALL') {
         if (classCoachFilter === 'UNASSIGNED') {
-          if (enr.coach || enr.group) return false;
+          if (enr.coach) return false;
         } else {
           const targetId = Number(classCoachFilter);
           const matchesCoach = Number(enr.coach) === targetId;
@@ -448,7 +557,7 @@ export const AdminCourseDetailPage = () => {
       <div className="grid grid-cols-3 bg-slate-200/70 dark:bg-slate-800/80 p-1.5 rounded-2xl gap-1 text-xs sm:text-sm font-bold border border-slate-200/80 dark:border-slate-700/60">
         <button
           type="button"
-          onClick={() => setActiveTab('swimmers')}
+          onClick={() => handleTabChange('swimmers')}
           className={`py-2.5 px-2 sm:px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer ${
             activeTab === 'swimmers'
               ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm border border-slate-200/50 dark:border-slate-800'
@@ -470,7 +579,7 @@ export const AdminCourseDetailPage = () => {
 
         <button
           type="button"
-          onClick={() => setActiveTab('classes')}
+          onClick={() => handleTabChange('classes')}
           className={`py-2.5 px-2 sm:px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer ${
             activeTab === 'classes'
               ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm border border-slate-200/50 dark:border-slate-800'
@@ -486,13 +595,13 @@ export const AdminCourseDetailPage = () => {
                 : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
             }`}
           >
-            {availableCoaches.length}
+            {assignedCoaches.length}
           </span>
         </button>
 
         <button
           type="button"
-          onClick={() => setActiveTab('info')}
+          onClick={() => handleTabChange('info')}
           className={`py-2.5 px-2 sm:px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer ${
             activeTab === 'info'
               ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm border border-slate-200/50 dark:border-slate-800'
@@ -541,7 +650,7 @@ export const AdminCourseDetailPage = () => {
                   color="sky"
                   options={[
                     { value: 'ALL', label: 'همه کلاس‌ها و مربیان' },
-                    { value: 'UNASSIGNED', label: 'بدون کلاس / مربی تخصیصی' },
+                    { value: 'UNASSIGNED', label: 'بدون مربی' },
                     ...(course?.coaches || []).map((c) => ({
                       value: String(c.id),
                       label: `کلاس ${c.full_name} (${getCoachSwimmersCount(c.id)} نفر)`,
@@ -736,7 +845,7 @@ export const AdminCourseDetailPage = () => {
                               placement="auto"
                               size="sm"
                             />
-                            {enr.group && (
+                            {enr.coach && enr.group && (
                               <div className="text-[11px] text-slate-500">
                                 <Link
                                   to={`/admin/classes/${enr.group}`}
@@ -843,169 +952,405 @@ export const AdminCourseDetailPage = () => {
 
       {/* 6. TAB 2: CLASSES & COACHES (UNIFIED - COACH = CLASS) */}
       {activeTab === 'classes' && (
-        <div className="space-y-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors">
+        <div className="space-y-6">
+          {/* Main Header Banner */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors">
             <div className="space-y-1">
               <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
                 <GraduationCap className="w-5 h-5 text-sky-600" />
-                <span>کلاس‌ها و کادر مربیان دوره ({availableCoaches.length} کلاس اختصاصی)</span>
+                <span>کلاس‌ها و مدیریت مربیان دوره ({assignedCoaches.length} کلاس اختصاصی)</span>
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                در این دوره هر مربی هدایت یک کلاس اختصاصی را بر عهده دارد. می‌توانید کلاس و مربی جدید بیفزایید یا ظرفیت شناگران هر کلاس را پایش کنید.
+                در این دوره هر مربی هدایت یک کلاس اختصاصی را بر عهده دارد. می‌توانید کلاس و مربی جدید بیفزایید یا مربیان و شاگردان فعلی را مدیریت کنید.
               </p>
             </div>
 
-            <Button
-              onClick={() => navigate(`/admin/courses/${id}/add-coach`)}
-              size="sm"
-              className="gap-2 text-xs bg-sky-600 hover:bg-sky-700 text-white shrink-0 self-start sm:self-center cursor-pointer shadow-sm shadow-sky-500/20"
-            >
-              <UserCog className="w-4 h-4" />
-              <span>مدیریت مربیان</span>
-            </Button>
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+              <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 text-sky-800 dark:text-sky-200">
+                {assignedCoaches.length} مربی فعال در دوره
+              </span>
+              <span className="text-xs font-bold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+                {unassignedCoaches.length} مربی آماده تخصیص
+              </span>
+            </div>
           </div>
 
-          {availableCoaches.length === 0 ? (
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200/80 dark:border-slate-800 shadow-xs text-center">
-              <EmptyState
-                title="هنوز مربی و کلاسی برای این دوره تعیین نشده است"
-                description="برای تشکیل کلاس‌های اختصاصی دوره، حداقل یک مربی از کادر آموزشگاه به دوره بیفزایید."
-              />
-              <div className="pt-4 flex justify-center">
-                <Button
-                  onClick={() => navigate(`/admin/courses/${id}/add-coach`)}
-                  className="gap-2 text-xs bg-sky-600 hover:bg-sky-700 text-white"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>افزودن اولین مربی و کلاس</span>
-                </Button>
-              </div>
+          {/* Section 1: Coaches Currently Assigned in this Course */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                <span>مربیانی که در حال حاضر در این دوره کلاس دارند ({assignedCoaches.length} مربی)</span>
+              </h3>
+              <span className="text-[11px] text-slate-400">
+                برای حذف مربی، از دکمه «حذف از دوره» در کارت مربی استفاده کنید.
+              </span>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {availableCoaches.map((c) => {
-                const group = getCoachGroup(c.id, c.full_name);
-                const swimmerCount = getCoachSwimmersCount(c.id);
-                const capacity = group?.capacity || 15;
-                const remaining = Math.max(0, capacity - swimmerCount);
-                const isFull = remaining <= 0;
 
-                return (
-                  <div
-                    key={c.id}
-                    className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4"
+            {assignedCoaches.length === 0 ? (
+              <div className="p-5 rounded-3xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-xs flex items-center gap-2.5">
+                <AlertCircle className="w-5 h-5 shrink-0 text-amber-600 dark:text-amber-400" />
+                <span>هم‌اکنون هیچ مربی‌ای در این دوره کلاس فعال ندارد. از بخش زیر مربیان مورد نظر را انتخاب و اضافه نمایید.</span>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {assignedCoaches.map((c) => {
+                  const group = getCoachGroup(c.id, c.full_name);
+                  const swimmerCount = getCoachSwimmersCount(c.id);
+                  const capacity = group?.capacity || 15;
+                  const remaining = Math.max(0, capacity - swimmerCount);
+                  const isFull = remaining <= 0;
+                  const isRemovingThis = removingCoachId === c.id;
+
+                  return (
+                    <div
+                      key={c.id}
+                      className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:shadow-md transition-all flex flex-col justify-between space-y-4 group"
+                    >
+                      <div className="space-y-3.5">
+                        {/* Coach & Class Header */}
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="relative shrink-0">
+                              {c.avatar ? (
+                                <img
+                                  src={c.avatar}
+                                  alt={c.full_name}
+                                  className="w-12 h-12 rounded-2xl object-cover border-2 border-sky-400 shadow-2xs"
+                                />
+                              ) : (
+                                <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-base shadow-2xs">
+                                  {c.full_name?.charAt(0) || 'م'}
+                                </div>
+                              )}
+                              <span className="absolute -bottom-0.5 -left-0.5 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
+                            </div>
+
+                            <div className="min-w-0">
+                              <h4 className="font-bold text-slate-900 dark:text-white text-base truncate">
+                                مربی {c.full_name}
+                              </h4>
+                              <span className="text-xs text-sky-600 dark:text-sky-400 font-semibold block mt-0.5">
+                                {c.class_name || (group?.name ? group.name : `کلاس مربی ${c.full_name}`)}
+                              </span>
+                            </div>
+                          </div>
+
+                          <Badge variant={isFull ? 'danger' : 'success'}>
+                            {isFull ? 'تکمیل ظرفیت' : 'ظرفیت پذیرش دارد'}
+                          </Badge>
+                        </div>
+
+                        {/* Class Specs Pill */}
+                        <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-2 text-xs">
+                          {group?.level_name && (
+                            <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-slate-800/80">
+                              <span className="text-slate-400">سطح آموزشی:</span>
+                              <span className="font-bold text-sky-600 dark:text-sky-400">
+                                {group.level_name}
+                              </span>
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                            <span className="text-slate-400">شناگران اختصاصی کلاس:</span>
+                            <span className="font-black font-mono text-slate-900 dark:text-white text-sm">
+                              {swimmerCount} <span className="text-xs font-normal text-slate-400">نفر</span>
+                            </span>
+                          </div>
+                          <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
+                            <span className="text-slate-400">ظرفیت مجاز کلاس:</span>
+                            <span className="font-mono text-slate-700 dark:text-slate-300">
+                              {capacity} نفر ({remaining} جای خالی)
+                            </span>
+                          </div>
+
+                          {/* Progress Bar */}
+                          <div className="pt-1">
+                            <ProgressBar
+                              value={swimmerCount}
+                              max={capacity}
+                              color={isFull ? 'rose' : remaining < 3 ? 'amber' : 'emerald'}
+                              height="h-2"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bottom Actions */}
+                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleTabChange('swimmers');
+                            setClassCoachFilter(String(c.id));
+                          }}
+                          className="px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                          title="مشاهده شاگردان کلاس این مربی در تب شناگران"
+                        >
+                          <Users className="w-3.5 h-3.5" />
+                          <span>شاگردان ({swimmerCount})</span>
+                        </button>
+
+                        <div className="flex items-center gap-1.5">
+                          {group && (
+                            <Link
+                              to={`/admin/classes/${group.id}`}
+                              className="p-1.5 px-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-colors inline-flex items-center gap-1"
+                              title="ورود به فضای کلاس"
+                            >
+                              <Eye className="w-3.5 h-3.5" />
+                              <span>کلاس</span>
+                            </Link>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => handleRequestRemoveCoach(c)}
+                            disabled={isRemovingThis}
+                            className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 border border-rose-200/80 dark:border-rose-900/50 hover:border-rose-300 transition-all cursor-pointer shrink-0 disabled:opacity-50"
+                            title={`حذف مربی ${c.full_name} از دوره`}
+                          >
+                            {isRemovingThis ? (
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
+                            )}
+                            <span>حذف از دوره</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Section 2: Add New Coaches & Form Dedicated Classes */}
+          <div className="space-y-4 pt-6 border-t border-slate-200/80 dark:border-slate-800">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
+              <div className="space-y-1.5">
+                <h3 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                  <Whistle className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                  <span>افزودن مربیان جدید و تشکیل کلاس‌های اختصاصی</span>
+                  <span className="text-xs text-slate-400 font-normal">
+                    ({unassignedCoaches.length} مربی در کادر آکادمی)
+                  </span>
+                </h3>
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  مربیان مورد نظر را از فهرست زیر <strong className="text-sky-600 dark:text-sky-400">تیک بزنید</strong>.
+                  به ازای هر مربی انتخابی، یک کلاس اختصاصی با عنوان «کلاس مربی [نام مربی]» با ظرفیت استاندارد ۱۵ نفر و متصل به زمان‌بندی و استخر این دوره تشکیل خواهد شد.
+                </p>
+              </div>
+
+              {/* Search Toolbar */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2">
+                <div className="relative flex-1 max-w-md">
+                  <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={coachSearchQuery}
+                    onChange={(e) => setCoachSearchQuery(e.target.value)}
+                    placeholder="جستجو در نام مربی یا تخصص..."
+                    className="w-full pr-10 pl-3 py-2 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
+                  />
+                  {coachSearchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setCoachSearchQuery('')}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600"
+                    >
+                      ✕
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2.5 flex-wrap">
+                  {unassignedCoaches.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleSelectAllCoaches}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
+                    >
+                      {filteredUnassignedCoaches.length > 0 &&
+                      filteredUnassignedCoaches.every((c) => selectedCoachIds.includes(c.id)) ? (
+                        <>
+                          <Square className="w-3.5 h-3.5 text-slate-500" />
+                          <span>لغو انتخاب همه</span>
+                        </>
+                      ) : (
+                        <>
+                          <CheckSquare className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                          <span>انتخاب همه ({filteredUnassignedCoaches.length})</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+
+                  <span
+                    className={`text-xs font-bold px-3 py-2 rounded-xl border transition-colors flex items-center gap-1.5 ${
+                      selectedCoachIds.length > 0
+                        ? 'text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/70 border-sky-200 dark:border-sky-800'
+                        : 'text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700'
+                    }`}
                   >
-                    <div className="space-y-3.5">
-                      {/* Coach & Class Header */}
-                      <div className="flex items-start justify-between gap-3">
+                    <Check className="w-3.5 h-3.5" />
+                    <span>
+                      {selectedCoachIds.length > 0
+                        ? `${selectedCoachIds.length} مربی انتخاب شده`
+                        : 'هیچ مربی‌ای تیک نخورده'}
+                    </span>
+                  </span>
+                </div>
+              </div>
+
+              {/* Available Coaches Grid */}
+              {unassignedCoaches.length === 0 ? (
+                <div className="p-6 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 text-center space-y-2">
+                  <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/40 text-emerald-600 dark:text-emerald-400 flex items-center justify-center mx-auto">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+                    تمامی مربیان فعال آکادمی هم‌اکنون به این دوره تخصیص یافته‌اند!
+                  </h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                    تمام مربیان موجود در سیستم در حال حاضر دارای کلاس اختصاصی در این دوره هستند.
+                  </p>
+                </div>
+              ) : filteredUnassignedCoaches.length === 0 ? (
+                <div className="p-8 text-center text-xs text-slate-400 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+                  مربی متناسب با عبارت «{coachSearchQuery}» یافت نشد.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filteredUnassignedCoaches.map((c) => {
+                    const isSelected = selectedCoachIds.includes(c.id);
+                    return (
+                      <div
+                        key={c.id}
+                        onClick={() => toggleCoachSelection(c.id)}
+                        className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 group select-none ${
+                          isSelected
+                            ? 'bg-sky-50/80 dark:bg-sky-950/50 border-sky-400 dark:border-sky-600 ring-2 ring-sky-500/20 shadow-xs'
+                            : 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-200/90 dark:border-slate-700/80 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800/60'
+                        }`}
+                      >
                         <div className="flex items-center gap-3 min-w-0">
                           <div className="relative shrink-0">
                             {c.avatar ? (
                               <img
                                 src={c.avatar}
                                 alt={c.full_name}
-                                className="w-12 h-12 rounded-2xl object-cover border-2 border-sky-400 shadow-2xs"
+                                className="w-11 h-11 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shadow-2xs"
                               />
                             ) : (
-                              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-base shadow-2xs">
-                                {c.full_name?.charAt(0) || 'م'}
+                              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-xs shadow-2xs">
+                                {c.full_name ? c.full_name.charAt(0) : 'م'}
                               </div>
                             )}
-                            <span className="absolute -bottom-0.5 -left-0.5 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
+                            <span className="absolute -bottom-0.5 -left-0.5 w-2.5 h-2.5 bg-emerald-500 border border-white dark:border-slate-900 rounded-full" />
                           </div>
 
                           <div className="min-w-0">
-                            <h3 className="font-bold text-slate-900 dark:text-white text-base truncate">
+                            <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white block truncate group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
                               مربی {c.full_name}
-                            </h3>
-                            <span className="text-xs text-sky-600 dark:text-sky-400 font-semibold block mt-0.5">
-                              {c.class_name || (group?.name ? group.name : `کلاس مربی ${c.full_name}`)}
                             </span>
+                            <span className="text-[11px] text-slate-500 dark:text-slate-400 block truncate mt-0.5">
+                              {c.specialties || 'مربی رسمی شنا'}
+                            </span>
+                            {isSelected && (
+                              <span className="inline-block text-[10px] text-sky-700 dark:text-sky-300 font-bold bg-sky-100 dark:bg-sky-900/60 px-2 py-0.5 rounded-md mt-1">
+                                تشکیل کلاس اختصاصی (۱۵ نفر)
+                              </span>
+                            )}
                           </div>
                         </div>
 
-                        <Badge variant={isFull ? 'danger' : 'success'}>
-                          {isFull ? 'تکمیل ظرفیت' : 'ظرفیت پذیرش دارد'}
-                        </Badge>
-                      </div>
-
-                      {/* Class Specs Pill */}
-                      <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-2 text-xs">
-                        {group?.level_name && (
-                          <div className="flex items-center justify-between pb-1.5 border-b border-slate-100 dark:border-slate-800/80">
-                            <span className="text-slate-400">سطح آموزشی:</span>
-                            <span className="font-bold text-sky-600 dark:text-sky-400">
-                              {group.level_name}
-                            </span>
-                          </div>
-                        )}
-                        <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
-                          <span className="text-slate-400">شناگران اختصاصی کلاس:</span>
-                          <span className="font-black font-mono text-slate-900 dark:text-white text-sm">
-                            {swimmerCount} <span className="text-xs font-normal text-slate-400">نفر</span>
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between text-slate-600 dark:text-slate-300">
-                          <span className="text-slate-400">ظرفیت مجاز کلاس:</span>
-                          <span className="font-mono text-slate-700 dark:text-slate-300">
-                            {capacity} نفر ({remaining} جای خالی)
-                          </span>
-                        </div>
-
-                        {/* Progress Bar */}
-                        <div className="pt-1">
-                          <ProgressBar
-                            value={swimmerCount}
-                            max={capacity}
-                            color={isFull ? 'rose' : remaining < 3 ? 'amber' : 'emerald'}
-                            height="h-2"
-                          />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Bottom Actions */}
-                    <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setActiveTab('swimmers');
-                          setClassCoachFilter(String(c.id));
-                        }}
-                        className="px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/60 text-sky-700 dark:text-sky-300 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
-                        title="مشاهده شاگردان کلاس این مربی"
-                      >
-                        <Users className="w-3.5 h-3.5" />
-                        <span>شاگردان ({swimmerCount})</span>
-                      </button>
-
-                      <div className="flex items-center gap-1.5">
-                        {group && (
-                          <Link
-                            to={`/admin/classes/${group.id}`}
-                            className="p-1.5 px-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-bold transition-colors inline-flex items-center gap-1"
-                            title="ورود به فضای کلاس"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>کلاس</span>
-                          </Link>
-                        )}
-
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveCoachFromCourse(c.id, c.full_name)}
-                          className="p-1.5 rounded-xl text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/50 hover:text-rose-700 transition-colors cursor-pointer"
-                          title="حذف مربی و کلاس از این دوره"
+                        <div
+                          className={`w-6 h-6 rounded-xl border flex items-center justify-center shrink-0 transition-all ${
+                            isSelected
+                              ? 'bg-sky-600 border-sky-600 text-white shadow-xs'
+                              : 'border-slate-300 dark:border-slate-600 group-hover:border-sky-400 bg-white dark:bg-slate-900'
+                          }`}
                         >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                          {isSelected && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                        </div>
                       </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Live Preview of Classes to be Created */}
+              {selectedCoachesList.length > 0 && (
+                <div className="bg-sky-50/70 dark:bg-sky-950/40 p-4 rounded-2xl border border-sky-200 dark:border-sky-800/80 space-y-2.5 animate-in fade-in-50 duration-200">
+                  <div className="flex items-center justify-between gap-3 flex-wrap">
+                    <div className="flex items-center gap-2 text-sky-900 dark:text-sky-200 font-bold text-xs sm:text-sm">
+                      <Sparkles className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                      <span>پیش‌نمایش کلاس‌هایی که تشکیل خواهند شد ({selectedCoachesList.length} کلاس):</span>
                     </div>
+                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                      استخر: {course.pool_location || 'استخر دوره'} - {course.schedule_days || course.days_of_week || 'سانس‌های دوره'}
+                    </span>
                   </div>
-                );
-              })}
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5 pt-1">
+                    {selectedCoachesList.map((c) => (
+                      <div
+                        key={c.id}
+                        className="bg-white dark:bg-slate-900 p-3 rounded-xl border border-sky-200/90 dark:border-sky-800/60 shadow-2xs flex items-center justify-between gap-2"
+                      >
+                        <div className="min-w-0">
+                          <span className="font-bold text-xs text-slate-900 dark:text-white block truncate">
+                            کلاس مربی {c.full_name}
+                          </span>
+                          <span className="text-[11px] text-slate-400 block truncate mt-0.5">
+                            کلاس اختصاصی - ظرفیت ۱۵ نفر
+                          </span>
+                        </div>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 shrink-0">
+                          آماده تشکیل
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Submit Action Bar */}
+              <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">
+                    تعداد مربیان انتخاب‌شده برای الحاق:
+                  </span>
+                  <span className="text-xs sm:text-sm font-black text-slate-900 dark:text-white font-mono">
+                    {selectedCoachIds.length} مربی
+                  </span>
+                </div>
+
+                <Button
+                  size="sm"
+                  onClick={handleAddCoachesSubmit}
+                  disabled={selectedCoachIds.length === 0 || submittingCoaches}
+                  className="gap-2 bg-sky-600 hover:bg-sky-700 text-white shadow-md shadow-sky-500/20 cursor-pointer disabled:opacity-50"
+                >
+                  {submittingCoaches ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 animate-spin" />
+                      <span>در حال افزودن و تشکیل کلاس‌ها...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      <span>
+                        افزودن و تشکیل {selectedCoachIds.length > 0 ? `${selectedCoachIds.length} کلاس اختصاصی` : 'کلاس‌ها'}
+                      </span>
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
-          )}
+          </div>
         </div>
       )}
 
@@ -1076,6 +1421,98 @@ export const AdminCourseDetailPage = () => {
           </div>
         </div>
       )}
+
+      {/* Confirmation Modal: Remove Coach from Course */}
+      <Modal
+        isOpen={Boolean(coachToDelete)}
+        onClose={() => {
+          if (!removingCoachId) setCoachToDelete(null);
+        }}
+        title="حذف مربی از دوره آموزشی"
+        maxWidth="max-w-md"
+      >
+        {coachToDelete && (
+          <div className="space-y-4 text-xs" dir="rtl">
+            <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-900/50 text-rose-800 dark:text-rose-300">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-bold text-sm text-rose-900 dark:text-rose-200">
+                  تأیید حذف مربی «{coachToDelete.full_name}»
+                </h4>
+                <p className="text-[11px] text-rose-700 dark:text-rose-400 mt-0.5">
+                  کلاس اختصاصی مرتبط با این مربی در این دوره منحل خواهد شد.
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-xs">
+                آیا از حذف مربی <strong className="text-slate-900 dark:text-white font-bold">«{coachToDelete.full_name}»</strong> از این دوره اطمینان دارید؟
+              </p>
+
+              {coachToDelete.swimmersCount > 0 && (
+                <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 space-y-1.5">
+                  <p className="font-bold text-xs flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>انتقال شاگردان به وضعیت «بدون مربی»</span>
+                  </p>
+                  <p className="text-[11px] leading-relaxed text-slate-600 dark:text-slate-300">
+                    این مربی دارای <strong>{coachToDelete.swimmersCount} شناگر ثبت‌نامی</strong> در این دوره است. با حذف مربی، کلاس اختصاصی ایشان منحل شده و وضعیت تمامی این شناگران به صورت خودکار به <strong className="text-amber-700 dark:text-amber-300 font-bold">«بدون مربی»</strong> تغییر می‌کند تا بتوانید در تب شناگران آن‌ها را به مربی یا کلاس جدید اختصاص دهید.
+                  </p>
+                </div>
+              )}
+
+              {assignedCoaches.length === 1 && (
+                <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[11px] space-y-0.5">
+                  <span className="font-bold text-slate-900 dark:text-white block">
+                    نکته مدیریتی:
+                  </span>
+                  <span>
+                    این مربی تنها مربی حاضر در این دوره است. با حذف وی، دوره موقتاً بدون مربی خواهد شد تا مربی جدیدی تخصیص دهید.
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCoachToDelete(null)}
+                disabled={Boolean(removingCoachId)}
+                className="cursor-pointer"
+              >
+                انصراف
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleConfirmRemoveCoach}
+                disabled={Boolean(removingCoachId)}
+                className="bg-rose-600 hover:bg-rose-700 text-white gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {removingCoachId ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>در حال حذف...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>
+                      {coachToDelete.swimmersCount > 0
+                        ? 'تأیید حذف و تبدیل شاگردان به بدون مربی'
+                        : 'بله، حذف مربی از دوره'}
+                    </span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };

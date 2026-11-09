@@ -31,6 +31,12 @@ export const AdminCourseAddCoachPage = () => {
   const [removingCoachId, setRemovingCoachId] = useState(null);
 
   useEffect(() => {
+    if (id) {
+      navigate(`/admin/courses/${id}?tab=classes`, { replace: true });
+    }
+  }, [id, navigate]);
+
+  useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -123,14 +129,6 @@ export const AdminCourseAddCoachPage = () => {
   const handleConfirmRemoveCoach = async () => {
     if (!coachToDelete) return;
 
-    if (coachToDelete.swimmersCount > 0) {
-      toast.error(
-        `امکان حذف مربی «${coachToDelete.full_name}» وجود ندارد؛ زیرا ${coachToDelete.swimmersCount} شناگر در کلاس این مربی ثبت‌نام دارند. ابتدا شناگران را انتقال دهید.`
-      );
-      setCoachToDelete(null);
-      return;
-    }
-
     try {
       setRemovingCoachId(coachToDelete.id);
       const currentCoachIds = (course.coaches || []).map((c) => Number(c.id));
@@ -140,7 +138,11 @@ export const AdminCourseAddCoachPage = () => {
         coach_ids: newCoachIds,
       });
 
-      toast.success(`مربی «${coachToDelete.full_name}» با موفقیت از این دوره حذف شد.`);
+      toast.success(
+        coachToDelete.swimmersCount > 0
+          ? `مربی «${coachToDelete.full_name}» حذف شد و ${coachToDelete.swimmersCount} شاگرد به وضعیت «بدون مربی» تبدیل شدند.`
+          : `مربی «${coachToDelete.full_name}» با موفقیت از این دوره حذف شد.`
+      );
 
       // Refresh course and enrollments data
       const [updatedCourseRes, updatedEnrollmentsRes] = await Promise.all([
@@ -566,34 +568,34 @@ export const AdminCourseAddCoachPage = () => {
               </div>
             </div>
 
-            {coachToDelete.swimmersCount > 0 ? (
-              <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 space-y-1.5">
-                <p className="font-bold text-xs flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>امکان حذف این مربی وجود ندارد!</span>
-                </p>
-                <p className="text-[11px] leading-relaxed text-slate-600 dark:text-slate-300">
-                  تعداد <strong>{coachToDelete.swimmersCount} شناگر</strong> در کلاس این مربی در دوره ثبت‌نام کرده‌اند.
-                  برای حذف مربی، ابتدا باید در صفحه دوره این شناگران را به مربی یا کلاس دیگری انتقال دهید.
-                </p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-xs">
-                  آیا از حذف مربی <strong className="text-slate-900 dark:text-white font-bold">«{coachToDelete.full_name}»</strong> از این دوره اطمینان دارید؟
-                </p>
-                {assignedCoaches.length === 1 && (
-                  <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[11px] space-y-0.5">
-                    <span className="font-bold text-slate-900 dark:text-white block">
-                      نکته مدیریتی:
-                    </span>
-                    <span>
-                      این مربی تنها مربی حاضر در این دوره است. با حذف وی، دوره موقتاً بدون مربی خواهد شد تا مربی جدیدی تخصیص دهید.
-                    </span>
-                  </div>
-                )}
-              </div>
-            )}
+            <div className="space-y-3">
+              <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-xs">
+                آیا از حذف مربی <strong className="text-slate-900 dark:text-white font-bold">«{coachToDelete.full_name}»</strong> از این دوره اطمینان دارید؟
+              </p>
+
+              {coachToDelete.swimmersCount > 0 && (
+                <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 space-y-1.5">
+                  <p className="font-bold text-xs flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
+                    <AlertCircle className="w-4 h-4 shrink-0" />
+                    <span>انتقال شاگردان به وضعیت «بدون مربی»</span>
+                  </p>
+                  <p className="text-[11px] leading-relaxed text-slate-600 dark:text-slate-300">
+                    این مربی دارای <strong>{coachToDelete.swimmersCount} شناگر ثبت‌نامی</strong> در این دوره است. با حذف مربی، کلاس اختصاصی ایشان منحل شده و وضعیت تمامی این شناگران به صورت خودکار به <strong className="text-amber-700 dark:text-amber-300 font-bold">«بدون مربی»</strong> تغییر می‌کند تا بتوانید در صفحه دوره آن‌ها را به مربی یا کلاس جدید اختصاص دهید.
+                  </p>
+                </div>
+              )}
+
+              {assignedCoaches.length === 1 && (
+                <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[11px] space-y-0.5">
+                  <span className="font-bold text-slate-900 dark:text-white block">
+                    نکته مدیریتی:
+                  </span>
+                  <span>
+                    این مربی تنها مربی حاضر در این دوره است. با حذف وی، دوره موقتاً بدون مربی خواهد شد تا مربی جدیدی تخصیص دهید.
+                  </span>
+                </div>
+              )}
+            </div>
 
             {/* Modal Actions */}
             <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
@@ -606,26 +608,28 @@ export const AdminCourseAddCoachPage = () => {
               >
                 انصراف
               </Button>
-              {coachToDelete.swimmersCount === 0 && (
-                <Button
-                  size="sm"
-                  onClick={handleConfirmRemoveCoach}
-                  disabled={Boolean(removingCoachId)}
-                  className="bg-rose-600 hover:bg-rose-700 text-white gap-1.5 cursor-pointer disabled:opacity-50"
-                >
-                  {removingCoachId ? (
-                    <>
-                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                      <span>در حال حذف...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Trash2 className="w-3.5 h-3.5" />
-                      <span>بله، حذف مربی از دوره</span>
-                    </>
-                  )}
-                </Button>
-              )}
+              <Button
+                size="sm"
+                onClick={handleConfirmRemoveCoach}
+                disabled={Boolean(removingCoachId)}
+                className="bg-rose-600 hover:bg-rose-700 text-white gap-1.5 cursor-pointer disabled:opacity-50"
+              >
+                {removingCoachId ? (
+                  <>
+                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    <span>در حال حذف...</span>
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>
+                      {coachToDelete.swimmersCount > 0
+                        ? 'تأیید حذف و تبدیل شاگردان به بدون مربی'
+                        : 'بله، حذف مربی از دوره'}
+                    </span>
+                  </>
+                )}
+              </Button>
             </div>
           </div>
         )}

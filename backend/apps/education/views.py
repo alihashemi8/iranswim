@@ -121,14 +121,16 @@ class EnrollmentRequestReviewView(APIView):
 
         elif action == 'APPROVE':
             with transaction.atomic():
-                # Lock group row to prevent race conditions exceeding capacity
-                group = SwimmerGroup.objects.select_for_update().get(id=req.group.id)
-                if group.remaining_capacity <= 0:
-                    req.status = EnrollmentRequest.Status.WAITLIST
-                    req.save()
-                    return Response({
-                        'detail': 'ظرفیت این گروه تکمیل است. درخواست به فهرست انتظار منتقل شد.'
-                    }, status=status.HTTP_400_BAD_REQUEST)
+                # Lock group row to prevent race conditions exceeding capacity (if group specified)
+                group = None
+                if req.group:
+                    group = SwimmerGroup.objects.select_for_update().get(id=req.group.id)
+                    if group.remaining_capacity <= 0:
+                        req.status = EnrollmentRequest.Status.WAITLIST
+                        req.save()
+                        return Response({
+                            'detail': 'ظرفیت این گروه تکمیل است. درخواست به فهرست انتظار منتقل شد.'
+                        }, status=status.HTTP_400_BAD_REQUEST)
 
                 # Ensure swimmer profile exists
                 swimmer = req.swimmer
@@ -136,12 +138,13 @@ class EnrollmentRequestReviewView(APIView):
                     names = req.applicant_name.split(maxsplit=1)
                     first_name = names[0]
                     last_name = names[1] if len(names) > 1 else '—'
+                    default_level = group.skill_level if group else SkillLevel.objects.first()
                     swimmer = SwimmerProfile.objects.create(
                         first_name=first_name,
                         last_name=last_name,
                         phone=req.applicant_phone,
                         national_id=req.applicant_national_id or '',
-                        current_level=group.skill_level
+                        current_level=default_level
                     )
                     req.swimmer = swimmer
 
@@ -152,12 +155,13 @@ class EnrollmentRequestReviewView(APIView):
                 else:
                     inst_count = max(1, min(getattr(req, 'selected_installments', 1) or 1, course_max_inst))
 
-                # Create or activate Enrollment
+                # Create or activate Enrollment (newly registered swimmer starts as بدون مربی if no coach assigned)
                 enrollment, created = Enrollment.objects.get_or_create(
                     swimmer=swimmer,
                     course=req.course,
-                    group=group,
                     defaults={
+                        'group': group,
+                        'coach': req.coach,
                         'status': Enrollment.Status.ACTIVE,
                         'sessions_purchased': req.course.sessions_count,
                         'sessions_attended': 0,
@@ -180,7 +184,7 @@ class EnrollmentRequestReviewView(APIView):
                     )
                     InvoiceItem.objects.create(
                         invoice=invoice,
-                        description=f"شهریه {req.course.name} - {group.name}",
+                        description=f"شهریه {req.course.name}" + (f" - {group.name}" if group else ""),
                         unit_price=req.course.base_price,
                         quantity=1,
                         total_price=req.course.base_price
