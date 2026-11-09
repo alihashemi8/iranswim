@@ -206,7 +206,7 @@ def test_coach_level_promotion_flow(coach_user, admin_user, sample_setup):
 
 
 @pytest.mark.django_db
-def test_coach_class_announcements_flow(coach_user, sample_setup):
+def test_coach_class_announcements_flow(coach_user, admin_user, sample_setup):
     client = APIClient()
     client.force_authenticate(user=coach_user)
     group = sample_setup['group']
@@ -229,6 +229,13 @@ def test_coach_class_announcements_flow(coach_user, sample_setup):
     assert create_res.data['announcement']['title'] == payload['title']
     assert create_res.data['announcement']['is_pinned'] is True
     ann_id = create_res.data['announcement']['id']
+
+    # 2.1 Verify management received notification
+    from apps.content.models import Notification
+    admin_notif = Notification.objects.filter(recipient=admin_user).first()
+    assert admin_notif is not None
+    assert 'همراه داشتن فین شنا' in admin_notif.title
+    assert admin_notif.category == Notification.Category.ANNOUNCEMENT
 
     # 3. Check class detail again - announcement is present
     res2 = client.get(f"/api/coaches/my-classes/{group.id}/")
