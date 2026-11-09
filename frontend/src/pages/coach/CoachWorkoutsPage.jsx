@@ -130,7 +130,7 @@ export const CoachWorkoutsPage = () => {
   }
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 coach-panel">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -265,11 +265,11 @@ export const CoachWorkoutsPage = () => {
               <div>
                 <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5 flex items-center gap-2 text-sm">
                   <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-                  ۱. بخش گرم‌کردن و حرکات کششی در آب (Warm-up):
+                  1. بخش گرم‌کردن و حرکات کششی در آب (Warm-up):
                 </label>
                 <textarea
                   rows="3"
-                  placeholder="مثال: ۲۰۰ متر شنای آرام و کشیده + ۲۰۰ متر کیک با تخته شنا..."
+                  placeholder="مثال: 200 متر شنای آرام و کشیده + 200 متر کیک با تخته شنا..."
                   value={warmup}
                   onChange={(e) => setWarmup(e.target.value)}
                   className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white leading-relaxed text-sm"
@@ -279,11 +279,11 @@ export const CoachWorkoutsPage = () => {
               <div>
                 <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5 flex items-center gap-2 text-sm">
                   <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-                  ۲. بخش اصلی و ست‌های تمرین (Main Set): *
+                  2. بخش اصلی و ست‌های تمرین (Main Set): *
                 </label>
                 <textarea
                   rows="5"
-                  placeholder="مثال: ۸ ست ۵۰ متر دریل با فواصل استراحت ۲۰ ثانیه..."
+                  placeholder="مثال: 8 ست 50 متر دریل با فواصل استراحت 20 ثانیه..."
                   value={mainSet}
                   onChange={(e) => setMainSet(e.target.value)}
                   className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white leading-relaxed font-mono text-sm"
@@ -294,11 +294,11 @@ export const CoachWorkoutsPage = () => {
               <div>
                 <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5 flex items-center gap-2 text-sm">
                   <span className="w-2.5 h-2.5 rounded-full bg-sky-400" />
-                  ۳. بخش سردکردن و ریکاوری (Cool-down):
+                  3. بخش سردکردن و ریکاوری (Cool-down):
                 </label>
                 <textarea
                   rows="2"
-                  placeholder="مثال: ۱۰۰ متر کرال پشت آرام و تمرینات تنفس عمیق..."
+                  placeholder="مثال: 100 متر کرال پشت آرام و تمرینات تنفس عمیق..."
                   value={cooldown}
                   onChange={(e) => setCooldown(e.target.value)}
                   className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white leading-relaxed text-sm"
@@ -414,7 +414,7 @@ export const CoachWorkoutsPage = () => {
               </div>
 
               <div className="pt-3.5 mt-3.5 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs sm:text-sm text-slate-400">
-                <span>تاریخ ثبت: {new Date(w.created_at).toLocaleDateString('fa-IR')}</span>
+                <span>تاریخ ثبت: {new Date(w.created_at).toLocaleDateString('fa-IR-u-nu-latn')}</span>
                 <button
                   type="button"
                   onClick={() => handleEdit(w)}
