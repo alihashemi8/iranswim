@@ -2,6 +2,61 @@
  * Persian Date and Relative Time Utilities
  */
 
+import * as jalaali from 'jalaali-js';
+
+const PERSIAN_MONTH_NAMES = [
+  'فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور',
+  'مهر', 'آبان', 'آذر', 'دی', 'بهمن', 'اسفند'
+];
+
+/**
+ * Format ISO date string "YYYY-MM-DD" or Date object to Solar Hijri (Shamsi) details
+ * Returns fullText: "پنج‌شنبه ۱ آبان ۱۴۰۵", shortNumeric: "۱۴۰۵/۰۸/۰۱", weekday: "پنج‌شنبه", etc.
+ */
+export const toShamsiDate = (dateInput) => {
+  if (!dateInput) return { fullText: '', shortNumeric: '', weekday: '', monthName: '' };
+  let gy, gm, gd;
+  if (typeof dateInput === 'string') {
+    const clean = dateInput.split('T')[0];
+    const parts = clean.split('-').map((p) => parseInt(p, 10));
+    if (parts.length === 3 && !isNaN(parts[0]) && !isNaN(parts[1]) && !isNaN(parts[2])) {
+      gy = parts[0];
+      gm = parts[1];
+      gd = parts[2];
+    } else {
+      const d = new Date(dateInput);
+      if (isNaN(d.getTime())) return { fullText: dateInput, shortNumeric: dateInput, weekday: '', monthName: '' };
+      gy = d.getFullYear();
+      gm = d.getMonth() + 1;
+      gd = d.getDate();
+    }
+  } else if (dateInput instanceof Date) {
+    gy = dateInput.getFullYear();
+    gm = dateInput.getMonth() + 1;
+    gd = dateInput.getDate();
+  } else {
+    return { fullText: String(dateInput), shortNumeric: String(dateInput), weekday: '', monthName: '' };
+  }
+
+  const { jy, jm, jd } = jalaali.toJalaali(gy, gm, gd);
+  const dObj = new Date(gy, gm - 1, gd);
+  const weekday = dObj.toLocaleDateString('fa-IR', { weekday: 'long' });
+  const monthName = PERSIAN_MONTH_NAMES[jm - 1] || '';
+
+  const shortNumeric = `${jy}/${String(jm).padStart(2, '0')}/${String(jd).padStart(2, '0')}`;
+  const fullText = `${weekday} ${jd} ${monthName} ${jy}`;
+
+  return {
+    jy,
+    jm,
+    jd,
+    weekday,
+    monthName,
+    fullText,
+    shortNumeric,
+  };
+};
+
 /**
  * Converts Persian and Arabic unicode digits to English ASCII digits
  */
