@@ -15,7 +15,7 @@ import { useToast } from '../../context/ToastContext';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import api from '../../api/client';
 import { LogoutModal } from '../common/LogoutModal';
-import { CourseLogoIcon } from '../common/AquaticIcons';
+import { CourseLogoIcon, CoachWhistleIcon } from '../common/AquaticIcons';
 
 export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const { user, logout } = useAuth();
@@ -109,7 +109,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
           badge: pendingRequestsCount > 0 ? pendingRequestsCount : null,
           badgeColor: 'bg-sky-500 text-white',
         },
-        { to: '/admin/coaches', label: 'کادر مربیان', icon: UserCheck },
+        { to: '/admin/coaches', label: 'کادر مربیان', icon: CoachWhistleIcon },
         { to: '/admin/courses', label: 'کلاس‌ها و دوره‌ها', icon: CourseLogoIcon },
         { to: '/admin/attendance', label: 'حضور و غیاب', icon: ClipboardCheck },
       ],

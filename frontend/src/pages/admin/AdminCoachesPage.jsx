@@ -19,6 +19,7 @@ import * as jalaali from 'jalaali-js';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
 import { generateStrongPassword, validatePassword } from '../../utils/passwordValidator';
+import { CoachWhistleIcon } from '../../components/common/AquaticIcons';
 
 export const AdminCoachesPage = () => {
   const navigate = useNavigate();
@@ -266,6 +267,41 @@ export const AdminCoachesPage = () => {
     { value: 'ARCHIVED', label: 'بایگانی‌شده' },
   ];
 
+  const coachStatusChangeOptions = [
+    {
+      value: 'ACTIVE',
+      label: 'فعال و مجاز (Active)',
+      description: 'مربی مجاز به فعالیت، ثبت کلاس و تدریس است',
+      badge: 'مجاز',
+      badgeClassName: 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800',
+      icon: CheckCircle2,
+    },
+    {
+      value: 'SUSPENDED',
+      label: 'معلق موقت (Suspended)',
+      description: 'فعالیت‌های مربی موقتاً به حالت تعلیق درمی‌آید',
+      badge: 'معلق',
+      badgeClassName: 'bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800',
+      icon: Clock,
+    },
+    {
+      value: 'INACTIVE',
+      label: 'پایان همکاری / غیرفعال (Inactive)',
+      description: 'همکاری مربی خاتمه یافته یا متوقف شده است',
+      badge: 'غیرفعال',
+      badgeClassName: 'bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800',
+      icon: AlertCircle,
+    },
+    {
+      value: 'ARCHIVED',
+      label: 'بایگانی پرونده (Archived)',
+      description: 'پرونده بایگانی و از چرخه‌های جاری حذف می‌شود',
+      badge: 'بایگانی',
+      badgeClassName: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700',
+      icon: Archive,
+    },
+  ];
+
   const employmentTypeOptions = [
     { value: '', label: 'تمام مدل‌های همکاری' },
     { value: 'HOURLY', label: 'ساعتی (حق‌التدریس)' },
@@ -303,7 +339,7 @@ export const AdminCoachesPage = () => {
       <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4 transition-colors">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-            <UserCheck className="w-6 h-6 sm:w-7 sm:h-7 text-sky-600 shrink-0" />
+            <CoachWhistleIcon className="w-6 h-6 sm:w-7 sm:h-7 text-sky-600 shrink-0" />
             <span>سامانه جامع مدیریت مربیان و منابع انسانی</span>
           </h1>
           <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
@@ -351,6 +387,7 @@ export const AdminCoachesPage = () => {
                 onChange={(val) => setPersianStatsDate(val)}
                 placeholder="انتخاب تاریخ..."
                 size="sm"
+                englishDigits={true}
                 buttonClassName="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-xs sm:text-sm py-1.5 px-3 font-mono"
               />
             </div>
@@ -809,16 +846,13 @@ export const AdminCoachesPage = () => {
             <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
               وضعیت جدید همکاری <span className="text-rose-500">*</span>
             </label>
-            <select
+            <CustomSelect
               value={newStatus}
-              onChange={(e) => setNewStatus(e.target.value)}
-              className="w-full text-xs sm:text-sm p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
-            >
-              <option value="ACTIVE">فعال و مجاز</option>
-              <option value="SUSPENDED">معلق موقت</option>
-              <option value="INACTIVE">پایان همکاری / غیرفعال</option>
-              <option value="ARCHIVED">بایگانی پرونده</option>
-            </select>
+              onChange={(val) => setNewStatus(val)}
+              options={coachStatusChangeOptions}
+              color="sky"
+              menuClassName="w-full"
+            />
           </div>
 
           <div>

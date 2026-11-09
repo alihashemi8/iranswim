@@ -941,6 +941,74 @@ def test_admin_swimmer_document_review_and_notifications(api_client, admin_user,
     assert notif_appr.link == '/swimmer/documents'
 
 
+@pytest.mark.django_db
+def test_remove_coach_from_course(api_client, admin_user, coach_user, swimmer_user):
+    import datetime
+    from apps.education.models import Course, SwimmerGroup, SkillLevel, Enrollment
+    from apps.coaches.models import CoachProfile
+    from django.contrib.auth import get_user_model
+
+    User = get_user_model()
+    coach2_user = User.objects.create_user(phone='09129998877', role=User.Role.COACH, first_name='مربی۲', last_name='آزمایشی')
+    coach2, _ = CoachProfile.objects.get_or_create(user=coach2_user)
+    coach1 = coach_user.coach_profile
+
+    course = Course.objects.create(
+        name='دوره آزمایشی شنای کرال',
+        start_date=datetime.date.today(),
+        end_date=datetime.date.today() + datetime.timedelta(days=30),
+        base_price=1000000,
+        status=Course.Status.ACTIVE
+    )
+    course.coaches.set([coach1, coach2])
+    course.sync_coach_classes()
+
+    assert course.coaches.count() == 2
+    assert course.groups.count() == 2
+
+    # Authenticate as admin
+    api_client.force_authenticate(user=admin_user)
+
+    # 1. Remove coach2 (who has no enrollments)
+    res = api_client.patch(f'/api/education/courses/{course.id}/', {
+        'coach_ids': [coach1.id]
+    }, format='json')
+    assert res.status_code == 200
+    course.refresh_from_db()
+    assert course.coaches.count() == 1
+    assert list(course.coaches.values_list('id', flat=True)) == [coach1.id]
+    # Coach 2's empty group should be cleaned up
+    assert course.groups.count() == 1
+
+    # 2. Add an enrollment for coach1
+    group1 = course.groups.first()
+    Enrollment.objects.create(
+        swimmer=swimmer_user.swimmer_profile,
+        course=course,
+        group=group1,
+        coach=coach1,
+        status=Enrollment.Status.ACTIVE
+    )
+
+    # 3. Trying to remove coach1 who has active enrollments should fail (HTTP 400)
+    fail_res = api_client.patch(f'/api/education/courses/{course.id}/', {
+        'coach_ids': []
+    }, format='json')
+    assert fail_res.status_code == 400
+    assert 'شناگر' in str(fail_res.data)
+
+    # 4. If enrollment is deleted, removing coach1 is allowed and cleans up groups
+    Enrollment.objects.filter(course=course, coach=coach1).delete()
+    success_res = api_client.patch(f'/api/education/courses/{course.id}/', {
+        'coach_ids': []
+    }, format='json')
+    assert success_res.status_code == 200
+    course.refresh_from_db()
+    assert course.coaches.count() == 0
+    assert course.groups.count() == 0
+
+
+
 
 
 

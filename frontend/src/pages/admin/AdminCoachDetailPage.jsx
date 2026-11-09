@@ -4,7 +4,7 @@ import {
   UserCheck, Calendar, Clock, MapPin, Users, Award, Shield,
   Phone, Edit3, ArrowRight, BookOpen, CheckCircle2, AlertTriangle,
   FileText, Plus, Save, Hash, CreditCard, ClipboardCheck, History,
-  Star, ShieldAlert, Archive, RotateCcw
+  Star, ShieldAlert, Archive, RotateCcw, AlertCircle
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -136,6 +136,41 @@ export const AdminCoachDetailPage = () => {
 
   const activeContract = contracts.find((c) => c.status === 'ACTIVE');
   const formatPrice = (v) => Number(v || 0).toLocaleString('fa-IR');
+
+  const coachStatusChangeOptions = [
+    {
+      value: 'ACTIVE',
+      label: 'فعال و مجاز (Active)',
+      description: 'مربی مجاز به فعالیت، ثبت کلاس و تدریس است',
+      badge: 'مجاز',
+      badgeClassName: 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800',
+      icon: CheckCircle2,
+    },
+    {
+      value: 'SUSPENDED',
+      label: 'معلق موقت (Suspended)',
+      description: 'فعالیت‌های مربی موقتاً به حالت تعلیق درمی‌آید',
+      badge: 'معلق',
+      badgeClassName: 'bg-amber-100 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200/80 dark:border-amber-800',
+      icon: Clock,
+    },
+    {
+      value: 'INACTIVE',
+      label: 'پایان همکاری / غیرفعال (Inactive)',
+      description: 'همکاری مربی خاتمه یافته یا متوقف شده است',
+      badge: 'غیرفعال',
+      badgeClassName: 'bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border border-rose-200/80 dark:border-rose-800',
+      icon: AlertCircle,
+    },
+    {
+      value: 'ARCHIVED',
+      label: 'بایگانی پرونده (Archived)',
+      description: 'پرونده بایگانی و از چرخه‌های جاری حذف می‌شود',
+      badge: 'بایگانی',
+      badgeClassName: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700',
+      icon: Archive,
+    },
+  ];
 
   const tabs = [
     { id: 'INFO', label: 'مشخصات و مدارک', icon: UserCheck },
@@ -399,12 +434,8 @@ export const AdminCoachDetailPage = () => {
             <CustomSelect
               value={newStatus}
               onChange={(val) => setNewStatus(val)}
-              options={[
-                { value: 'ACTIVE', label: 'فعال و مجاز (Active)', badge: 'مجاز' },
-                { value: 'SUSPENDED', label: 'معلق موقت (Suspended)', badge: 'معلق' },
-                { value: 'INACTIVE', label: 'پایان همکاری / غیرفعال (Inactive)', badge: 'غیرفعال' },
-                { value: 'ARCHIVED', label: 'بایگانی پرونده (Archived)', badge: 'بایگانی' },
-              ]}
+              options={coachStatusChangeOptions}
+              color="sky"
               menuClassName="w-full"
             />
           </div>

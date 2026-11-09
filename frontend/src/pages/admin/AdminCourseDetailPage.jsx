@@ -154,8 +154,9 @@ export const AdminCourseDetailPage = () => {
       const currentCoachIds = (course.coaches || []).map((c) => c.id);
       const newCoachIds = currentCoachIds.filter((cid) => cid !== Number(coachId));
       if (newCoachIds.length === 0) {
-        toast.error('دوره باید حداقل دارای یک مربی باشد.');
-        return;
+        if (!window.confirm('توجه: این مربی تنها مربی این دوره است. با حذف وی، دوره موقتاً بدون مربی خواهد شد. آیا از ادامه مطمئن هستید؟')) {
+          return;
+        }
       }
       await api.patch(`/education/courses/${id}/`, {
         coach_ids: newCoachIds,
@@ -164,7 +165,8 @@ export const AdminCourseDetailPage = () => {
       await fetchData(true);
     } catch (err) {
       console.error('Error removing coach from course:', err);
-      toast.error(err.response?.data?.detail || 'خطا در حذف مربی از دوره');
+      const errMsg = err.response?.data?.coach_ids?.[0] || err.response?.data?.detail || 'خطا در حذف مربی از دوره';
+      toast.error(errMsg);
     }
   };
 

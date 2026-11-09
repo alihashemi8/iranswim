@@ -119,7 +119,7 @@ class CourseSerializer(serializers.ModelSerializer):
         return result
 
     def validate(self, attrs):
-        # Enforce at least one coach when creating a course, or if coach_ids is passed on update
+        # Enforce at least one coach when creating a course
         if self.instance is None:
             coach_ids = attrs.get('coach_ids')
             if not coach_ids or len(coach_ids) == 0:
@@ -127,11 +127,24 @@ class CourseSerializer(serializers.ModelSerializer):
                     'coach_ids': 'حداقل یک مربی برای دوره آموزشی باید انتخاب شود.'
                 })
         elif 'coach_ids' in attrs:
-            coach_ids = attrs.get('coach_ids')
-            if not coach_ids or len(coach_ids) == 0:
-                raise serializers.ValidationError({
-                    'coach_ids': 'حداقل یک مربی برای دوره آموزشی باید انتخاب شود.'
-                })
+            new_coach_ids = set(attrs.get('coach_ids') or [])
+            current_coaches = self.instance.coaches.all()
+            for coach in current_coaches:
+                if coach.id not in new_coach_ids:
+                    # Check if coach has active enrollments in this course
+                    has_enrollments = self.instance.enrollments.filter(
+                        coach=coach,
+                        status__in=['ACTIVE', 'PENDING_PAYMENT']
+                    ).exists()
+                    if not has_enrollments:
+                        has_enrollments = self.instance.groups.filter(
+                            coach_assignments__coach=coach,
+                            enrollments__status__in=['ACTIVE', 'PENDING_PAYMENT']
+                        ).exists()
+                    if has_enrollments:
+                        raise serializers.ValidationError({
+                            'coach_ids': f"امکان حذف مربی «{coach.full_name}» وجود ندارد؛ زیرا در کلاس این مربی در این دوره شناگر فعال ثبت‌نام شده است. ابتدا شناگران را به مربی دیگری منتقل کنید."
+                        })
 
         inst_count = attrs.get('installments_count')
         if inst_count is not None and inst_count < 1:

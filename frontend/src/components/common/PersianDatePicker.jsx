@@ -60,12 +60,15 @@ export const toJalaliString = (dateInput) => {
 };
 
 /**
- * Format Jalali string into readable Persian prose (e.g. "۸ آبان ۱۴۰۵")
+ * Format Jalali string into readable Persian prose (e.g. "۸ آبان ۱۴۰۵" or "8 آبان 1405")
  */
-export const formatJalaliReadable = (str) => {
+export const formatJalaliReadable = (str, englishDigits = false) => {
   const p = parseJalaliString(str);
   if (!p) return str || '';
   const monthName = PERSIAN_MONTHS[p.jm - 1] || '';
+  if (englishDigits) {
+    return `${p.jd} ${monthName} ${p.jy}`;
+  }
   return `${p.jd.toLocaleString('fa-IR')} ${monthName} ${p.jy.toLocaleString('fa-IR', { useGrouping: false })}`;
 };
 
@@ -86,6 +89,7 @@ export const PersianDatePicker = ({
   maxYear = 1415,
   placement = 'auto', // 'auto' | 'top' | 'bottom'
   align = 'auto', // 'auto' | 'left' | 'right'
+  englishDigits = false,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [openUpward, setOpenUpward] = useState(false);
@@ -128,6 +132,11 @@ export const PersianDatePicker = ({
     const now = new Date();
     return jalaali.toJalaali(now.getFullYear(), now.getMonth() + 1, now.getDate());
   }, []);
+
+  const formatNum = (num, opts = {}) => {
+    if (num === null || num === undefined) return '';
+    return englishDigits ? String(num) : num.toLocaleString('fa-IR', opts);
+  };
 
   // Parse current value
   const parsedValue = useMemo(() => {
@@ -461,7 +470,7 @@ export const PersianDatePicker = ({
             onClick={() => setPickerMode(pickerMode === 'years' ? 'days' : 'years')}
             className="px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 hover:text-sky-600 font-mono transition-colors cursor-pointer flex items-center gap-1"
           >
-            <span>{viewYear.toLocaleString('fa-IR', { useGrouping: false })}</span>
+            <span>{formatNum(viewYear, { useGrouping: false })}</span>
             <ChevronDown className="w-3 h-3 text-slate-400" />
           </button>
         </div>
@@ -530,7 +539,7 @@ export const PersianDatePicker = ({
                     : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
-                {y.toLocaleString('fa-IR', { useGrouping: false })}
+                {formatNum(y, { useGrouping: false })}
               </button>
             );
           })}
@@ -593,7 +602,7 @@ export const PersianDatePicker = ({
                       : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
                   }`}
                 >
-                  {day.toLocaleString('fa-IR')}
+                  {formatNum(day)}
                 </button>
               );
             })}
@@ -679,7 +688,7 @@ export const PersianDatePicker = ({
             }`} />
             <span className="truncate font-medium">
               {isValueActive
-                ? formatJalaliReadable(formatJalaliString(parsedValue.jy, parsedValue.jm, parsedValue.jd))
+                ? formatJalaliReadable(formatJalaliString(parsedValue.jy, parsedValue.jm, parsedValue.jd), englishDigits)
                 : placeholder}
             </span>
           </div>

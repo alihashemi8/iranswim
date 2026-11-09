@@ -3,12 +3,14 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   ArrowRight, GraduationCap, Search, Check, Plus, RefreshCw,
   AlertCircle, Sparkles, Users, CheckCircle2, BookOpen,
-  MapPin, Calendar, Clock, Whistle, UserCheck, CheckSquare, Square
+  MapPin, Calendar, Clock, Whistle, UserCheck, CheckSquare, Square,
+  Trash2, AlertTriangle
 } from 'lucide-react';
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { LoadingState } from '../../components/common/LoadingState';
+import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
 
 export const AdminCourseAddCoachPage = () => {
@@ -18,21 +20,28 @@ export const AdminCourseAddCoachPage = () => {
 
   const [course, setCourse] = useState(null);
   const [allCoaches, setAllCoaches] = useState([]);
+  const [enrollments, setEnrollments] = useState([]);
   const [selectedCoachIds, setSelectedCoachIds] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
+  // State for removing coach modal & action
+  const [coachToDelete, setCoachToDelete] = useState(null);
+  const [removingCoachId, setRemovingCoachId] = useState(null);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
-        const [courseRes, coachesRes] = await Promise.all([
+        const [courseRes, coachesRes, enrollmentsRes] = await Promise.all([
           api.get(`/education/courses/${id}/`),
           api.get('/coaches/').catch(() => ({ data: [] })),
+          api.get('/education/enrollments/', { params: { course_id: id } }).catch(() => ({ data: [] })),
         ]);
         setCourse(courseRes.data);
         setAllCoaches(coachesRes.data.results || coachesRes.data || []);
+        setEnrollments(enrollmentsRes.data.results || enrollmentsRes.data || []);
       } catch (err) {
         console.error('Error fetching data:', err);
         toast.error('خطا در بارگذاری اطلاعات دوره و کادر مربیان');
@@ -50,6 +59,13 @@ export const AdminCourseAddCoachPage = () => {
   const currentCourseCoachIds = useMemo(() => {
     return new Set((course?.coaches || []).map((c) => Number(c.id)));
   }, [course]);
+
+  // Helper to get active swimmer count for a coach in this course
+  const getCoachSwimmersCount = (coachId) => {
+    return enrollments.filter(
+      (e) => Number(e.coach) === Number(coachId) && (e.status === 'ACTIVE' || e.status === 'PENDING_PAYMENT')
+    ).length;
+  };
 
   // Coaches not yet in this course
   const unassignedCoaches = useMemo(() => {
@@ -91,6 +107,55 @@ export const AdminCourseAddCoachPage = () => {
     } else {
       // Add all visible to selection
       setSelectedCoachIds((prev) => Array.from(new Set([...prev, ...ids])));
+    }
+  };
+
+  // Open modal to confirm removing coach from course
+  const handleRequestRemoveCoach = (coach) => {
+    const swimmersCount = getCoachSwimmersCount(coach.id);
+    setCoachToDelete({
+      ...coach,
+      swimmersCount,
+    });
+  };
+
+  // Confirm and execute removing coach from course
+  const handleConfirmRemoveCoach = async () => {
+    if (!coachToDelete) return;
+
+    if (coachToDelete.swimmersCount > 0) {
+      toast.error(
+        `امکان حذف مربی «${coachToDelete.full_name}» وجود ندارد؛ زیرا ${coachToDelete.swimmersCount} شناگر در کلاس این مربی ثبت‌نام دارند. ابتدا شناگران را انتقال دهید.`
+      );
+      setCoachToDelete(null);
+      return;
+    }
+
+    try {
+      setRemovingCoachId(coachToDelete.id);
+      const currentCoachIds = (course.coaches || []).map((c) => Number(c.id));
+      const newCoachIds = currentCoachIds.filter((cid) => cid !== Number(coachToDelete.id));
+
+      await api.patch(`/education/courses/${id}/`, {
+        coach_ids: newCoachIds,
+      });
+
+      toast.success(`مربی «${coachToDelete.full_name}» با موفقیت از این دوره حذف شد.`);
+
+      // Refresh course and enrollments data
+      const [updatedCourseRes, updatedEnrollmentsRes] = await Promise.all([
+        api.get(`/education/courses/${id}/`),
+        api.get('/education/enrollments/', { params: { course_id: id } }).catch(() => ({ data: [] })),
+      ]);
+      setCourse(updatedCourseRes.data);
+      setEnrollments(updatedEnrollmentsRes.data.results || updatedEnrollmentsRes.data || []);
+      setCoachToDelete(null);
+    } catch (err) {
+      console.error('Error removing coach from course:', err);
+      const errMsg = err.response?.data?.coach_ids?.[0] || err.response?.data?.detail || 'خطا در حذف مربی از دوره';
+      toast.error(errMsg);
+    } finally {
+      setRemovingCoachId(null);
     }
   };
 
@@ -400,51 +465,171 @@ export const AdminCourseAddCoachPage = () => {
       )}
 
       {/* Section: Coaches Already in this Course */}
-      {assignedCoaches.length > 0 && (
-        <div className="space-y-3 pt-4 border-t border-slate-200/80 dark:border-slate-800">
-          <div className="flex items-center justify-between">
-            <h3 className="text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-400 flex items-center gap-2">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>مربیانی که در حال حاضر در این دوره کلاس دارند ({assignedCoaches.length} مربی)</span>
-            </h3>
-          </div>
+      <div className="space-y-3 pt-6 border-t border-slate-200/80 dark:border-slate-800">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h3 className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span>مربیانی که در حال حاضر در این دوره کلاس دارند ({assignedCoaches.length} مربی)</span>
+          </h3>
+          <span className="text-[11px] text-slate-400">
+            برای حذف مربی، از دکمه «حذف از دوره» در کارت مربی استفاده کنید.
+          </span>
+        </div>
 
+        {assignedCoaches.length === 0 ? (
+          <div className="p-4 rounded-2xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 text-xs flex items-center gap-2.5">
+            <AlertCircle className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <span>هم‌اکنون هیچ مربی‌ای در این دوره کلاس فعال ندارد. از فهرست بالا مربیان مورد نظر را انتخاب و اضافه نمایید.</span>
+          </div>
+        ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-            {assignedCoaches.map((c) => (
-              <div
-                key={c.id}
-                className="p-3.5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between gap-3 opacity-80"
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  {c.avatar ? (
-                    <img
-                      src={c.avatar}
-                      alt={c.full_name}
-                      className="w-10 h-10 rounded-2xl object-cover border border-slate-200 dark:border-slate-700"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-2xl bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center font-bold text-xs">
-                      {c.full_name ? c.full_name.charAt(0) : 'م'}
+            {assignedCoaches.map((c) => {
+              const swimmerCount = getCoachSwimmersCount(c.id);
+              const isRemovingThis = removingCoachId === c.id;
+
+              return (
+                <div
+                  key={c.id}
+                  className="p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-2xs hover:shadow-xs transition-all flex items-center justify-between gap-3 group"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    {c.avatar ? (
+                      <img
+                        src={c.avatar}
+                        alt={c.full_name}
+                        className="w-11 h-11 rounded-2xl object-cover border border-slate-200 dark:border-slate-700 shrink-0"
+                      />
+                    ) : (
+                      <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-slate-200 to-slate-300 dark:from-slate-700 dark:to-slate-800 text-slate-700 dark:text-slate-200 flex items-center justify-center font-bold text-xs shrink-0">
+                        {c.full_name ? c.full_name.charAt(0) : 'م'}
+                      </div>
+                    )}
+                    <div className="min-w-0">
+                      <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white block truncate">
+                        مربی {c.full_name}
+                      </span>
+                      <div className="flex items-center gap-1.5 mt-1 flex-wrap">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800/70">
+                          فعال در دوره
+                        </span>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-400 font-medium">
+                          {swimmerCount > 0 ? `${swimmerCount} شناگر ثبت‌نامی` : 'بدون شناگر'}
+                        </span>
+                      </div>
                     </div>
-                  )}
-                  <div className="min-w-0">
-                    <span className="font-bold text-xs text-slate-800 dark:text-slate-200 block truncate">
-                      مربی {c.full_name}
+                  </div>
+
+                  {/* Remove Coach Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleRequestRemoveCoach(c)}
+                    disabled={isRemovingThis}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 border border-rose-200/80 dark:border-rose-900/50 hover:border-rose-300 transition-all cursor-pointer shrink-0 disabled:opacity-50"
+                    title={`حذف مربی ${c.full_name} از دوره`}
+                  >
+                    {isRemovingThis ? (
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Trash2 className="w-3.5 h-3.5 transition-transform group-hover:scale-110" />
+                    )}
+                    <span>حذف از دوره</span>
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* Confirmation Modal: Remove Coach from Course */}
+      <Modal
+        isOpen={Boolean(coachToDelete)}
+        onClose={() => {
+          if (!removingCoachId) setCoachToDelete(null);
+        }}
+        title="حذف مربی از دوره آموزشی"
+        maxWidth="max-w-md"
+      >
+        {coachToDelete && (
+          <div className="space-y-4 text-xs" dir="rtl">
+            <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-900/50 text-rose-800 dark:text-rose-300">
+              <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/60 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+                <AlertTriangle className="w-5 h-5" />
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-bold text-sm text-rose-900 dark:text-rose-200">
+                  تأیید حذف مربی «{coachToDelete.full_name}»
+                </h4>
+                <p className="text-[11px] text-rose-700 dark:text-rose-400 mt-0.5">
+                  کلاس اختصاصی مرتبط با این مربی در این دوره منحل خواهد شد.
+                </p>
+              </div>
+            </div>
+
+            {coachToDelete.swimmersCount > 0 ? (
+              <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-200 space-y-1.5">
+                <p className="font-bold text-xs flex items-center gap-1.5 text-amber-700 dark:text-amber-400">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>امکان حذف این مربی وجود ندارد!</span>
+                </p>
+                <p className="text-[11px] leading-relaxed text-slate-600 dark:text-slate-300">
+                  تعداد <strong>{coachToDelete.swimmersCount} شناگر</strong> در کلاس این مربی در دوره ثبت‌نام کرده‌اند.
+                  برای حذف مربی، ابتدا باید در صفحه دوره این شناگران را به مربی یا کلاس دیگری انتقال دهید.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-xs">
+                  آیا از حذف مربی <strong className="text-slate-900 dark:text-white font-bold">«{coachToDelete.full_name}»</strong> از این دوره اطمینان دارید؟
+                </p>
+                {assignedCoaches.length === 1 && (
+                  <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-[11px] space-y-0.5">
+                    <span className="font-bold text-slate-900 dark:text-white block">
+                      نکته مدیریتی:
                     </span>
-                    <span className="text-[11px] text-slate-400 block truncate mt-0.5">
-                      {c.specialties || 'دارای کلاس فعال'}
+                    <span>
+                      این مربی تنها مربی حاضر در این دوره است. با حذف وی، دوره موقتاً بدون مربی خواهد شد تا مربی جدیدی تخصیص دهید.
                     </span>
                   </div>
-                </div>
-
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-200/70 dark:bg-slate-700/70 text-slate-600 dark:text-slate-300 shrink-0">
-                  فعال در دوره
-                </span>
+                )}
               </div>
-            ))}
+            )}
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCoachToDelete(null)}
+                disabled={Boolean(removingCoachId)}
+                className="cursor-pointer"
+              >
+                انصراف
+              </Button>
+              {coachToDelete.swimmersCount === 0 && (
+                <Button
+                  size="sm"
+                  onClick={handleConfirmRemoveCoach}
+                  disabled={Boolean(removingCoachId)}
+                  className="bg-rose-600 hover:bg-rose-700 text-white gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {removingCoachId ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>در حال حذف...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>بله، حذف مربی از دوره</span>
+                    </>
+                  )}
+                </Button>
+              )}
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
 
       {/* Sticky Bottom Actions Bar */}
       <div className="fixed bottom-0 left-0 right-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 py-3.5 px-4 sm:px-8 shadow-xl">

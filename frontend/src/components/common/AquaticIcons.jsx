@@ -1,4 +1,6 @@
 import React from 'react';
+import coachWhistleLightWebp from '../../assets/coach-whistle-64.webp';
+import coachWhistleDarkWebp from '../../assets/coach-whistle-dark-64.webp';
 
 /**
  * IranSwim Bespoke Aquatic & Sports SVG Icon Set
@@ -583,5 +585,87 @@ export const CourseLogoIcon = ({ className = 'w-5 h-5', ...props }) => (
     <path d="M2 19.5c2.5-1.2 5.5 1.2 8.5 0s6-1.2 8.5 0 2.5.8 3.5.5" />
   </svg>
 );
+
+// 23. Coach Whistle Official Icon (آیکون اختصاصی کادر مربیان - مربی شنا در حال دمیدن در سوت همراه با بند سوت و جلیقه فنی)
+export const CoachWhistleIcon = ({ className = 'w-5 h-5', ...props }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
+    {...props}
+  >
+    {/* مو و فرم ورزشی سر مربی */}
+    <path d="M12 3.8c1.5-.7 4.2-.4 5 1.5.8 1.8.3 3.6-.5 4.4-.4.5-.6 1.4-.6 2.3" />
+    <path d="M12.8 4.4c1.4-.3 2.7.3 3.3 1.3" />
+
+    {/* پیشانی، پل بینی و نیم‌رخ */}
+    <path d="M12 4.8l-.8 2.2-1.4 1.5 1.4.8" />
+
+    {/* لب پایین، چانه و زاویه فک */}
+    <path d="M11 11c-.6.9-.5 1.6.2 2 1.2.7 2.5.5 3.6-.8" />
+
+    {/* گوش */}
+    <path d="M14.5 8.6c.7 0 1.1.7.9 1.4-.2.5-.7.7-1.1.7" />
+
+    {/* سوت مربی (در دهان) و محفظه صدا */}
+    <path d="M11.2 9.4H8.4c-.4 0-.8.3-.8.7v.5c0 .4.4.7.8.7h2.8" />
+    <circle cx="7.2" cy="10.3" r="1.3" />
+    <circle cx="7.2" cy="10.3" r="0.4" fill="currentColor" />
+    <path d="M7.2 11.6v1" />
+
+    {/* دست مربی در حال نگه داشتن سوت */}
+    <path d="M8.8 8.1c-.8-.1-1.5.3-1.8 1" />
+    <path d="M6.2 8.8c-.8.6-1 1.6-.8 2.5l.5 2" />
+
+    {/* آستین و ساعد */}
+    <path d="M5.8 13.5l-2 5.5" />
+    <path d="M7.2 14.5l-1.8 4.5" />
+
+    {/* بند آویز سوت دور گردن (طناب دوگانه) */}
+    <path d="M7.2 12.6c0 2.8 1.8 5.6 5 5.6 3 0 5-2.2 5.8-4.8" />
+    <path d="M7.8 13.2c0 2 1.4 4.2 4.2 4.2" />
+
+    {/* جلیقه ورزشی، یقه ایستاده و زیپ میانی */}
+    <path d="M12 14.5l.5 2" />
+    <path d="M12.5 16.5v5.5" />
+    <path d="M16.3 14.3l.5 2.2" />
+    <path d="M16.8 16.5c1.8 1 3.2 2.8 3.7 4.5v1" />
+    <path d="M12.5 22h8" />
+  </svg>
+);
+
+// 24. Coach Whistle Official Image Logo (نسخه تصویری کراپ‌شده بدون پس‌زمینه با پشتیبانی هوشمند لایت و دارک)
+export const CoachWhistleImgIcon = ({ className = 'w-5 h-5', ...props }) => (
+  <span
+    className={`inline-flex shrink-0 items-center justify-center select-none pointer-events-none relative ${className}`}
+    {...props}
+  >
+    {/* Light Mode Logo (Deep Navy illustration on transparent background) */}
+    <img
+      src={coachWhistleLightWebp}
+      alt="کادر مربیان"
+      width="20"
+      height="20"
+      loading="eager"
+      decoding="sync"
+      className="w-full h-full object-contain dark:hidden"
+    />
+    {/* Dark Mode Logo (Luminous Ice-White illustration on transparent background) */}
+    <img
+      src={coachWhistleDarkWebp}
+      alt="کادر مربیان"
+      width="20"
+      height="20"
+      loading="eager"
+      decoding="sync"
+      className="w-full h-full object-contain hidden dark:block"
+    />
+  </span>
+);
+
 
 
