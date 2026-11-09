@@ -4,7 +4,7 @@ import {
   GraduationCap, Users, Calendar, MapPin, ChevronRight,
   ClipboardCheck, TrendingUp, CheckCircle2, Clock,
   ArrowRight, UserCheck, AlertCircle, Award, BookOpen,
-  ArrowLeft, Search, Eye
+  ArrowLeft, Search, Eye, Megaphone, Pin, Bell, MessageSquare
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -62,6 +62,7 @@ export const AdminClassDetailPage = () => {
   const swimmers = data.swimmers || [];
   const sessions = data.sessions || [];
   const schedules = data.schedules || [];
+  const announcements = data.announcements || [];
 
   const filteredSwimmers = swimmers.filter((sw) => {
     if (!searchTerm.trim()) return true;
@@ -165,7 +166,7 @@ export const AdminClassDetailPage = () => {
       </div>
 
       {/* Tabs Bar */}
-      <div className="grid grid-cols-3 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200/70 dark:border-slate-700 w-full text-xs sm:text-sm font-bold">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200/70 dark:border-slate-700 w-full text-xs sm:text-sm font-bold">
         <button
           type="button"
           onClick={() => setActiveTab('swimmers')}
@@ -176,7 +177,7 @@ export const AdminClassDetailPage = () => {
           }`}
         >
           <Users className="w-4 h-4" />
-          <span>شناگران کلاس ({swimmers.length})</span>
+          <span>شناگران ({swimmers.length})</span>
         </button>
 
         <button
@@ -189,7 +190,20 @@ export const AdminClassDetailPage = () => {
           }`}
         >
           <Calendar className="w-4 h-4" />
-          <span>جلسات تقویمی ({sessions.length})</span>
+          <span>جلسات ({sessions.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('announcements')}
+          className={`py-2.5 px-3 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-2 ${
+            activeTab === 'announcements'
+              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+          }`}
+        >
+          <Megaphone className="w-4 h-4" />
+          <span>اعلانات کلاس ({announcements.length})</span>
         </button>
 
         <button
@@ -202,7 +216,7 @@ export const AdminClassDetailPage = () => {
           }`}
         >
           <Clock className="w-4 h-4" />
-          <span>برنامه زمانی و مشخصات</span>
+          <span>مشخصات و زمان</span>
         </button>
       </div>
 
@@ -372,6 +386,95 @@ export const AdminClassDetailPage = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB: CLASS ANNOUNCEMENTS (MONITORED BY MANAGEMENT) */}
+      {activeTab === 'announcements' && (
+        <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <h3 className="font-extrabold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                <Megaphone className="w-5 h-5 text-sky-600" />
+                <span>اعلانات و پیام‌های ارسالی این کلاس</span>
+              </h3>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                نظارت مدیریت بر پیام‌های ارسالی مربی برای شناگران کلاس و اولیا
+              </p>
+            </div>
+
+            <Link
+              to="/admin/announcements?tab=announcements"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 text-xs font-bold transition-colors"
+            >
+              <span>مشاهده در مرکز جامع اعلانات</span>
+              <ArrowLeft className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+
+          {announcements.length === 0 ? (
+            <div className="text-center py-12 px-4 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20">
+              <Megaphone className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto mb-2" />
+              <p className="text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300">
+                هنوز هیچ اعلانی برای این کلاس ثبت نشده است.
+              </p>
+              <p className="text-xs text-slate-400 mt-1">
+                به محض اینکه مربی پیامی برای شناگران این کلاس ارسال کند، در اینجا و در اعلانات مدیریت قابل مشاهده خواهد بود.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-3.5">
+              {announcements.map((ann) => (
+                <div
+                  key={ann.id}
+                  className={`p-4 sm:p-5 rounded-2xl border transition-all ${
+                    ann.is_pinned
+                      ? 'bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/60 shadow-xs'
+                      : 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-200/70 dark:border-slate-800'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      {ann.is_pinned && (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 font-bold text-xs border border-amber-300 dark:border-amber-700/60">
+                          <Pin className="w-3.5 h-3.5 rotate-45 text-amber-600" />
+                          مهم / پین‌شده
+                        </span>
+                      )}
+                      <h4 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
+                        {ann.title}
+                      </h4>
+                    </div>
+
+                    <span className="text-xs text-slate-400 font-mono">
+                      {ann.created_at_display || (ann.created_at ? new Date(ann.created_at).toLocaleDateString('fa-IR') : '')}
+                    </span>
+                  </div>
+
+                  <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 whitespace-pre-line leading-relaxed mb-3">
+                    {ann.message}
+                  </p>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2.5 border-t border-slate-200/60 dark:border-slate-700/60 text-xs text-slate-500 dark:text-slate-400">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-slate-700 dark:text-slate-300">
+                        ارسال‌کننده: {ann.created_by_name}
+                      </span>
+                      {ann.send_sms && (
+                        <span className="text-sky-600 dark:text-sky-400 font-bold flex items-center gap-1">
+                          <Bell className="w-3 h-3" />
+                          ارسال پیامک
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-[11px] text-slate-400">
+                      مخاطب: کلیه شناگران کلاس
+                    </span>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

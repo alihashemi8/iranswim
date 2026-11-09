@@ -424,6 +424,21 @@ class CoachClassDetailView(APIView):
 
         author_name = user.get_full_name() if hasattr(user, 'get_full_name') and user.get_full_name() else getattr(user, 'phone', 'مربی')
 
+        # Also notify management (all administrators and supervisors)
+        managers = User.objects.filter(
+            Q(role__in=['ADMIN', 'SUPERVISOR']) | Q(is_superuser=True)
+        ).distinct()
+        for manager in managers:
+            if manager.id != user.id:
+                Notification.objects.create(
+                    recipient=manager,
+                    category=Notification.Category.ANNOUNCEMENT,
+                    title=f"اعلان مربی ({author_name}) به کلاس {group.name}: {title}",
+                    message=f"مربی {author_name} برای شناگران کلاس «{group.name}» اعلان جدیدی ثبت کرد:\n{message[:250]}",
+                    link=f"/admin/announcements?tab=announcements",
+                    is_read=False
+                )
+
         return Response({
             'detail': 'اعلان با موفقیت برای تمامی شناگران کلاس ارسال شد.',
             'announcement': {
@@ -846,6 +861,37 @@ class CoachMessagesView(APIView):
             target_group=group,
             created_by=user
         )
+
+        author_name = user.get_full_name() if hasattr(user, 'get_full_name') and user.get_full_name() else getattr(user, 'phone', 'مربی')
+
+        # Notify active enrolled swimmers and their users
+        enrollments = group.enrollments.filter(status='ACTIVE').select_related('swimmer__user')
+        for en in enrollments:
+            sw = en.swimmer
+            if sw and sw.user:
+                Notification.objects.create(
+                    recipient=sw.user,
+                    category=Notification.Category.ANNOUNCEMENT,
+                    title=f"پیام مربی در کلاس {group.name}: {title}",
+                    message=message[:250],
+                    link='/swimmer/announcements',
+                    is_read=False
+                )
+
+        # Also notify management (all administrators and supervisors)
+        managers = User.objects.filter(
+            Q(role__in=['ADMIN', 'SUPERVISOR']) | Q(is_superuser=True)
+        ).distinct()
+        for manager in managers:
+            if manager.id != user.id:
+                Notification.objects.create(
+                    recipient=manager,
+                    category=Notification.Category.ANNOUNCEMENT,
+                    title=f"اعلان مربی ({author_name}) به کلاس {group.name}: {title}",
+                    message=f"مربی {author_name} برای شناگران کلاس «{group.name}» اعلان جدیدی ثبت کرد:\n{message[:250]}",
+                    link=f"/admin/announcements?tab=announcements",
+                    is_read=False
+                )
 
         return Response({
             'message': 'پیام با موفقیت به شناگران کلاس ارسال شد.',

@@ -373,6 +373,18 @@ export const AdminAnnouncementsPage = () => {
                   catIcon = <Calendar className="w-4 h-4 sm:w-5 sm:h-5" />;
                   iconBg = 'bg-teal-100 dark:bg-teal-950 text-teal-600 dark:text-teal-400';
                   actionLabel = 'مشاهده برنامه سانس‌ها';
+                } else if (
+                  notif.category === 'ANNOUNCEMENT' ||
+                  notif.title?.includes('مربی') ||
+                  notif.title?.includes('اعلان')
+                ) {
+                  catBadge = {
+                    label: 'اعلان کلاس مربی',
+                    color: 'bg-purple-100 text-purple-800 dark:bg-purple-950/80 dark:text-purple-300 border-purple-200 dark:border-purple-800',
+                  };
+                  catIcon = <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />;
+                  iconBg = 'bg-purple-100 dark:bg-purple-950 text-purple-600 dark:text-purple-400';
+                  actionLabel = 'مشاهده در اعلانات و کلاس';
                 }
 
                 return (
@@ -565,6 +577,12 @@ export const AdminAnnouncementsPage = () => {
                               ? `گروه: ${targetGroupName}`
                               : audienceLabels[item.audience] || item.audience}
                           </Badge>
+                          {item.created_by_name && (
+                            <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-semibold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-md border border-slate-200 dark:border-slate-700">
+                              <User className="w-3 h-3 text-emerald-600" />
+                              {item.created_by_role === 'COACH' ? `مربی: ${item.created_by_name}` : item.created_by_name}
+                            </span>
+                          )}
                           {item.is_pinned && (
                             <span className="flex items-center gap-1 text-[10px] sm:text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-100 dark:bg-amber-900/60 px-2 py-0.5 rounded-md">
                               <Pin className="w-3 h-3 rotate-45" />

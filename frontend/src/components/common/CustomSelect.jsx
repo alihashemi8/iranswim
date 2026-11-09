@@ -278,7 +278,7 @@ export const CustomSelect = ({
         } ${
           isSelectedActive
             ? `${colorStyles.activeTrigger} shadow-2xs font-bold`
-            : 'bg-slate-50 dark:bg-slate-800/80 border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:border-slate-400 dark:hover:border-slate-500'
+            : 'bg-slate-50 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-slate-300 dark:hover:border-slate-600'
         } ${
           isOpen ? `${colorStyles.activeRing} bg-white dark:bg-slate-900 shadow-xs` : ''
         } ${buttonClassName}`}
@@ -360,7 +360,7 @@ export const CustomSelect = ({
               : 'right-0 left-auto'
           } ${
             menuClassName ? menuClassName : 'min-w-full min-w-[200px] w-max max-w-[min(420px,calc(100vw-2rem))]'
-          } py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl shadow-xl overflow-hidden animate-in fade-in-50 zoom-in-95 ${
+          } py-1.5 bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-700/90 rounded-2xl shadow-xl overflow-hidden animate-in fade-in-50 zoom-in-95 ${
             openUpward ? 'bottom-full mb-1.5' : 'top-full mt-1.5'
           }`}
           role="listbox"

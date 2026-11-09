@@ -113,15 +113,29 @@ class AnnouncementSerializer(serializers.ModelSerializer):
         write_only=True
     )
     target_groups_details = serializers.SerializerMethodField(read_only=True)
+    created_by_name = serializers.SerializerMethodField(read_only=True)
+    created_by_role = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Announcement
         fields = [
             'id', 'title', 'message', 'audience', 'audience_display',
             'target_group', 'target_group_name', 'target_group_ids',
-            'target_groups_details', 'is_pinned', 'send_sms', 'created_at'
+            'target_groups_details', 'is_pinned', 'send_sms',
+            'created_by_name', 'created_by_role', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
+    def get_created_by_name(self, obj):
+        if not obj.created_by:
+            return 'مدیریت آکادمی'
+        name = obj.created_by.get_full_name()
+        return name if name else getattr(obj.created_by, 'phone', 'سیستم')
+
+    def get_created_by_role(self, obj):
+        if not obj.created_by:
+            return 'ADMIN'
+        return getattr(obj.created_by, 'role', 'ADMIN')
 
     def get_target_groups_details(self, obj):
         return [
