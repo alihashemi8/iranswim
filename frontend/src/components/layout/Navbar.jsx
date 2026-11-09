@@ -105,8 +105,8 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
         className={`sticky top-0 z-40 transition-all duration-300 w-full ${
           isPublicPage
             ? isScrolled
-              ? 'pool-header bg-[#f0f9ff]/95 backdrop-blur-md border-b-0 shadow-[0_4px_20px_rgba(8,59,92,0.06)]'
-              : 'pool-header bg-[#f0f9ff] border-b-0 shadow-none'
+              ? 'pool-header bg-[#f0f9ff]/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-transparent dark:border-slate-800/80 shadow-[0_4px_20px_rgba(8,59,92,0.06)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)]'
+              : 'pool-header bg-[#f0f9ff] dark:bg-slate-900 border-b border-transparent dark:border-slate-800/80 shadow-none'
             : 'bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs'
         }`}
       >
@@ -136,7 +136,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(true)}
-                className="p-2 -mr-1.5 md:hidden text-[#083B5C] hover:text-[#087EA4] hover:bg-sky-50 rounded-xl transition-colors shrink-0 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#087EA4]/40"
+                className="p-2 -mr-1.5 md:hidden text-[#083B5C] dark:text-slate-200 hover:text-[#087EA4] dark:hover:text-cyan-400 hover:bg-sky-50 dark:hover:bg-slate-800 rounded-xl transition-colors shrink-0 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#087EA4]/40"
                 aria-label="باز کردن منوی ناوبری"
                 aria-expanded={mobileMenuOpen}
               >
@@ -147,7 +147,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             {/* Brand Logo - 1 single line on tablet & mobile */}
             <Link
               to="/"
-              className="flex items-center gap-2 md:gap-2.5 lg:gap-3 text-[#083B5C] hover:opacity-95 transition-opacity shrink-0 select-none py-1"
+              className="flex items-center gap-2 md:gap-2.5 lg:gap-3 text-[#083B5C] dark:text-white hover:opacity-95 transition-opacity shrink-0 select-none py-1"
             >
               <picture>
                 <source srcSet="/images/logo.webp" type="image/webp" />
@@ -160,7 +160,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 />
               </picture>
               <div className="flex flex-col xl:flex-col shrink-0 text-right">
-                <span className="font-extrabold text-xs sm:text-sm md:text-[13px] lg:text-base text-[#083B5C] tracking-tight leading-tight whitespace-nowrap">
+                <span className="font-extrabold text-xs sm:text-sm md:text-[13px] lg:text-base text-[#083B5C] dark:text-white tracking-tight leading-tight whitespace-nowrap">
                   مدرسه شنای ایران
                 </span>
 
@@ -183,7 +183,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             {/* Public Nav Links - Visible on tablet (md) and desktop in ONE SINGLE ROW */}
             {!isFullWidth && (
               <nav
-                className="hidden md:flex items-center gap-0.5 md:gap-1 lg:gap-2.5 xl:gap-5 text-[11px] md:text-[11.5px] lg:text-[13px] xl:text-sm font-semibold text-[#163247] whitespace-nowrap shrink-0"
+                className="hidden md:flex items-center gap-0.5 md:gap-1 lg:gap-2.5 xl:gap-5 text-[11px] md:text-[11.5px] lg:text-[13px] xl:text-sm font-semibold text-[#163247] dark:text-slate-200 whitespace-nowrap shrink-0"
                 aria-label="ناوبری اصلی"
               >
                 {publicNavLinks.map((item) => {
@@ -196,8 +196,8 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                       href={item.href}
                       className={`px-1.5 md:px-1.5 lg:px-2.5 xl:px-3 py-1 md:py-1.5 rounded-lg transition-all duration-150 whitespace-nowrap shrink-0 ${
                         isCurrent
-                          ? 'text-[#087EA4] bg-sky-50 font-bold'
-                          : 'text-[#163247] hover:text-[#087EA4] hover:bg-sky-50/80'
+                          ? 'text-[#087EA4] dark:text-cyan-400 bg-sky-50 dark:bg-sky-950/60 font-bold'
+                          : 'text-[#163247] dark:text-slate-200 hover:text-[#087EA4] dark:hover:text-cyan-400 hover:bg-sky-50/80 dark:hover:bg-slate-800/60'
                       }`}
                     >
                       {item.label}
@@ -232,13 +232,28 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               </div>
             ) : (
               <>
+                {/* Dark / Light Mode Toggle on Public Navbar */}
+                <button
+                  type="button"
+                  onClick={toggleTheme}
+                  className="w-8.5 h-8.5 sm:w-9 sm:h-9 flex items-center justify-center text-slate-600 hover:text-amber-500 dark:text-slate-300 dark:hover:text-amber-400 bg-white/80 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-xl transition-colors border border-slate-200/80 dark:border-slate-700/80 shadow-2xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40"
+                  aria-label={theme === 'dark' ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
+                  title={theme === 'dark' ? 'حالت روز (روشن)' : 'حالت شب (تاریک)'}
+                >
+                  {theme === 'dark' ? (
+                    <Sun className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-amber-400 transition-transform hover:rotate-45" />
+                  ) : (
+                    <Moon className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-slate-600 dark:text-slate-300 transition-transform hover:-rotate-12" />
+                  )}
+                </button>
+
                 {/* Divider */}
-                <div className="h-5 w-px bg-slate-200 hidden sm:block shrink-0" />
+                <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block shrink-0" />
 
                 {user ? (
                   <Link
                     to={getDashboardPath(user.role)}
-                    className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl hover:bg-sky-50/80 border border-slate-200/90 transition-colors cursor-pointer group shrink-0"
+                    className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl hover:bg-sky-50/80 dark:hover:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/90 transition-colors cursor-pointer group shrink-0"
                     title="ورود به داشبورد"
                   >
                     <div
@@ -249,10 +264,10 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                       {user.full_name ? user.full_name.trim().charAt(0) : 'U'}
                     </div>
                     <div className="hidden sm:flex flex-col text-right leading-tight max-w-[130px] md:max-w-[160px] shrink-0">
-                      <span className="text-xs sm:text-sm font-bold text-slate-800 group-hover:text-[#087EA4] transition-colors truncate">
+                      <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-[#087EA4] dark:group-hover:text-cyan-400 transition-colors truncate">
                         {user.full_name || 'داشبورد کاربر'}
                       </span>
-                      <span className="text-xs text-[#647789] truncate">
+                      <span className="text-xs text-[#647789] dark:text-slate-400 truncate">
                         {roleTitles[user.role] || 'ورود به داشبورد'}
                       </span>
                     </div>
@@ -260,7 +275,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 ) : (location.pathname === '/login' || location.pathname === '/register') ? (
                   <Link
                     to="/"
-                    className="inline-flex items-center gap-1 md:gap-1.5 lg:gap-2 px-2.5 md:px-3 lg:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-bold text-[#083B5C] bg-sky-50 hover:bg-sky-100 hover:text-[#087EA4] border border-sky-200/90 rounded-xl shadow-2xs transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
+                    className="inline-flex items-center gap-1 md:gap-1.5 lg:gap-2 px-2.5 md:px-3 lg:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-bold text-[#083B5C] dark:text-cyan-300 bg-sky-50 dark:bg-slate-800/90 hover:bg-sky-100 dark:hover:bg-slate-700/80 hover:text-[#087EA4] dark:hover:text-cyan-200 border border-sky-200/90 dark:border-slate-700/90 rounded-xl shadow-2xs transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                   >
                     <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 rotate-180" />
                     <span className="hidden sm:inline">بازگشت به سایت</span>
@@ -285,13 +300,13 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
         {isPublicPage && (
           <div
             className={`absolute top-full left-0 right-0 w-full overflow-hidden leading-none pointer-events-none select-none -mt-px z-20 transition-colors duration-300 ${
-              isScrolled ? 'text-[#f0f9ff]/95' : 'text-[#f0f9ff]'
+              isScrolled ? 'text-[#f0f9ff]/95 dark:text-slate-900/95' : 'text-[#f0f9ff] dark:text-slate-900'
             }`}
             aria-hidden="true"
           >
             <svg
               viewBox="0 0 1440 28"
-              className="w-full h-3 sm:h-4.5 lg:h-5.5 block drop-shadow-[0_4px_6px_rgba(8,59,92,0.06)]"
+              className="w-full h-3 sm:h-4.5 lg:h-5.5 block drop-shadow-[0_4px_6px_rgba(8,59,92,0.06)] dark:drop-shadow-[0_4px_6px_rgba(0,0,0,0.4)]"
               preserveAspectRatio="none"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
@@ -338,21 +353,21 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
 
           {/* Sidebar Drawer Container (Sliding in from Right) */}
           <aside
-            className="relative w-72 sm:w-80 max-w-[85vw] bg-white h-[100dvh] max-h-[100dvh] flex flex-col justify-between shadow-2xl z-10 overflow-hidden animate-slide-in-right border-l border-slate-200/80"
+            className="relative w-72 sm:w-80 max-w-[85vw] bg-white dark:bg-slate-900 h-[100dvh] max-h-[100dvh] flex flex-col justify-between shadow-2xl z-10 overflow-hidden animate-slide-in-right border-l border-slate-200/80 dark:border-slate-800"
             aria-label="منوی کناری ناوبری"
             style={{ overscrollBehavior: 'contain' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* Header: Logo, Title & Close Button */}
             <div
-              className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between shrink-0 bg-sky-50/50 select-none"
+              className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between shrink-0 bg-sky-50/50 dark:bg-slate-800/60 select-none"
               style={{ touchAction: 'none' }}
               onTouchMove={(e) => e.preventDefault()}
             >
               <Link
                 to="/"
                 onClick={() => setMobileMenuOpen(false)}
-                className="flex items-center gap-2.5 text-[#083B5C] min-w-0"
+                className="flex items-center gap-2.5 text-[#083B5C] dark:text-white min-w-0"
               >
                 <picture>
                   <source srcSet="/images/logo.webp" type="image/webp" />
@@ -364,7 +379,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                   />
                 </picture>
                 <div className="flex flex-col min-w-0">
-                  <span className="font-extrabold text-sm text-[#083B5C] truncate">
+                  <span className="font-extrabold text-sm text-[#083B5C] dark:text-white truncate">
                     مدرسه شنای ایران
                   </span>
                 </div>
@@ -373,7 +388,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(false)}
-                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors shrink-0 cursor-pointer"
+                className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
                 aria-label="بستن منوی سایدبار"
                 title="بستن منو"
               >
@@ -391,7 +406,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               }}
             >
               <div>
-                <span className="text-[11px] font-bold text-[#647789] px-2 block mb-2 select-none">
+                <span className="text-[11px] font-bold text-[#647789] dark:text-slate-400 px-2 block mb-2 select-none">
                   فهرست و دسترسی سریع
                 </span>
                 <nav className="flex flex-col space-y-1">
@@ -413,15 +428,15 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                             }, 80);
                           }
                         }}
-                        className="flex items-center justify-between p-3 rounded-xl hover:bg-sky-50 text-[#163247] text-sm font-semibold transition-colors group"
+                        className="flex items-center justify-between p-3 rounded-xl hover:bg-sky-50 dark:hover:bg-slate-800/70 text-[#163247] dark:text-slate-200 text-sm font-semibold transition-colors group"
                       >
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-lg bg-[#EAF5FC] text-[#087EA4] flex items-center justify-center group-hover:bg-[#087EA4] group-hover:text-white transition-colors shrink-0">
+                          <div className="w-8 h-8 rounded-lg bg-[#EAF5FC] dark:bg-slate-800 text-[#087EA4] dark:text-cyan-400 flex items-center justify-center group-hover:bg-[#087EA4] group-hover:text-white transition-colors shrink-0">
                             <Icon className="w-4 h-4" />
                           </div>
                           <span className="truncate">{item.label}</span>
                         </div>
-                        <ChevronLeft className="w-4 h-4 text-slate-400 group-hover:text-[#087EA4] group-hover:-translate-x-0.5 transition-all shrink-0" />
+                        <ChevronLeft className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-[#087EA4] dark:group-hover:text-cyan-400 group-hover:-translate-x-0.5 transition-all shrink-0" />
                       </a>
                     );
                   })}
@@ -429,12 +444,12 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               </div>
 
               {/* Quick Contact & Info Card */}
-              <div className="p-3.5 bg-slate-50 rounded-xl border border-slate-200/80 text-xs space-y-2 select-none">
-                <div className="flex items-center gap-2 text-[#083B5C] font-bold">
-                  <PhoneCall className="w-4 h-4 text-[#087EA4] shrink-0" />
+              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-xs space-y-2 select-none">
+                <div className="flex items-center gap-2 text-[#083B5C] dark:text-slate-100 font-bold">
+                  <PhoneCall className="w-4 h-4 text-[#087EA4] dark:text-cyan-400 shrink-0" />
                   <span>پشتیبانی و پذیرش: ۰۲۸-۳۳۶۵۰۰۰۰</span>
                 </div>
-                <p className="text-[11px] text-[#647789] leading-relaxed">
+                <p className="text-[11px] text-[#647789] dark:text-slate-400 leading-relaxed">
                   مدرسه شنای ایران • استان قزوین
                   <br />
                   برگزاری کلاس‌ها در استخرهای منتخب قزوین
@@ -444,7 +459,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
 
             {/* Bottom Actions Footer */}
             <div
-              className="p-4 border-t border-slate-100 bg-white shrink-0 select-none"
+              className="p-4 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 select-none"
               style={{ touchAction: 'none' }}
               onTouchMove={(e) => e.preventDefault()}
             >
@@ -453,7 +468,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                   <Link
                     to="/"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="w-full flex items-center justify-center gap-2 py-3 bg-sky-50 hover:bg-sky-100 text-[#083B5C] border border-sky-200 font-bold text-sm rounded-xl shadow-2xs transition-all"
+                    className="w-full flex items-center justify-center gap-2 py-3 bg-sky-50 dark:bg-slate-800 hover:bg-sky-100 dark:hover:bg-slate-700 text-[#083B5C] dark:text-cyan-300 border border-sky-200 dark:border-slate-700 font-bold text-sm rounded-xl shadow-2xs transition-all"
                   >
                     <ChevronLeft className="w-4 h-4 shrink-0 rotate-180" />
                     <span>بازگشت به صفحه اصلی</span>
@@ -472,7 +487,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 <Link
                   to={getDashboardPath(user.role)}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="w-full flex items-center justify-between p-3 bg-sky-50 border border-sky-200 text-sky-800 rounded-xl font-bold text-sm hover:bg-sky-100 transition-colors"
+                  className="w-full flex items-center justify-between p-3 bg-sky-50 dark:bg-slate-800/80 border border-sky-200 dark:border-slate-700 text-sky-800 dark:text-sky-200 rounded-xl font-bold text-sm hover:bg-sky-100 dark:hover:bg-slate-700/80 transition-colors"
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     <div
@@ -483,13 +498,13 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                       {user.full_name ? user.full_name.trim().charAt(0) : 'U'}
                     </div>
                     <div className="flex flex-col text-right min-w-0">
-                      <span className="truncate">{user.full_name || 'کاربر'}</span>
-                      <span className="text-[11px] text-sky-600 font-normal truncate">
+                      <span className="truncate text-slate-800 dark:text-slate-100">{user.full_name || 'کاربر'}</span>
+                      <span className="text-[11px] text-sky-600 dark:text-sky-400 font-normal truncate">
                         {roleTitles[user.role] || 'پیشخوان کاربری'}
                       </span>
                     </div>
                   </div>
-                  <ChevronLeft className="w-4 h-4 text-sky-500 shrink-0" />
+                  <ChevronLeft className="w-4 h-4 text-sky-500 dark:text-sky-400 shrink-0" />
                 </Link>
               )}
             </div>

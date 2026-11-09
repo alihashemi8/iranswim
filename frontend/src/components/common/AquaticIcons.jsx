@@ -1,6 +1,4 @@
 import React from 'react';
-import courseLogoLightWebp from '../../assets/course-logo-64.webp';
-import courseLogoDarkWebp from '../../assets/course-logo-dark.webp';
 
 /**
  * IranSwim Bespoke Aquatic & Sports SVG Icon Set
@@ -560,33 +558,30 @@ export const SwimCourseSpecsIcon = ({ className = 'w-6 h-6', ...props }) => (
   </svg>
 );
 
-// 22. Course Academic Swimmer Official Logo (لوگوی اختصاصی دوره‌های آموزشی شنا با پشتیبانی کامل از لایت و دارک مود)
+// 22. Course Academic Swimmer Official Icon (آیکون مینیمال دوره‌های آموزشی شنا - کلاه فارغ‌التحصیلی، شناگر و موج آب)
 export const CourseLogoIcon = ({ className = 'w-5 h-5', ...props }) => (
-  <span
-    className={`inline-flex shrink-0 items-center justify-center select-none pointer-events-none relative ${className}`}
+  <svg
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    className={className}
     {...props}
   >
-    {/* Light Mode Logo (Navy Swimmer & Cap + Cyan Waves) */}
-    <img
-      src={courseLogoLightWebp}
-      alt="دوره‌ها"
-      width="20"
-      height="20"
-      loading="eager"
-      decoding="sync"
-      className="w-full h-full object-contain dark:hidden"
-    />
-    {/* Dark Mode Logo (Luminous Ice-White Swimmer & Cap + Vibrant Cyan Waves) */}
-    <img
-      src={courseLogoDarkWebp}
-      alt="دوره‌ها"
-      width="20"
-      height="20"
-      loading="eager"
-      decoding="sync"
-      className="w-full h-full object-contain hidden dark:block"
-    />
-  </span>
+    {/* کلاه فارغ‌التحصیلی (Mortarboard Cap) */}
+    <path d="M12 2.5L2.5 6.5 12 10.5l9.5-4L12 2.5z" />
+    <path d="M6.5 8.2v2.3c0 1.5 2.5 2.5 5.5 2.5s5.5-1 5.5-2.5V8.2" />
+    <path d="M20.5 7v3.5" />
+
+    {/* سر و چرخش دست و شانه شناگر (Academic Swimmer) */}
+    <circle cx="16.5" cy="14.5" r="1.5" />
+    <path d="M6.5 18c2-3 5-4 7.5-2.2" />
+
+    {/* موج آب زیرین (Aquatic Wave) */}
+    <path d="M2 19.5c2.5-1.2 5.5 1.2 8.5 0s6-1.2 8.5 0 2.5.8 3.5.5" />
+  </svg>
 );
 
 

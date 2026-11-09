@@ -157,13 +157,7 @@ export const MobileBottomNav = () => {
                   : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200'
               }`}
             >
-              <CourseLogoIcon
-                className={`w-5 h-5 transition-all ${
-                  isCoursesActive
-                    ? 'brightness-105 drop-shadow-xs scale-105'
-                    : 'opacity-75 grayscale-[25%] group-hover:opacity-100 group-hover:grayscale-0 dark:opacity-85'
-                }`}
-              />
+              <CourseLogoIcon className="w-5 h-5" />
             </div>
             <span
               className={`text-xs tracking-tight leading-tight mt-0.5 truncate max-w-full ${

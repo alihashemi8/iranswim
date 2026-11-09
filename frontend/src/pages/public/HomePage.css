@@ -117,6 +117,29 @@
   color: #ffffff !important;
 }
 
+html.dark .pool-header {
+  color: #f1f5f9;
+  background: rgba(15, 23, 42, 0.94) !important;
+  border-bottom: 1px solid rgba(51, 65, 85, 0.5) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.45), 0 2px 6px -1px rgba(0, 0, 0, 0.3) !important;
+}
+
+html.dark .pool-header nav a {
+  color: #cbd5e1;
+}
+
+html.dark .pool-header nav a:hover {
+  color: #38bdf8;
+}
+
+html.dark .pool-header > div:first-child > div > a > div > span:first-child {
+  color: #f8fafc !important;
+}
+
+html.dark .pool-header > div:first-child > div > a > div > span:nth-child(2) {
+  color: #38bdf8 !important;
+}
+
 .landing-section,
 #about,
 #courses,
