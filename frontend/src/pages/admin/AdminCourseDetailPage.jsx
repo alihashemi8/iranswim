@@ -5,7 +5,7 @@ import {
   ChevronRight, ArrowRight, Search, Filter, CheckCircle2,
   AlertCircle, Eye, LayoutGrid, List, Plus, RefreshCw,
   Award, DollarSign, Sparkles, Layers, ShieldCheck, Phone,
-  Trash2, UserPlus, UserCheck, AlertTriangle
+  Trash2, UserPlus, UserCheck, AlertTriangle, UserCog
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -860,8 +860,8 @@ export const AdminCourseDetailPage = () => {
               size="sm"
               className="gap-2 text-xs bg-sky-600 hover:bg-sky-700 text-white shrink-0 self-start sm:self-center cursor-pointer shadow-sm shadow-sky-500/20"
             >
-              <UserPlus className="w-4 h-4" />
-              <span>افزودن مربی و کلاس جدید</span>
+              <UserCog className="w-4 h-4" />
+              <span>مدیریت مربیان</span>
             </Button>
           </div>
 

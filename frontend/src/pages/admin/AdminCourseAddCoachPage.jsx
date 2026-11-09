@@ -236,7 +236,7 @@ export const AdminCourseAddCoachPage = () => {
             </div>
             <div>
               <h1 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
-                افزودن مربی به دوره و تشکیل کلاس‌های اختصاصی
+                مدیریت مربیان دوره و تشکیل کلاس‌های اختصاصی
               </h1>
               <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
                 دوره آموزشی: <span className="font-bold text-slate-800 dark:text-slate-200">{course.name}</span>
