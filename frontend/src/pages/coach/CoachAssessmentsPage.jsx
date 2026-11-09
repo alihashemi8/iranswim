@@ -105,7 +105,7 @@ export const CoachAssessmentsPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 coach-panel">
       <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
@@ -226,7 +226,7 @@ export const CoachAssessmentsPage = () => {
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">نمره (از ۱۰۰):</label>
+              <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">نمره (از 100):</label>
               <input
                 type="number"
                 step="0.5"
@@ -337,8 +337,8 @@ export const CoachAssessmentsPage = () => {
                 onChange={(e) => setRecForm({ ...recForm, pool_course: e.target.value })}
                 className="w-full text-sm font-medium bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100"
               >
-                <option value="SHORT_25M">مسافت کوتاه (۲۵ متر)</option>
-                <option value="LONG_50M">مسافت استاندارد المپیک (۵۰ متر)</option>
+                <option value="SHORT_25M">مسافت کوتاه (25 متر)</option>
+                <option value="LONG_50M">مسافت استاندارد المپیک (50 متر)</option>
               </select>
             </div>
           </div>
