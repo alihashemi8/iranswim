@@ -1006,6 +1006,68 @@ def test_remove_coach_from_course(api_client, admin_user, coach_user, swimmer_us
     assert enr.status == Enrollment.Status.ACTIVE
 
 
+@pytest.mark.django_db
+def test_swimmer_pagination_and_query_filters(api_client, admin_user):
+    """تست صفحه‌بندی ۱۰ تایی شناگران، فیلتر وضعیت و جستجو و تبدیل صفحات"""
+    from apps.swimmers.models import SwimmerProfile
+
+    api_client.force_authenticate(user=admin_user)
+
+    # Ensure at least 15 swimmers exist
+    existing = SwimmerProfile.objects.count()
+    for i in range(existing, 15):
+        SwimmerProfile.objects.create(
+            first_name=f'شناگر{i}',
+            last_name=f'تستی{i}',
+            phone=f'0912000{i:04d}',
+            national_id=f'001234{i:04d}',
+            is_active=(i % 2 == 0)
+        )
+
+    # 1. Page 1 request with default page size of 10
+    res_p1 = api_client.get('/api/swimmers/?page=1&page_size=10')
+    assert res_p1.status_code == 200
+    assert 'results' in res_p1.data
+    assert len(res_p1.data['results']) == 10
+    assert res_p1.data['current_page'] == 1
+    assert res_p1.data['page_size'] == 10
+    assert res_p1.data['count'] >= 15
+    assert 'counts' in res_p1.data
+    assert res_p1.data['counts']['total'] >= 15
+
+    # 2. Page 2 request
+    res_p2 = api_client.get('/api/swimmers/?page=2&page_size=10')
+    assert res_p2.status_code == 200
+    assert len(res_p2.data['results']) >= 5
+    assert res_p2.data['current_page'] == 2
+
+    # 3. Graceful handling of out of bounds page (e.g. page 999 returns last page)
+    res_p_out = api_client.get('/api/swimmers/?page=999&page_size=10')
+    assert res_p_out.status_code == 200
+    assert res_p_out.data['current_page'] == res_p1.data['total_pages']
+
+    # 4. all=true unpaginated parameter
+    res_all = api_client.get('/api/swimmers/?all=true')
+    assert res_all.status_code == 200
+    assert isinstance(res_all.data, list)
+    assert len(res_all.data) >= 15
+
+    # 5. Status filter ACTIVE
+    res_active = api_client.get('/api/swimmers/?status=ACTIVE&page=1&page_size=10')
+    assert res_active.status_code == 200
+    for swimmer in res_active.data['results']:
+        assert swimmer['is_active'] is True
+
+    # 6. Search filter
+    test_swimmer = SwimmerProfile.objects.first()
+    res_search = api_client.get(f'/api/swimmers/?search={test_swimmer.first_name}&page=1')
+    assert res_search.status_code == 200
+    assert res_search.data['count'] >= 1
+    names = [s['full_name'] for s in res_search.data['results']]
+    assert any(test_swimmer.first_name in name for name in names)
+
+
+
 
 
 

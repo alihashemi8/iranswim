@@ -1,11 +1,15 @@
 import os
 import mimetypes
 from django.conf import settings
+from django.db.models import Count, Q
+from django.core.paginator import InvalidPage, EmptyPage
 from django.http import FileResponse, HttpResponse
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
+from rest_framework.pagination import PageNumberPagination
+from rest_framework.exceptions import NotFound
 from .models import SwimmerProfile, SwimmerGuardianRelation, DocumentStatus
 from .serializers import SwimmerProfileSerializer, SwimmerGuardianRelationSerializer
 from apps.accounts.permissions import IsAdminUserRole, IsOwnerSwimmerOrAdmin
@@ -222,34 +226,154 @@ class SwimmerCompleteProfileView(APIView):
         }, status=status.HTTP_200_OK)
 
 
+class SwimmerPagination(PageNumberPagination):
+    """صفحه‌بندی اختصاصی شناگران به صورت پیش‌فرض ۱۰ موردی همراه با متادیتای خلاصه وضعیت‌ها"""
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+    def paginate_queryset(self, queryset, request, view=None):
+        all_param = str(request.query_params.get('all', '')).lower()
+        page_size_param = str(request.query_params.get('page_size', '')).lower()
+        if all_param in ['true', '1'] or page_size_param == 'all':
+            return None
+
+        try:
+            return super().paginate_queryset(queryset, request, view)
+        except (NotFound, InvalidPage, EmptyPage):
+            page_size = self.get_page_size(request)
+            paginator = self.django_paginator_class(queryset, page_size)
+            self.request = request
+            if paginator.count == 0:
+                self.page = paginator.page(1)
+            else:
+                self.page = paginator.page(paginator.num_pages)
+            return list(self.page)
+
+    def get_paginated_response(self, data):
+        counts = getattr(self, 'counts_summary', {})
+        return Response({
+            'count': self.page.paginator.count,
+            'total_pages': self.page.paginator.num_pages,
+            'current_page': self.page.number,
+            'page_size': self.get_page_size(self.request),
+            'next': self.get_next_link(),
+            'previous': self.get_previous_link(),
+            'counts': counts,
+            'results': data
+        })
+
+
 class SwimmerListView(generics.ListCreateAPIView):
-    """مدیریت شناگران توسط مدیر، یا مشاهده مشخصات توسط مدیر/ناظر"""
-    queryset = SwimmerProfile.objects.all().select_related('current_level', 'user')
+    """مدیریت شناگران توسط مدیر، یا مشاهده مشخصات توسط مدیر/ناظر/مربی"""
+    queryset = SwimmerProfile.objects.all().select_related('current_level', 'user').prefetch_related(
+        'enrollments__course', 'enrollments__coach__user', 'enrollments__group'
+    )
     serializer_class = SwimmerProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = SwimmerPagination
 
     def get_queryset(self):
         user = self.request.user
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
-            qs = SwimmerProfile.objects.all().select_related('current_level', 'user')
-            level = self.request.query_params.get('level')
-            if level:
-                qs = qs.filter(current_level_id=level)
-            search = self.request.query_params.get('search')
-            if search:
-                qs = qs.filter(first_name__icontains=search) | qs.filter(last_name__icontains=search) | qs.filter(phone__icontains=search)
-            return qs
+            qs = SwimmerProfile.objects.all()
         elif user.role == 'COACH':
             coach_profile = getattr(user, 'coach_profile', None)
             if not coach_profile:
                 return SwimmerProfile.objects.none()
             assigned_group_ids = coach_profile.assigned_groups.values_list('group_id', flat=True)
-            return SwimmerProfile.objects.filter(
+            qs = SwimmerProfile.objects.filter(
                 enrollments__group_id__in=assigned_group_ids
-            ).distinct().select_related('current_level', 'user')
+            ).distinct()
         elif user.role == 'SWIMMER':
-            return SwimmerProfile.objects.filter(user=user).select_related('current_level', 'user')
-        return SwimmerProfile.objects.none()
+            qs = SwimmerProfile.objects.filter(user=user)
+        else:
+            return SwimmerProfile.objects.none()
+
+        # Filter by level
+        level = self.request.query_params.get('level')
+        if level:
+            qs = qs.filter(current_level_id=level)
+
+        # Filter by status
+        status_param = self.request.query_params.get('status')
+        if status_param == 'ACTIVE':
+            qs = qs.filter(is_active=True)
+        elif status_param == 'INACTIVE':
+            qs = qs.filter(is_active=False)
+        elif status_param == 'DOCS_PENDING':
+            docs_pending_q = (
+                Q(birth_certificate_status=DocumentStatus.PENDING) |
+                Q(national_card_status=DocumentStatus.PENDING) |
+                Q(sports_insurance_status=DocumentStatus.PENDING) |
+                (
+                    Q(is_profile_completed=False) &
+                    (
+                        ~Q(birth_certificate_image='') |
+                        ~Q(national_card_image='') |
+                        ~Q(sports_insurance_image='')
+                    )
+                )
+            )
+            qs = qs.filter(docs_pending_q)
+
+        # Filter by search
+        search = self.request.query_params.get('search', '').strip()
+        if search:
+            qs = qs.filter(
+                Q(first_name__icontains=search) |
+                Q(last_name__icontains=search) |
+                Q(phone__icontains=search) |
+                Q(national_id__icontains=search) |
+                Q(emergency_contact_name__icontains=search)
+            )
+
+        return qs.select_related('current_level', 'user').prefetch_related(
+            'enrollments__course', 'enrollments__coach__user', 'enrollments__group'
+        ).order_by('last_name', 'first_name', 'id')
+
+    def list(self, request, *args, **kwargs):
+        # Calculate summary counts for tab counters
+        user = request.user
+        base_qs = SwimmerProfile.objects.all()
+        if user.role not in ['ADMIN', 'SUPERVISOR'] and not user.is_superuser:
+            if user.role == 'COACH':
+                coach_profile = getattr(user, 'coach_profile', None)
+                if coach_profile:
+                    assigned_group_ids = coach_profile.assigned_groups.values_list('group_id', flat=True)
+                    base_qs = base_qs.filter(enrollments__group_id__in=assigned_group_ids).distinct()
+                else:
+                    base_qs = SwimmerProfile.objects.none()
+            elif user.role == 'SWIMMER':
+                base_qs = SwimmerProfile.objects.filter(user=user)
+            else:
+                base_qs = SwimmerProfile.objects.none()
+
+        docs_pending_q = (
+            Q(birth_certificate_status=DocumentStatus.PENDING) |
+            Q(national_card_status=DocumentStatus.PENDING) |
+            Q(sports_insurance_status=DocumentStatus.PENDING) |
+            (
+                Q(is_profile_completed=False) &
+                (
+                    ~Q(birth_certificate_image='') |
+                    ~Q(national_card_image='') |
+                    ~Q(sports_insurance_image='')
+                )
+            )
+        )
+
+        counts_summary = base_qs.aggregate(
+            total=Count('id'),
+            active=Count('id', filter=Q(is_active=True)),
+            inactive=Count('id', filter=Q(is_active=False)),
+            docs_pending=Count('id', filter=docs_pending_q)
+        )
+
+        if self.paginator:
+            self.paginator.counts_summary = counts_summary
+
+        return super().list(request, *args, **kwargs)
 
 
 class SwimmerDetailView(generics.RetrieveUpdateDestroyAPIView):

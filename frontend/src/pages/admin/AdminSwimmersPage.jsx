@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Users, UserPlus, Search, Filter, Eye, BookOpen,
@@ -21,14 +21,18 @@ import { exportToCsv } from '../../utils/exportCsv';
 
 export const AdminSwimmersPage = () => {
   const [swimmers, setSwimmers] = useState([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [countsSummary, setCountsSummary] = useState({ total: 0, active: 0, inactive: 0, docs_pending: 0 });
   const [levels, setLevels] = useState([]);
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [activeSearch, setActiveSearch] = useState('');
   const [selectedLevel, setSelectedLevel] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL'); // ALL, ACTIVE, INACTIVE
+  const [statusFilter, setStatusFilter] = useState('ALL'); // ALL, ACTIVE, INACTIVE, DOCS_PENDING
   const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 8;
+  const pageSize = 10;
   const toast = useToast();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -52,34 +56,61 @@ export const AdminSwimmersPage = () => {
   const [pendingClassChange, setPendingClassChange] = useState(null);
   const [confirmingClassChange, setConfirmingClassChange] = useState(false);
 
-  const fetchSwimmers = async () => {
+  // Load levels and groups metadata once on mount
+  useEffect(() => {
+    const fetchMetadata = async () => {
+      try {
+        const [levelsRes, groupsRes] = await Promise.all([
+          api.get('/education/levels/'),
+          api.get('/education/groups/'),
+        ]);
+        setLevels(levelsRes.data.results || levelsRes.data || []);
+        setGroups(groupsRes.data.results || groupsRes.data || []);
+      } catch (err) {
+        console.error('Error fetching metadata:', err);
+      }
+    };
+    fetchMetadata();
+  }, []);
+
+  // Fetch swimmers with server-side pagination (10 items per page request)
+  const fetchSwimmers = useCallback(async (pageToFetch = currentPage) => {
     try {
       setLoading(true);
-      const params = {};
-      if (search.trim()) params.search = search.trim();
+      const params = {
+        page: pageToFetch,
+        page_size: pageSize,
+      };
+      if (activeSearch.trim()) params.search = activeSearch.trim();
       if (selectedLevel) params.level = selectedLevel;
+      if (statusFilter && statusFilter !== 'ALL') params.status = statusFilter;
 
-      const [swimmersRes, levelsRes, groupsRes] = await Promise.all([
-        api.get('/swimmers/', { params }),
-        api.get('/education/levels/'),
-        api.get('/education/groups/'),
-      ]);
+      const swimmersRes = await api.get('/swimmers/', { params });
+      const data = swimmersRes.data;
 
-      setSwimmers(swimmersRes.data.results || swimmersRes.data);
-      setLevels(levelsRes.data.results || levelsRes.data);
-      setGroups(groupsRes.data.results || groupsRes.data);
-      setCurrentPage(1);
+      if (data && data.results) {
+        setSwimmers(data.results);
+        setTotalCount(data.count || 0);
+        setTotalPages(data.total_pages || Math.ceil((data.count || 0) / pageSize) || 1);
+        if (data.counts) {
+          setCountsSummary(data.counts);
+        }
+      } else if (Array.isArray(data)) {
+        setSwimmers(data);
+        setTotalCount(data.length);
+        setTotalPages(Math.ceil(data.length / pageSize) || 1);
+      }
     } catch (err) {
       console.error(err);
       toast.error('خطا در دریافت لیست شناگران');
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, activeSearch, selectedLevel, statusFilter, pageSize, toast]);
 
   useEffect(() => {
-    fetchSwimmers();
-  }, [selectedLevel]);
+    fetchSwimmers(currentPage);
+  }, [currentPage, activeSearch, selectedLevel, statusFilter, fetchSwimmers]);
 
   // Handle Quick Action deep link
   useEffect(() => {
@@ -95,7 +126,24 @@ export const AdminSwimmersPage = () => {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    fetchSwimmers();
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+    setActiveSearch(search);
+  };
+
+  const handleLevelChange = (val) => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+    setSelectedLevel(val);
+  };
+
+  const handleStatusFilterChange = (val) => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+    setStatusFilter(val);
   };
 
   // Open Full Swimmer Dossier
@@ -131,7 +179,11 @@ export const AdminSwimmersPage = () => {
         current_level: '',
         medical_notes: '',
       });
-      fetchSwimmers();
+      if (currentPage === 1) {
+        fetchSwimmers(1);
+      } else {
+        setCurrentPage(1);
+      }
     } catch (err) {
       toast.error(err.response?.data?.detail || 'خطا در ثبت پرونده شناگر');
     } finally {
@@ -228,48 +280,36 @@ export const AdminSwimmersPage = () => {
   };
 
   // Export to CSV
-  const handleExportCsv = () => {
-    const rows = swimmers.map((s) => ({
-      name: s.full_name,
-      phone: s.phone,
-      level: s.level_name || 'بدون سطح',
-      status: s.is_active ? 'فعال' : 'غیرفعال',
-      date: new Date(s.created_at).toLocaleDateString('fa-IR'),
-    }));
-    exportToCsv('IranSwim_Swimmers_List', rows, {
-      name: 'نام و نام خانوادگی',
-      phone: 'شماره همراه',
-      level: 'سطح مهارت',
-      status: 'وضعیت',
-      date: 'تاریخ ثبت',
-    });
-  };
+  const handleExportCsv = async () => {
+    try {
+      toast.info('در حال دریافت اطلاعات جهت خروجی...');
+      const params = { all: 'true' };
+      if (activeSearch.trim()) params.search = activeSearch.trim();
+      if (selectedLevel) params.level = selectedLevel;
+      if (statusFilter && statusFilter !== 'ALL') params.status = statusFilter;
 
-  const pendingDocsCount = swimmers.filter(
-    (s) =>
-      s.birth_certificate_status === 'PENDING' ||
-      s.national_card_status === 'PENDING' ||
-      s.sports_insurance_status === 'PENDING' ||
-      (!s.is_profile_completed && (s.birth_certificate_image || s.national_card_image || s.sports_insurance_image))
-  ).length;
-
-  // Filtered Swimmers List
-  const filteredSwimmers = swimmers.filter((s) => {
-    if (statusFilter === 'ACTIVE') return s.is_active;
-    if (statusFilter === 'INACTIVE') return !s.is_active;
-    if (statusFilter === 'DOCS_PENDING') {
-      return (
-        s.birth_certificate_status === 'PENDING' ||
-        s.national_card_status === 'PENDING' ||
-        s.sports_insurance_status === 'PENDING' ||
-        (!s.is_profile_completed && (s.birth_certificate_image || s.national_card_image || s.sports_insurance_image))
-      );
+      const res = await api.get('/swimmers/', { params });
+      const allSwimmers = res.data.results || res.data || [];
+      const rows = allSwimmers.map((s) => ({
+        name: s.full_name,
+        phone: s.phone,
+        level: s.level_name || 'بدون سطح',
+        status: s.is_active ? 'فعال' : 'غیرفعال',
+        date: new Date(s.created_at).toLocaleDateString('fa-IR'),
+      }));
+      exportToCsv('IranSwim_Swimmers_List', rows, {
+        name: 'نام و نام خانوادگی',
+        phone: 'شماره همراه',
+        level: 'سطح مهارت',
+        status: 'وضعیت',
+        date: 'تاریخ ثبت',
+      });
+      toast.success('فایل خروجی با موفقیت دانلود شد.');
+    } catch (err) {
+      console.error(err);
+      toast.error('خطا در دریافت خروجی اکسل شناگران');
     }
-    return true;
-  });
-
-  const totalPages = Math.ceil(filteredSwimmers.length / pageSize) || 1;
-  const paginatedSwimmers = filteredSwimmers.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  };
 
   const formatPrice = (v) => Number(v || 0).toLocaleString('fa-IR');
 
@@ -287,13 +327,13 @@ export const AdminSwimmersPage = () => {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          <Button variant="outline" onClick={handleExportCsv} className="gap-1.5 text-xs">
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span>خروجی اکسل / CSV</span>
+          <Button variant="outline" onClick={handleExportCsv} className="gap-1.5 text-xs whitespace-nowrap">
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span className="whitespace-nowrap">خروجی اکسل / CSV</span>
           </Button>
-          <Button onClick={() => setIsAddModalOpen(true)} className="gap-1.5 text-xs">
-            <UserPlus className="w-4 h-4" />
-            <span>ثبت شناگر جدید</span>
+          <Button onClick={() => setIsAddModalOpen(true)} className="gap-1.5 text-xs whitespace-nowrap">
+            <UserPlus className="w-4 h-4 shrink-0" />
+            <span className="whitespace-nowrap">ثبت شناگر جدید</span>
           </Button>
         </div>
       </div>
@@ -302,87 +342,67 @@ export const AdminSwimmersPage = () => {
       <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 transition-colors relative z-20">
         <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center gap-2">
           <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="جستجو با نام، نام خانوادگی، شماره تماس یا کد ملی..."
-              className="w-full pl-3 pr-10 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
+              className="w-full pl-3 pr-10 py-2.5 text-xs bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-colors"
             />
           </div>
-          <Button type="submit" variant="secondary" className="text-xs shrink-0 px-4">
+          <Button type="submit" variant="secondary" className="text-xs shrink-0 px-4 whitespace-nowrap h-10">
             جستجو
           </Button>
         </form>
 
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Level Filter */}
-          <div className="w-full sm:w-52 shrink-0">
-            <CustomSelect
-              value={selectedLevel}
-              onChange={(val) => setSelectedLevel(val)}
-              placeholder="همه سطوح مهارت"
-              icon={Award}
-              size="sm"
-              clearable
-              options={[
-                { value: '', label: 'همه سطوح مهارت' },
-                ...levels.map((lvl) => ({
-                  value: lvl.id,
-                  label: `سطح ${lvl.order}: ${lvl.name}`,
-                  icon: Award,
-                })),
-              ]}
-            />
-          </div>
-
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none shrink-0 w-full md:w-auto">
           {/* Status Tab buttons */}
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-xl border border-slate-200/60 dark:border-slate-700 text-xs shrink-0">
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700/80 text-xs shrink-0 w-full sm:w-auto overflow-x-auto scrollbar-none">
             <button
               type="button"
-              onClick={() => setStatusFilter('ALL')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
+              onClick={() => handleStatusFilterChange('ALL')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap text-xs shrink-0 ${
                 statusFilter === 'ALL'
                   ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              همه ({swimmers.length})
+              همه ({countsSummary.total || totalCount})
             </button>
             <button
               type="button"
-              onClick={() => setStatusFilter('DOCS_PENDING')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors inline-flex items-center gap-1.5 ${
+              onClick={() => handleStatusFilterChange('DOCS_PENDING')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors inline-flex items-center gap-1.5 whitespace-nowrap text-xs shrink-0 ${
                 statusFilter === 'DOCS_PENDING'
                   ? 'bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-300 shadow-2xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              <Clock className="w-3.5 h-3.5 text-amber-500" />
-              <span>بررسی مدارک ({pendingDocsCount})</span>
+              <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+              <span className="whitespace-nowrap">بررسی مدارک ({countsSummary.docs_pending || 0})</span>
             </button>
             <button
               type="button"
-              onClick={() => setStatusFilter('ACTIVE')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
+              onClick={() => handleStatusFilterChange('ACTIVE')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap text-xs shrink-0 ${
                 statusFilter === 'ACTIVE'
                   ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-2xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              فعال
+              فعال ({countsSummary.active || 0})
             </button>
             <button
               type="button"
-              onClick={() => setStatusFilter('INACTIVE')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${
+              onClick={() => handleStatusFilterChange('INACTIVE')}
+              className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap text-xs shrink-0 ${
                 statusFilter === 'INACTIVE'
                   ? 'bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-300 shadow-2xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
               }`}
             >
-              بایگانی
+              بایگانی ({countsSummary.inactive || 0})
             </button>
           </div>
         </div>
@@ -391,7 +411,7 @@ export const AdminSwimmersPage = () => {
       {/* Main Table */}
       {loading ? (
         <LoadingState type="table" rows={6} message="در حال بارگذاری لیست شناگران..." />
-      ) : paginatedSwimmers.length === 0 ? (
+      ) : swimmers.length === 0 ? (
         <EmptyState
           title="شناگری یافت نشد"
           description="با تغییر فیلترهای جستجو یا ثبت شناگر جدید، پرونده‌ها در این بخش نمایش داده می‌شوند."
@@ -403,18 +423,17 @@ export const AdminSwimmersPage = () => {
             <table className="w-full text-sm text-right min-w-[650px]">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                 <tr>
-                  <th className="px-4 py-3.5 rounded-r-xl">شناگر</th>
-                  <th className="px-4 py-3.5">شماره تماس</th>
-                  <th className="px-4 py-3.5">سطح مهارت فعلی</th>
-                  <th className="px-4 py-3.5">کلاس</th>
-                  <th className="px-4 py-3.5">وضعیت کاربری</th>
-                  <th className="px-4 py-3.5">وضعیت مدارک (گام ۳)</th>
-                  <th className="px-4 py-3.5">تاریخ ثبت</th>
-                  <th className="px-4 py-3.5 text-center rounded-l-xl">عملیات پرونده</th>
+                  <th className="px-4 py-3.5 rounded-r-xl whitespace-nowrap">شناگر</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap">شماره تماس</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap">کلاس</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap">وضعیت کاربری</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap">وضعیت مدارک</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap">تاریخ ثبت</th>
+                  <th className="px-4 py-3.5 text-center rounded-l-xl whitespace-nowrap">عملیات پرونده</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
-                {paginatedSwimmers.map((swimmer) => {
+                {swimmers.map((swimmer) => {
                   const isDocsApproved =
                     swimmer.birth_certificate_status === 'APPROVED' &&
                     swimmer.national_card_status === 'APPROVED' &&
@@ -430,7 +449,7 @@ export const AdminSwimmersPage = () => {
 
                   return (
                     <tr key={swimmer.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                      <td className="px-4 py-3.5 cursor-pointer" onClick={() => handleOpenDossier(swimmer)}>
+                      <td className="px-4 py-3.5 cursor-pointer whitespace-nowrap" onClick={() => handleOpenDossier(swimmer)}>
                         <div className="flex items-center gap-3 group">
                           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden">
                             {swimmer.avatar ? (
@@ -440,31 +459,21 @@ export const AdminSwimmersPage = () => {
                             )}
                           </div>
                           <div>
-                            <span className="font-bold text-slate-800 dark:text-slate-100 block group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                            <span className="font-bold text-slate-800 dark:text-slate-100 block group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors whitespace-nowrap">
                               {swimmer.full_name}
                             </span>
                             {swimmer.emergency_contact_name && (
-                              <span className="text-[11px] text-slate-400">
+                              <span className="text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap block mt-0.5">
                                 ولی/رابط: {swimmer.emergency_contact_name}
                               </span>
                             )}
                           </div>
                         </div>
                       </td>
-                      <td className="px-4 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-300">
+                      <td className="px-4 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">
                         {swimmer.phone}
                       </td>
-                      <td className="px-4 py-3.5">
-                        {swimmer.level_name ? (
-                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-semibold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200/60 dark:border-sky-800">
-                            <Award className="w-3.5 h-3.5 text-sky-500" />
-                            {swimmer.level_name}
-                          </span>
-                        ) : (
-                          <span className="text-xs text-slate-400">تعیین سطح نشده</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3.5">
+                      <td className="px-4 py-3.5 whitespace-nowrap">
                         <ClassSelectorDropdown
                           currentClass={
                             (swimmer.coach_id || swimmer.group_id || swimmer.class_name)
@@ -484,55 +493,55 @@ export const AdminSwimmersPage = () => {
                           size="sm"
                         />
                       </td>
-                      <td className="px-4 py-3.5">
-                        <Badge variant={swimmer.is_active ? 'success' : 'neutral'}>
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <Badge variant={swimmer.is_active ? 'success' : 'neutral'} className="whitespace-nowrap">
                           {swimmer.is_active ? 'فعال' : 'غیرفعال'}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3.5">
+                      <td className="px-4 py-3.5 whitespace-nowrap">
                         {isDocsApproved ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            تأییدشده
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 whitespace-nowrap">
+                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                            <span className="whitespace-nowrap">تأییدشده</span>
                           </span>
                         ) : isDocsRejected ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800">
-                            <XCircle className="w-3.5 h-3.5" />
-                            رد شده / نقص
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800 whitespace-nowrap">
+                            <XCircle className="w-3.5 h-3.5 shrink-0" />
+                            <span className="whitespace-nowrap">رد شده / نقص</span>
                           </span>
                         ) : hasAnyDocUploaded ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-800">
-                            <Clock className="w-3.5 h-3.5" />
-                            در انتظار بررسی
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-800 whitespace-nowrap">
+                            <Clock className="w-3.5 h-3.5 shrink-0" />
+                            <span className="whitespace-nowrap">در انتظار بررسی</span>
                           </span>
                         ) : (
-                          <span className="text-[11px] text-slate-400">
+                          <span className="text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
                             ارسال‌نشده
                           </span>
                         )}
                       </td>
-                      <td className="px-4 py-3.5 text-xs font-mono text-slate-500 dark:text-slate-400">
+                      <td className="px-4 py-3.5 text-xs font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap">
                         {new Date(swimmer.created_at).toLocaleDateString('fa-IR')}
                       </td>
-                      <td className="px-4 py-3.5">
-                        <div className="flex items-center justify-center gap-2">
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <div className="flex items-center justify-center gap-2 whitespace-nowrap">
                           <button
                             type="button"
                             onClick={() => handleOpenDossier(swimmer)}
-                            className="px-2.5 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 font-semibold text-xs border border-sky-200 dark:border-sky-800 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                            className="px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 font-semibold text-xs border border-sky-200/80 dark:border-sky-800 transition-colors inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0 shadow-2xs"
                             title="مشاهده پرونده جامع و بررسی مدارک"
                           >
-                            <ShieldCheck className="w-3.5 h-3.5 text-sky-600" />
-                            <span>پرونده و مدارک</span>
+                            <ShieldCheck className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
+                            <span className="whitespace-nowrap">پرونده و مدارک</span>
                           </button>
                           <button
                             type="button"
                             onClick={() => navigate(`/admin/swimmers/${swimmer.id}/enroll`)}
-                            className="px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 font-semibold text-xs border border-emerald-200 dark:border-emerald-800 transition-colors inline-flex items-center gap-1 cursor-pointer"
+                            className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 font-semibold text-xs border border-emerald-200/80 dark:border-emerald-800 transition-colors inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0 shadow-2xs"
                             title="ثبت‌نام مستقیم در کلاس"
                           >
-                            <PlusCircle className="w-3.5 h-3.5" />
-                            <span>ثبت‌نام</span>
+                            <PlusCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                            <span className="whitespace-nowrap">ثبت‌نام</span>
                           </button>
                         </div>
                       </td>
@@ -545,117 +554,146 @@ export const AdminSwimmersPage = () => {
 
           {/* Mobile Cards View */}
           <div className="md:hidden space-y-3">
-            {paginatedSwimmers.map((swimmer) => (
-              <div
-                key={swimmer.id}
-                className="p-4 rounded-3xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-3 text-xs"
-              >
-                {/* Top Section: Swimmer Avatar Top-Right */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs overflow-hidden">
-                      {swimmer.avatar ? (
-                        <img src={swimmer.avatar} alt={swimmer.full_name} className="w-full h-full object-cover" />
-                      ) : (
-                        swimmer.first_name ? swimmer.first_name.charAt(0) : 'S'
-                      )}
+            {swimmers.map((swimmer) => {
+              const isDocsApproved =
+                swimmer.birth_certificate_status === 'APPROVED' &&
+                swimmer.national_card_status === 'APPROVED' &&
+                swimmer.sports_insurance_status === 'APPROVED';
+
+              const isDocsRejected =
+                swimmer.birth_certificate_status === 'REVISION_REQUIRED' ||
+                swimmer.national_card_status === 'REVISION_REQUIRED' ||
+                swimmer.sports_insurance_status === 'REVISION_REQUIRED';
+
+              const hasAnyDocUploaded =
+                Boolean(swimmer.birth_certificate_image || swimmer.national_card_image || swimmer.sports_insurance_image);
+
+              return (
+                <div
+                  key={swimmer.id}
+                  className="p-4 rounded-2xl bg-slate-50/80 dark:bg-slate-800/40 border border-slate-200/70 dark:border-slate-800 space-y-3 text-xs"
+                >
+                  {/* Top Section: Avatar, Name, and Status Badge */}
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-2xs overflow-hidden">
+                        {swimmer.avatar ? (
+                          <img src={swimmer.avatar} alt={swimmer.full_name} className="w-full h-full object-cover" />
+                        ) : (
+                          swimmer.first_name ? swimmer.first_name.charAt(0) : 'S'
+                        )}
+                      </div>
+                      <div>
+                        <span className="font-bold text-slate-800 dark:text-slate-100 text-sm block">
+                          {swimmer.full_name}
+                        </span>
+                        {swimmer.emergency_contact_name && (
+                          <span className="text-[11px] text-slate-400 dark:text-slate-500 block mt-0.5">
+                            ولی/رابط: {swimmer.emergency_contact_name}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <Badge variant={swimmer.is_active ? 'success' : 'neutral'} className="whitespace-nowrap">
+                      {swimmer.is_active ? 'فعال' : 'غیرفعال'}
+                    </Badge>
+                  </div>
+
+                  {/* Middle Info Grid: Phone, Course, and Document Status (Skill level removed!) */}
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
+                    <div>
+                      <span className="text-slate-400 dark:text-slate-500 block text-[10px]">تماس</span>
+                      <a href={`tel:${swimmer.phone}`} className="font-mono text-sky-600 dark:text-sky-400 underline decoration-sky-300 whitespace-nowrap">
+                        {swimmer.phone}
+                      </a>
                     </div>
                     <div>
-                      <span className="font-bold text-slate-800 dark:text-slate-100 text-sm block">
-                        {swimmer.full_name}
+                      <span className="text-slate-400 dark:text-slate-500 block text-[10px]">دوره / کلاس</span>
+                      <span className="font-semibold text-slate-700 dark:text-slate-200 truncate block">
+                        {swimmer.class_name || swimmer.course_name || 'بدون کلاس'}
                       </span>
-                      {swimmer.emergency_contact_name && (
-                        <span className="text-[11px] text-slate-400 block mt-0.5">
-                          ولی/رابط: {swimmer.emergency_contact_name}
+                    </div>
+                    <div className="col-span-2 flex items-center justify-between pt-1">
+                      <span className="text-slate-400 dark:text-slate-500 text-[10px]">وضعیت مدارک:</span>
+                      {isDocsApproved ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800 whitespace-nowrap">
+                          <CheckCircle2 className="w-3 h-3 shrink-0" />
+                          <span className="whitespace-nowrap">تأییدشده</span>
+                        </span>
+                      ) : isDocsRejected ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-0.5 rounded-lg border border-rose-200 dark:border-rose-800 whitespace-nowrap">
+                          <XCircle className="w-3 h-3 shrink-0" />
+                          <span className="whitespace-nowrap">رد شده / نقص</span>
+                        </span>
+                      ) : hasAnyDocUploaded ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-lg border border-amber-200 dark:border-amber-800 whitespace-nowrap">
+                          <Clock className="w-3 h-3 shrink-0" />
+                          <span className="whitespace-nowrap">در انتظار بررسی</span>
+                        </span>
+                      ) : (
+                        <span className="text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
+                          ارسال‌نشده
                         </span>
                       )}
                     </div>
                   </div>
-                  <Badge variant={swimmer.is_active ? 'success' : 'neutral'}>
-                    {swimmer.is_active ? 'فعال' : 'غیرفعال'}
-                  </Badge>
-                </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-1 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
-                  <div>
-                    <span className="text-slate-400 block text-[10px]">سطح مهارت</span>
-                    {swimmer.level_name ? (
-                      <span className="inline-flex items-center gap-1 font-semibold text-sky-700 dark:text-sky-300 mt-0.5">
-                        <Award className="w-3 h-3 text-sky-500" />
-                        {swimmer.level_name}
-                      </span>
-                    ) : (
-                      <span className="text-slate-400">تعیین سطح نشده</span>
-                    )}
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-[10px]">تماس</span>
-                    <a href={`tel:${swimmer.phone}`} className="font-mono text-sky-600 dark:text-sky-400 underline decoration-sky-300">
-                      {swimmer.phone}
-                    </a>
-                  </div>
-                  <div>
-                    <span className="text-slate-400 block text-[10px]">دوره فعلی</span>
-                    <span className="font-semibold text-slate-700 dark:text-slate-200 truncate block">
-                      {swimmer.course_name || 'بدون دوره'}
-                    </span>
-                  </div>
-                </div>
+                  {/* Bottom Action Row: Class Selector & Action Buttons */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
+                    <div className="w-full sm:w-auto">
+                      <ClassSelectorDropdown
+                        currentClass={
+                          (swimmer.coach_id || swimmer.group_id || swimmer.class_name)
+                            ? {
+                                id: swimmer.group_id ? `g_${swimmer.group_id}` : `c_${swimmer.coach_id}`,
+                                group_id: swimmer.group_id,
+                                coach_id: swimmer.coach_id,
+                                name: swimmer.class_name || (swimmer.coach_name ? `کلاس ${swimmer.coach_name}` : 'کلاس فعلی'),
+                                coach_name: swimmer.coach_name,
+                                avatar: swimmer.coach_avatar,
+                              }
+                            : null
+                        }
+                        availableClasses={getSwimmerAvailableClasses(swimmer)}
+                        onSelectClass={(selectedClass) => handleRequestChangeClass(swimmer, selectedClass)}
+                        placement="dropup"
+                        size="sm"
+                      />
+                    </div>
 
-                {/* Bottom Left Class Avatar / Selector */}
-                <div className="flex items-center justify-between pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
-                  <div className="flex items-center">
-                    <ClassSelectorDropdown
-                      currentClass={
-                        (swimmer.coach_id || swimmer.group_id || swimmer.class_name)
-                          ? {
-                              id: swimmer.group_id ? `g_${swimmer.group_id}` : `c_${swimmer.coach_id}`,
-                              group_id: swimmer.group_id,
-                              coach_id: swimmer.coach_id,
-                              name: swimmer.class_name || (swimmer.coach_name ? `کلاس ${swimmer.coach_name}` : 'کلاس فعلی'),
-                              coach_name: swimmer.coach_name,
-                              avatar: swimmer.coach_avatar,
-                            }
-                          : null
-                      }
-                      availableClasses={getSwimmerAvailableClasses(swimmer)}
-                      onSelectClass={(selectedClass) => handleRequestChangeClass(swimmer, selectedClass)}
-                      placement="dropup"
-                      size="sm"
-                    />
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => handleOpenDossier(swimmer)}
-                      className="px-2.5 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 font-semibold border border-sky-200 dark:border-sky-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      <span>پرونده</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => navigate(`/admin/swimmers/${swimmer.id}/enroll`)}
-                      className="px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 font-semibold border border-emerald-200 dark:border-emerald-800 transition-colors inline-flex items-center justify-center gap-1 cursor-pointer"
-                    >
-                      <PlusCircle className="w-3.5 h-3.5" />
-                      <span>ثبت‌نام</span>
-                    </button>
+                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenDossier(swimmer)}
+                        className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 font-semibold border border-sky-200/80 dark:border-sky-800 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap shadow-2xs"
+                      >
+                        <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                        <span className="whitespace-nowrap">پرونده و مدارک</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/admin/swimmers/${swimmer.id}/enroll`)}
+                        className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 font-semibold border border-emerald-200/80 dark:border-emerald-800 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap shadow-2xs"
+                      >
+                        <PlusCircle className="w-3.5 h-3.5 shrink-0" />
+                        <span className="whitespace-nowrap">ثبت‌نام</span>
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
-          <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              نمایش {paginatedSwimmers.length} از {filteredSwimmers.length} شناگر
-            </span>
+          <div className="mt-4">
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
-              onPageChange={setCurrentPage}
+              totalItems={totalCount}
+              pageSize={pageSize}
+              onPageChange={(page) => setCurrentPage(page)}
+              showJumper={true}
+              itemLabel="شناگر"
             />
           </div>
         </div>
