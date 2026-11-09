@@ -23,6 +23,7 @@ class ClassSessionSerializer(serializers.ModelSerializer):
             'coach', 'coach_name', 'session_date', 'start_time', 'end_time',
             'pool_location', 'status', 'status_display', 'is_makeup',
             'replaces_session', 'cancellation_reason', 'session_notes',
+            'coach_evaluation', 'session_rating',
             'attendance_recorded', 'attendance_count', 'enrolled_count'
         ]
 

@@ -450,3 +450,19 @@ html.dark body {
   }
 }
 
+/* Coach Panel - Complete English (Latin) Digits Enforcement */
+.coach-panel,
+.coach-panel *,
+[data-panel="coach"],
+[data-panel="coach"] *,
+body.coach-panel,
+body.coach-panel *,
+body[data-panel="coach"],
+body[data-panel="coach"] *,
+.en-digits,
+.en-digits * {
+  font-feature-settings: "ss01" 0, "cv01" 1 !important;
+  font-variant-numeric: normal !important;
+}
+
+

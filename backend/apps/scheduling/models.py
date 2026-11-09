@@ -54,6 +54,19 @@ class ClassSession(models.Model):
     )
     cancelled_at = models.DateTimeField(_('زمان ثبت لغو'), null=True, blank=True)
     session_notes = models.TextField(_('یادداشت آموزشی یا گزارش جلسه'), blank=True)
+    coach_evaluation = models.TextField(_('ارزیابی و تحلیل عملکرد جلسه توسط مربی'), blank=True)
+    session_rating = models.CharField(
+        _('ارزیابی کیفی جلسه'),
+        max_length=25,
+        blank=True,
+        choices=[
+            ('EXCELLENT', 'عالی'),
+            ('GOOD', 'خوب'),
+            ('AVERAGE', 'متوسط'),
+            ('NEEDS_PRACTICE', 'نیازمند تمرین بیشتر'),
+        ],
+        default=''
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

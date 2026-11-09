@@ -220,7 +220,7 @@ export const MobileBottomNav = () => {
         dir="rtl"
         aria-label="ناوبری اصلی همراه مربی"
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-        className="fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] md:hidden transition-colors"
+        className="coach-panel fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] md:hidden transition-colors"
       >
         <div className="grid grid-cols-5 h-16 max-w-md mx-auto px-1 items-center">
           {coachNavItems.map((item) => {

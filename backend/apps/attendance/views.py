@@ -97,10 +97,25 @@ class AttendanceBulkSaveView(APIView):
                 )
                 saved_records.append(att)
 
+            # Update session notes & evaluation if provided
+            updated_session_fields = []
+            if 'session_notes' in request.data:
+                session.session_notes = request.data.get('session_notes', '') or ''
+                updated_session_fields.append('session_notes')
+            if 'coach_evaluation' in request.data:
+                session.coach_evaluation = request.data.get('coach_evaluation', '') or ''
+                updated_session_fields.append('coach_evaluation')
+            if 'session_rating' in request.data:
+                session.session_rating = request.data.get('session_rating', '') or ''
+                updated_session_fields.append('session_rating')
+
             # Mark session as COMPLETED if scheduled
             if session.status == ClassSession.Status.SCHEDULED:
                 session.status = ClassSession.Status.COMPLETED
-                session.save(update_fields=['status'])
+                updated_session_fields.append('status')
+
+            if updated_session_fields:
+                session.save(update_fields=updated_session_fields)
 
         return Response({
             'message': 'حضور و غیاب با موفقیت ثبت و سهمیه جلسات به‌روزرسانی شد.',
