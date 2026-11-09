@@ -1,17 +1,54 @@
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import {
   ClipboardCheck, Check, Save, UserCheck, AlertCircle,
   Calendar, Clock, MapPin, Users, CheckCheck, RefreshCw,
-  Search, ArrowRight
+  Search, ArrowRight, FileText, Sparkles, Award
 } from 'lucide-react';
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { LoadingState } from '../../components/common/LoadingState';
 import { useToast } from '../../context/ToastContext';
+import { toShamsiDate } from '../../utils/date';
+
+const RATING_OPTIONS = [
+  {
+    id: 'EXCELLENT',
+    label: 'عالی',
+    desc: 'تمرکز بالا، دستیابی به اهداف جلسه',
+    icon: '🌟',
+    activeClass: 'bg-emerald-600 text-white border-2 border-emerald-600 shadow-md shadow-emerald-600/30 ring-2 ring-emerald-500/30',
+    idleClass: 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-2 border-slate-300 dark:border-slate-600 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/20 shadow-xs hover:shadow-sm',
+  },
+  {
+    id: 'GOOD',
+    label: 'خوب',
+    desc: 'پیشرفت مطلوب و عملکرد رضایت‌بخش',
+    icon: '👍',
+    activeClass: 'bg-blue-600 text-white border-2 border-blue-600 shadow-md shadow-blue-600/30 ring-2 ring-blue-500/30',
+    idleClass: 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-2 border-slate-300 dark:border-slate-600 hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 shadow-xs hover:shadow-sm',
+  },
+  {
+    id: 'AVERAGE',
+    label: 'متوسط',
+    desc: 'نیازمند تکرار و توجه بیشتر به تکنیک',
+    icon: '⚡',
+    activeClass: 'bg-amber-500 text-white border-2 border-amber-500 shadow-md shadow-amber-500/30 ring-2 ring-amber-500/30',
+    idleClass: 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-2 border-slate-300 dark:border-slate-600 hover:border-amber-500 dark:hover:border-amber-500 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 shadow-xs hover:shadow-sm',
+  },
+  {
+    id: 'NEEDS_PRACTICE',
+    label: 'نیازمند تمرین بیشتر',
+    desc: 'چالش در اجرای سرفصل‌ها و حرکات',
+    icon: '⚠️',
+    activeClass: 'bg-rose-600 text-white border-2 border-rose-600 shadow-md shadow-rose-600/30 ring-2 ring-rose-500/30',
+    idleClass: 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-2 border-slate-300 dark:border-slate-600 hover:border-rose-500 dark:hover:border-rose-500 hover:bg-rose-50/50 dark:hover:bg-rose-950/20 shadow-xs hover:shadow-sm',
+  },
+];
 
 export const CoachAttendancePage = () => {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const urlSessionId = searchParams.get('session_id');
   const urlGroupId = searchParams.get('group_id');
@@ -25,7 +62,23 @@ export const CoachAttendancePage = () => {
   const [loadingSwimmers, setLoadingSwimmers] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  // Session Notes & Evaluation States
+  const [sessionNotes, setSessionNotes] = useState('');
+  const [coachEvaluation, setCoachEvaluation] = useState('');
+  const [sessionRating, setSessionRating] = useState('');
+  const [savingNotes, setSavingNotes] = useState(false);
+  const [notesSavedSuccess, setNotesSavedSuccess] = useState(false);
+
   const toast = useToast();
+
+  const handleBack = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate('/coach/classes');
+    }
+  };
 
   // 1. Fetch Coach's Sessions
   useEffect(() => {
@@ -54,6 +107,24 @@ export const CoachAttendancePage = () => {
     };
     fetchSessions();
   }, [urlSessionId, urlGroupId]);
+
+  const currentSession = useMemo(() => {
+    return sessions.find((s) => s.id === Number(selectedSessionId));
+  }, [sessions, selectedSessionId]);
+
+  const currentShamsi = useMemo(() => {
+    return currentSession ? toShamsiDate(currentSession.session_date) : null;
+  }, [currentSession]);
+
+  // Sync session notes & evaluation when switching session
+  useEffect(() => {
+    if (currentSession) {
+      setSessionNotes(currentSession.session_notes || '');
+      setCoachEvaluation(currentSession.coach_evaluation || '');
+      setSessionRating(currentSession.session_rating || '');
+      setNotesSavedSuccess(false);
+    }
+  }, [currentSession?.id]);
 
   // 2. Fetch Swimmers for selected session
   useEffect(() => {
@@ -133,6 +204,38 @@ export const CoachAttendancePage = () => {
     toast.success('تمام شناگران این جلسه حاضر علامت‌گذاری شدند.');
   };
 
+  // Dedicated save for Session Notes & Evaluation
+  const handleSaveSessionNotes = async () => {
+    if (!selectedSessionId) return;
+    try {
+      setSavingNotes(true);
+      setNotesSavedSuccess(false);
+      await api.patch(`/scheduling/sessions/${selectedSessionId}/`, {
+        session_notes: sessionNotes,
+        coach_evaluation: coachEvaluation,
+        session_rating: sessionRating,
+      });
+
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === Number(selectedSessionId)
+            ? { ...s, session_notes: sessionNotes, coach_evaluation: coachEvaluation, session_rating: sessionRating }
+            : s
+        )
+      );
+
+      setNotesSavedSuccess(true);
+      toast.success('یادداشت و ارزیابی جلسه با موفقیت ثبت شد.');
+      setTimeout(() => setNotesSavedSuccess(false), 4000);
+    } catch (err) {
+      console.error('Error saving session notes:', err);
+      toast.error('خطا در ثبت یادداشت و ارزیابی جلسه');
+    } finally {
+      setSavingNotes(false);
+    }
+  };
+
+  // Full Save: Attendance + Notes + Evaluation
   const handleSave = async () => {
     try {
       setSaving(true);
@@ -146,10 +249,22 @@ export const CoachAttendancePage = () => {
       await api.post('/attendance/bulk-save/', {
         session_id: Number(selectedSessionId),
         records,
+        session_notes: sessionNotes,
+        coach_evaluation: coachEvaluation,
+        session_rating: sessionRating,
       });
 
+      setSessions((prev) =>
+        prev.map((s) =>
+          s.id === Number(selectedSessionId)
+            ? { ...s, session_notes: sessionNotes, coach_evaluation: coachEvaluation, session_rating: sessionRating }
+            : s
+        )
+      );
+
       setSavedSuccess(true);
-      toast.success('دفتر حضور و غیاب جلسه با موفقیت ثبت و نهایی شد.');
+      setNotesSavedSuccess(true);
+      toast.success('دفتر حضور و غیاب، یادداشت و ارزیابی جلسه با موفقیت ثبت شد.');
       setTimeout(() => setSavedSuccess(false), 5000);
     } catch (err) {
       console.error(err);
@@ -159,70 +274,95 @@ export const CoachAttendancePage = () => {
     }
   };
 
-  const currentSession = sessions.find((s) => s.id === Number(selectedSessionId));
-
   const filteredSwimmers = swimmers.filter((s) =>
     s.swimmer_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Build Shamsi options for dropdown
+  const sessionOptions = useMemo(() => {
+    return sessions.map((sess) => {
+      const shamsi = toShamsiDate(sess.session_date);
+      const timeStr = `${sess.start_time?.slice(0, 5)} تا ${sess.end_time?.slice(0, 5)}`;
+      return {
+        value: sess.id,
+        label: shamsi.fullText || sess.session_date,
+        badge: timeStr,
+        description: `${sess.group_name} · ${shamsi.shortNumeric}${sess.pool_location ? ` · ${sess.pool_location}` : ''}`,
+      };
+    });
+  }, [sessions]);
+
   return (
     <div className="space-y-6 pb-12 coach-panel">
-      {/* 1. Header & Session Selection */}
-      <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-20">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-            <ClipboardCheck className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600" />
-            حضور و غیاب کنار استخر (Poolside)
-          </h1>
-          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
-            ثبت سریع وضعیت شناگران، یادداشت‌های کلاسی و کسر خودکار جلسات
-          </p>
+      {/* 1. Header & Session Selection Box */}
+      <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 md:p-6 rounded-2xl border border-slate-300 dark:border-slate-700 shadow-md shadow-slate-200/70 dark:shadow-black/50 flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-20">
+        <div className="flex items-start sm:items-center gap-3">
+          <button
+            type="button"
+            onClick={handleBack}
+            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-300 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-600 transition-all cursor-pointer shadow-xs hover:shadow-sm shrink-0 mt-0.5 sm:mt-0 active:scale-95"
+            title="بازگشت به صفحه قبل"
+          >
+            <ArrowRight className="w-4 h-4 text-emerald-600" />
+            <span className="hidden sm:inline">بازگشت</span>
+          </button>
+
+          <div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <ClipboardCheck className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600 shrink-0" />
+              حضور و غیاب کنار استخر (Poolside)
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+              ثبت وضعیت شناگران، یادداشت و ارزیابی مربی و کسر خودکار جلسات
+            </p>
+          </div>
         </div>
 
-        {/* Session Selector */}
-        <div className="w-full md:w-80">
+        {/* Session Selector (Solar Hijri Date as primary identifier) */}
+        <div className="w-full lg:w-96 shrink-0">
           <CustomSelect
-            label="انتخاب جلسه تمرینی:"
+            label="انتخاب تاریخ جلسه تمرینی:"
             value={selectedSessionId}
             onChange={(val) => setSelectedSessionId(val)}
             icon={Calendar}
-            placeholder="انتخاب جلسه تمرینی..."
+            placeholder="انتخاب تاریخ جلسه..."
             color="emerald"
             searchable
-            options={sessions.map((sess) => ({
-              value: sess.id,
-              label: sess.group_name,
-              description: `${sess.session_date} · ساعت ${sess.start_time?.slice(0, 5)} تا ${sess.end_time?.slice(0, 5)}${sess.pool_location ? ` · ${sess.pool_location}` : ''}`,
-            }))}
+            align="left"
+            buttonClassName="border-slate-300 dark:border-slate-600"
+            menuClassName="w-full sm:w-96 sm:min-w-[340px] max-w-[min(480px,calc(100vw-2rem))]"
+            options={sessionOptions}
           />
         </div>
       </div>
 
-      {/* 2. Current Session Summary Card & Quick Actions */}
+      {/* 2. Current Session Summary Card Box */}
       {currentSession && (
-        <div className="bg-gradient-to-r from-emerald-50/80 to-teal-50/60 dark:from-emerald-950/30 dark:to-teal-950/20 p-4 sm:p-5 rounded-2xl border border-emerald-200 dark:border-emerald-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-gradient-to-r from-emerald-50 via-teal-50/60 to-emerald-50 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-emerald-950/40 p-4 sm:p-5 rounded-2xl border-2 border-emerald-400/90 dark:border-emerald-600 shadow-md shadow-emerald-600/10 dark:shadow-emerald-950/40 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-              <span className="text-xs sm:text-sm font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/60 px-2.5 py-0.5 rounded-md">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-xs sm:text-sm font-bold text-emerald-800 dark:text-emerald-200 bg-emerald-100 dark:bg-emerald-900/70 border border-emerald-400 dark:border-emerald-700 px-2.5 py-0.5 rounded-md shadow-2xs">
                 جلسه فعال
               </span>
-              <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
                 {currentSession.group_name}
               </h3>
             </div>
-            <div className="flex flex-wrap items-center gap-3.5 text-sm text-slate-600 dark:text-slate-300">
-              <span className="flex items-center gap-1.5 font-mono font-semibold text-slate-800 dark:text-slate-200">
+            <div className="flex flex-wrap items-center gap-3.5 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+              <span className="flex items-center gap-1.5 font-bold text-emerald-800 dark:text-emerald-200 bg-white/90 dark:bg-emerald-900/50 px-2.5 py-1 rounded-lg border border-emerald-300 dark:border-emerald-700 shadow-2xs">
+                <Calendar className="w-4 h-4 text-emerald-600" />
+                تاریخ شمسی: {currentShamsi?.fullText} ({currentShamsi?.shortNumeric})
+              </span>
+              <span className="flex items-center gap-1.5 font-mono font-semibold text-slate-800 dark:text-slate-200 bg-white/90 dark:bg-slate-900/60 px-2 py-0.5 rounded-md border border-slate-300 dark:border-slate-600 shadow-2xs">
                 <Clock className="w-4 h-4 text-emerald-600" />
                 ساعت {currentSession.start_time?.slice(0, 5)} تا {currentSession.end_time?.slice(0, 5)}
               </span>
-              <span className="flex items-center gap-1.5">
-                <Calendar className="w-4 h-4 text-emerald-600" />
-                تاریخ: {currentSession.session_date}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <MapPin className="w-4 h-4 text-emerald-600" />
-                {currentSession.pool_location}
-              </span>
+              {currentSession.pool_location && (
+                <span className="flex items-center gap-1.5 bg-white/90 dark:bg-slate-900/60 px-2 py-0.5 rounded-md border border-slate-300 dark:border-slate-600 shadow-2xs">
+                  <MapPin className="w-4 h-4 text-emerald-600" />
+                  {currentSession.pool_location}
+                </span>
+              )}
             </div>
           </div>
 
@@ -230,7 +370,7 @@ export const CoachAttendancePage = () => {
             <button
               type="button"
               onClick={handleMarkAllPresent}
-              className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-slate-700 text-sm font-bold border border-emerald-200 dark:border-emerald-800 shadow-xs transition-all active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-slate-700 text-xs sm:text-sm font-bold border border-emerald-400 dark:border-emerald-600 shadow-xs hover:shadow-sm transition-all active:scale-95 cursor-pointer"
             >
               <CheckCheck className="w-4.5 h-4.5 text-emerald-600" />
               علامت‌گذاری همه به عنوان حاضر
@@ -240,7 +380,7 @@ export const CoachAttendancePage = () => {
               size="sm"
               loading={saving}
               onClick={handleSave}
-              className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base px-4 py-2.5"
+              className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm px-4 py-2.5 cursor-pointer shadow-md shadow-emerald-600/30 hover:shadow-lg border border-emerald-700"
             >
               <Save className="w-4.5 h-4.5" />
               ذخیره نهایی
@@ -249,17 +389,124 @@ export const CoachAttendancePage = () => {
         </div>
       )}
 
-      {/* 3. Swimmers List Table */}
+      {/* 3. Coach Session Notes & Assessment Card Box */}
+      {currentSession && (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-300 dark:border-slate-700 shadow-md shadow-slate-200/70 dark:shadow-black/50 p-5 sm:p-6 space-y-5">
+          {/* Card Header */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-300 dark:border-slate-700">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-700 flex items-center justify-center text-emerald-600 dark:text-emerald-400 shadow-xs shrink-0">
+                <FileText className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                  یادداشت و ارزیابی مربی برای جلسه
+                  {currentShamsi?.weekday && (
+                    <span className="text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-300 dark:border-emerald-700 shadow-2xs">
+                      {currentShamsi.weekday}
+                    </span>
+                  )}
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                  سرفصل‌های تمرینی، سطح تسلط گروه و تحلیل کیفیت برگزاری این جلسه
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 self-end sm:self-auto">
+              {notesSavedSuccess && (
+                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-xl border border-emerald-300 dark:border-emerald-700 shadow-xs animate-in fade-in">
+                  <Check className="w-4 h-4" />
+                  یادداشت ثبت شد
+                </span>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                loading={savingNotes}
+                onClick={handleSaveSessionNotes}
+                className="gap-1.5 text-xs sm:text-sm font-bold border-slate-300 dark:border-slate-600 hover:border-emerald-500 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 text-slate-700 dark:text-slate-200 shadow-xs hover:shadow-sm"
+              >
+                <Save className="w-4 h-4 text-emerald-600" />
+                ذخیره یادداشت و ارزیابی
+              </Button>
+            </div>
+          </div>
+
+          {/* Sub-box 1: Quick Rating Selector Panel */}
+          <div className="bg-slate-50/80 dark:bg-slate-800/40 p-4 sm:p-4.5 rounded-xl border border-slate-300 dark:border-slate-700 shadow-xs space-y-2.5">
+            <label className="block text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+              ارزیابی عملکرد کلی کلاس در این جلسه:
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {RATING_OPTIONS.map((item) => {
+                const isSelected = sessionRating === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setSessionRating(isSelected ? '' : item.id)}
+                    className={`p-3.5 rounded-xl border-2 text-right transition-all cursor-pointer flex flex-col justify-between gap-1.5 active:scale-98 ${
+                      isSelected ? item.activeClass : item.idleClass
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-xl">{item.icon}</span>
+                      <span className={`text-xs sm:text-sm font-black ${isSelected ? 'text-white' : 'text-slate-800 dark:text-slate-200'}`}>
+                        {item.label}
+                      </span>
+                    </div>
+                    <span className={`text-[11px] sm:text-xs leading-tight ${isSelected ? 'text-white/90' : 'text-slate-500 dark:text-slate-400'}`}>
+                      {item.desc}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Sub-box 2 & 3: Textareas Grid Panels */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-slate-50/80 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-300 dark:border-slate-700 shadow-xs space-y-2">
+              <label className="block text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+                سرفصل‌های آموزشی و تمرینات انجام‌شده:
+              </label>
+              <textarea
+                rows={3}
+                value={sessionNotes}
+                onChange={(e) => setSessionNotes(e.target.value)}
+                placeholder="مثال: تمرین تکنیک هواگیری و پای دوچرخه، ۴ ست ۵۰ متر کرال سینه، مرور استارت و شیرجه..."
+                className="w-full text-xs sm:text-sm p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 resize-none transition-all shadow-xs focus:shadow-md"
+              />
+            </div>
+
+            <div className="bg-slate-50/80 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-300 dark:border-slate-700 shadow-xs space-y-2">
+              <label className="block text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
+                ارزیابی، بازخورد و توصیه‌های مربی:
+              </label>
+              <textarea
+                rows={3}
+                value={coachEvaluation}
+                onChange={(e) => setCoachEvaluation(e.target.value)}
+                placeholder="مثال: هماهنگی دست و پا در بیشتر شناگران مطلوب بود، نیاز به تمرین بیشتر بر روی چرخش سر در هواگیری در جلسه بعد..."
+                className="w-full text-xs sm:text-sm p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 resize-none transition-all shadow-xs focus:shadow-md"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. Swimmers List Table Box */}
       {loadingSessions || loadingSwimmers ? (
         <LoadingState type="table" rows={6} message="در حال دریافت لیست شناگران کلاس..." />
       ) : swimmers.length === 0 ? (
-        <div className="bg-white dark:bg-slate-900 p-12 text-center rounded-2xl border border-slate-200 dark:border-slate-800 text-base text-slate-500 dark:text-slate-400">
+        <div className="bg-white dark:bg-slate-900 p-12 text-center rounded-2xl border border-slate-300 dark:border-slate-700 shadow-md shadow-slate-200/70 dark:shadow-black/50 text-base text-slate-500 dark:text-slate-400">
           شناگری در این کلاس ثبت‌نام نکرده است.
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-300 dark:border-slate-700 shadow-md shadow-slate-200/70 dark:shadow-black/50 overflow-hidden">
           {/* Search bar inside list */}
-          <div className="p-4 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="p-4 bg-slate-50/80 dark:bg-slate-800/60 border-b border-slate-300 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="relative w-full sm:w-72">
               <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
               <input
@@ -267,25 +514,25 @@ export const CoachAttendancePage = () => {
                 placeholder="جست‌وجوی شناگر..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pr-9 pl-3.5 py-2 text-sm rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                className="w-full pr-9 pl-3.5 py-2 text-sm rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 shadow-xs focus:shadow-sm"
               />
             </div>
 
-            <div className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400">
+            <div className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 shadow-2xs">
               مجموع: <span className="font-bold text-slate-800 dark:text-slate-200">{swimmers.length}</span> شناگر · حاضرین: <span className="font-bold text-emerald-600 dark:text-emerald-400">{Object.values(attendanceMap).filter(v => v.status === 'PRESENT').length}</span> نفر
             </div>
           </div>
 
-          <div className="divide-y divide-slate-100 dark:divide-slate-800">
+          <div className="divide-y divide-slate-200 dark:divide-slate-800">
             {filteredSwimmers.map((enr) => {
               const cur = attendanceMap[enr.swimmer] || { status: 'PRESENT', note: '' };
               return (
                 <div
                   key={enr.id}
-                  className="p-4 sm:p-4.5 flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
+                  className="p-4 sm:p-4.5 flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                 >
                   <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-sm text-slate-700 dark:text-slate-300 shrink-0">
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 flex items-center justify-center font-bold text-sm text-slate-700 dark:text-slate-300 shadow-xs shrink-0">
                       {enr.swimmer_name?.charAt(0) || 'ش'}
                     </div>
                     <div>
@@ -303,14 +550,14 @@ export const CoachAttendancePage = () => {
 
                   <div className="flex flex-wrap items-center gap-2.5">
                     {/* Status Toggle Buttons (Poolside touch targets) */}
-                    <div className="grid grid-cols-4 sm:flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-xl border border-slate-200/60 dark:border-slate-700">
+                    <div className="grid grid-cols-4 sm:flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800/90 p-1.5 rounded-xl border border-slate-300 dark:border-slate-600 shadow-xs">
                       <button
                         type="button"
                         onClick={() => setStatus(enr.swimmer, 'PRESENT')}
                         className={`min-h-[40px] px-4 py-1.5 text-sm rounded-lg font-bold transition-all cursor-pointer ${
                           cur.status === 'PRESENT'
-                            ? 'bg-emerald-600 text-white shadow-xs scale-102'
-                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                            ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/30 scale-102 border border-emerald-700'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700'
                         }`}
                       >
                         حاضر
@@ -320,8 +567,8 @@ export const CoachAttendancePage = () => {
                         onClick={() => setStatus(enr.swimmer, 'LATE')}
                         className={`min-h-[40px] px-4 py-1.5 text-sm rounded-lg font-bold transition-all cursor-pointer ${
                           cur.status === 'LATE'
-                            ? 'bg-amber-500 text-white shadow-xs scale-102'
-                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                            ? 'bg-amber-500 text-white shadow-md shadow-amber-500/30 scale-102 border border-amber-600'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700'
                         }`}
                       >
                         تأخیر
@@ -331,8 +578,8 @@ export const CoachAttendancePage = () => {
                         onClick={() => setStatus(enr.swimmer, 'EXCUSED')}
                         className={`min-h-[40px] px-4 py-1.5 text-sm rounded-lg font-bold transition-all cursor-pointer ${
                           cur.status === 'EXCUSED'
-                            ? 'bg-sky-600 text-white shadow-xs scale-102'
-                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                            ? 'bg-sky-600 text-white shadow-md shadow-sky-600/30 scale-102 border border-sky-700'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700'
                         }`}
                       >
                         موجه
@@ -342,8 +589,8 @@ export const CoachAttendancePage = () => {
                         onClick={() => setStatus(enr.swimmer, 'ABSENT')}
                         className={`min-h-[40px] px-4 py-1.5 text-sm rounded-lg font-bold transition-all cursor-pointer ${
                           cur.status === 'ABSENT'
-                            ? 'bg-rose-600 text-white shadow-xs scale-102'
-                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+                            ? 'bg-rose-600 text-white shadow-md shadow-rose-600/30 scale-102 border border-rose-700'
+                            : 'text-slate-700 dark:text-slate-300 hover:bg-slate-200/80 dark:hover:bg-slate-700'
                         }`}
                       >
                         غایب
@@ -353,10 +600,10 @@ export const CoachAttendancePage = () => {
                     {/* Note input */}
                     <input
                       type="text"
-                      placeholder="توضیح یا یادداشت..."
+                      placeholder="توضیح یا یادداشت شناگر..."
                       value={cur.note}
                       onChange={(e) => setNote(enr.swimmer, e.target.value)}
-                      className="text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 w-full sm:w-52 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      className="text-sm bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded-xl px-3.5 py-2 w-full sm:w-52 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 focus:border-emerald-500 shadow-xs focus:shadow-sm"
                     />
                   </div>
                 </div>
@@ -365,15 +612,15 @@ export const CoachAttendancePage = () => {
           </div>
 
           {/* Footer Save Area */}
-          <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+          <div className="p-4 sm:p-5 bg-slate-50/80 dark:bg-slate-800/60 border-t border-slate-300 dark:border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
             {savedSuccess ? (
               <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
                 <Check className="w-5 h-5" />
-                حضور و غیاب جلسه با موفقیت ذخیره و سهمیه جلسات اعضا به‌روزرسانی شد.
+                حضور و غیاب، یادداشت و ارزیابی جلسه با موفقیت ذخیره و ثبت نهایی شد.
               </span>
             ) : (
               <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                پس از علامت‌گذاری، بر روی دکمه ذخیره نهایی کلیک کنید.
+                پس از علامت‌گذاری و تکمیل یادداشت‌ها، بر روی دکمه ذخیره نهایی کلیک کنید.
               </span>
             )}
 
@@ -382,10 +629,10 @@ export const CoachAttendancePage = () => {
               size="md"
               loading={saving}
               onClick={handleSave}
-              className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base px-5 py-2.5"
+              className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base px-5 py-2.5 cursor-pointer shadow-md shadow-emerald-600/30 hover:shadow-lg border border-emerald-700"
             >
               <Save className="w-5 h-5" />
-              ذخیره نهایی حضور و غیاب
+              ذخیره نهایی حضور و غیاب و ارزیابی
             </Button>
           </div>
         </div>

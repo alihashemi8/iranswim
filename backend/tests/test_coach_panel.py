@@ -203,3 +203,49 @@ def test_coach_level_promotion_flow(coach_user, admin_user, sample_setup):
     assert review_res.status_code == 200
     swimmer.refresh_from_db()
     assert swimmer.current_level == level2
+
+
+@pytest.mark.django_db
+def test_coach_class_announcements_flow(coach_user, sample_setup):
+    client = APIClient()
+    client.force_authenticate(user=coach_user)
+    group = sample_setup['group']
+
+    # 1. Fetch class detail - verify announcements field exists
+    res = client.get(f"/api/coaches/my-classes/{group.id}/")
+    assert res.status_code == 200
+    assert 'announcements' in res.data
+    assert len(res.data['announcements']) == 0
+
+    # 2. Post new announcement to this class
+    payload = {
+        'title': 'همراه داشتن فین شنا',
+        'message': 'شناگران گرامی، لطفاً برای تمرین کرال جلسه بعد فین کوتاه به همراه داشته باشید.',
+        'is_pinned': True,
+        'send_sms': False
+    }
+    create_res = client.post(f"/api/coaches/my-classes/{group.id}/", payload, format='json')
+    assert create_res.status_code == 201
+    assert create_res.data['announcement']['title'] == payload['title']
+    assert create_res.data['announcement']['is_pinned'] is True
+    ann_id = create_res.data['announcement']['id']
+
+    # 3. Check class detail again - announcement is present
+    res2 = client.get(f"/api/coaches/my-classes/{group.id}/")
+    assert res2.status_code == 200
+    assert len(res2.data['announcements']) == 1
+    assert res2.data['announcements'][0]['id'] == ann_id
+
+    # 4. Toggle pin
+    patch_res = client.patch(f"/api/coaches/my-classes/{group.id}/announcements/{ann_id}/")
+    assert patch_res.status_code == 200
+    assert patch_res.data['is_pinned'] is False
+
+    # 5. Delete announcement
+    del_res = client.delete(f"/api/coaches/my-classes/{group.id}/announcements/{ann_id}/")
+    assert del_res.status_code == 200
+
+    # 6. Verify deleted
+    res3 = client.get(f"/api/coaches/my-classes/{group.id}/")
+    assert len(res3.data['announcements']) == 0
+

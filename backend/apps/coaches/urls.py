@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (
     CoachDashboardOverviewView, CoachMyClassesView, CoachClassDetailView,
+    CoachClassAnnouncementDeleteView,
     CoachSwimmerDossierView, CoachWorkoutPlanListView, CoachWorkoutPlanDetailView,
     CoachAIAssistantView, CoachMessagesView, CoachReorderView
 )
@@ -26,6 +27,8 @@ urlpatterns = [
     path('dashboard-overview/', CoachDashboardOverviewView.as_view(), name='coach_dashboard_overview'),
     path('my-classes/', CoachMyClassesView.as_view(), name='coach_my_classes'),
     path('my-classes/<int:pk>/', CoachClassDetailView.as_view(), name='coach_class_detail'),
+    path('my-classes/<int:pk>/announcements/', CoachClassDetailView.as_view(), name='coach_class_announcements'),
+    path('my-classes/<int:group_id>/announcements/<int:announcement_id>/', CoachClassAnnouncementDeleteView.as_view(), name='coach_class_announcement_delete'),
     path('swimmer-dossier/<int:pk>/', CoachSwimmerDossierView.as_view(), name='coach_swimmer_dossier'),
     path('workouts/', CoachWorkoutPlanListView.as_view(), name='coach_workouts_list'),
     path('workouts/<int:pk>/', CoachWorkoutPlanDetailView.as_view(), name='coach_workout_detail'),

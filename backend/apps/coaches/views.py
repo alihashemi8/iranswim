@@ -311,6 +311,41 @@ class CoachClassDetailView(APIView):
                 'has_attendance': s.attendance_records.exists(),
             })
 
+        # Announcements targeted to this class
+        announcements = Announcement.objects.filter(
+            Q(target_group=group) | Q(target_groups=group)
+        ).select_related('created_by').order_by('-is_pinned', '-created_at')
+
+        announcements_data = []
+        for a in announcements:
+            author_title = 'مربی کلاس'
+            if a.created_by:
+                name = a.created_by.get_full_name() if hasattr(a.created_by, 'get_full_name') else ''
+                if not name and hasattr(a.created_by, 'phone'):
+                    name = a.created_by.phone
+                if name:
+                    author_title = name
+
+            can_delete = (
+                user.role in ['ADMIN', 'SUPERVISOR'] or
+                user.is_superuser or
+                (a.created_by_id and a.created_by_id == user.id)
+            )
+
+            announcements_data.append({
+                'id': a.id,
+                'title': a.title,
+                'message': a.message,
+                'is_pinned': a.is_pinned,
+                'send_sms': a.send_sms,
+                'audience': a.get_audience_display(),
+                'created_by_name': author_title,
+                'created_by_role': getattr(a.created_by, 'role', 'COACH') if a.created_by else 'COACH',
+                'can_delete': can_delete,
+                'created_at': a.created_at.isoformat() if a.created_at else '',
+                'created_at_display': a.created_at.strftime('%Y-%m-%d %H:%M') if a.created_at else '',
+            })
+
         return Response({
             'id': group.id,
             'name': group.name,
@@ -322,6 +357,7 @@ class CoachClassDetailView(APIView):
             'pool_location': group.pool_location,
             'swimmers': swimmers_data,
             'sessions': sessions_data,
+            'announcements': announcements_data,
             'schedules': [
                 {
                     'weekday_display': sch.get_weekday_display(),
@@ -331,6 +367,153 @@ class CoachClassDetailView(APIView):
                 for sch in group.schedules.all()
             ]
         })
+
+    def post(self, request, pk):
+        """
+        ارسال اعلان اختصاصی توسط مربی برای تمامی شناگران این کلاس
+        """
+        user = request.user
+        coach = get_coach_profile(user)
+        if not coach and (user.role == 'ADMIN' or user.is_superuser):
+            coach = CoachProfile.objects.first()
+
+        try:
+            group = SwimmerGroup.objects.get(pk=pk)
+        except SwimmerGroup.DoesNotExist:
+            return Response({'detail': 'کلاس مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        is_assigned = (
+            user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser or
+            group.coach_assignments.filter(coach=coach).exists() or
+            group.sessions.filter(coach=coach).exists()
+        )
+        if not is_assigned:
+            return Response({'detail': 'شما به این کلاس دسترسی ندارید.'}, status=status.HTTP_403_FORBIDDEN)
+
+        title = request.data.get('title', '').strip()
+        message = request.data.get('message', '').strip()
+        is_pinned = bool(request.data.get('is_pinned', False))
+        send_sms = bool(request.data.get('send_sms', False))
+
+        if not title or not message:
+            return Response({'detail': 'عنوان و متن اعلان الزامی هستند.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        announcement = Announcement.objects.create(
+            title=title,
+            message=message,
+            audience=Announcement.Audience.GROUP,
+            target_group=group,
+            is_pinned=is_pinned,
+            send_sms=send_sms,
+            created_by=user
+        )
+
+        # Notify active enrolled swimmers and their users
+        enrollments = group.enrollments.filter(status='ACTIVE').select_related('swimmer__user')
+        for en in enrollments:
+            sw = en.swimmer
+            if sw and sw.user:
+                Notification.objects.create(
+                    recipient=sw.user,
+                    category=Notification.Category.ANNOUNCEMENT,
+                    title=f"پیام مربی در کلاس {group.name}: {title}",
+                    message=message[:250],
+                    link='/swimmer/announcements',
+                    is_read=False
+                )
+
+        author_name = user.get_full_name() if hasattr(user, 'get_full_name') and user.get_full_name() else getattr(user, 'phone', 'مربی')
+
+        return Response({
+            'detail': 'اعلان با موفقیت برای تمامی شناگران کلاس ارسال شد.',
+            'announcement': {
+                'id': announcement.id,
+                'title': announcement.title,
+                'message': announcement.message,
+                'is_pinned': announcement.is_pinned,
+                'send_sms': announcement.send_sms,
+                'audience': announcement.get_audience_display(),
+                'created_by_name': author_name,
+                'created_by_role': getattr(user, 'role', 'COACH'),
+                'can_delete': True,
+                'created_at': announcement.created_at.isoformat(),
+                'created_at_display': announcement.created_at.strftime('%Y-%m-%d %H:%M'),
+            }
+        }, status=status.HTTP_201_CREATED)
+
+
+class CoachClassAnnouncementDeleteView(APIView):
+    """
+    حذف اعلان ارسال‌شده برای کلاس یا تغییر پین توسط مربی ایجادکننده یا مدیر
+    """
+    permission_classes = [IsAdminOrCoach]
+
+    def delete(self, request, group_id, announcement_id):
+        user = request.user
+        coach = get_coach_profile(user)
+        if not coach and (user.role == 'ADMIN' or user.is_superuser):
+            coach = CoachProfile.objects.first()
+
+        try:
+            group = SwimmerGroup.objects.get(pk=group_id)
+        except SwimmerGroup.DoesNotExist:
+            return Response({'detail': 'کلاس مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        is_assigned = (
+            user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser or
+            group.coach_assignments.filter(coach=coach).exists() or
+            group.sessions.filter(coach=coach).exists()
+        )
+        if not is_assigned:
+            return Response({'detail': 'دسترسی غیرمجاز.'}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            announcement = Announcement.objects.get(pk=announcement_id)
+        except Announcement.DoesNotExist:
+            return Response({'detail': 'اعلان مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if announcement.target_group_id != group.id and not announcement.target_groups.filter(id=group.id).exists():
+            return Response({'detail': 'این اعلان مربوط به این کلاس نیست.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser or announcement.created_by == user):
+            return Response({'detail': 'تنها ارسال‌کننده اعلان یا مدیر مجاز به حذف آن هستند.'}, status=status.HTTP_403_FORBIDDEN)
+
+        announcement.delete()
+        return Response({'detail': 'اعلان با موفقیت حذف گردید.'}, status=status.HTTP_200_OK)
+
+    def patch(self, request, group_id, announcement_id):
+        user = request.user
+        coach = get_coach_profile(user)
+        if not coach and (user.role == 'ADMIN' or user.is_superuser):
+            coach = CoachProfile.objects.first()
+
+        try:
+            group = SwimmerGroup.objects.get(pk=group_id)
+        except SwimmerGroup.DoesNotExist:
+            return Response({'detail': 'کلاس مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        is_assigned = (
+            user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser or
+            group.coach_assignments.filter(coach=coach).exists() or
+            group.sessions.filter(coach=coach).exists()
+        )
+        if not is_assigned:
+            return Response({'detail': 'دسترسی غیرمجاز.'}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            announcement = Announcement.objects.get(pk=announcement_id)
+        except Announcement.DoesNotExist:
+            return Response({'detail': 'اعلان یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if not (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser or announcement.created_by == user):
+            return Response({'detail': 'شما مجاز به ویرایش این اعلان نیستید.'}, status=status.HTTP_403_FORBIDDEN)
+
+        announcement.is_pinned = not announcement.is_pinned
+        announcement.save(update_fields=['is_pinned'])
+        return Response({
+            'detail': 'وضعیت پین با موفقیت بروزرسانی شد.',
+            'is_pinned': announcement.is_pinned
+        }, status=status.HTTP_200_OK)
 
 
 class CoachSwimmerDossierView(APIView):
