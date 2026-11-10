@@ -1703,10 +1703,10 @@ export const HomePage = () => {
           ========================================================================= */}
       <footer className="w-full bg-gradient-to-b from-[#0d3849] to-[#061e29] pt-12 sm:pt-14 pb-8 min-w-0">
           <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-8">
               
               {/* Identity */}
-              <div className="space-y-4">
+              <div className="lg:col-span-3 space-y-4">
                 <div className="flex items-center gap-2.5 text-cyan-300 font-extrabold text-lg">
                   <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-600 to-teal-400 text-white flex items-center justify-center shadow-md">
                     <SwimmerCrawlIcon className="w-5 h-5" />
@@ -1723,7 +1723,7 @@ export const HomePage = () => {
               </div>
 
               {/* Quick Links */}
-              <div className="space-y-3">
+              <div className="lg:col-span-2 space-y-3">
                 <h4 className="font-bold text-sm text-white">بخش‌های وبسایت</h4>
                 <ul className="space-y-2 text-xs text-slate-300">
                   {isSectionEnabled('about') && (
@@ -1772,7 +1772,7 @@ export const HomePage = () => {
               </div>
 
               {/* Portal Access */}
-              <div className="space-y-3">
+              <div className="lg:col-span-2 space-y-3">
                 <h4 className="font-bold text-sm text-white">ورود به سامانه‌ها</h4>
                 <ul className="space-y-2 text-xs text-cyan-300">
                   <li>
@@ -1797,7 +1797,7 @@ export const HomePage = () => {
               </div>
 
               {/* Contact */}
-              <div className="space-y-3">
+              <div className="lg:col-span-3 space-y-3">
                 <h4 className="font-bold text-sm text-white">اطلاعات تماس و استخرها</h4>
                 <div className="space-y-2 text-xs text-slate-300 leading-relaxed">
                   <p className="flex items-start gap-2">
@@ -1812,6 +1812,30 @@ export const HomePage = () => {
                     <Clock className="w-4 h-4 text-teal-400 shrink-0" />
                     <span>پاسخگویی و هماهنگی: شنبه تا پنج‌شنبه ۹ الی ۲۰</span>
                   </p>
+                </div>
+              </div>
+
+              {/* Trust Seal (Enamad) */}
+              <div className="md:col-span-2 lg:col-span-2 flex flex-col items-start md:items-center lg:items-end">
+                <div className="flex flex-col items-center space-y-3">
+                  <h4 className="font-bold text-sm text-white">نماد اعتماد</h4>
+                  <a
+                    referrerPolicy="origin"
+                    target="_blank"
+                    rel="noopener"
+                    href="https://trustseal.enamad.ir/?id=8412006&Code=JQjDkp1A7Vlcx7g8vFbifdbIAGnkdkJm"
+                    aria-label="نماد اعتماد الکترونیکی"
+                    className="inline-flex items-center justify-center rounded-2xl bg-white/95 hover:bg-white p-2.5 shadow-lg border border-cyan-200/30 transition-transform duration-200 hover:-translate-y-0.5"
+                  >
+                    <img
+                      referrerPolicy="origin"
+                      src="https://trustseal.enamad.ir/logo.aspx?id=8412006&Code=JQjDkp1A7Vlcx7g8vFbifdbIAGnkdkJm"
+                      alt="نماد اعتماد الکترونیکی"
+                      style={{ cursor: 'pointer' }}
+                      code="JQjDkp1A7Vlcx7g8vFbifdbIAGnkdkJm"
+                      className="w-24 h-24 sm:w-28 sm:h-28 object-contain"
+                    />
+                  </a>
                 </div>
               </div>
             </div>
