@@ -349,11 +349,19 @@ export const CustomSelect = ({
       </button>
 
       {/* Custom Dropdown Menu */}
-      {isOpen && (
+      {isOpen && (() => {
+        const menuTokens = (menuClassName || '').trim().split(/\s+/).filter(Boolean);
+        const hasFullWidthToken = menuTokens.includes('w-full');
+        const hasResponsiveWidthToken = menuTokens.some((tok) =>
+          /^(sm|md|lg|xl|2xl):(w-|min-w-|max-w-)/.test(tok)
+        );
+        const lockFullWidth = hasFullWidthToken && !hasResponsiveWidthToken;
+
+        return (
         <div
           ref={menuRef}
           className={`absolute z-50 ${
-            menuClassName?.includes('w-full')
+            lockFullWidth
               ? 'left-0 right-0 w-full'
               : alignLeft
               ? 'left-0 right-auto'
@@ -466,7 +474,8 @@ export const CustomSelect = ({
             )}
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 };
