@@ -73,6 +73,7 @@ import { CoachAssessmentsPage } from './pages/coach/CoachAssessmentsPage';
 import { CoachExamsPage } from './pages/coach/CoachExamsPage';
 import { CoachWorkoutsPage } from './pages/coach/CoachWorkoutsPage';
 import { CoachMessagesPage } from './pages/coach/CoachMessagesPage';
+import { CoachCreateAnnouncementPage } from './pages/coach/CoachCreateAnnouncementPage';
 import { CoachProfilePage } from './pages/coach/CoachProfilePage';
 
 
@@ -271,6 +272,8 @@ export default function App() {
 
                 {/* 7. Messages & Communications */}
                 <Route path="messages" element={<CoachMessagesPage />} />
+                <Route path="messages/new" element={<CoachCreateAnnouncementPage />} />
+                <Route path="messages/create" element={<Navigate to="/coach/messages/new" replace />} />
 
                 {/* 9. Profile & Settings */}
                 <Route path="profile" element={<CoachProfilePage />} />

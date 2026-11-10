@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
-  MessageSquare, Bell, Pin, Send, PlusCircle,
-  Users, CheckCircle2, AlertCircle, Clock
+  MessageSquare, Bell, Pin, Send, Clock, Smartphone
 } from 'lucide-react';
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
@@ -12,13 +12,7 @@ export const CoachMessagesPage = () => {
   const [data, setData] = useState({ announcements: [], notifications: [], my_groups: [] });
   const [loading, setLoading] = useState(true);
 
-  // New announcement form
-  const [showSendModal, setShowSendModal] = useState(false);
-  const [targetGroupId, setTargetGroupId] = useState('');
-  const [title, setTitle] = useState('');
-  const [message, setMessage] = useState('');
-  const [sending, setSending] = useState(false);
-
+  const navigate = useNavigate();
   const toast = useToast();
 
   const fetchMessages = async () => {
@@ -26,9 +20,6 @@ export const CoachMessagesPage = () => {
       setLoading(true);
       const res = await api.get('/coaches/messages/');
       setData(res.data);
-      if (res.data.my_groups && res.data.my_groups.length > 0) {
-        setTargetGroupId(res.data.my_groups[0].id);
-      }
     } catch (err) {
       console.error('Error fetching messages:', err);
       toast.error('خطا در دریافت پیام‌ها و اطلاعیه‌ها');
@@ -41,38 +32,11 @@ export const CoachMessagesPage = () => {
     fetchMessages();
   }, []);
 
-  const handleSendMessage = async (e) => {
-    e.preventDefault();
-    if (!title || !message || !targetGroupId) {
-      toast.error('عنوان، متن پیام و کلاس هدف الزامی هستند.');
-      return;
-    }
-
-    try {
-      setSending(true);
-      await api.post('/coaches/messages/', {
-        title,
-        message,
-        group_id: Number(targetGroupId),
-      });
-      toast.success('پیام با موفقیت برای شناگران کلاس ارسال شد.');
-      setShowSendModal(false);
-      setTitle('');
-      setMessage('');
-      fetchMessages();
-    } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.detail || 'خطا در ارسال پیام');
-    } finally {
-      setSending(false);
-    }
-  };
-
   if (loading) {
     return <LoadingState type="dashboard" message="در حال بارگذاری مرکز پیام و اعلان‌های مربی..." />;
   }
 
-  const { announcements = [], notifications = [], my_groups = [] } = data;
+  const { announcements = [], notifications = [] } = data;
 
   return (
     <div className="space-y-6 pb-12 coach-panel">
@@ -89,10 +53,10 @@ export const CoachMessagesPage = () => {
         </div>
 
         <Button
-          variant="primary"
+          variant="success"
           size="sm"
-          onClick={() => setShowSendModal(true)}
-          className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base px-4 py-2.5"
+          onClick={() => navigate('/coach/messages/new')}
+          className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base px-4 py-2.5 cursor-pointer"
         >
           <Send className="w-4.5 h-4.5" />
           ارسال اطلاعیه به کلاس
@@ -116,28 +80,57 @@ export const CoachMessagesPage = () => {
                 <div key={ann.id} className="py-4 space-y-2">
                   <div className="flex items-center justify-between gap-2.5">
                     <span className="font-bold text-sm sm:text-base text-slate-900 dark:text-white flex items-center gap-1.5">
-                      {ann.is_pinned && <Pin className="w-4 h-4 text-amber-500 rotate-45" />}
+                      {ann.is_pinned && <Pin className="w-4 h-4 text-amber-500 rotate-45 shrink-0" />}
                       {ann.title}
                     </span>
-                    <span className="text-xs text-slate-400 font-mono font-medium">
+                    <span className="text-xs text-slate-400 font-mono font-medium shrink-0">
                       {ann.created_at}
                     </span>
                   </div>
 
-                  {ann.group_name && (
-                    <span className="inline-block text-xs font-bold px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
-                      کلاس: {ann.group_name}
-                    </span>
-                  )}
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {ann.group_names && ann.group_names.length > 0 ? (
+                      ann.group_names.map((gName, idx) => (
+                        <span
+                          key={idx}
+                          className="inline-block text-xs font-bold px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                        >
+                          کلاس: {gName}
+                        </span>
+                      ))
+                    ) : ann.group_name ? (
+                      <span className="inline-block text-xs font-bold px-2.5 py-0.5 rounded-md bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">
+                        کلاس: {ann.group_name}
+                      </span>
+                    ) : null}
 
-                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                    {ann.send_sms && (
+                      <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-md bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300">
+                        <Smartphone className="w-3 h-3" />
+                        پیامک
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed whitespace-pre-line">
                     {ann.message}
                   </p>
                 </div>
               ))
             ) : (
-              <div className="text-center py-12 text-slate-400 text-sm">
-                هیچ اطلاعیه‌ای وجود ندارد.
+              <div className="text-center py-12 space-y-3">
+                <p className="text-slate-400 text-sm">
+                  هیچ اطلاعیه‌ای وجود ندارد.
+                </p>
+                <Button
+                  variant="success"
+                  size="sm"
+                  onClick={() => navigate('/coach/messages/new')}
+                  className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer"
+                >
+                  <Send className="w-4 h-4" />
+                  ارسال اولین اطلاعیه
+                </Button>
               </div>
             )}
           </div>
@@ -178,90 +171,6 @@ export const CoachMessagesPage = () => {
           </div>
         </div>
       </div>
-
-      {/* Send Message to Class Modal */}
-      {showSendModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 space-y-4 shadow-xl">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Send className="w-5 h-5 text-emerald-600" />
-              ارسال پیام و اعلان به کلاس
-            </h3>
-
-            <form onSubmit={handleSendMessage} className="space-y-4 text-sm">
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5">
-                  انتخاب کلاس مخاطب:
-                </label>
-                <select
-                  value={targetGroupId}
-                  onChange={(e) => setTargetGroupId(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm font-medium"
-                >
-                  {my_groups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.name}
-                    </option>
-                  ))}
-                </select>
-                <span className="text-xs text-slate-400 mt-1.5 block">
-                  * پیام صرفاً برای شناگران و اولیای این کلاس نمایش داده خواهد شد.
-                </span>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5">
-                  عنوان اطلاعیه:
-                </label>
-                <input
-                  type="text"
-                  placeholder="مثال: تغییر ساعت جلسه پنج‌شنبه یا همراه داشتن فین شنا"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white text-sm"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5">
-                  متن پیام:
-                </label>
-                <textarea
-                  rows="4"
-                  placeholder="متن کامل پیام و نکات آموزشی لازم برای شاگردان..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white leading-relaxed text-sm"
-                  required
-                />
-              </div>
-
-              <div className="flex justify-end gap-2.5 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowSendModal(false)}
-                  className="text-sm font-medium"
-                >
-                  انصراف
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="sm"
-                  loading={sending}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white gap-2 font-bold text-sm px-4"
-                >
-                  <Send className="w-4 h-4" />
-                  ارسال به کلاس
-                </Button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

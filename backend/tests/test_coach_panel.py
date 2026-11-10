@@ -266,9 +266,16 @@ def test_coach_messages_endpoint_flow(coach_user, admin_user, sample_setup):
     group1 = sample_setup['group']
     swimmer = sample_setup['swimmer']
 
-    # Create a second group for the same coach with the same swimmer enrolled
+    # Create a second course & group for the same coach with the same swimmer enrolled
+    course2 = Course.objects.create(
+        name='ترم پاییزه شنا',
+        start_date=timezone.now().date(),
+        end_date=timezone.now().date() + datetime.timedelta(days=60),
+        base_price=Decimal('1500000'),
+        sessions_count=12
+    )
     group2 = SwimmerGroup.objects.create(
-        course=group1.course,
+        course=course2,
         name='گروه A2',
         skill_level=sample_setup['level1'],
         capacity=10
@@ -279,7 +286,7 @@ def test_coach_messages_endpoint_flow(coach_user, admin_user, sample_setup):
         assigned_from=timezone.now().date(),
         is_primary=True
     )
-    Enrollment.objects.create(swimmer=swimmer, course=group1.course, group=group2, status='ACTIVE')
+    Enrollment.objects.create(swimmer=swimmer, course=course2, group=group2, status='ACTIVE')
 
     # Unrelated group that coach does NOT teach
     other_group = SwimmerGroup.objects.create(
