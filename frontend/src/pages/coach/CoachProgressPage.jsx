@@ -1,12 +1,15 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import {
   TrendingUp, Users, Award, Search,
-  ChevronLeft, Calendar, BookOpen, Layers, X, RotateCcw
+  ChevronLeft, Calendar, BookOpen, Layers, X, RotateCcw,
+  PlusCircle, Trash2, Plus, Sparkles, Check
 } from 'lucide-react';
 import api from '../../api/client';
+import { Button } from '../../components/common/Button';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { LoadingState } from '../../components/common/LoadingState';
+import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
 
 const WEEKDAYS = [
@@ -144,6 +147,68 @@ export const CoachProgressPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const toast = useToast();
+
+  // Coach custom skills bank state
+  const [isSkillsModalOpen, setIsSkillsModalOpen] = useState(false);
+  const [skillsList, setSkillsList] = useState([]);
+  const [newSkillName, setNewSkillName] = useState('');
+  const [newSkillCriteria, setNewSkillCriteria] = useState('');
+  const [savingNewSkill, setSavingNewSkill] = useState(false);
+  const [deletingSkillId, setDeletingSkillId] = useState(null);
+
+  const loadSkills = useCallback(async () => {
+    try {
+      const res = await api.get('/education/skills/');
+      const data = Array.isArray(res.data) ? res.data : res.data?.results || [];
+      setSkillsList(data);
+    } catch (err) {
+      console.error('Error fetching skills:', err);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadSkills();
+  }, [loadSkills]);
+
+  const handleSaveSkill = async (e) => {
+    e.preventDefault();
+    const trimmed = newSkillName.trim();
+    if (!trimmed) {
+      toast.error('لطفاً عنوان یا متن ارزیابی را وارد نمایید.');
+      return;
+    }
+    try {
+      setSavingNewSkill(true);
+      const res = await api.post('/education/skills/', {
+        name: trimmed,
+        criteria_description: newSkillCriteria.trim(),
+      });
+      setSkillsList((prev) => [res.data, ...prev]);
+      setNewSkillName('');
+      setNewSkillCriteria('');
+      toast.success('متن ارزیابی جدید ذخیره شد و در تمامی کلاس‌ها قابل استفاده است.');
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.name?.[0] || 'خطا در ثبت متن ارزیابی جدید');
+    } finally {
+      setSavingNewSkill(false);
+    }
+  };
+
+  const handleDeleteSkill = async (id) => {
+    if (!window.confirm('آیا از حذف این متن ارزیابی اطمینان دارید؟')) return;
+    try {
+      setDeletingSkillId(id);
+      await api.delete(`/education/skills/${id}/`);
+      setSkillsList((prev) => prev.filter((s) => s.id !== id));
+      toast.success('متن ارزیابی حذف گردید.');
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.detail || 'خطا در حذف سرفصل');
+    } finally {
+      setDeletingSkillId(null);
+    }
+  };
 
   useEffect(() => {
     const fetchAllEnrollments = async () => {
@@ -376,10 +441,23 @@ export const CoachProgressPage = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
+        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
+          <button
+            type="button"
+            onClick={() => setIsSkillsModalOpen(true)}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-3.5 py-2 sm:py-2.5 min-h-[40px] sm:min-h-[42px] rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs sm:text-sm font-bold shadow-xs transition-all active:scale-95 whitespace-nowrap shrink-0 cursor-pointer"
+          >
+            <BookOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>بانک معیارهای ارزیابی</span>
+            {skillsList.filter((s) => s.is_custom).length > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 text-[10px] font-mono">
+                {skillsList.filter((s) => s.is_custom).length}
+              </span>
+            )}
+          </button>
           <Link
             to="/coach/exams"
-            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 min-h-[40px] sm:min-h-[42px] rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm lg:text-base font-bold shadow-xs transition-all active:scale-95 whitespace-nowrap shrink-0"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2 sm:py-2.5 min-h-[40px] sm:min-h-[42px] rounded-xl bg-purple-600 hover:bg-purple-700 text-white text-xs sm:text-sm font-bold shadow-xs transition-all active:scale-95 whitespace-nowrap shrink-0"
           >
             <Award className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" />
             <span>آزمون‌ها و پیشنهاد ارتقا</span>
@@ -655,15 +733,22 @@ export const CoachProgressPage = () => {
                     })}
                   </div>
 
-                  {/* Primary CTA */}
-                  <Link
-                    to={`/coach/progress/${sw.swimmer_id}`}
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 min-h-[42px] rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white border border-emerald-200/70 dark:border-emerald-800/70 font-bold transition-all text-xs sm:text-sm active:scale-[0.99]"
-                  >
-                    <TrendingUp className="w-4 h-4 shrink-0" />
-                    <span>مشاهده پرونده و ثبت ارزیابی</span>
-                    <ChevronLeft className="w-4 h-4 shrink-0" />
-                  </Link>
+                  {/* Actions */}
+                  <div className="grid grid-cols-2 gap-2 pt-1">
+                    <Link
+                      to={`/coach/progress/${sw.swimmer_id}`}
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-2 min-h-[40px] rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-bold transition-all text-xs"
+                    >
+                      <span>مشاهده پرونده</span>
+                    </Link>
+                    <Link
+                      to={`/coach/progress/${sw.swimmer_id}/assessment`}
+                      className="inline-flex items-center justify-center gap-1.5 px-3 py-2 min-h-[40px] rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all text-xs shadow-xs"
+                    >
+                      <PlusCircle className="w-3.5 h-3.5 shrink-0" />
+                      <span>ثبت ارزیابی</span>
+                    </Link>
+                  </div>
                 </div>
               );
             })}
@@ -780,15 +865,21 @@ export const CoachProgressPage = () => {
                         </td>
 
                         <td className="py-3.5 px-3 lg:px-4 text-center align-middle">
-                          <Link
-                            to={`/coach/progress/${sw.swimmer_id}`}
-                            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 lg:px-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white border border-emerald-200/70 dark:border-emerald-800/70 font-bold transition-all text-xs lg:text-sm whitespace-nowrap"
-                          >
-                            <TrendingUp className="w-4 h-4 shrink-0" />
-                            <span className="lg:hidden">پرونده و ارزیابی</span>
-                            <span className="hidden lg:inline">مشاهده پرونده و ثبت ارزیابی</span>
-                            <ChevronLeft className="w-4 h-4 shrink-0" />
-                          </Link>
+                          <div className="flex items-center justify-center gap-2">
+                            <Link
+                              to={`/coach/progress/${sw.swimmer_id}`}
+                              className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700 font-bold transition-all text-xs whitespace-nowrap"
+                            >
+                              <span>پرونده مهارتی</span>
+                            </Link>
+                            <Link
+                              to={`/coach/progress/${sw.swimmer_id}/assessment`}
+                              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all text-xs shadow-xs whitespace-nowrap"
+                            >
+                              <PlusCircle className="w-3.5 h-3.5 shrink-0" />
+                              <span>ثبت ارزیابی</span>
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -819,6 +910,115 @@ export const CoachProgressPage = () => {
           )}
         </div>
       )}
+
+      {/* Modal: Coach Skills Bank (مدیریت متن‌ها و معیارهای ارزیابی مربی) */}
+      <Modal
+        isOpen={isSkillsModalOpen}
+        onClose={() => setIsSkillsModalOpen(false)}
+        title="بانک سرفصل‌ها و معیارهای ارزیابی مربی"
+        size="lg"
+      >
+        <div className="space-y-4">
+          <div className="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/70 dark:border-emerald-800/70 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            <span className="font-bold text-emerald-800 dark:text-emerald-300 block mb-0.5">
+              استفاده در تمامی کلاس‌ها:
+            </span>
+            متن‌ها و معیارهای ارزیابی که در این بخش تعریف می‌کنید، در تمامی کلاس‌های آموزشی شما در دسترس خواهند بود و می‌توانید هنگام ثبت ارزیابی هر شناگر، آن‌ها را انتخاب نمایید.
+          </div>
+
+          {/* New Skill Form */}
+          <form onSubmit={handleSaveSkill} className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
+            <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+              <span>تعریف متن و معیار ارزیابی جدید:</span>
+            </h4>
+            <div className="space-y-2">
+              <input
+                type="text"
+                placeholder="عنوان / متن ارزیابی (مثال: پای کرال سینه استقامتی ۲۵ متر)..."
+                value={newSkillName}
+                onChange={(e) => setNewSkillName(e.target.value)}
+                className="w-full min-h-[42px] rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3.5 py-2 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500"
+              />
+              <input
+                type="text"
+                placeholder="معیار سنجش و قبولی یا توضیحات فنی اختیاری (مثال: بدون توقف و حفظ ریتم پا)..."
+                value={newSkillCriteria}
+                onChange={(e) => setNewSkillCriteria(e.target.value)}
+                className="w-full min-h-[40px] rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3.5 py-2 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500"
+              />
+            </div>
+            <div className="flex justify-end pt-1">
+              <Button
+                type="submit"
+                variant="success"
+                size="sm"
+                loading={savingNewSkill}
+                className="gap-1.5 text-xs font-bold px-4 py-2 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>افزودن به بانک ارزیابی‌ها</span>
+              </Button>
+            </div>
+          </form>
+
+          {/* Existing Skills List */}
+          <div className="space-y-2">
+            <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
+              سرفصل‌های اختصاصی شما ({skillsList.filter((s) => s.is_custom).length}):
+            </h4>
+            <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[300px] overflow-y-auto">
+              {skillsList.filter((s) => s.is_custom).length > 0 ? (
+                skillsList
+                  .filter((s) => s.is_custom)
+                  .map((sk) => (
+                    <div
+                      key={sk.id}
+                      className="py-2.5 px-2 flex items-center justify-between gap-3 text-xs sm:text-sm hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl transition-colors"
+                    >
+                      <div className="min-w-0 space-y-0.5">
+                        <span className="font-bold text-slate-900 dark:text-white block truncate">
+                          {sk.name}
+                        </span>
+                        {sk.criteria_description && (
+                          <span className="text-xs text-slate-500 dark:text-slate-400 block truncate">
+                            {sk.criteria_description}
+                          </span>
+                        )}
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteSkill(sk.id)}
+                        disabled={deletingSkillId === sk.id}
+                        className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-lg transition-colors cursor-pointer shrink-0"
+                        title="حذف سرفصل"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))
+              ) : (
+                <div className="text-center py-6 text-xs text-slate-400">
+                  هنوز متن ارزیابی اختصاصی ثبت نشده است. از فرم بالا برای افزودن استفاده نمایید.
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="flex justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => setIsSkillsModalOpen(false)}
+              className="cursor-pointer"
+            >
+              بستن
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 };
