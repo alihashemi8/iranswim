@@ -779,26 +779,44 @@ class CoachMessagesView(APIView):
             coach = CoachProfile.objects.first()
 
         # Announcements for coaches or coach's groups
-        coach_groups = SwimmerGroup.objects.filter(
-            Q(coach_assignments__coach=coach) | Q(sessions__coach=coach)
-        ).distinct()
+        if coach:
+            coach_groups = SwimmerGroup.objects.filter(
+                Q(coach_assignments__coach=coach) | Q(sessions__coach=coach)
+            ).select_related('course', 'skill_level').distinct()
+        else:
+            coach_groups = SwimmerGroup.objects.none()
 
         announcements = Announcement.objects.filter(
-            Q(audience__in=['ALL', 'COACHES']) | Q(target_group__in=coach_groups)
-        ).select_related('target_group').order_by('-is_pinned', '-created_at')[:20]
+            Q(audience__in=['ALL', 'COACHES']) |
+            Q(target_group__in=coach_groups) |
+            Q(target_groups__in=coach_groups)
+        ).select_related('target_group', 'created_by').prefetch_related('target_groups').distinct().order_by('-is_pinned', '-created_at')[:20]
 
-        announcements_data = [
-            {
+        announcements_data = []
+        for a in announcements:
+            multi_names = [g.name for g in a.target_groups.all()]
+            if not multi_names and a.target_group:
+                multi_names = [a.target_group.name]
+            group_label = '، '.join(multi_names) if multi_names else None
+
+            author_name = None
+            if a.created_by:
+                author_name = a.created_by.get_full_name() if hasattr(a.created_by, 'get_full_name') else ''
+                if not author_name:
+                    author_name = getattr(a.created_by, 'phone', None)
+
+            announcements_data.append({
                 'id': a.id,
                 'title': a.title,
                 'message': a.message,
                 'audience': a.get_audience_display(),
-                'group_name': a.target_group.name if a.target_group else None,
+                'group_name': group_label,
+                'group_names': multi_names,
                 'is_pinned': a.is_pinned,
+                'send_sms': a.send_sms,
+                'created_by_name': author_name,
                 'created_at': a.created_at.strftime('%Y-%m-%d %H:%M'),
-            }
-            for a in announcements
-        ]
+            })
 
         # Notifications
         notifications = Notification.objects.filter(recipient=user).order_by('-created_at')[:20]
@@ -815,8 +833,20 @@ class CoachMessagesView(APIView):
             for n in notifications
         ]
 
-        # Return list of coach's groups so coach can choose target group for new message
-        groups_list = [{'id': g.id, 'name': g.name} for g in coach_groups]
+        # Return list of coach's groups so coach can choose target group(s) for new message
+        groups_list = [
+            {
+                'id': g.id,
+                'name': g.name,
+                'course_name': g.course.name if g.course else '',
+                'skill_level': g.skill_level.name if g.skill_level else '',
+                'enrolled_count': g.enrollments.filter(status='ACTIVE').count(),
+                'pool_location': g.pool_location,
+                'status': g.status,
+                'course_status': g.course.status if g.course else '',
+            }
+            for g in coach_groups
+        ]
 
         return Response({
             'announcements': announcements_data,
@@ -826,60 +856,101 @@ class CoachMessagesView(APIView):
 
     def post(self, request):
         """
-        ارسال اعلان توسط مربی به یکی از کلاس‌های مجاز خود
+        ارسال اعلان توسط مربی به یک یا چند کلاس مجاز خود
         """
         user = request.user
         coach = get_coach_profile(user)
         if not coach and (user.role == 'ADMIN' or user.is_superuser):
             coach = CoachProfile.objects.first()
 
-        title = request.data.get('title')
-        message = request.data.get('message')
-        group_id = request.data.get('group_id')
+        title = (request.data.get('title') or '').strip()
+        message = (request.data.get('message') or '').strip()
+        raw_group_ids = request.data.get('group_ids')
+        raw_group_id = request.data.get('group_id')
+        is_pinned = bool(request.data.get('is_pinned', False))
+        send_sms = bool(request.data.get('send_sms', False))
 
-        if not title or not message or not group_id:
-            return Response({'detail': 'عنوان، پیام و گروه الزامی هستند.'}, status=status.HTTP_400_BAD_REQUEST)
+        requested_ids = []
+        if isinstance(raw_group_ids, list) and len(raw_group_ids) > 0:
+            requested_ids = raw_group_ids
+        elif raw_group_id is not None and raw_group_id != '':
+            requested_ids = [raw_group_id]
 
-        try:
-            group = SwimmerGroup.objects.get(pk=group_id)
-        except SwimmerGroup.DoesNotExist:
+        if not title or not message or not requested_ids:
+            return Response({'detail': 'عنوان، متن پیام و انتخاب حداقل یک کلاس الزامی هستند.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        parsed_ids = []
+        seen_ids = set()
+        for gid in requested_ids:
+            try:
+                int_id = int(gid)
+            except (TypeError, ValueError):
+                return Response({'detail': 'شناسه کلاس نامعتبر است.'}, status=status.HTTP_400_BAD_REQUEST)
+            if int_id not in seen_ids:
+                seen_ids.add(int_id)
+                parsed_ids.append(int_id)
+
+        groups_by_id = SwimmerGroup.objects.in_bulk(parsed_ids)
+        if len(groups_by_id) != len(parsed_ids):
             return Response({'detail': 'گروه یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
 
-        # Security check: coach must belong to this group
+        groups = [groups_by_id[gid] for gid in parsed_ids]
+
+        # Security check: coach must belong to every target group
         is_admin = user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser
-        if not is_admin and coach:
-            is_coach_of_group = (
-                group.coach_assignments.filter(coach=coach).exists() or
-                group.sessions.filter(coach=coach).exists()
-            )
-            if not is_coach_of_group:
+        if not is_admin:
+            if not coach:
                 return Response({'detail': 'شما مجاز به ارسال پیام به این کلاس نیستید.'}, status=status.HTTP_403_FORBIDDEN)
+            for group in groups:
+                is_coach_of_group = (
+                    group.coach_assignments.filter(coach=coach).exists() or
+                    group.sessions.filter(coach=coach).exists()
+                )
+                if not is_coach_of_group:
+                    return Response({'detail': 'شما مجاز به ارسال پیام به این کلاس نیستید.'}, status=status.HTTP_403_FORBIDDEN)
 
         announcement = Announcement.objects.create(
             title=title,
             message=message,
             audience=Announcement.Audience.GROUP,
-            target_group=group,
+            target_group=groups[0],
+            is_pinned=is_pinned,
+            send_sms=send_sms,
             created_by=user
         )
+        announcement.target_groups.set(groups)
 
         author_name = user.get_full_name() if hasattr(user, 'get_full_name') and user.get_full_name() else getattr(user, 'phone', 'مربی')
 
-        # Notify active enrolled swimmers and their users
-        enrollments = group.enrollments.filter(status='ACTIVE').select_related('swimmer__user')
+        # Notify active enrolled swimmers across selected groups (deduplicated per user)
+        swimmer_groups_map = {}
+        user_objects = {}
+        enrollments = Enrollment.objects.filter(
+            group__in=groups,
+            status='ACTIVE',
+            swimmer__user__isnull=False
+        ).select_related('swimmer__user', 'group')
+
         for en in enrollments:
-            sw = en.swimmer
-            if sw and sw.user:
-                Notification.objects.create(
-                    recipient=sw.user,
-                    category=Notification.Category.ANNOUNCEMENT,
-                    title=f"پیام مربی در کلاس {group.name}: {title}",
-                    message=message[:250],
-                    link='/swimmer/announcements',
-                    is_read=False
-                )
+            sw_user = en.swimmer.user
+            user_objects[sw_user.id] = sw_user
+            swimmer_groups_map.setdefault(sw_user.id, [])
+            if en.group.name not in swimmer_groups_map[sw_user.id]:
+                swimmer_groups_map[sw_user.id].append(en.group.name)
+
+        for uid, sw_user in user_objects.items():
+            grp_names = '، '.join(swimmer_groups_map[uid])
+            Notification.objects.create(
+                recipient=sw_user,
+                category=Notification.Category.ANNOUNCEMENT,
+                title=f"پیام مربی در کلاس {grp_names}: {title}",
+                message=message[:250],
+                link='/swimmer/announcements',
+                is_read=False
+            )
 
         # Also notify management (all administrators and supervisors)
+        all_group_names = '، '.join(g.name for g in groups)
         managers = User.objects.filter(
             Q(role__in=['ADMIN', 'SUPERVISOR']) | Q(is_superuser=True)
         ).distinct()
@@ -888,13 +959,19 @@ class CoachMessagesView(APIView):
                 Notification.objects.create(
                     recipient=manager,
                     category=Notification.Category.ANNOUNCEMENT,
-                    title=f"اعلان مربی ({author_name}) به کلاس {group.name}: {title}",
-                    message=f"مربی {author_name} برای شناگران کلاس «{group.name}» اعلان جدیدی ثبت کرد:\n{message[:250]}",
-                    link=f"/admin/announcements?tab=announcements",
+                    title=(
+                        f"اعلان مربی ({author_name}) به کلاس {all_group_names}: {title}"
+                        if len(groups) == 1
+                        else f"اعلان مربی ({author_name}) به {len(groups)} کلاس: {title}"
+                    ),
+                    message=f"مربی {author_name} برای شناگران کلاس «{all_group_names}» اعلان جدیدی ثبت کرد:\n{message[:250]}",
+                    link="/admin/announcements?tab=announcements",
                     is_read=False
                 )
 
         return Response({
             'message': 'پیام با موفقیت به شناگران کلاس ارسال شد.',
-            'id': announcement.id
+            'id': announcement.id,
+            'is_pinned': announcement.is_pinned,
+            'send_sms': announcement.send_sms,
         }, status=status.HTTP_201_CREATED)
