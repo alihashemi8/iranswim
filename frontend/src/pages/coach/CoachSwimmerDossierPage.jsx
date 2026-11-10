@@ -21,14 +21,6 @@ export const CoachSwimmerDossierPage = () => {
   const [loadedSwimmerId, setLoadedSwimmerId] = useState(null);
   const loading = loadedSwimmerId !== swimmerId;
 
-  // New assessment modal/form state
-  const [showAssessmentModal, setShowAssessmentModal] = useState(false);
-  const [selectedSkillId, setSelectedSkillId] = useState('');
-  const [score, setScore] = useState(85);
-  const [statusVal, setStatusVal] = useState('PASSED');
-  const [feedback, setFeedback] = useState('');
-  const [savingAssessment, setSavingAssessment] = useState(false);
-
   // Promotion proposal modal state
   const [showPromotionModal, setShowPromotionModal] = useState(false);
   const [targetLevelId, setTargetLevelId] = useState('');
@@ -36,21 +28,19 @@ export const CoachSwimmerDossierPage = () => {
   const [submittingPromotion, setSubmittingPromotion] = useState(false);
 
   const toast = useToast();
-  const anyModalOpen = showAssessmentModal || showPromotionModal;
 
-  useBodyScrollLock(anyModalOpen);
+  useBodyScrollLock(showPromotionModal);
 
   useEffect(() => {
-    if (!anyModalOpen) return;
+    if (!showPromotionModal) return;
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') {
-        setShowAssessmentModal(false);
         setShowPromotionModal(false);
       }
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [anyModalOpen]);
+  }, [showPromotionModal]);
 
   const fetchAllLevels = useCallback(async () => {
     const firstRes = await api.get('/education/levels/');
@@ -131,61 +121,6 @@ export const CoachSwimmerDossierPage = () => {
       toast.error('خطا در بروزرسانی پرونده مهارتی شناگر');
     }
   }, [loadDossierData, applyDossierResult, toast]);
-
-  const skillOptions = useMemo(
-    () =>
-      skillsList.map((sk) => ({
-        value: String(sk.id),
-        label: sk.name,
-        description: sk.level_name ? `سطح: ${sk.level_name}` : undefined,
-        icon: BookOpen,
-      })),
-    [skillsList]
-  );
-
-  const assessmentStatusOptions = useMemo(
-    () => [
-      { value: 'PASSED', label: 'قبول / کسب مهارت', icon: CheckCircle2 },
-      { value: 'IN_PROGRESS', label: 'در حال تمرین', icon: Clock },
-      { value: 'NEEDS_PRACTICE', label: 'نیازمند تمرین بیشتر', icon: AlertCircle },
-    ],
-    []
-  );
-
-  // Submit Skill Assessment
-  const handleSaveAssessment = async (e) => {
-    e.preventDefault();
-    if (!selectedSkillId) {
-      toast.error('لطفاً مهارت مورد نظر را انتخاب کنید.');
-      return;
-    }
-    const numericScore = Number(score);
-    if (Number.isNaN(numericScore) || numericScore < 0 || numericScore > 100) {
-      toast.error('نمره ارزیابی باید عددی بین 0 تا 100 باشد.');
-      return;
-    }
-
-    try {
-      setSavingAssessment(true);
-      await api.post('/assessments/skills/', {
-        swimmer: Number(swimmerId),
-        skill: Number(selectedSkillId),
-        score: numericScore,
-        status: statusVal,
-        feedback: feedback.trim(),
-        assessed_at: new Date().toISOString().split('T')[0],
-      });
-      toast.success('ارزیابی مهارتی با موفقیت ثبت شد.');
-      setShowAssessmentModal(false);
-      setFeedback('');
-      await refreshDossier();
-    } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.detail || 'خطا در ثبت ارزیابی');
-    } finally {
-      setSavingAssessment(false);
-    }
-  };
 
   // Submit Level Promotion Proposal
   const handleSavePromotion = async (e) => {
