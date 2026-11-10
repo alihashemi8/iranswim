@@ -1,6 +1,7 @@
 import datetime
 from decimal import Decimal
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
 from rest_framework import generics, status, permissions
 from rest_framework.views import APIView
@@ -23,13 +24,21 @@ from apps.supervisor.models import AuditLog
 class SkillLevelListView(generics.ListCreateAPIView):
     queryset = SkillLevel.objects.all().prefetch_related('skills')
     serializer_class = SkillLevelSerializer
-    permission_classes = [permissions.AllowAny]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.AllowAny()]
+        return [IsAdminUserRole()]
 
 
 class CourseListView(generics.ListCreateAPIView):
     queryset = Course.objects.all().prefetch_related('groups__schedules', 'groups__coach_assignments', 'coaches__user')
     serializer_class = CourseSerializer
-    permission_classes = [permissions.AllowAny]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.AllowAny()]
+        return [IsAdminUserRole()]
 
     def get_queryset(self):
         qs = Course.objects.all().prefetch_related('groups__schedules', 'groups__coach_assignments', 'coaches__user')
@@ -42,13 +51,21 @@ class CourseListView(generics.ListCreateAPIView):
 class CourseDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Course.objects.all()
     serializer_class = CourseSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminUserRole()]
 
 
 class SwimmerGroupListView(generics.ListCreateAPIView):
     queryset = SwimmerGroup.objects.all().select_related('course', 'skill_level').prefetch_related('schedules', 'coach_assignments')
     serializer_class = SwimmerGroupSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminUserRole()]
 
     def get_queryset(self):
         user = self.request.user
@@ -64,7 +81,21 @@ class SwimmerGroupListView(generics.ListCreateAPIView):
 class SwimmerGroupDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = SwimmerGroup.objects.all()
     serializer_class = SwimmerGroupSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminUserRole()]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = SwimmerGroup.objects.all().select_related('course', 'skill_level').prefetch_related('schedules', 'coach_assignments')
+        if user.role == 'COACH':
+            coach_profile = getattr(user, 'coach_profile', None)
+            if coach_profile:
+                return qs.filter(coach_assignments__coach=coach_profile).distinct()
+            return qs.none()
+        return qs
 
 
 class EnrollmentRequestCreateView(generics.CreateAPIView):
@@ -82,10 +113,10 @@ class EnrollmentRequestCreateView(generics.CreateAPIView):
 
 
 class EnrollmentRequestListView(generics.ListAPIView):
-    """مشاهده لیست درخواست‌های ثبت‌نام توسط مدیر"""
+    """مشاهده لیست درخواست‌های ثبت‌نام توسط مدیر و ناظر فنی"""
     queryset = EnrollmentRequest.objects.all().select_related('course', 'group', 'swimmer')
     serializer_class = EnrollmentRequestSerializer
-    permission_classes = [IsAdminUserRole]
+    permission_classes = [IsAdminOrSupervisor]
 
     def get_queryset(self):
         qs = EnrollmentRequest.objects.all().select_related('course', 'group', 'swimmer')
@@ -250,7 +281,11 @@ class EnrollmentListView(generics.ListCreateAPIView):
     """مدیریت ثبت‌نام‌های قطعی"""
     queryset = Enrollment.objects.all().select_related('swimmer', 'course', 'group', 'coach')
     serializer_class = EnrollmentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminUserRole()]
 
     def perform_create(self, serializer):
         enrollment = serializer.save()
@@ -328,7 +363,14 @@ class EnrollmentListView(generics.ListCreateAPIView):
         elif user.role == 'COACH':
             coach_profile = getattr(user, 'coach_profile', None)
             if coach_profile:
-                return qs.filter(coach=coach_profile).distinct()
+                qs = qs.filter(
+                    Q(coach=coach_profile) |
+                    Q(group__coach_assignments__coach=coach_profile)
+                ).distinct()
+                group_id = self.request.query_params.get('group_id')
+                if group_id:
+                    qs = qs.filter(group_id=group_id)
+                return qs
             return qs.none()
         elif user.role == 'SWIMMER':
             from apps.swimmers.utils import get_accessible_swimmer_ids
@@ -341,7 +383,30 @@ class EnrollmentDetailView(generics.RetrieveUpdateDestroyAPIView):
     """مشاهده، ویرایش و حذف ثبت‌نام مشخص"""
     queryset = Enrollment.objects.all().select_related('swimmer', 'course', 'group', 'coach')
     serializer_class = EnrollmentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminUserRole()]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = Enrollment.objects.all().select_related('swimmer', 'course', 'group', 'coach')
+        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+            return qs
+        elif user.role == 'COACH':
+            coach_profile = getattr(user, 'coach_profile', None)
+            if coach_profile:
+                return qs.filter(
+                    Q(coach=coach_profile) |
+                    Q(group__coach_assignments__coach=coach_profile)
+                ).distinct()
+            return qs.none()
+        elif user.role == 'SWIMMER':
+            from apps.swimmers.utils import get_accessible_swimmer_ids
+            ids = get_accessible_swimmer_ids(user, self.request)
+            return qs.filter(swimmer_id__in=ids)
+        return qs.none()
 
 
 class EnrollmentAssignCoachView(APIView):
@@ -473,7 +538,11 @@ class GroupCoachListCreateView(generics.ListCreateAPIView):
     """مدیریت و ثبت تخصیص مربیان به گروه‌های آموزشی توسط مدیر"""
     queryset = GroupCoach.objects.all().select_related('group', 'coach__user')
     serializer_class = GroupCoachSerializer
-    permission_classes = [IsAdminUserRole]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [IsAdminOrSupervisor()]
+        return [IsAdminUserRole()]
 
     def get_queryset(self):
         qs = GroupCoach.objects.all().select_related('group', 'coach__user')
@@ -511,4 +580,8 @@ class GroupCoachDetailView(generics.RetrieveUpdateDestroyAPIView):
     """مشاهده، ویرایش و حذف تخصیص مربی به گروه آموزشی"""
     queryset = GroupCoach.objects.all().select_related('group', 'coach__user')
     serializer_class = GroupCoachSerializer
-    permission_classes = [IsAdminUserRole]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [IsAdminOrSupervisor()]
+        return [IsAdminUserRole()]

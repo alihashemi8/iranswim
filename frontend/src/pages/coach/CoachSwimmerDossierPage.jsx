@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useParams, Link } from 'react-router-dom';
 import {
   TrendingUp, Award, Calendar, ChevronRight, CheckCircle2,
-  Clock, AlertCircle, PlusCircle, HeartPulse, Users,
+  Clock, AlertCircle, PlusCircle, Users,
   UserCheck, X, BookOpen
 } from 'lucide-react';
 import api from '../../api/client';
@@ -245,8 +245,6 @@ export const CoachSwimmerDossierPage = () => {
   const records = data.records || [];
   const attSummary = data.attendance_summary || {};
   const skillLevels = data.skill_levels || [];
-  const hasMedicalNote =
-    Boolean(swimmer.medical_conditions) && swimmer.medical_conditions !== 'بدون مورد خاص';
 
   const promotionLevelOptions = skillLevels.map((lvl) => {
     const isCurrent =
@@ -288,25 +286,6 @@ export const CoachSwimmerDossierPage = () => {
               سطح: {swimmer.current_level_name}
             </span>
           </h1>
-
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            <span>
-              کد ملی:{' '}
-              <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">
-                {swimmer.national_id || 'ثبت‌نشده'}
-              </span>
-            </span>
-            <span className="text-slate-300 dark:text-slate-700">·</span>
-            <span>
-              شماره ولی:{' '}
-              <span
-                dir="ltr"
-                className="inline-block font-mono font-semibold text-slate-700 dark:text-slate-300"
-              >
-                {swimmer.guardian_phone || '---'}
-              </span>
-            </span>
-          </div>
         </div>
 
         {/* Action Buttons */}
@@ -332,8 +311,8 @@ export const CoachSwimmerDossierPage = () => {
         </div>
       </div>
 
-      {/* 2. Attendance & Health Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      {/* 2. Attendance Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
         <div className="p-4 sm:p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between gap-2">
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-bold">
@@ -383,36 +362,6 @@ export const CoachSwimmerDossierPage = () => {
               {passedAssessmentsCount} مهارت قبول‌شده
             </span>
           </div>
-        </div>
-
-        <div
-          className={`p-4 sm:p-5 rounded-2xl border shadow-xs flex flex-col justify-between gap-2 ${
-            hasMedicalNote
-              ? 'bg-amber-50/60 dark:bg-amber-950/20 border-amber-200/90 dark:border-amber-800/70'
-              : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800'
-          }`}
-        >
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-bold">
-              ملاحظات ویژه/پزشکی
-            </span>
-            <HeartPulse
-              className={`w-4 h-4 shrink-0 ${
-                hasMedicalNote
-                  ? 'text-amber-600 dark:text-amber-400'
-                  : 'text-slate-400 dark:text-slate-500'
-              }`}
-            />
-          </div>
-          <p
-            className={`text-xs sm:text-sm leading-relaxed break-words ${
-              hasMedicalNote
-                ? 'font-bold text-amber-800 dark:text-amber-200'
-                : 'font-bold text-slate-700 dark:text-slate-200'
-            }`}
-          >
-            {swimmer.medical_conditions || 'موردی ثبت نشده است'}
-          </p>
         </div>
       </div>
 

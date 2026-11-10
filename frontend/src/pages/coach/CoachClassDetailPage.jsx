@@ -289,7 +289,6 @@ export const CoachClassDetailPage = () => {
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700/60 font-bold text-sm">
                 <tr>
                   <th className="py-3.5 px-4">شناگر</th>
-                  <th className="py-3.5 px-4">کد ملی</th>
                   <th className="py-3.5 px-4">سطح مهارت</th>
                   <th className="py-3.5 px-4">جلسات حضور</th>
                   <th className="py-3.5 px-4">درصد حضور</th>
@@ -302,9 +301,6 @@ export const CoachClassDetailPage = () => {
                     <tr key={sw.swimmer_id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                       <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white text-sm sm:text-base">
                         {sw.full_name}
-                      </td>
-                      <td className="py-3.5 px-4 text-slate-500 font-mono text-sm">
-                        {sw.national_id || '---'}
                       </td>
                       <td className="py-3.5 px-4">
                         <span className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs sm:text-sm">
@@ -340,7 +336,7 @@ export const CoachClassDetailPage = () => {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="text-center py-8 text-slate-400 text-sm">
+                    <td colSpan="5" className="text-center py-8 text-slate-400 text-sm">
                       هیچ شناگری در این کلاس ثبت‌نام نشده است.
                     </td>
                   </tr>

@@ -188,16 +188,16 @@ def test_unrelated_coach_cannot_access_swimmer_documents(api_client, unrelated_c
 
 
 @pytest.mark.django_db
-def test_assigned_coach_can_only_access_sports_insurance_not_national_id_or_birth_cert(api_client, coach_with_assignment, swimmer1):
+def test_assigned_coach_cannot_access_any_swimmer_documents(api_client, coach_with_assignment, swimmer1):
     """
-    آزمون امنیتی ۴: مربی تخصیص‌یافته صرفاً به مدرک بیمه ورزشی شناگر خود دسترسی دارد و
-    دسترسی وی به شناسنامه و کارت ملی مسدود است (اصل حداقل دسترسی).
+    آزمون امنیتی ۴: مربی (حتی مربی تخصیص‌یافته کلاس) مجاز به مشاهده و دانلود هیچ‌یک از
+    مدارک حساس شناگران (بیمه ورزشی، شناسنامه، کارت ملی) نیست (HTTP 403).
     """
     api_client.force_authenticate(user=coach_with_assignment.user)
 
-    # ۱. بیمه ورزشی شناگر تحت آموزش: مجاز (HTTP 200)
+    # ۱. بیمه ورزشی شناگر: ممنوع برای مربی (HTTP 403)
     insurance_res = api_client.get(f'/api/swimmers/{swimmer1.id}/documents/sports_insurance/')
-    assert insurance_res.status_code == 200
+    assert insurance_res.status_code == 403
 
     # ۲. شناسنامه شناگر: ممنوع (HTTP 403)
     cert_res = api_client.get(f'/api/swimmers/{swimmer1.id}/documents/birth_certificate/')
@@ -226,16 +226,16 @@ def test_admin_can_access_authorized_documents(api_client, admin_user, swimmer1)
 
 
 @pytest.mark.django_db
-def test_supervisor_does_not_automatically_gain_document_access(api_client, supervisor_user, swimmer1):
+def test_supervisor_has_full_read_document_access(api_client, supervisor_user, swimmer1):
     """
-    آزمون امنیتی ۶: ناظر فنی سامانه (SUPERVISOR) صرفاً نظارت زیرساختی دارد و
-    به صورت خودکار مجوزی برای باز کردن و دانلود مدارک هویتی محرمانه ندارد (HTTP 403).
+    آزمون امنیتی ۶: ناظر فنی سامانه (SUPERVISOR) به همراه مدیر آموزشگاه مجاز به
+    مشاهده کامل کلیه مدارک هویتی و ورزشی شناگران می‌باشد (HTTP 200).
     """
     api_client.force_authenticate(user=supervisor_user)
 
-    res = api_client.get(f'/api/swimmers/{swimmer1.id}/documents/birth_certificate/')
-    assert res.status_code == 403
-    assert 'ناظر فنی' in res.data['detail']
+    for doc_type in ('birth_certificate', 'national_card', 'sports_insurance'):
+        res = api_client.get(f'/api/swimmers/{swimmer1.id}/documents/{doc_type}/')
+        assert res.status_code == 200
 
 
 @pytest.mark.django_db

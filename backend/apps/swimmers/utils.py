@@ -19,9 +19,12 @@ def get_accessible_swimmer_ids(user, request=None, requested_id=None):
                 return [int(req_id)]
         return None  # None indicates all swimmers accessible
 
-    # Find all IDs linked to this guardian or user
+    # Find all IDs linked to this guardian or user (strictly verified relations)
     guardian_swimmer_ids = list(
-        SwimmerGuardianRelation.objects.filter(guardian=user).values_list('swimmer_id', flat=True)
+        SwimmerGuardianRelation.objects.filter(
+            guardian=user,
+            is_verified=True
+        ).values_list('swimmer_id', flat=True)
     )
     if hasattr(user, 'swimmer_profile') and user.swimmer_profile:
         if user.swimmer_profile.id not in guardian_swimmer_ids:

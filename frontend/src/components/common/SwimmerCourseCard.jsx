@@ -24,7 +24,6 @@ export const SwimmerCourseCard = ({
   const swimmerPhone = swimmer.phone || '';
   const swimmerLevel = swimmer.level_name || swimmer.current_level_name || 'سطح پایه';
   const swimmerGender = swimmer.gender || swimmer.swimmer_gender || '';
-  const nationalId = swimmer.national_id || '';
 
   const courseName = course?.name || swimmer.course_name || 'دوره آموزشی شنا';
   const poolLocation = course?.pool_location || swimmer.pool_location || 'استخر شهید رئیسی';

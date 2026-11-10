@@ -204,7 +204,7 @@ export const CoachAssessmentsPage = () => {
             >
               <option value="">انتخاب شناگر...</option>
               {swimmers.map((s) => (
-                <option key={s.id} value={s.id}>{s.full_name} ({s.phone})</option>
+                <option key={s.id} value={s.id}>{s.full_name}</option>
               ))}
             </select>
           </div>
@@ -285,7 +285,7 @@ export const CoachAssessmentsPage = () => {
             >
               <option value="">انتخاب شناگر...</option>
               {swimmers.map((s) => (
-                <option key={s.id} value={s.id}>{s.full_name} ({s.phone})</option>
+                <option key={s.id} value={s.id}>{s.full_name}</option>
               ))}
             </select>
           </div>

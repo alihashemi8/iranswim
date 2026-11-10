@@ -21,7 +21,7 @@ class CoachPublicSerializer(serializers.ModelSerializer):
     سریالایزر عمومی مربیان جهت نمایش در صفحه لندینگ و پرتال عمومی.
     اطلاعات هویتی و مالی کاملاً محرمانه است و حذف می‌شود.
     """
-    full_name = serializers.CharField(read_only=True)
+    full_name = serializers.SerializerMethodField()
     first_name = serializers.CharField(source='user.first_name', read_only=True)
     last_name = serializers.CharField(source='user.last_name', read_only=True)
     avatar = serializers.SerializerMethodField()
@@ -36,6 +36,13 @@ class CoachPublicSerializer(serializers.ModelSerializer):
             'specialties', 'bio', 'years_of_experience', 'assigned_groups_count'
         ]
         read_only_fields = fields
+
+    def get_full_name(self, obj):
+        if obj.user:
+            name = obj.user.get_full_name().strip()
+            if name:
+                return name
+        return 'مربی آکادمی'
 
     def get_avatar(self, obj):
         if obj.user and obj.user.avatar:
@@ -421,21 +428,20 @@ class CoachProfileSerializer(serializers.ModelSerializer):
                 ret.pop('national_id', None)
 
         # Confidential fields handling
-        if not is_admin:
+        if not (is_admin or is_supervisor):
             ret.pop('internal_notes', None)
 
-        if is_supervisor and not is_admin:
-            # Supervisors cannot view monthly payroll status
-            ret.pop('current_month_payroll_status', None)
-
         if not (is_admin or is_supervisor or is_self):
-            ret.pop('hourly_rate', None)
-            ret.pop('fixed_monthly_salary', None)
-            ret.pop('revenue_percentage', None)
-            ret.pop('employment_status', None)
-            ret.pop('emergency_contact_name', None)
-            ret.pop('emergency_contact_phone', None)
-            ret.pop('address', None)
+            for field in (
+                'hourly_rate', 'fixed_monthly_salary', 'revenue_percentage',
+                'percentage_revenue_basis', 'employment_status', 'employment_status_display',
+                'employment_type', 'employment_type_display', 'employment_start_date',
+                'emergency_contact_name', 'emergency_contact_phone', 'address',
+                'date_of_birth', 'lifeguard_certificate', 'lifeguard_expiration',
+                'previous_experience', 'personnel_id', 'contractual_weekly_hours',
+                'active_contract_summary', 'current_month_payroll_status',
+            ):
+                ret.pop(field, None)
 
         return ret
 
@@ -601,18 +607,16 @@ class CoachClassListSerializer(serializers.ModelSerializer):
 
 
 class CoachSwimmerDetailSerializer(serializers.ModelSerializer):
+    """
+    سریالایزر محدود مشخصات شناگر در پنل مربی:
+    فقط اطلاعات هویتی عمومی و آموزشی (نام و سطح مهارت) را بازمی‌گرداند.
+    """
     full_name = serializers.CharField(read_only=True)
     current_level_name = serializers.CharField(source='current_level.name', read_only=True)
-    guardian_phone = serializers.SerializerMethodField()
 
     class Meta:
         model = SwimmerProfile
         fields = [
             'id', 'first_name', 'last_name', 'full_name', 'gender',
-            'date_of_birth', 'national_id', 'current_level',
-            'current_level_name', 'guardian_phone', 'medical_notes',
-            'created_at'
+            'current_level', 'current_level_name', 'created_at'
         ]
-
-    def get_guardian_phone(self, obj):
-        return obj.emergency_contact_phone or obj.father_phone or obj.mother_phone or obj.phone or ''

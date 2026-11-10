@@ -2,6 +2,7 @@ from django.db import transaction
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from .models import AttendanceRecord
 from .serializers import AttendanceRecordSerializer
 from apps.accounts.permissions import IsAdminOrCoach
@@ -84,6 +85,9 @@ class AttendanceBulkSaveView(APIView):
                     swimmer_id=swimmer_id,
                     group=session.group
                 ).first()
+
+                if request.user.role == 'COACH' and not enrollment:
+                    raise PermissionDenied('شما فقط مجاز به ثبت حضور و غیاب برای شناگران ثبت‌نام‌شده در این کلاس هستید.')
 
                 att, created = AttendanceRecord.objects.update_or_create(
                     session=session,

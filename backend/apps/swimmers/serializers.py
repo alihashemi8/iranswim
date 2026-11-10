@@ -44,7 +44,12 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
             'course_name', 'course_id', 'course_coaches',
             'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'created_at', 'updated_at']
+        read_only_fields = [
+            'id', 'user',
+            'birth_certificate_status', 'national_card_status', 'sports_insurance_status',
+            'documents_rejection_reason', 'is_profile_completed',
+            'created_at', 'updated_at'
+        ]
 
     def validate_birth_certificate_image(self, value):
         return validate_document_file(value)
@@ -99,11 +104,12 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
                 c_avatar = None
                 if c.user and c.user.avatar:
                     c_avatar = request.build_absolute_uri(c.user.avatar.url) if request else c.user.avatar.url
+                c_label = (c.user.get_full_name().strip() if c.user and c.user.get_full_name() else '') or 'مربی'
                 coaches.append({
                     'id': c.id,
-                    'full_name': c.full_name,
+                    'full_name': c_label,
                     'avatar': c_avatar,
-                    'class_name': f"کلاس {c.full_name}"
+                    'class_name': f"کلاس {c_label}"
                 })
 
         time_display = ''
@@ -111,6 +117,10 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
             st = latest.course.start_time.strftime('%H:%M') if hasattr(latest.course.start_time, 'strftime') else str(latest.course.start_time)[:5]
             et = latest.course.end_time.strftime('%H:%M') if hasattr(latest.course.end_time, 'strftime') else str(latest.course.end_time)[:5]
             time_display = f"{st} الی {et}"
+
+        latest_coach_name = None
+        if latest.coach:
+            latest_coach_name = (latest.coach.user.get_full_name().strip() if latest.coach.user and latest.coach.user.get_full_name() else '') or 'مربی'
 
         return {
             'id': latest.id,
@@ -122,7 +132,7 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
             'group_id': latest.group.id if latest.group else None,
             'group_name': latest.group.name if latest.group else None,
             'coach_id': latest.coach.id if latest.coach else None,
-            'coach_name': latest.coach.full_name if latest.coach else None,
+            'coach_name': latest_coach_name,
             'coach_avatar': coach_avatar,
             'course_coaches': coaches,
             'status': latest.status
@@ -160,11 +170,12 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
             c_avatar = None
             if c.user and c.user.avatar:
                 c_avatar = request.build_absolute_uri(c.user.avatar.url) if request else c.user.avatar.url
+            c_label = (c.user.get_full_name().strip() if c.user and c.user.get_full_name() else '') or 'مربی'
             res.append({
                 'id': c.id,
-                'full_name': c.full_name,
+                'full_name': c_label,
                 'avatar': c_avatar,
-                'class_name': f"کلاس {c.full_name}"
+                'class_name': f"کلاس {c_label}"
             })
         return res
 
@@ -204,9 +215,10 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
             coach_name = None
             if primary_coach and primary_coach.coach:
                 coach_id = primary_coach.coach.id
-                coach_name = primary_coach.coach.full_name
-                if primary_coach.coach.user and primary_coach.coach.user.avatar:
-                    c_avatar = request.build_absolute_uri(primary_coach.coach.user.avatar.url) if request else primary_coach.coach.user.avatar.url
+                c_user = primary_coach.coach.user
+                coach_name = (c_user.get_full_name().strip() if c_user and c_user.get_full_name() else '') or 'مربی'
+                if c_user and c_user.avatar:
+                    c_avatar = request.build_absolute_uri(c_user.avatar.url) if request else c_user.avatar.url
             
             is_curr = bool(current_course_id and g.course_id == current_course_id)
             classes.append({
@@ -227,6 +239,53 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
         classes.sort(key=lambda x: (0 if x['is_current_course'] else 1, x['course_name'], x['name']))
 
         return classes
+
+
+class CoachSwimmerSerializer(serializers.ModelSerializer):
+    """
+    سریالایزر محدود شناگر ویژه مربیان:
+    صرفاً اطلاعات عملیاتی و آموزشی (نام، جنسیت، تصویر، سطح مهارت، کلاس و وضعیت فعالیت) را نمایش می‌دهد
+    و تمام اطلاعات حساس (کد ملی، تلفن‌ها، آدرس، تاریخ تولد، سوابق پزشکی و مدارک هویتی) حذف می‌شوند.
+    """
+    full_name = serializers.CharField(read_only=True)
+    level_name = serializers.CharField(source='current_level.name', read_only=True)
+    gender_display = serializers.CharField(source='get_gender_display', read_only=True)
+    group_id = serializers.SerializerMethodField()
+    group_name = serializers.SerializerMethodField()
+    course_id = serializers.SerializerMethodField()
+    course_name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SwimmerProfile
+        fields = [
+            'id', 'first_name', 'last_name', 'full_name',
+            'gender', 'gender_display', 'avatar',
+            'current_level', 'level_name', 'is_active',
+            'group_id', 'group_name', 'course_id', 'course_name',
+        ]
+        read_only_fields = fields
+
+    def _get_latest_enrollment(self, obj):
+        latest = obj.enrollments.select_related('course', 'group').filter(status='ACTIVE').first()
+        if not latest:
+            latest = obj.enrollments.select_related('course', 'group').first()
+        return latest
+
+    def get_group_id(self, obj):
+        en = self._get_latest_enrollment(obj)
+        return en.group_id if en else None
+
+    def get_group_name(self, obj):
+        en = self._get_latest_enrollment(obj)
+        return en.group.name if en and en.group else None
+
+    def get_course_id(self, obj):
+        en = self._get_latest_enrollment(obj)
+        return en.course_id if en else None
+
+    def get_course_name(self, obj):
+        en = self._get_latest_enrollment(obj)
+        return en.course.name if en and en.course else None
 
 
 class SwimmerGuardianRelationSerializer(serializers.ModelSerializer):

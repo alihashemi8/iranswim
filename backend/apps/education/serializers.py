@@ -27,8 +27,15 @@ class GroupScheduleSerializer(serializers.ModelSerializer):
         fields = ['id', 'group', 'weekday', 'weekday_display', 'start_time', 'end_time']
 
 
+def _safe_coach_name(coach):
+    if not coach:
+        return None
+    name = coach.user.get_full_name().strip() if getattr(coach, 'user', None) and coach.user.get_full_name() else ''
+    return name or 'مربی'
+
+
 class GroupCoachSerializer(serializers.ModelSerializer):
-    coach_name = serializers.CharField(source='coach.full_name', read_only=True)
+    coach_name = serializers.SerializerMethodField()
     coach_phone = serializers.CharField(source='coach.user.phone', read_only=True)
     group_name = serializers.CharField(source='group.name', read_only=True)
     course_id = serializers.IntegerField(source='group.course.id', read_only=True, default=None)
@@ -47,6 +54,19 @@ class GroupCoachSerializer(serializers.ModelSerializer):
             'level_color', 'pool_location', 'capacity', 'enrolled_count', 'schedules',
             'coach', 'coach_name', 'coach_phone', 'assigned_from', 'assigned_to', 'is_primary'
         ]
+
+    def get_coach_name(self, obj):
+        return _safe_coach_name(obj.coach)
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        request = self.context.get('request')
+        user = request.user if request and hasattr(request, 'user') and request.user.is_authenticated else None
+        is_privileged = bool(user and (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser))
+        is_self = bool(user and instance.coach and instance.coach.user_id and instance.coach.user_id == user.id)
+        if not (is_privileged or is_self):
+            ret.pop('coach_phone', None)
+        return ret
 
 
 class SwimmerGroupSerializer(serializers.ModelSerializer):
@@ -108,11 +128,12 @@ class CourseSerializer(serializers.ModelSerializer):
                         avatar_url = request.build_absolute_uri(c.user.avatar.url) if request else c.user.avatar.url
                 except Exception:
                     avatar_url = None
+                coach_label = (c.user.get_full_name().strip() if c.user else '') or 'مربی'
                 result.append({
                     'id': c.id,
-                    'full_name': c.full_name,
+                    'full_name': coach_label,
                     'avatar': avatar_url,
-                    'class_name': f"کلاس {c.full_name}"
+                    'class_name': f"کلاس {coach_label}"
                 })
         except Exception:
             pass
@@ -155,7 +176,7 @@ class CourseSerializer(serializers.ModelSerializer):
 class EnrollmentRequestSerializer(serializers.ModelSerializer):
     course_name = serializers.CharField(source='course.name', read_only=True)
     group_name = serializers.CharField(source='group.name', read_only=True, default=None, allow_null=True)
-    coach_name = serializers.CharField(source='coach.full_name', read_only=True, default=None, allow_null=True)
+    coach_name = serializers.SerializerMethodField()
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     course_max_installments = serializers.IntegerField(source='course.installments_count', read_only=True)
     course_base_price = serializers.DecimalField(source='course.base_price', max_digits=12, decimal_places=2, read_only=True)
@@ -170,6 +191,9 @@ class EnrollmentRequestSerializer(serializers.ModelSerializer):
             'notes', 'rejection_reason', 'created_at', 'reviewed_at'
         ]
         read_only_fields = ['id', 'status', 'rejection_reason', 'created_at', 'reviewed_at', 'course_max_installments', 'course_base_price']
+
+    def get_coach_name(self, obj):
+        return _safe_coach_name(obj.coach)
 
     def validate(self, attrs):
         course = attrs.get('course')
@@ -202,7 +226,7 @@ class EnrollmentSerializer(serializers.ModelSerializer):
     course_gender = serializers.CharField(source='course.gender', read_only=True)
 
     group_name = serializers.CharField(source='group.name', read_only=True, default=None, allow_null=True)
-    coach_name = serializers.CharField(source='coach.full_name', read_only=True, default=None, allow_null=True)
+    coach_name = serializers.SerializerMethodField()
     coach_avatar = serializers.SerializerMethodField()
 
     course_coaches = serializers.SerializerMethodField()
@@ -228,6 +252,9 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             request = self.context.get('request')
             return request.build_absolute_uri(obj.swimmer.avatar.url) if request else obj.swimmer.avatar.url
         return None
+
+    def get_coach_name(self, obj):
+        return _safe_coach_name(obj.coach)
 
     def get_coach_avatar(self, obj):
         if obj.coach and obj.coach.user and obj.coach.user.avatar:
@@ -259,13 +286,35 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             avatar_url = None
             if c.user and c.user.avatar:
                 avatar_url = request.build_absolute_uri(c.user.avatar.url) if request else c.user.avatar.url
+            coach_label = (c.user.get_full_name().strip() if c.user else '') or 'مربی'
             result.append({
                 'id': c.id,
-                'full_name': c.full_name,
+                'full_name': coach_label,
                 'avatar': avatar_url,
-                'class_name': f"کلاس {c.full_name}"
+                'class_name': f"کلاس {coach_label}"
             })
         return result
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        request = self.context.get('request')
+        user = request.user if request and hasattr(request, 'user') and request.user.is_authenticated else None
+        is_privileged = bool(user and (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser))
+        is_owner_swimmer = False
+        if user and user.role == 'SWIMMER' and instance.swimmer:
+            if instance.swimmer.user_id and instance.swimmer.user_id == user.id:
+                is_owner_swimmer = True
+            else:
+                from apps.swimmers.models import SwimmerGuardianRelation
+                is_owner_swimmer = SwimmerGuardianRelation.objects.filter(
+                    guardian=user,
+                    swimmer=instance.swimmer,
+                    is_verified=True
+                ).exists()
+        if not (is_privileged or is_owner_swimmer):
+            ret.pop('swimmer_phone', None)
+            ret.pop('swimmer_national_id', None)
+        return ret
 
     def update(self, instance, validated_data):
         coach = validated_data.get('coach', instance.coach)

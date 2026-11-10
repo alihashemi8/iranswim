@@ -9,9 +9,10 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.exceptions import NotFound
+from rest_framework.exceptions import NotFound, PermissionDenied
 from .models import SwimmerProfile, SwimmerGuardianRelation, DocumentStatus
-from .serializers import SwimmerProfileSerializer, SwimmerGuardianRelationSerializer
+from .serializers import SwimmerProfileSerializer, CoachSwimmerSerializer, SwimmerGuardianRelationSerializer
+from .utils import get_accessible_swimmer_ids
 from apps.accounts.permissions import IsAdminUserRole, IsOwnerSwimmerOrAdmin
 
 
@@ -60,16 +61,20 @@ class SwimmerMeView(APIView):
 
     def get_object(self):
         swimmer_id = self.request.query_params.get('swimmer_id') or self.request.headers.get('X-Swimmer-Id')
-        return get_accessible_swimmer_profile(self.request.user, swimmer_id)
+        profile = get_accessible_swimmer_profile(self.request.user, swimmer_id)
+        if swimmer_id and not (self.request.user.role in ['ADMIN', 'SUPERVISOR'] or self.request.user.is_superuser):
+            if str(profile.id) != str(swimmer_id):
+                raise PermissionDenied('شما اجازه دسترسی به پرونده این شناگر را ندارید.')
+        return profile
 
     def get(self, request):
         profile = self.get_object()
-        serializer = SwimmerProfileSerializer(profile)
+        serializer = SwimmerProfileSerializer(profile, context={'request': request})
         return Response(serializer.data)
 
     def patch(self, request):
         profile = self.get_object()
-        serializer = SwimmerProfileSerializer(profile, data=request.data, partial=True)
+        serializer = SwimmerProfileSerializer(profile, data=request.data, partial=True, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
@@ -90,8 +95,11 @@ class SwimmerChildrenView(APIView):
                 defaults={'relationship_type': 'SELF', 'is_primary': True, 'is_verified': True}
             )
 
-        relations = SwimmerGuardianRelation.objects.filter(guardian=user).select_related('swimmer', 'swimmer__current_level')
-        serializer = SwimmerGuardianRelationSerializer(relations, many=True)
+        relations = SwimmerGuardianRelation.objects.filter(
+            guardian=user,
+            is_verified=True
+        ).select_related('swimmer', 'swimmer__current_level')
+        serializer = SwimmerGuardianRelationSerializer(relations, many=True, context={'request': request})
         return Response(serializer.data)
 
     def post(self, request):
@@ -125,7 +133,7 @@ class SwimmerChildrenView(APIView):
             is_verified=True
         )
 
-        return Response(SwimmerGuardianRelationSerializer(relation).data, status=status.HTTP_201_CREATED)
+        return Response(SwimmerGuardianRelationSerializer(relation, context={'request': request}).data, status=status.HTTP_201_CREATED)
 
 
 class SwimmerCompleteProfileView(APIView):
@@ -137,8 +145,11 @@ class SwimmerCompleteProfileView(APIView):
         user = request.user
         swimmer_id = request.data.get('swimmer_id') or request.query_params.get('swimmer_id')
         profile = get_accessible_swimmer_profile(user, swimmer_id)
+        if swimmer_id and not (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser):
+            if str(profile.id) != str(swimmer_id):
+                raise PermissionDenied('شما اجازه دسترسی به پرونده این شناگر را ندارید.')
 
-        serializer = SwimmerProfileSerializer(profile, data=request.data, partial=True)
+        serializer = SwimmerProfileSerializer(profile, data=request.data, partial=True, context={'request': request})
         serializer.is_valid(raise_exception=True)
         profile = serializer.save()
 
@@ -222,7 +233,7 @@ class SwimmerCompleteProfileView(APIView):
 
         return Response({
             'detail': 'پرونده هویتی و مدارک شناگر با موفقیت تکمیل و ثبت نهایی شد.',
-            'profile': SwimmerProfileSerializer(profile).data
+            'profile': SwimmerProfileSerializer(profile, context={'request': request}).data
         }, status=status.HTTP_200_OK)
 
 
@@ -273,20 +284,42 @@ class SwimmerListView(generics.ListCreateAPIView):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = SwimmerPagination
 
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAdminUserRole()]
+        return [permissions.IsAuthenticated()]
+
+    def get_serializer_class(self):
+        user = self.request.user
+        if user and user.is_authenticated and user.role == 'COACH':
+            return CoachSwimmerSerializer
+        return SwimmerProfileSerializer
+
+    def _get_coach_swimmer_queryset(self, user):
+        coach_profile = getattr(user, 'coach_profile', None)
+        if not coach_profile:
+            return SwimmerProfile.objects.none()
+        from django.utils import timezone
+        today = timezone.localdate()
+        assigned_group_ids = coach_profile.assigned_groups.filter(
+            Q(assigned_to__isnull=True) | Q(assigned_to__gte=today)
+        ).values_list('group_id', flat=True)
+        return SwimmerProfile.objects.filter(
+            Q(enrollments__group_id__in=assigned_group_ids) |
+            Q(enrollments__coach=coach_profile)
+        ).distinct()
+
     def get_queryset(self):
         user = self.request.user
-        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+        is_privileged = bool(user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser)
+
+        if is_privileged:
             qs = SwimmerProfile.objects.all()
         elif user.role == 'COACH':
-            coach_profile = getattr(user, 'coach_profile', None)
-            if not coach_profile:
-                return SwimmerProfile.objects.none()
-            assigned_group_ids = coach_profile.assigned_groups.values_list('group_id', flat=True)
-            qs = SwimmerProfile.objects.filter(
-                enrollments__group_id__in=assigned_group_ids
-            ).distinct()
+            qs = self._get_coach_swimmer_queryset(user)
         elif user.role == 'SWIMMER':
-            qs = SwimmerProfile.objects.filter(user=user)
+            ids = get_accessible_swimmer_ids(user, self.request)
+            qs = SwimmerProfile.objects.filter(id__in=ids)
         else:
             return SwimmerProfile.objects.none()
 
@@ -302,6 +335,8 @@ class SwimmerListView(generics.ListCreateAPIView):
         elif status_param == 'INACTIVE':
             qs = qs.filter(is_active=False)
         elif status_param == 'DOCS_PENDING':
+            if not is_privileged:
+                return qs.none()
             docs_pending_q = (
                 Q(birth_certificate_status=DocumentStatus.PENDING) |
                 Q(national_card_status=DocumentStatus.PENDING) |
@@ -317,16 +352,22 @@ class SwimmerListView(generics.ListCreateAPIView):
             )
             qs = qs.filter(docs_pending_q)
 
-        # Filter by search
+        # Filter by search (restrict sensitive identity/contact search strictly to Admin & Supervisor)
         search = self.request.query_params.get('search', '').strip()
         if search:
-            qs = qs.filter(
-                Q(first_name__icontains=search) |
-                Q(last_name__icontains=search) |
-                Q(phone__icontains=search) |
-                Q(national_id__icontains=search) |
-                Q(emergency_contact_name__icontains=search)
-            )
+            if is_privileged:
+                qs = qs.filter(
+                    Q(first_name__icontains=search) |
+                    Q(last_name__icontains=search) |
+                    Q(phone__icontains=search) |
+                    Q(national_id__icontains=search) |
+                    Q(emergency_contact_name__icontains=search)
+                )
+            else:
+                qs = qs.filter(
+                    Q(first_name__icontains=search) |
+                    Q(last_name__icontains=search)
+                )
 
         return qs.select_related('current_level', 'user').prefetch_related(
             'enrollments__course', 'enrollments__coach__user', 'enrollments__group'
@@ -335,19 +376,16 @@ class SwimmerListView(generics.ListCreateAPIView):
     def list(self, request, *args, **kwargs):
         # Calculate summary counts for tab counters
         user = request.user
-        base_qs = SwimmerProfile.objects.all()
-        if user.role not in ['ADMIN', 'SUPERVISOR'] and not user.is_superuser:
-            if user.role == 'COACH':
-                coach_profile = getattr(user, 'coach_profile', None)
-                if coach_profile:
-                    assigned_group_ids = coach_profile.assigned_groups.values_list('group_id', flat=True)
-                    base_qs = base_qs.filter(enrollments__group_id__in=assigned_group_ids).distinct()
-                else:
-                    base_qs = SwimmerProfile.objects.none()
-            elif user.role == 'SWIMMER':
-                base_qs = SwimmerProfile.objects.filter(user=user)
-            else:
-                base_qs = SwimmerProfile.objects.none()
+        is_privileged = bool(user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser)
+        if is_privileged:
+            base_qs = SwimmerProfile.objects.all()
+        elif user.role == 'COACH':
+            base_qs = self._get_coach_swimmer_queryset(user)
+        elif user.role == 'SWIMMER':
+            ids = get_accessible_swimmer_ids(user, request)
+            base_qs = SwimmerProfile.objects.filter(id__in=ids)
+        else:
+            base_qs = SwimmerProfile.objects.none()
 
         docs_pending_q = (
             Q(birth_certificate_status=DocumentStatus.PENDING) |
@@ -363,12 +401,17 @@ class SwimmerListView(generics.ListCreateAPIView):
             )
         )
 
-        counts_summary = base_qs.aggregate(
-            total=Count('id'),
-            active=Count('id', filter=Q(is_active=True)),
-            inactive=Count('id', filter=Q(is_active=False)),
-            docs_pending=Count('id', filter=docs_pending_q)
-        )
+        agg_kwargs = {
+            'total': Count('id'),
+            'active': Count('id', filter=Q(is_active=True)),
+            'inactive': Count('id', filter=Q(is_active=False)),
+        }
+        if is_privileged:
+            agg_kwargs['docs_pending'] = Count('id', filter=docs_pending_q)
+
+        counts_summary = base_qs.aggregate(**agg_kwargs)
+        if not is_privileged:
+            counts_summary['docs_pending'] = 0
 
         if self.paginator:
             self.paginator.counts_summary = counts_summary
@@ -380,6 +423,11 @@ class SwimmerDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = SwimmerProfile.objects.all().select_related('current_level', 'user')
     serializer_class = SwimmerProfileSerializer
     permission_classes = [IsOwnerSwimmerOrAdmin]
+
+    def get_permissions(self):
+        if self.request.method == 'DELETE':
+            return [IsAdminUserRole()]
+        return [IsOwnerSwimmerOrAdmin()]
 
 
 class SwimmerAssignCoachView(APIView):
@@ -617,10 +665,9 @@ class SwimmerDocumentDownloadView(APIView):
     """
     تحویل امن و کنترل‌شده مدارک هویتی محرمانه شناگران (شناسنامه، کارت ملی، بیمه ورزشی):
     - احراز هویت اجباری
-    - مدیر آموزشگاه و سوپریوزر: مجاز
-    - ناظر فنی: مسدود (تفکیک نظارت فنی از محتوای اسناد هویتی اشخاص)
-    - شناگر: فقط و فقط مدارک خود یا فرزندان تحت سرپرستی
-    - مربی: فقط مدرک بیمه ورزشی شناگرانی که مربی فعال کلاس آن‌هاست
+    - مدیر آموزشگاه، ناظر فنی سامانه و سوپریوزر: مجاز به مشاهده کلیه مدارک
+    - شناگر و ولی تأییدشده: فقط مدارک خود یا فرزندان تحت سرپرستی
+    - مربی و سایر کاربران: مسدود (عدم دسترسی به اسناد هویتی و بیمه‌ای شناگران)
     - مسدودسازی حملات IDOR
     - هدرهای امنیتی ضد کش و عدم افشای ساختار دایرکتوری سرور
     - پشتیبانی از X-Accel-Redirect انجین‌ایکس در محیط پروداکشن
@@ -644,17 +691,10 @@ class SwimmerDocumentDownloadView(APIView):
         except SwimmerProfile.DoesNotExist:
             return Response({'detail': 'شناگر مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
 
-        # 1. Authorization: Technical Supervisor check
-        # Technical supervisors have architectural oversight, but no automatic access to personal ID documents
-        if user.role == 'SUPERVISOR' and not (swimmer.user_id and swimmer.user_id == user.id):
-            return Response({
-                'detail': 'ناظر فنی سامانه دسترسی مجاز به محتوای مدارک هویتی محرمانه اشخاص ندارد.'
-            }, status=status.HTTP_403_FORBIDDEN)
+        # 1. Authorization: Admin, Supervisor, or Superuser
+        is_privileged = bool(user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser)
 
-        # 2. Authorization: Admin or Superuser
-        is_admin = bool(user.role == 'ADMIN' or user.is_superuser)
-
-        # 3. Authorization: Swimmer / Guardian (Ownership & Anti-IDOR)
+        # 2. Authorization: Swimmer / Verified Guardian (Ownership & Anti-IDOR)
         is_owner = bool(swimmer.user_id and swimmer.user_id == user.id)
         is_guardian = False
         if not is_owner and user.role == 'SWIMMER':
@@ -664,39 +704,10 @@ class SwimmerDocumentDownloadView(APIView):
                 is_verified=True,
             ).exists()
 
-        # 4. Authorization: Coach
-        is_authorized_coach = False
-        if user.role == 'COACH':
-            coach_profile = getattr(user, 'coach_profile', None)
-            if coach_profile:
-                from apps.education.models import Enrollment, SwimmerGroup
-                from django.db.models import Q
-                from django.utils import timezone
-                today = timezone.localdate() if hasattr(timezone, 'localdate') else timezone.now().date()
-
-                is_assigned = Enrollment.objects.filter(
-                    swimmer=swimmer,
-                    status='ACTIVE',
-                ).filter(
-                    Q(coach=coach_profile) |
-                    (
-                        Q(group__coach_assignments__coach=coach_profile) &
-                        (Q(group__coach_assignments__assigned_to__isnull=True) | Q(group__coach_assignments__assigned_to__gte=today))
-                    )
-                ).exists()
-
-                if is_assigned:
-                    # Coaches are strictly limited to sports insurance verification
-                    if document_type == 'sports_insurance':
-                        is_authorized_coach = True
-                    else:
-                        return Response({
-                            'detail': 'مربیان صرفاً مجاز به بررسی مدارک بیمه ورزشی شناگران کلاس خود می‌باشند.'
-                        }, status=status.HTTP_403_FORBIDDEN)
-
-        if not (is_admin or is_owner or is_guardian or is_authorized_coach):
+        # Coaches and unrelated users have no access to swimmer identity or insurance documents
+        if not (is_privileged or is_owner or is_guardian):
             return Response({
-                'detail': 'شما دسترسی لازم برای مشاهده این مدرک هویتی را ندارید.'
+                'detail': 'شما دسترسی لازم برای مشاهده این مدرک محرمانه را ندارید.'
             }, status=status.HTTP_403_FORBIDDEN)
 
         # 5. Document existence check

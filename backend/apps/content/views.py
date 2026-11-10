@@ -6,6 +6,7 @@ from rest_framework import generics, permissions, views, status
 from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from .models import (
     NewsPost, NewsImage, SwimmingPool, PoolImage,
     Announcement, Notification, SupportTicket, LandingSection
@@ -228,6 +229,40 @@ def _ensure_initial_announcements():
         ])
 
 
+def _get_visible_announcements(user):
+    _ensure_initial_announcements()
+    qs = Announcement.objects.all()
+    if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+        return qs
+    elif user.role == 'COACH':
+        coach_profile = getattr(user, 'coach_profile', None)
+        gender_filter = []
+        if coach_profile and coach_profile.gender == 'MALE':
+            gender_filter.append('COACHES_MALE')
+        elif coach_profile and coach_profile.gender == 'FEMALE':
+            gender_filter.append('COACHES_FEMALE')
+        return qs.filter(audience__in=['ALL', 'COACHES', *gender_filter])
+    elif user.role == 'SWIMMER':
+        from apps.swimmers.utils import get_accessible_swimmer_ids
+        from apps.swimmers.models import SwimmerProfile
+        from apps.education.models import Enrollment
+        ids = get_accessible_swimmer_ids(user)
+        swimmers = list(SwimmerProfile.objects.filter(id__in=ids))
+        group_ids = list(Enrollment.objects.filter(swimmer_id__in=ids).values_list('group_id', flat=True))
+        gender_filter = []
+        for sw in swimmers:
+            if sw.gender == 'MALE' and 'SWIMMERS_MALE' not in gender_filter:
+                gender_filter.append('SWIMMERS_MALE')
+            elif sw.gender == 'FEMALE' and 'SWIMMERS_FEMALE' not in gender_filter:
+                gender_filter.append('SWIMMERS_FEMALE')
+        return qs.filter(
+            Q(audience__in=['ALL', 'SWIMMERS', *gender_filter]) |
+            Q(target_group_id__in=group_ids) |
+            Q(target_groups__in=group_ids)
+        ).distinct()
+    return Announcement.objects.none()
+
+
 class AnnouncementListView(generics.ListCreateAPIView):
     serializer_class = AnnouncementSerializer
 
@@ -237,33 +272,7 @@ class AnnouncementListView(generics.ListCreateAPIView):
         return [IsAdminUserRole()]
 
     def get_queryset(self):
-        _ensure_initial_announcements()
-        user = self.request.user
-        qs = Announcement.objects.all()
-        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
-            return qs
-        elif user.role == 'COACH':
-            coach_profile = getattr(user, 'coach_profile', None)
-            gender_filter = []
-            if coach_profile and coach_profile.gender == 'MALE':
-                gender_filter.append('COACHES_MALE')
-            elif coach_profile and coach_profile.gender == 'FEMALE':
-                gender_filter.append('COACHES_FEMALE')
-            return qs.filter(audience__in=['ALL', 'COACHES', *gender_filter])
-        elif user.role == 'SWIMMER':
-            swimmer = getattr(user, 'swimmer_profile', None)
-            group_ids = swimmer.enrollments.values_list('group_id', flat=True) if swimmer else []
-            gender_filter = []
-            if swimmer and swimmer.gender == 'MALE':
-                gender_filter.append('SWIMMERS_MALE')
-            elif swimmer and swimmer.gender == 'FEMALE':
-                gender_filter.append('SWIMMERS_FEMALE')
-            return qs.filter(
-                Q(audience__in=['ALL', 'SWIMMERS', *gender_filter]) |
-                Q(target_group_id__in=group_ids) |
-                Q(target_groups__in=group_ids)
-            ).distinct()
-        return Announcement.objects.none()
+        return _get_visible_announcements(self.request.user)
 
     def perform_create(self, serializer):
         announcement = serializer.save(created_by=self.request.user)
@@ -286,6 +295,9 @@ class AnnouncementDetailView(generics.RetrieveUpdateDestroyAPIView):
         if self.request.method == 'GET':
             return [permissions.IsAuthenticated()]
         return [IsAdminUserRole()]
+
+    def get_queryset(self):
+        return _get_visible_announcements(self.request.user)
 
 
 def _ensure_initial_notifications():
@@ -323,17 +335,21 @@ def _ensure_initial_notifications():
         ])
 
 
+def _get_user_notifications_qs(user):
+    if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+        return Notification.objects.filter(
+            models.Q(recipient=user) | models.Q(recipient__isnull=True)
+        )
+    return Notification.objects.filter(recipient=user)
+
+
 class NotificationListView(generics.ListAPIView):
     serializer_class = NotificationSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
         _ensure_initial_notifications()
-        user = self.request.user
-        # All authenticated users (Admin, Supervisor, Coach, Swimmer) can see broadcast notifications
-        return Notification.objects.filter(
-            models.Q(recipient=user) | models.Q(recipient__isnull=True)
-        ).order_by('-created_at')
+        return _get_user_notifications_qs(self.request.user).order_by('-created_at')
 
     def list(self, request, *args, **kwargs):
         queryset = self.filter_queryset(self.get_queryset())
@@ -349,8 +365,7 @@ class NotificationMarkReadView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk):
-        user = request.user
-        qs = Notification.objects.filter(models.Q(recipient=user) | models.Q(recipient__isnull=True))
+        qs = _get_user_notifications_qs(request.user)
 
         try:
             notif = qs.get(pk=pk)
@@ -365,11 +380,7 @@ class NotificationMarkAllReadView(views.APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
-        user = request.user
-        qs = Notification.objects.filter(
-            models.Q(recipient=user) | models.Q(recipient__isnull=True),
-            is_read=False
-        )
+        qs = _get_user_notifications_qs(request.user).filter(is_read=False)
 
         count = qs.update(is_read=True)
         return Response({'marked_count': count, 'success': True})
@@ -392,6 +403,15 @@ class SupportTicketListView(generics.ListCreateAPIView):
         swimmer = None
         if swimmer_id:
             from apps.swimmers.models import SwimmerProfile
+            from apps.swimmers.utils import get_accessible_swimmer_ids
+            if not (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser):
+                allowed_ids = get_accessible_swimmer_ids(user, self.request) or []
+                try:
+                    tid = int(swimmer_id)
+                except (ValueError, TypeError):
+                    raise PermissionDenied('شناسه شناگر نامعتبر است.')
+                if tid not in allowed_ids:
+                    raise PermissionDenied('شما اجازه ثبت تیکت برای این شناگر را ندارید.')
             swimmer = SwimmerProfile.objects.filter(id=swimmer_id).first()
         elif hasattr(user, 'swimmer_profile') and user.swimmer_profile:
             swimmer = user.swimmer_profile

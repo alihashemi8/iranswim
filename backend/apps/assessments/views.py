@@ -1,6 +1,9 @@
+from django.db.models import Q
+from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from .models import SkillAssessment, SwimmingRecord, LevelPromotionProposal
 from .serializers import (
     SkillAssessmentSerializer, SwimmingRecordSerializer,
@@ -8,11 +11,36 @@ from .serializers import (
 )
 from apps.accounts.permissions import IsAdminOrCoach, IsAdminUserRole
 from apps.supervisor.models import AuditLog
+from apps.swimmers.models import SwimmerProfile
+
+
+def _coach_swimmers_q(coach_profile):
+    today = timezone.localdate()
+    return (
+        Q(enrollments__coach=coach_profile) |
+        (
+            Q(enrollments__group__coach_assignments__coach=coach_profile) &
+            (
+                Q(enrollments__group__coach_assignments__assigned_to__isnull=True) |
+                Q(enrollments__group__coach_assignments__assigned_to__gte=today)
+            )
+        )
+    )
+
+
+def _coach_teaches_swimmer(coach_profile, swimmer):
+    if not coach_profile or not swimmer:
+        return False
+    return SwimmerProfile.objects.filter(pk=swimmer.pk).filter(_coach_swimmers_q(coach_profile)).exists()
 
 
 class LevelPromotionProposalListView(generics.ListCreateAPIView):
     serializer_class = LevelPromotionProposalSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminOrCoach()]
 
     def get_queryset(self):
         user = self.request.user
@@ -31,7 +59,12 @@ class LevelPromotionProposalListView(generics.ListCreateAPIView):
         return qs.none()
 
     def perform_create(self, serializer):
-        coach_profile = getattr(self.request.user, 'coach_profile', None)
+        user = self.request.user
+        coach_profile = getattr(user, 'coach_profile', None)
+        swimmer = serializer.validated_data.get('swimmer')
+        if user.role == 'COACH':
+            if not _coach_teaches_swimmer(coach_profile, swimmer):
+                raise PermissionDenied('شما فقط مجاز به ثبت پیشنهاد ارتقای سطح برای شناگران کلاس خود هستید.')
         serializer.save(coach=coach_profile)
 
 
@@ -83,7 +116,11 @@ class LevelPromotionProposalReviewView(APIView):
 
 class SkillAssessmentListView(generics.ListCreateAPIView):
     serializer_class = SkillAssessmentSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminOrCoach()]
 
     def get_queryset(self):
         user = self.request.user
@@ -95,7 +132,11 @@ class SkillAssessmentListView(generics.ListCreateAPIView):
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs
         elif user.role == 'COACH':
-            return qs
+            coach_profile = getattr(user, 'coach_profile', None)
+            if not coach_profile:
+                return qs.none()
+            allowed_swimmers = SwimmerProfile.objects.filter(_coach_swimmers_q(coach_profile)).distinct()
+            return qs.filter(swimmer__in=allowed_swimmers)
         elif user.role == 'SWIMMER':
             from apps.swimmers.utils import get_accessible_swimmer_ids
             ids = get_accessible_swimmer_ids(user, self.request)
@@ -103,12 +144,22 @@ class SkillAssessmentListView(generics.ListCreateAPIView):
         return qs.none()
 
     def perform_create(self, serializer):
-        serializer.save(assessed_by=self.request.user)
+        user = self.request.user
+        swimmer = serializer.validated_data.get('swimmer')
+        if user.role == 'COACH':
+            coach_profile = getattr(user, 'coach_profile', None)
+            if not _coach_teaches_swimmer(coach_profile, swimmer):
+                raise PermissionDenied('شما فقط مجاز به ثبت ارزیابی مهارت برای شناگران کلاس خود هستید.')
+        serializer.save(assessed_by=user)
 
 
 class SwimmingRecordListView(generics.ListCreateAPIView):
     serializer_class = SwimmingRecordSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminOrCoach()]
 
     def get_queryset(self):
         user = self.request.user
@@ -123,20 +174,30 @@ class SwimmingRecordListView(generics.ListCreateAPIView):
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs
         elif user.role == 'COACH':
-            return qs
+            coach_profile = getattr(user, 'coach_profile', None)
+            if not coach_profile:
+                return qs.none()
+            allowed_swimmers = SwimmerProfile.objects.filter(_coach_swimmers_q(coach_profile)).distinct()
+            return qs.filter(swimmer__in=allowed_swimmers)
         elif user.role == 'SWIMMER':
-            # Swimmer sees only verified records or their own pending records
+            # Swimmer sees only their own or verified children's records
             from apps.swimmers.utils import get_accessible_swimmer_ids
             ids = get_accessible_swimmer_ids(user, self.request)
             return qs.filter(swimmer_id__in=ids)
-        return qs.filter(verification_status='VERIFIED')
+        return qs.none()
 
     def perform_create(self, serializer):
+        user = self.request.user
+        swimmer = serializer.validated_data.get('swimmer')
+        if user.role == 'COACH':
+            coach_profile = getattr(user, 'coach_profile', None)
+            if not _coach_teaches_swimmer(coach_profile, swimmer):
+                raise PermissionDenied('شما فقط مجاز به ثبت رکورد برای شناگران کلاس خود هستید.')
         # Auto-verify if created by Admin, else mark PENDING
-        is_admin = self.request.user.role == 'ADMIN' or self.request.user.is_superuser
+        is_admin = user.role == 'ADMIN' or user.is_superuser
         ver_status = SwimmingRecord.VerificationStatus.VERIFIED if is_admin else SwimmingRecord.VerificationStatus.PENDING
-        verified_by = self.request.user if is_admin else None
-        serializer.save(recorded_by=self.request.user, verification_status=ver_status, verified_by=verified_by)
+        verified_by = user if is_admin else None
+        serializer.save(recorded_by=user, verification_status=ver_status, verified_by=verified_by)
 
 
 class VerifyRecordView(APIView):

@@ -500,14 +500,29 @@ def test_leave_request_approval_flow(api_client, coach1, admin_user):
 # ==============================================================================
 
 @pytest.mark.django_db
-def test_supervisor_cannot_view_confidential_payroll_data(api_client, coach1, supervisor_user):
+def test_supervisor_can_view_confidential_payroll_data_readonly(api_client, coach1, supervisor_user, admin_user):
     """
-    ناظر فنی به اطلاعات محرمانه مالی و فیش‌های حقوق دسترسی ندارد (HTTP 403)
+    ناظر فنی به همراه مدیر مجاز به مشاهده کلیه اطلاعات و فیش‌های حقوق مربیان است (فقط خواندنی)
     """
+    PayrollService.calculate_monthly_payroll(
+        coach=coach1,
+        period_start=datetime.date(2026, 11, 1),
+        period_end=datetime.date(2026, 11, 30),
+        created_by=admin_user
+    )
+
     api_client.force_authenticate(user=supervisor_user)
 
     res = api_client.get(f'/api/coaches/{coach1.id}/payrolls/')
-    assert res.status_code == 403
+    assert res.status_code == 200
+    assert len(res.data) == 1
+
+    # ناظر فنی امکان صدور یا تغییر فیش حقوق را ندارد (فقط مدیر)
+    post_res = api_client.post(f'/api/coaches/{coach1.id}/payrolls/', {
+        'period_start': '2026-12-01',
+        'period_end': '2026-12-30',
+    })
+    assert post_res.status_code == 403
 
 
 @pytest.mark.django_db

@@ -50,7 +50,8 @@ def extract_swimmer_meta(swimmer, enrollment=None):
         pool_name = group.pool_location or 'استخر اصلی'
         primary_coach = group.coach_assignments.select_related('coach__user').filter(is_primary=True).first() or group.coach_assignments.select_related('coach__user').first()
         if primary_coach and primary_coach.coach:
-            coach_name = primary_coach.coach.full_name
+            c = primary_coach.coach
+            coach_name = (c.user.get_full_name().strip() if c.user and c.user.get_full_name() else '') or 'مربی'
 
     return {
         'gender': gender,

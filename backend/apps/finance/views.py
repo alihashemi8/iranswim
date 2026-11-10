@@ -15,7 +15,11 @@ from apps.supervisor.models import AuditLog
 
 class InvoiceListView(generics.ListCreateAPIView):
     serializer_class = InvoiceSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminUserRole()]
 
     def get_queryset(self):
         user = self.request.user

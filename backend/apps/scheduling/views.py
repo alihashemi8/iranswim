@@ -1,16 +1,21 @@
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.exceptions import PermissionDenied
 from django.utils import timezone
 from django.db.models import Q
 from .models import ClassSession
 from .serializers import ClassSessionSerializer
-from apps.accounts.permissions import IsAdminOrCoach
+from apps.accounts.permissions import IsAdminOrCoach, IsAdminUserRole, IsAdminOrSupervisorOrCoach
 
 
 class ClassSessionListView(generics.ListCreateAPIView):
     serializer_class = ClassSessionSerializer
-    permission_classes = [permissions.IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminUserRole()]
 
     def get_queryset(self):
         user = self.request.user
@@ -56,20 +61,24 @@ class ClassSessionListView(generics.ListCreateAPIView):
         elif att_status == 'RECORDED':
             qs = qs.filter(attendance_records__isnull=False).distinct()
 
-        # Search filter
+        # Search filter (do not let swimmers probe other enrolled swimmers' names in sessions)
         search = self.request.query_params.get('search')
         if search:
             search = search.strip()
-            qs = qs.filter(
+            search_q = (
                 Q(group__name__icontains=search) |
                 Q(group__course__name__icontains=search) |
                 Q(group__skill_level__name__icontains=search) |
                 Q(coach__user__first_name__icontains=search) |
                 Q(coach__user__last_name__icontains=search) |
-                Q(pool_location__icontains=search) |
-                Q(group__enrollments__swimmer__first_name__icontains=search) |
-                Q(group__enrollments__swimmer__last_name__icontains=search)
-            ).distinct()
+                Q(pool_location__icontains=search)
+            )
+            if user.role in ['ADMIN', 'SUPERVISOR', 'COACH'] or user.is_superuser:
+                search_q = search_q | (
+                    Q(group__enrollments__swimmer__first_name__icontains=search) |
+                    Q(group__enrollments__swimmer__last_name__icontains=search)
+                )
+            qs = qs.filter(search_q).distinct()
 
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs
@@ -88,7 +97,23 @@ class ClassSessionListView(generics.ListCreateAPIView):
 class ClassSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = ClassSession.objects.all()
     serializer_class = ClassSessionSerializer
-    permission_classes = [IsAdminOrCoach]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [IsAdminOrSupervisorOrCoach()]
+        if self.request.method == 'DELETE':
+            return [IsAdminUserRole()]
+        return [IsAdminOrCoach()]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = ClassSession.objects.all()
+        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+            return qs
+        if user.role == 'COACH':
+            coach_profile = getattr(user, 'coach_profile', None)
+            return qs.filter(coach=coach_profile) if coach_profile else qs.none()
+        return qs.none()
 
 
 class CancelSessionView(APIView):
@@ -100,6 +125,11 @@ class CancelSessionView(APIView):
             session = ClassSession.objects.get(pk=pk)
         except ClassSession.DoesNotExist:
             return Response({'detail': 'جلسه یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.role == 'COACH':
+            coach_profile = getattr(request.user, 'coach_profile', None)
+            if not coach_profile or session.coach != coach_profile:
+                raise PermissionDenied('شما مربی این جلسه نیستید.')
 
         reason = request.data.get('reason', 'لغو اضطراری')
         session.status = ClassSession.Status.CANCELLED

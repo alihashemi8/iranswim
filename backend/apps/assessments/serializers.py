@@ -37,7 +37,7 @@ class SwimmingRecordSerializer(serializers.ModelSerializer):
 
 class LevelPromotionProposalSerializer(serializers.ModelSerializer):
     swimmer_name = serializers.CharField(source='swimmer.full_name', read_only=True)
-    coach_name = serializers.CharField(source='coach.full_name', read_only=True)
+    coach_name = serializers.SerializerMethodField()
     current_level_name = serializers.CharField(source='current_level.name', read_only=True)
     proposed_level_name = serializers.CharField(source='proposed_level.name', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
@@ -52,4 +52,10 @@ class LevelPromotionProposalSerializer(serializers.ModelSerializer):
             'reviewed_at', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'coach', 'status', 'reviewed_by', 'reviewed_at', 'created_at', 'updated_at']
+
+    def get_coach_name(self, obj):
+        if not obj.coach:
+            return None
+        name = obj.coach.user.get_full_name().strip() if obj.coach.user and obj.coach.user.get_full_name() else ''
+        return name or 'مربی'
 

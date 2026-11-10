@@ -26,7 +26,7 @@ from .serializers import (
 from .services import (
     PayrollService, ContractService, AttendanceCorrectionService, CoachActivityLogger
 )
-from apps.accounts.permissions import IsAdminUserRole, IsSupervisorUserRole
+from apps.accounts.permissions import IsAdminUserRole, IsSupervisorUserRole, IsAdminOrSupervisor, IsAdminOrCoach
 from apps.scheduling.models import ClassSession
 from apps.education.models import SwimmerGroup, GroupCoach
 
@@ -115,13 +115,13 @@ class CoachStatisticsView(APIView):
             status=CoachLeaveRequest.Status.PENDING
         ).count()
 
-        # شاخص‌های مالی ماه (فقط برای مدیران، ناظر فنی صفر دریافت می‌کند)
-        is_admin = user.role == 'ADMIN' or user.is_superuser
+        # شاخص‌های مالی ماه (مدیران و ناظران فنی مجاز به مشاهده هستند)
+        is_privileged = user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser
         total_payroll_month = Decimal('0.00')
         outstanding_salary_payments = Decimal('0.00')
         fully_settled_coaches = 0
 
-        if is_admin:
+        if is_privileged:
             payrolls_month = CoachPayroll.objects.filter(
                 period_start__lte=end_date,
                 period_end__gte=start_date
@@ -277,10 +277,30 @@ class CoachDetailHRView(generics.RetrieveUpdateDestroyAPIView):
             return CoachProfileSerializer
         return CoachPublicSerializer
 
+    COACH_SELF_UPDATE_ALLOWED_FIELDS = {
+        'specialties', 'bio', 'emergency_contact_name', 'emergency_contact_phone', 'address'
+    }
+
     def get_permissions(self):
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
-        return [permissions.IsAuthenticated()]
+        if self.request.method == 'DELETE':
+            return [IsAdminUserRole()]
+        return [IsAdminOrCoach()]
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        instance = self.get_object()
+        if user.role == 'ADMIN' or user.is_superuser:
+            serializer.save()
+            return
+        if user.role == 'COACH' and instance.user_id and instance.user_id == user.id:
+            disallowed = set(serializer.validated_data.keys()) - self.COACH_SELF_UPDATE_ALLOWED_FIELDS
+            if disallowed:
+                raise PermissionDenied('شما فقط مجاز به ویرایش فیلدهای مشخصات فردی و تخصصی خود هستید.')
+            serializer.save()
+            return
+        raise PermissionDenied('شما مجاز به ویرایش پرونده این مربی نیستید.')
 
     def perform_destroy(self, instance):
         """
@@ -369,7 +389,21 @@ class CoachCertificateListCreateView(APIView):
 class CoachCertificateDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = CoachCertificate.objects.all()
     serializer_class = CoachCertificateSerializer
-    permission_classes = [IsAdminUserRole]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminUserRole()]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = CoachCertificate.objects.all().select_related('coach', 'coach__user')
+        if user and user.is_authenticated:
+            if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+                return qs
+            if user.role == 'COACH':
+                return qs.filter(coach__user=user)
+        return qs.none()
 
 
 class CoachContractListCreateView(APIView):
@@ -397,7 +431,21 @@ class CoachContractListCreateView(APIView):
 class CoachContractDetailView(generics.RetrieveUpdateAPIView):
     queryset = CoachContract.objects.all()
     serializer_class = CoachContractSerializer
-    permission_classes = [IsAdminUserRole]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminUserRole()]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = CoachContract.objects.all().select_related('coach', 'coach__user', 'created_by')
+        if user and user.is_authenticated:
+            if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+                return qs
+            if user.role == 'COACH':
+                return qs.filter(coach__user=user)
+        return qs.none()
 
 
 class CoachContractRenewView(APIView):
@@ -428,10 +476,6 @@ class CoachPayrollListCreateView(APIView):
 
     def get(self, request, pk):
         coach = get_target_coach(request, pk)
-        # مربی و مدیر می‌توانند فیش‌های حقوق را ببینند؛ ناظر فنی دسترسی مالی ندارد
-        if request.user.role == 'SUPERVISOR' and not request.user.is_superuser:
-            raise PermissionDenied('ناظر فنی مجاز به مشاهده اطلاعات محرمانه مالی و حقوقی نیست.')
-
         payrolls = coach.payrolls.all().prefetch_related('adjustments', 'payments')
         serializer = CoachPayrollSerializer(payrolls, many=True, context={'request': request})
         return Response(serializer.data)
@@ -483,10 +527,19 @@ class CoachPayrollDetailView(generics.RetrieveUpdateAPIView):
     serializer_class = CoachPayrollSerializer
 
     def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminUserRole()]
+
+    def get_queryset(self):
         user = self.request.user
-        if user and user.role == 'SUPERVISOR' and not user.is_superuser:
-            raise PermissionDenied('ناظر فنی مجاز به مشاهده اطلاعات مالی نیست.')
-        return [permissions.IsAuthenticated()]
+        qs = CoachPayroll.objects.all().select_related('coach', 'coach__user').prefetch_related('adjustments', 'payments')
+        if user and user.is_authenticated:
+            if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+                return qs
+            if user.role == 'COACH':
+                return qs.filter(coach__user=user)
+        return qs.none()
 
 
 class CoachPayrollApproveView(APIView):
@@ -624,6 +677,8 @@ class CoachLeaveRequestListCreateView(APIView):
 
     def post(self, request, pk):
         coach = get_target_coach(request, pk)
+        if not (request.user.role == 'ADMIN' or request.user.is_superuser or (coach.user_id and coach.user_id == request.user.id)):
+            raise PermissionDenied('فقط مربی مربوطه یا مدیر مجاز به ثبت درخواست مرخصی است.')
         data = request.data.copy()
         data['coach'] = coach.id
 
@@ -721,19 +776,17 @@ class CoachPerformanceEvaluationListCreateView(APIView):
 class CoachPerformanceEvaluationDetailView(generics.RetrieveUpdateAPIView):
     queryset = CoachPerformanceEvaluation.objects.all()
     serializer_class = CoachPerformanceEvaluationSerializer
-
-    def get_permissions(self):
-        user = self.request.user
-        if not (user and (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser)):
-            raise PermissionDenied('تنها مدیر و ناظر فنی مجاز به ویرایش ارزیابی عملکرد هستند.')
-        return [permissions.IsAuthenticated()]
+    permission_classes = [IsAdminOrSupervisor]
 
 
 class CoachAdministrativeNoteListCreateView(APIView):
     """
     یادداشت‌های محرمانه، تذکرات، تشویق‌ها و گزارش وقایع اداری مربی
     """
-    permission_classes = [IsAdminUserRole]
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [IsAdminOrSupervisor()]
+        return [IsAdminUserRole()]
 
     def get(self, request, pk):
         coach = get_target_coach(request, pk)
@@ -991,10 +1044,10 @@ class CoachScheduleView(APIView):
 
 class CoachHRReportsView(APIView):
     """
-    گزارش‌گیری تحلیلی و خروجی اکسل و CSV برای مدیران
+    گزارش‌گیری تحلیلی و خروجی اکسل و CSV برای مدیران و ناظران فنی
     شامل مطالبات، گزارش حقوق ماهانه، ساعات تدریس، انقضای قراردادها و ارزیابی عملکرد
     """
-    permission_classes = [IsAdminUserRole]
+    permission_classes = [IsAdminOrSupervisor]
 
     def get(self, request):
         report_type = request.query_params.get('type', 'payroll')

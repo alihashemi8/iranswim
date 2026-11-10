@@ -4,6 +4,7 @@ from rest_framework.test import APIClient
 from decimal import Decimal
 from datetime import date
 
+from apps.accounts.models import User
 from apps.leagues.models import League, LeagueCategory, LeagueCompetition, LeagueEntry, LeagueResult
 from apps.swimmers.models import SwimmerProfile
 
@@ -12,16 +13,42 @@ class LeagueManagementTests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-        # Create Swimmers
-        self.swimmer1 = SwimmerProfile.objects.create(
+        self.admin_user = User.objects.create_user(
+            phone='09129000001',
+            password='AdminPass@2026',
+            first_name='مدیر',
+            last_name='لیگ',
+            role=User.Role.ADMIN
+        )
+        self.swimmer1_user = User.objects.create_user(
+            phone='09129000002',
+            password='SwimmerPass@2026',
             first_name='علی',
             last_name='رضایی',
+            role=User.Role.SWIMMER
+        )
+        self.swimmer2_user = User.objects.create_user(
+            phone='09129000003',
+            password='SwimmerPass@2026',
+            first_name='مهدی',
+            last_name='کریمی',
+            role=User.Role.SWIMMER
+        )
+
+        # Create Swimmers
+        self.swimmer1 = SwimmerProfile.objects.create(
+            user=self.swimmer1_user,
+            first_name='علی',
+            last_name='رضایی',
+            national_id='0011223344',
             gender=SwimmerProfile.Gender.MALE,
             date_of_birth=date(2010, 5, 12)
         )
         self.swimmer2 = SwimmerProfile.objects.create(
+            user=self.swimmer2_user,
             first_name='مهدی',
             last_name='کریمی',
+            national_id='0055667788',
             gender=SwimmerProfile.Gender.MALE,
             date_of_birth=date(2011, 8, 20)
         )
@@ -88,6 +115,12 @@ class LeagueManagementTests(TestCase):
             ]
         }
 
+        # Non-admin must be blocked from recording results
+        self.client.force_authenticate(user=self.swimmer1_user)
+        unauth_res = self.client.post(url, payload, format='json')
+        self.assertEqual(unauth_res.status_code, 403)
+
+        self.client.force_authenticate(user=self.admin_user)
         response = self.client.post(url, payload, format='json')
         self.assertEqual(response.status_code, 200)
 
@@ -113,6 +146,7 @@ class LeagueManagementTests(TestCase):
             'event_name': 'امتیاز اخلاق ورزشی',
             'notes': 'انضباط و حضور فعال'
         }
+        self.client.force_authenticate(user=self.admin_user)
         response = self.client.post(url, payload, format='json')
         self.assertEqual(response.status_code, 200)
 
@@ -121,8 +155,30 @@ class LeagueManagementTests(TestCase):
 
     def test_swimmer_performance_detail_api(self):
         url = reverse('swimmer_performance', kwargs={'league_id': self.league.id, 'swimmer_id': self.swimmer1.id})
+
+        # Anonymous request blocked
+        self.client.force_authenticate(user=None)
+        anon_res = self.client.get(url)
+        self.assertEqual(anon_res.status_code, 401)
+
+        # Other swimmer blocked (403)
+        self.client.force_authenticate(user=self.swimmer2_user)
+        other_res = self.client.get(url)
+        self.assertEqual(other_res.status_code, 403)
+
+        # Own swimmer allowed, but without sensitive national_id/date_of_birth fields
+        self.client.force_authenticate(user=self.swimmer1_user)
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertIn('swimmer', response.data)
+        self.assertNotIn('national_id', response.data['swimmer'])
+        self.assertNotIn('date_of_birth', response.data['swimmer'])
         self.assertIn('entry', response.data)
         self.assertIn('chart_data', response.data)
+
+        # Admin sees full detail including national_id and date_of_birth
+        self.client.force_authenticate(user=self.admin_user)
+        admin_res = self.client.get(url)
+        self.assertEqual(admin_res.status_code, 200)
+        self.assertIn('national_id', admin_res.data['swimmer'])
+        self.assertIn('date_of_birth', admin_res.data['swimmer'])

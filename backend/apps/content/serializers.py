@@ -22,7 +22,7 @@ class NewsImageSerializer(serializers.ModelSerializer):
 
 
 class NewsPostSerializer(serializers.ModelSerializer):
-    author_name = serializers.CharField(source='author.full_name', read_only=True)
+    author_name = serializers.SerializerMethodField(read_only=True)
     category_display = serializers.CharField(source='get_category_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     image_url = serializers.SerializerMethodField()
@@ -37,6 +37,13 @@ class NewsPostSerializer(serializers.ModelSerializer):
             'author_name', 'detail_images', 'publish_at', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
+    def get_author_name(self, obj):
+        if obj.author:
+            name = obj.author.get_full_name().strip()
+            if name:
+                return name
+        return 'تحریریه آکادمی'
 
     def validate(self, attrs):
         if not attrs.get('slug'):
@@ -130,7 +137,7 @@ class AnnouncementSerializer(serializers.ModelSerializer):
         if not obj.created_by:
             return 'مدیریت آکادمی'
         name = obj.created_by.get_full_name()
-        return name if name else getattr(obj.created_by, 'phone', 'سیستم')
+        return name if name else 'مدیریت آکادمی'
 
     def get_created_by_role(self, obj):
         if not obj.created_by:

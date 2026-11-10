@@ -9,7 +9,7 @@ class ClassSessionSerializer(serializers.ModelSerializer):
     skill_level_id = serializers.IntegerField(source='group.skill_level.id', read_only=True, default=None)
     skill_level_name = serializers.CharField(source='group.skill_level.name', read_only=True, default='')
     skill_level_badge = serializers.CharField(source='group.skill_level.color_badge', read_only=True, default='#0284c7')
-    coach_name = serializers.CharField(source='coach.full_name', read_only=True)
+    coach_name = serializers.SerializerMethodField()
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     attendance_recorded = serializers.SerializerMethodField()
     attendance_count = serializers.SerializerMethodField()
@@ -26,6 +26,12 @@ class ClassSessionSerializer(serializers.ModelSerializer):
             'coach_evaluation', 'session_rating',
             'attendance_recorded', 'attendance_count', 'enrolled_count'
         ]
+
+    def get_coach_name(self, obj):
+        if not obj.coach:
+            return None
+        name = obj.coach.user.get_full_name().strip() if obj.coach.user and obj.coach.user.get_full_name() else ''
+        return name or 'مربی'
 
     def get_attendance_recorded(self, obj):
         return obj.attendance_records.exists()

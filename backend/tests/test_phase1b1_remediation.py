@@ -319,9 +319,10 @@ def test_guardian_cannot_access_unrelated_child_document_anti_idor(api_client, g
 # --------------------------------------------------------------------------
 
 @pytest.mark.django_db
-def test_active_coach_can_access_swimmer_sports_insurance(api_client, child_swimmer, active_coach):
+def test_active_coach_cannot_access_any_swimmer_documents(api_client, child_swimmer, active_coach):
     """
-    LOW: An active coach assigned to a swimmer's group can view sports insurance.
+    Privacy Policy: Even an active coach assigned to a swimmer's group cannot view or download
+    any swimmer documents (sports insurance, national card, birth certificate).
     """
     level = SkillLevel.objects.create(name='مقدماتی 1', order=1)
     course = Course.objects.create(
@@ -345,12 +346,9 @@ def test_active_coach_can_access_swimmer_sports_insurance(api_client, child_swim
 
     api_client.force_authenticate(user=active_coach.user)
 
-    res = api_client.get(f'/api/swimmers/{child_swimmer.id}/documents/sports_insurance/')
-    assert res.status_code == 200
-
-    # Coach still cannot view national ID or birth certificate
-    card_res = api_client.get(f'/api/swimmers/{child_swimmer.id}/documents/national_card/')
-    assert card_res.status_code == 403
+    for doc_type in ('sports_insurance', 'national_card', 'birth_certificate'):
+        res = api_client.get(f'/api/swimmers/{child_swimmer.id}/documents/{doc_type}/')
+        assert res.status_code == 403
 
 
 @pytest.mark.django_db
@@ -545,9 +543,9 @@ def test_unrelated_coach_is_denied(api_client, child_swimmer):
 
 
 @pytest.mark.django_db
-def test_active_direct_enrollment_coach_can_access_sports_insurance(api_client, child_swimmer, active_coach):
+def test_active_direct_enrollment_coach_cannot_access_swimmer_documents(api_client, child_swimmer, active_coach):
     """
-    Direct coach assignment on active Enrollment (Q(coach=coach_profile)) continues to work.
+    Direct coach assignment on active Enrollment also denies access to swimmer documents.
     """
     level = SkillLevel.objects.create(name='مقدماتی خصوصی', order=1)
     course = Course.objects.create(
@@ -562,7 +560,7 @@ def test_active_direct_enrollment_coach_can_access_sports_insurance(api_client, 
     api_client.force_authenticate(user=active_coach.user)
 
     res = api_client.get(f'/api/swimmers/{child_swimmer.id}/documents/sports_insurance/')
-    assert res.status_code == 200
+    assert res.status_code == 403
 
 
 # --------------------------------------------------------------------------

@@ -10,7 +10,7 @@ from .serializers import (
     CoachProfileSerializer, CoachPublicSerializer, WorkoutPlanSerializer,
     CoachClassListSerializer, CoachSwimmerDetailSerializer
 )
-from apps.accounts.permissions import IsAdminOrCoach, IsAdminUserRole
+from apps.accounts.permissions import IsAdminOrCoach, IsAdminUserRole, IsAdminOrSupervisorOrCoach
 from apps.accounts.models import User
 from apps.scheduling.models import ClassSession
 from apps.education.models import SwimmerGroup, Enrollment, Skill, SkillLevel
@@ -232,14 +232,23 @@ class CoachMyClassesView(APIView):
     """
     فهرست کلاس‌ها و گروه‌های آموزشی تحت هدایت مربی جاری
     """
-    permission_classes = [IsAdminOrCoach]
+    permission_classes = [IsAdminOrSupervisorOrCoach]
 
     def get(self, request):
         user = request.user
-        coach = get_coach_profile(user)
-        if not coach and (user.role == 'ADMIN' or user.is_superuser):
-            coach = CoachProfile.objects.first()
+        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+            coach_id = request.query_params.get('coach_id')
+            if coach_id:
+                coach = CoachProfile.objects.filter(pk=coach_id).first()
+                groups = SwimmerGroup.objects.filter(
+                    Q(coach_assignments__coach=coach) | Q(sessions__coach=coach)
+                ).select_related('course', 'skill_level').prefetch_related('schedules', 'enrollments').distinct() if coach else SwimmerGroup.objects.none()
+            else:
+                groups = SwimmerGroup.objects.all().select_related('course', 'skill_level').prefetch_related('schedules', 'enrollments').distinct()
+            serializer = CoachClassListSerializer(groups, many=True)
+            return Response(serializer.data)
 
+        coach = get_coach_profile(user)
         if not coach:
             return Response([], status=status.HTTP_200_OK)
 
@@ -255,12 +264,12 @@ class CoachClassDetailView(APIView):
     """
     جزئیات جامع یک کلاس/گروه آموزشی شامل مشخصات، شناگران، جلسات و عملکرد
     """
-    permission_classes = [IsAdminOrCoach]
+    permission_classes = [IsAdminOrSupervisorOrCoach]
 
     def get(self, request, pk):
         user = request.user
         coach = get_coach_profile(user)
-        if not coach and (user.role == 'ADMIN' or user.is_superuser):
+        if not coach and (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser):
             coach = CoachProfile.objects.first()
 
         try:
@@ -268,11 +277,14 @@ class CoachClassDetailView(APIView):
         except SwimmerGroup.DoesNotExist:
             return Response({'detail': 'کلاس مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
 
+        is_privileged = bool(user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser)
         # Check access permission
         is_assigned = (
-            user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser or
-            group.coach_assignments.filter(coach=coach).exists() or
-            group.sessions.filter(coach=coach).exists()
+            is_privileged or
+            (coach and (
+                group.coach_assignments.filter(coach=coach).exists() or
+                group.sessions.filter(coach=coach).exists()
+            ))
         )
         if not is_assigned:
             return Response({'detail': 'شما به این کلاس دسترسی ندارید.'}, status=status.HTTP_403_FORBIDDEN)
@@ -284,18 +296,20 @@ class CoachClassDetailView(APIView):
             sw = en.swimmer
             att_count = AttendanceRecord.objects.filter(swimmer=sw, session__group=group, status='PRESENT').count()
             total_recorded = AttendanceRecord.objects.filter(swimmer=sw, session__group=group).count()
-            swimmers_data.append({
+            row = {
                 'enrollment_id': en.id,
                 'swimmer_id': sw.id,
                 'full_name': sw.full_name,
-                'national_id': sw.national_id,
                 'gender': sw.get_gender_display(),
                 'level_name': sw.current_level.name if sw.current_level else 'تعیین‌نشده',
                 'status': en.status,
                 'sessions_attended': att_count,
                 'total_recorded_sessions': total_recorded,
                 'attendance_rate': round((att_count / total_recorded * 100), 1) if total_recorded > 0 else 100.0,
-            })
+            }
+            if is_privileged:
+                row['national_id'] = sw.national_id
+            swimmers_data.append(row)
 
         # Sessions for this group
         sessions = ClassSession.objects.filter(group=group).order_by('session_date', 'start_time')
@@ -322,13 +336,11 @@ class CoachClassDetailView(APIView):
             author_title = 'مربی کلاس'
             if a.created_by:
                 name = a.created_by.get_full_name() if hasattr(a.created_by, 'get_full_name') else ''
-                if not name and hasattr(a.created_by, 'phone'):
-                    name = a.created_by.phone
                 if name:
                     author_title = name
 
             can_delete = (
-                user.role in ['ADMIN', 'SUPERVISOR'] or
+                user.role == 'ADMIN' or
                 user.is_superuser or
                 (a.created_by_id and a.created_by_id == user.id)
             )
@@ -374,6 +386,8 @@ class CoachClassDetailView(APIView):
         ارسال اعلان اختصاصی توسط مربی برای تمامی شناگران این کلاس
         """
         user = request.user
+        if user.role == 'SUPERVISOR' and not user.is_superuser:
+            return Response({'detail': 'ناظر فنی دسترسی فقط‌خواندنی دارد و مجاز به ارسال اعلان نیست.'}, status=status.HTTP_403_FORBIDDEN)
         coach = get_coach_profile(user)
         if not coach and (user.role == 'ADMIN' or user.is_superuser):
             coach = CoachProfile.objects.first()
@@ -423,7 +437,7 @@ class CoachClassDetailView(APIView):
                     is_read=False
                 )
 
-        author_name = user.get_full_name() if hasattr(user, 'get_full_name') and user.get_full_name() else getattr(user, 'phone', 'مربی')
+        author_name = (user.get_full_name().strip() if hasattr(user, 'get_full_name') and user.get_full_name() else '') or 'مربی'
 
         # Also notify management (all administrators and supervisors)
         managers = User.objects.filter(
@@ -536,13 +550,14 @@ class CoachSwimmerDossierView(APIView):
     """
     پرونده مهارتی و عملکردی شناگر ویژه مربی:
     نمایش پیشرفت مهارت‌ها، سوابق ارزیابی، رکوردهای زمانی و تاریخچه حضور.
+    اطلاعات حساس هویتی، تماس و پزشکی تنها برای مدیر و ناظر فنی قابل مشاهده است.
     """
-    permission_classes = [IsAdminOrCoach]
+    permission_classes = [IsAdminOrSupervisorOrCoach]
 
     def get(self, request, pk):
         user = request.user
         coach = get_coach_profile(user)
-        if not coach and (user.role == 'ADMIN' or user.is_superuser):
+        if not coach and (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser):
             coach = CoachProfile.objects.first()
 
         try:
@@ -551,13 +566,15 @@ class CoachSwimmerDossierView(APIView):
             return Response({'detail': 'شناگر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
 
         # Verify coach has teaching relationship with this swimmer
-        is_admin = user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser
-        if not is_admin and coach:
-            has_common_class = Enrollment.objects.filter(
-                swimmer=swimmer,
-                group__in=SwimmerGroup.objects.filter(
+        is_privileged = bool(user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser)
+        if not is_privileged:
+            if not coach:
+                return Response({'detail': 'شما به پرونده این شناگر دسترسی ندارید.'}, status=status.HTTP_403_FORBIDDEN)
+            has_common_class = Enrollment.objects.filter(swimmer=swimmer).filter(
+                Q(coach=coach) |
+                Q(group__in=SwimmerGroup.objects.filter(
                     Q(coach_assignments__coach=coach) | Q(sessions__coach=coach)
-                )
+                ))
             ).exists()
             if not has_common_class:
                 return Response({'detail': 'شما به پرونده این شناگر دسترسی ندارید.'}, status=status.HTTP_403_FORBIDDEN)
@@ -608,20 +625,25 @@ class CoachSwimmerDossierView(APIView):
         # 4. Available Skill Levels for promotion
         skill_levels = SkillLevel.objects.filter(is_active=True).values('id', 'name', 'order')
 
-        return Response({
-            'swimmer': {
-                'id': swimmer.id,
-                'first_name': swimmer.first_name,
-                'last_name': swimmer.last_name,
-                'full_name': swimmer.full_name,
-                'gender': swimmer.get_gender_display(),
+        swimmer_payload = {
+            'id': swimmer.id,
+            'first_name': swimmer.first_name,
+            'last_name': swimmer.last_name,
+            'full_name': swimmer.full_name,
+            'gender': swimmer.get_gender_display(),
+            'current_level_id': swimmer.current_level.id if swimmer.current_level else None,
+            'current_level_name': swimmer.current_level.name if swimmer.current_level else 'تعیین‌نشده',
+        }
+        if is_privileged:
+            swimmer_payload.update({
                 'date_of_birth': swimmer.date_of_birth.strftime('%Y-%m-%d') if swimmer.date_of_birth else None,
                 'national_id': swimmer.national_id,
-                'current_level_id': swimmer.current_level.id if swimmer.current_level else None,
-                'current_level_name': swimmer.current_level.name if swimmer.current_level else 'تعیین‌نشده',
                 'medical_conditions': swimmer.medical_notes or 'بدون مورد خاص',
                 'guardian_phone': swimmer.emergency_contact_phone or swimmer.father_phone or swimmer.mother_phone or swimmer.phone or 'ثبت‌نشده',
-            },
+            })
+
+        return Response({
+            'swimmer': swimmer_payload,
             'assessments': assessments_data,
             'records': records_data,
             'attendance_summary': {
@@ -799,11 +821,11 @@ class CoachMessagesView(APIView):
                 multi_names = [a.target_group.name]
             group_label = '، '.join(multi_names) if multi_names else None
 
-            author_name = None
+            author_name = 'مدیریت یا مربی'
             if a.created_by:
-                author_name = a.created_by.get_full_name() if hasattr(a.created_by, 'get_full_name') else ''
-                if not author_name:
-                    author_name = getattr(a.created_by, 'phone', None)
+                full = a.created_by.get_full_name() if hasattr(a.created_by, 'get_full_name') else ''
+                if full:
+                    author_name = full
 
             announcements_data.append({
                 'id': a.id,
@@ -920,7 +942,7 @@ class CoachMessagesView(APIView):
         )
         announcement.target_groups.set(groups)
 
-        author_name = user.get_full_name() if hasattr(user, 'get_full_name') and user.get_full_name() else getattr(user, 'phone', 'مربی')
+        author_name = (user.get_full_name().strip() if hasattr(user, 'get_full_name') and user.get_full_name() else '') or 'مربی'
 
         # Notify active enrolled swimmers across selected groups (deduplicated per user)
         swimmer_groups_map = {}

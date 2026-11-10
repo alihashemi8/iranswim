@@ -16,13 +16,19 @@ from .serializers import (
     LeagueResultSerializer
 )
 from apps.swimmers.models import SwimmerProfile
+from apps.swimmers.utils import get_accessible_swimmer_ids
 from apps.assessments.models import SwimmingRecord
+from apps.accounts.permissions import IsAdminUserRole
 
 
 class LeagueListView(generics.ListCreateAPIView):
     queryset = League.objects.all().prefetch_related('categories', 'competitions', 'entries')
     serializer_class = LeagueSerializer
-    permission_classes = [permissions.AllowAny]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.AllowAny()]
+        return [IsAdminUserRole()]
 
     def perform_create(self, serializer):
         league = serializer.save()
@@ -46,7 +52,11 @@ class LeagueListView(generics.ListCreateAPIView):
 class LeagueDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = League.objects.all().prefetch_related('categories', 'competitions', 'entries')
     serializer_class = LeagueSerializer
-    permission_classes = [permissions.AllowAny]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.AllowAny()]
+        return [IsAdminUserRole()]
 
 
 class LeagueStatsView(APIView):
@@ -109,6 +119,12 @@ class LeagueLeaderboardView(APIView):
         gender = params.get('gender')
         search = params.get('search')
 
+        user = getattr(request, 'user', None)
+        is_privileged = bool(
+            user and user.is_authenticated and
+            (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser)
+        )
+
         entries = LeagueEntry.objects.filter(
             league=league,
             status=LeagueEntry.Status.ACTIVE
@@ -119,11 +135,13 @@ class LeagueLeaderboardView(APIView):
         if gender:
             entries = entries.filter(swimmer__gender=gender)
         if search:
-            entries = entries.filter(
+            search_q = (
                 Q(swimmer__first_name__icontains=search) |
-                Q(swimmer__last_name__icontains=search) |
-                Q(swimmer__national_id__icontains=search)
+                Q(swimmer__last_name__icontains=search)
             )
+            if is_privileged:
+                search_q = search_q | Q(swimmer__national_id__icontains=search)
+            entries = entries.filter(search_q)
 
         entries = entries.order_by('-total_points', 'registered_at')
 
@@ -134,15 +152,7 @@ class LeagueLeaderboardView(APIView):
             if avatar_url and request:
                 avatar_url = request.build_absolute_uri(avatar_url)
 
-            # Age calculation
-            age = None
-            if swimmer.date_of_birth:
-                today = date.today()
-                age = today.year - swimmer.date_of_birth.year - (
-                    (today.month, today.day) < (swimmer.date_of_birth.month, swimmer.date_of_birth.day)
-                )
-
-            leaderboard.append({
+            row = {
                 'rank': rank,
                 'entry_id': entry.id,
                 'swimmer_id': swimmer.id,
@@ -150,7 +160,6 @@ class LeagueLeaderboardView(APIView):
                 'swimmer_avatar': avatar_url,
                 'gender': swimmer.gender,
                 'gender_display': swimmer.get_gender_display() if hasattr(swimmer, 'get_gender_display') else swimmer.gender,
-                'age': age,
                 'category_id': entry.category.id,
                 'category_title': entry.category.title,
                 'matches_count': entry.matches_count,
@@ -160,14 +169,28 @@ class LeagueLeaderboardView(APIView):
                 'total_points': float(entry.total_points),
                 'rank_trend': entry.rank_trend,
                 'status': entry.status,
-            })
+            }
+            if is_privileged:
+                age = None
+                if swimmer.date_of_birth:
+                    today = date.today()
+                    age = today.year - swimmer.date_of_birth.year - (
+                        (today.month, today.day) < (swimmer.date_of_birth.month, swimmer.date_of_birth.day)
+                    )
+                row['age'] = age
+
+            leaderboard.append(row)
 
         return Response(leaderboard)
 
 
 class LeagueCompetitionsView(generics.ListCreateAPIView):
     serializer_class = LeagueCompetitionSerializer
-    permission_classes = [permissions.AllowAny]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.AllowAny()]
+        return [IsAdminUserRole()]
 
     def get_queryset(self):
         league_id = self.kwargs['league_id']
@@ -185,14 +208,18 @@ class LeagueCompetitionsView(generics.ListCreateAPIView):
 class LeagueCompetitionDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = LeagueCompetition.objects.all().select_related('category', 'league').prefetch_related('results__entry__swimmer')
     serializer_class = LeagueCompetitionSerializer
-    permission_classes = [permissions.AllowAny]
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.AllowAny()]
+        return [IsAdminUserRole()]
 
 
 class RecordCompetitionResultsView(APIView):
     """
     ثبت نتایج مسابقه، رتبه‌بندی زمانی خودکار، محاسبه امتیازات لیگ و اهدای مدال‌ها
     """
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAdminUserRole]
 
     def post(self, request, pk):
         competition = get_object_or_404(LeagueCompetition.objects.select_related('league'), pk=pk)
@@ -330,7 +357,7 @@ class RecordCompetitionResultsView(APIView):
 
 class LeagueManualScoreView(APIView):
     """ثبت امتیاز دستی / تشویقی / انضباطی با ذکر دلیل برای شناگر"""
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAdminUserRole]
 
     def post(self, request, league_id):
         league = get_object_or_404(League, id=league_id)
@@ -378,7 +405,10 @@ class LeagueManualScoreView(APIView):
 
 class LeagueScoringRulesView(APIView):
     """مشاهده و ویرایش قوانین و جدول امتیازدهی لیگ"""
-    permission_classes = [permissions.AllowAny]
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.AllowAny()]
+        return [IsAdminUserRole()]
 
     def get(self, request, league_id):
         league = get_object_or_404(League, id=league_id)
@@ -413,11 +443,22 @@ class LeagueScoringRulesView(APIView):
 
 class SwimmerPerformanceDetailView(APIView):
     """جزئیات کامل عملکرد شناگر در فصل، رکوردها، مسابقات و نمودار پیشرفت"""
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, league_id, swimmer_id):
         league = get_object_or_404(League, id=league_id)
         swimmer = get_object_or_404(SwimmerProfile, id=swimmer_id)
+
+        user = request.user
+        is_privileged = bool(user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser)
+        if not is_privileged:
+            allowed_ids = get_accessible_swimmer_ids(user, request) or []
+            if swimmer.id not in allowed_ids:
+                return Response(
+                    {'detail': 'شما مجاز به مشاهده جزئیات عملکرد این شناگر نیستید.'},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+
         entry = LeagueEntry.objects.filter(league=league, swimmer=swimmer).first()
 
         # Determine rank
@@ -482,16 +523,19 @@ class SwimmerPerformanceDetailView(APIView):
         if avatar_url and request:
             avatar_url = request.build_absolute_uri(avatar_url)
 
+        swimmer_info = {
+            'id': swimmer.id,
+            'full_name': swimmer.full_name,
+            'avatar': avatar_url,
+            'gender': swimmer.gender,
+            'gender_display': swimmer.get_gender_display(),
+        }
+        if is_privileged:
+            swimmer_info['national_id'] = swimmer.national_id
+            swimmer_info['date_of_birth'] = swimmer.date_of_birth.isoformat() if swimmer.date_of_birth else None
+
         return Response({
-            'swimmer': {
-                'id': swimmer.id,
-                'full_name': swimmer.full_name,
-                'avatar': avatar_url,
-                'gender': swimmer.gender,
-                'gender_display': swimmer.get_gender_display(),
-                'national_id': swimmer.national_id,
-                'date_of_birth': swimmer.date_of_birth.isoformat() if swimmer.date_of_birth else None,
-            },
+            'swimmer': swimmer_info,
             'league': {
                 'id': league.id,
                 'name': league.name,
@@ -515,7 +559,7 @@ class SwimmerPerformanceDetailView(APIView):
 
 class LeagueEnrollSwimmerView(APIView):
     """ثبت‌نام مستقیم شناگر در یک رده از لیگ"""
-    permission_classes = [permissions.AllowAny]
+    permission_classes = [IsAdminUserRole]
 
     def post(self, request, league_id):
         league = get_object_or_404(League, id=league_id)
