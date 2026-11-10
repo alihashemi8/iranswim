@@ -575,6 +575,8 @@ class GroupScheduleSerializer(serializers.ModelSerializer):
 class CoachClassListSerializer(serializers.ModelSerializer):
     course_name = serializers.CharField(source='course.name', read_only=True)
     course_status = serializers.CharField(source='course.status', read_only=True)
+    course_days = serializers.CharField(source='course.days_of_week', read_only=True)
+    course_time = serializers.SerializerMethodField()
     skill_level_name = serializers.CharField(source='skill_level.name', read_only=True)
     skill_level_color = serializers.CharField(source='skill_level.color_badge', read_only=True)
     enrolled_count = serializers.IntegerField(source='current_enrollments_count', read_only=True)
@@ -584,10 +586,18 @@ class CoachClassListSerializer(serializers.ModelSerializer):
         model = SwimmerGroup
         fields = [
             'id', 'name', 'course', 'course_name', 'course_status',
+            'course_days', 'course_time',
             'skill_level', 'skill_level_name', 'skill_level_color',
             'capacity', 'enrolled_count', 'pool_location', 'status',
             'schedules', 'created_at'
         ]
+
+    def get_course_time(self, obj):
+        if obj.course and obj.course.start_time and obj.course.end_time:
+            st = obj.course.start_time.strftime('%H:%M') if hasattr(obj.course.start_time, 'strftime') else str(obj.course.start_time)[:5]
+            et = obj.course.end_time.strftime('%H:%M') if hasattr(obj.course.end_time, 'strftime') else str(obj.course.end_time)[:5]
+            return f"{st} تا {et}"
+        return ''
 
 
 class CoachSwimmerDetailSerializer(serializers.ModelSerializer):

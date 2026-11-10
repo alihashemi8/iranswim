@@ -5,7 +5,7 @@ from django.utils import timezone
 from rest_framework.test import APIClient
 from apps.accounts.models import User
 from apps.coaches.models import CoachProfile, WorkoutPlan
-from apps.education.models import Course, SwimmerGroup, SkillLevel, Skill, Enrollment, GroupCoach
+from apps.education.models import Course, SwimmerGroup, SkillLevel, Skill, Enrollment, GroupCoach, GroupSchedule
 from apps.swimmers.models import SwimmerProfile
 from apps.scheduling.models import ClassSession
 from apps.assessments.models import LevelPromotionProposal, SkillAssessment
@@ -255,4 +255,132 @@ def test_coach_class_announcements_flow(coach_user, admin_user, sample_setup):
     # 6. Verify deleted
     res3 = client.get(f"/api/coaches/my-classes/{group.id}/")
     assert len(res3.data['announcements']) == 0
+
+
+@pytest.mark.django_db
+def test_coach_messages_endpoint_flow(coach_user, admin_user, sample_setup):
+    from apps.content.models import Announcement, Notification
+
+    client = APIClient()
+    client.force_authenticate(user=coach_user)
+    group1 = sample_setup['group']
+    swimmer = sample_setup['swimmer']
+
+    # Create a second group for the same coach with the same swimmer enrolled
+    group2 = SwimmerGroup.objects.create(
+        course=group1.course,
+        name='گروه A2',
+        skill_level=sample_setup['level1'],
+        capacity=10
+    )
+    GroupCoach.objects.create(
+        group=group2,
+        coach=sample_setup['coach'],
+        assigned_from=timezone.now().date(),
+        is_primary=True
+    )
+    Enrollment.objects.create(swimmer=swimmer, course=group1.course, group=group2, status='ACTIVE')
+
+    # Unrelated group that coach does NOT teach
+    other_group = SwimmerGroup.objects.create(
+        course=group1.course,
+        name='گروه غیرمرتبط',
+        skill_level=sample_setup['level2'],
+        capacity=10
+    )
+
+    # 1. GET /api/coaches/messages/
+    get_res = client.get('/api/coaches/messages/')
+    assert get_res.status_code == 200
+    assert len(get_res.data['my_groups']) == 2
+
+    # 2. Validation error when required fields are empty
+    bad_res = client.post('/api/coaches/messages/', {'title': '   ', 'message': '', 'group_ids': []}, format='json')
+    assert bad_res.status_code == 400
+
+    # 3. Forbidden when targeting a group not assigned to coach
+    forbidden_res = client.post('/api/coaches/messages/', {
+        'title': 'اعلان غیرمجاز',
+        'message': 'متن تست',
+        'group_ids': [group1.id, other_group.id],
+    }, format='json')
+    assert forbidden_res.status_code == 403
+
+    # 4. Multi-group POST with is_pinned and send_sms
+    post_res = client.post('/api/coaches/messages/', {
+        'title': 'تمرین ترکیبی هفته آینده',
+        'message': 'هر دو گروه روز پنج‌شنبه تجهیزات تمرین را همراه داشته باشند.',
+        'group_ids': [group1.id, group2.id],
+        'is_pinned': True,
+        'send_sms': True,
+    }, format='json')
+    assert post_res.status_code == 201
+    assert post_res.data['is_pinned'] is True
+    assert post_res.data['send_sms'] is True
+
+    ann = Announcement.objects.get(pk=post_res.data['id'])
+    assert ann.is_pinned is True
+    assert ann.send_sms is True
+    assert set(ann.target_groups.values_list('id', flat=True)) == {group1.id, group2.id}
+
+    # Swimmer enrolled in both groups should receive only ONE deduplicated notification
+    swimmer_notifs = Notification.objects.filter(recipient=swimmer.user)
+    assert swimmer_notifs.count() == 1
+    assert 'تمرین ترکیبی هفته آینده' in swimmer_notifs.first().title
+
+    # Admin should receive notification
+    admin_notifs = Notification.objects.filter(recipient=admin_user)
+    assert admin_notifs.count() == 1
+
+    # 5. GET should return the multi-group announcement once with both group names
+    get_res2 = client.get('/api/coaches/messages/')
+    assert get_res2.status_code == 200
+    assert len(get_res2.data['announcements']) == 1
+    assert set(get_res2.data['announcements'][0]['group_names']) == {'گروه A1', 'گروه A2'}
+    assert get_res2.data['announcements'][0]['send_sms'] is True
+
+
+@pytest.mark.django_db
+def test_coach_my_classes_schedule_and_course_days_fields(coach_user):
+    coach_profile = coach_user.coach_profile
+    level = SkillLevel.objects.create(name='پیشرفته', order=3)
+    course = Course.objects.create(
+        name='دوره تخصصی پروانه',
+        days_of_week='شنبه و چهارشنبه',
+        start_time=datetime.time(16, 30),
+        end_time=datetime.time(18, 0),
+        start_date=timezone.now().date(),
+        end_date=timezone.now().date() + datetime.timedelta(days=30),
+        base_price=Decimal('2000000'),
+        sessions_count=12,
+    )
+    group = SwimmerGroup.objects.create(
+        course=course,
+        name='گروه تخصصی B',
+        skill_level=level,
+        capacity=12,
+    )
+    GroupCoach.objects.create(
+        group=group,
+        coach=coach_profile,
+        assigned_from=timezone.now().date(),
+        is_primary=True,
+    )
+    GroupSchedule.objects.create(
+        group=group,
+        weekday=GroupSchedule.Weekday.SATURDAY,
+        start_time=datetime.time(16, 30),
+        end_time=datetime.time(18, 0),
+    )
+
+    client = APIClient()
+    client.force_authenticate(user=coach_user)
+    response = client.get('/api/coaches/my-classes/')
+    assert response.status_code == 200
+    assert len(response.data) == 1
+    item = response.data[0]
+    assert item['course_days'] == 'شنبه و چهارشنبه'
+    assert item['course_time'] == '16:30 تا 18:00'
+    assert len(item['schedules']) == 1
+    assert item['schedules'][0]['weekday'] == GroupSchedule.Weekday.SATURDAY
 
