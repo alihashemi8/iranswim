@@ -146,10 +146,23 @@ class SkillAssessmentListView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         user = self.request.user
         swimmer = serializer.validated_data.get('swimmer')
+        coach_profile = getattr(user, 'coach_profile', None) if user.role == 'COACH' else None
         if user.role == 'COACH':
-            coach_profile = getattr(user, 'coach_profile', None)
             if not _coach_teaches_swimmer(coach_profile, swimmer):
                 raise PermissionDenied('شما فقط مجاز به ثبت ارزیابی مهارت برای شناگران کلاس خود هستید.')
+
+        skill = serializer.validated_data.get('skill')
+        custom_skill_name = (serializer.validated_data.pop('custom_skill_name', None) or '').strip()
+        if not skill and custom_skill_name:
+            from apps.education.models import Skill
+            # Look for existing skill with same name for this coach, or create a new one
+            skill, _ = Skill.objects.get_or_create(
+                name=custom_skill_name,
+                coach=coach_profile,
+                defaults={'is_custom': True}
+            )
+            serializer.validated_data['skill'] = skill
+
         serializer.save(assessed_by=user)
 
 

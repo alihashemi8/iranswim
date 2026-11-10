@@ -431,26 +431,26 @@ export const CoachProgressPage = () => {
         </div>
 
         {/* Row 2: Class Day Category Filter */}
-        <div className="pt-2.5 sm:pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col xl:flex-row xl:items-center gap-2 sm:gap-2.5">
-          <div className="flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 shrink-0">
-            <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+        <div className="pt-2.5 sm:pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col xl:flex-row xl:items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 shrink-0">
+            <Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>دسته‌بندی بر اساس روز کلاس:</span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-1.5 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 flex-1">
             <button
               type="button"
               onClick={() => handleSelectDay('')}
               aria-pressed={selectedDay === ''}
-              className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 py-1 lg:px-2.5 lg:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs border transition-all cursor-pointer whitespace-nowrap ${
+              className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer whitespace-nowrap ${
                 selectedDay === ''
-                  ? 'bg-emerald-600 text-white border-emerald-600 font-bold shadow-xs'
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
                   : 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border-slate-200/90 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 font-semibold'
               }`}
             >
               <span>همه روزها</span>
               <span
-                className={`text-[10px] sm:text-[11px] px-1.5 py-0.5 rounded-full font-mono font-bold leading-none ${
+                className={`text-[11px] sm:text-xs px-2 py-0.5 rounded-full font-mono font-bold leading-none ${
                   selectedDay === ''
                     ? 'bg-emerald-700/80 text-white'
                     : 'bg-slate-200/80 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
@@ -469,9 +469,9 @@ export const CoachProgressPage = () => {
                   type="button"
                   onClick={() => handleSelectDay(String(day.index))}
                   aria-pressed={isSelected}
-                  className={`inline-flex items-center gap-1 sm:gap-1.5 px-2 py-1 lg:px-2.5 lg:py-1.5 rounded-lg sm:rounded-xl text-[11px] sm:text-xs border transition-all cursor-pointer whitespace-nowrap ${
+                  className={`inline-flex items-center gap-1.5 sm:gap-2 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl text-xs sm:text-sm font-bold border transition-all cursor-pointer whitespace-nowrap ${
                     isSelected
-                      ? 'bg-emerald-600 text-white border-emerald-600 font-bold shadow-xs'
+                      ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
                       : count > 0
                       ? 'bg-slate-50 dark:bg-slate-800/80 text-slate-700 dark:text-slate-200 border-slate-200/90 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 font-semibold'
                       : 'bg-slate-50/70 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-slate-200/70 dark:border-slate-700/70 hover:border-slate-300 dark:hover:border-slate-600 font-medium'
@@ -479,7 +479,7 @@ export const CoachProgressPage = () => {
                 >
                   <span>{day.name}</span>
                   <span
-                    className={`text-[10px] sm:text-[11px] px-1.5 py-0.5 rounded-full font-mono font-bold leading-none ${
+                    className={`text-[11px] sm:text-xs px-2 py-0.5 rounded-full font-mono font-bold leading-none ${
                       isSelected
                         ? 'bg-emerald-700/80 text-white'
                         : count > 0
@@ -633,15 +633,15 @@ export const CoachProgressPage = () => {
                                 return (
                                   <span
                                     key={ch.weekday}
-                                    className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] border ${
+                                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs border ${
                                       isDayActive
-                                        ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700 font-bold'
-                                        : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700 font-medium'
+                                        ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700 font-bold shadow-xs'
+                                        : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-slate-700 font-semibold'
                                     }`}
                                   >
-                                    <span>{ch.label}</span>
+                                    <span className="font-bold">{ch.label}</span>
                                     {ch.time && (
-                                      <span className="font-mono text-[10px] opacity-80">
+                                      <span className="font-mono text-[11px] opacity-80">
                                         {ch.time}
                                       </span>
                                     )}
@@ -733,15 +733,15 @@ export const CoachProgressPage = () => {
                                         return (
                                           <span
                                             key={ch.weekday}
-                                            className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] border ${
+                                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs border ${
                                               isDayActive
-                                                ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700 font-bold'
-                                                : 'bg-slate-100/80 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200/80 dark:border-slate-700 font-medium'
+                                                ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-200 border-emerald-300 dark:border-emerald-700 font-bold shadow-xs'
+                                                : 'bg-slate-100/90 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200/80 dark:border-slate-700 font-semibold'
                                             }`}
                                           >
-                                            <span>{ch.label}</span>
+                                            <span className="font-bold">{ch.label}</span>
                                             {ch.time && (
-                                              <span className="font-mono text-[10px] opacity-80">
+                                              <span className="font-mono text-[11px] opacity-80">
                                                 {ch.time}
                                               </span>
                                             )}

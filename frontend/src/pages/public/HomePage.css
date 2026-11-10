@@ -766,26 +766,7 @@ html.dark .pool-header > div:first-child > div > a > div > span:nth-child(2) {
   -webkit-backdrop-filter: none !important;
 }
 
-.landing-experience footer {
-  color: #355865;
-  background: linear-gradient(180deg, rgb(224 247 244 / 76%), rgb(210 238 235 / 84%));
-  border-color: rgb(255 255 255 / 90%);
-  backdrop-filter: blur(12px);
-}
 
-.landing-experience footer a:hover {
-  color: #087e91;
-}
-
-.landing-experience footer :is(h4, .text-white, .text-slate-300, .text-slate-400) {
-  color: #355965;
-}
-
-.landing-experience footer .bg-emerald-950\/60 {
-  color: #167456;
-  background: #e6f6ed;
-  border-color: #c4e7d1;
-}
 
 .landing-experience > .fixed.inset-0.z-50 {
   background: rgb(223 246 240 / 72%);
@@ -1344,25 +1325,9 @@ html.dark .pool-header > div:first-child > div > a > div > span:nth-child(2) {
   text-shadow: none !important;
 }
 
-.landing-experience footer {
-  color: #d5e9e5;
-  background: linear-gradient(180deg, #0d3545 0%, #061d28 100%);
-  border-color: rgba(130, 226, 216, 0.3);
-  backdrop-filter: none;
-}
-
-.landing-experience footer a:hover {
-  color: #8ee0ce;
-}
-
-.landing-experience footer :is(h4, .text-white, .text-slate-300, .text-slate-400) {
-  color: #d5e9e5;
-}
-
-.landing-experience footer .bg-emerald-950\/60 {
-  color: #a2e9c7;
-  background: rgb(9 54 50 / 66%);
-  border-color: rgb(113 212 170 / 24%);
+.landing-footer {
+  background: linear-gradient(180deg, #0d3849 0%, #061e29 100%);
+  border-top: 1px solid rgba(88, 191, 217, 0.18);
 }
 
 @media (max-width: 767px) {

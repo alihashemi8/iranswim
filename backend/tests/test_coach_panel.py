@@ -391,3 +391,63 @@ def test_coach_my_classes_schedule_and_course_days_fields(coach_user):
     assert len(item['schedules']) == 1
     assert item['schedules'][0]['weekday'] == GroupSchedule.Weekday.SATURDAY
 
+
+@pytest.mark.django_db
+def test_coach_custom_evaluation_skills_and_assessment(coach_user, sample_setup):
+    client = APIClient()
+    client.force_authenticate(user=coach_user)
+    swimmer = sample_setup['swimmer']
+
+    # 1. Coach creates a custom evaluation criterion / skill
+    custom_skill_payload = {
+        'name': 'پای کرال سینه استقامتی ۲۵ متر',
+        'criteria_description': 'حفظ ریتم پا بدون مکث و با پاشش منظم آب',
+    }
+    skill_res = client.post('/api/education/skills/', custom_skill_payload, format='json')
+    assert skill_res.status_code == 201
+    assert skill_res.data['name'] == custom_skill_payload['name']
+    assert skill_res.data['is_custom'] is True
+    skill_id = skill_res.data['id']
+
+    # 2. Coach fetches skills list - includes their custom skill
+    list_res = client.get('/api/education/skills/')
+    assert list_res.status_code == 200
+    results = list_res.data.get('results', list_res.data)
+    skill_names = [s['name'] for s in results]
+    assert 'پای کرال سینه استقامتی ۲۵ متر' in skill_names
+
+    # 3. Coach records an assessment for their swimmer using the custom skill
+    assess_payload = {
+        'swimmer': swimmer.id,
+        'skill': skill_id,
+        'score': '95.00',
+        'status': 'PASSED',
+        'feedback': 'تکنیک ضربه پا فوق‌العاده و استاندارد بود.',
+        'assessed_at': timezone.now().date().isoformat(),
+    }
+    assess_res = client.post('/api/assessments/skills/', assess_payload, format='json')
+    assert assess_res.status_code == 201
+    assert assess_res.data['skill_name'] == 'پای کرال سینه استقامتی ۲۵ متر'
+    assert assess_res.data['status'] == 'PASSED'
+
+    # 4. Coach records another assessment by typing custom_skill_name on the fly
+    assess_payload_custom_text = {
+        'swimmer': swimmer.id,
+        'custom_skill_name': 'شیرجه و استارت از روی سکو',
+        'score': '88.00',
+        'status': 'PASSED',
+        'feedback': 'ورود تمیز به آب با زاویه ۴۵ درجه.',
+        'assessed_at': timezone.now().date().isoformat(),
+    }
+    assess_res2 = client.post('/api/assessments/skills/', assess_payload_custom_text, format='json')
+    assert assess_res2.status_code == 201
+    assert assess_res2.data['skill_name'] == 'شیرجه و استارت از روی سکو'
+
+    # 5. Swimmer dossier reflects both assessments properly
+    dossier_res = client.get(f'/api/coaches/swimmer-dossier/{swimmer.id}/')
+    assert dossier_res.status_code == 200
+    dossier_assessments = dossier_res.data['assessments']
+    dossier_skill_names = [a['skill_name'] for a in dossier_assessments]
+    assert 'پای کرال سینه استقامتی ۲۵ متر' in dossier_skill_names
+    assert 'شیرجه و استارت از روی سکو' in dossier_skill_names
+

@@ -455,7 +455,8 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/80 text-xs space-y-2 select-none">
                 <div className="flex items-center gap-2 text-[#083B5C] dark:text-slate-100 font-bold">
                   <PhoneCall className="w-4 h-4 text-[#087EA4] dark:text-cyan-400 shrink-0" />
-                  <span>پشتیبانی و پذیرش: ۰۲۸-۳۳۶۵۰۰۰۰</span>
+                  <span>پشتیبانی و پذیرش:</span>
+                  <span dir="ltr" className="inline-block">۰۲۸-۳۳۶۵۰۰۰۰</span>
                 </div>
                 <p className="text-[11px] text-[#647789] dark:text-slate-400 leading-relaxed">
                   مدرسه شنای ایران • استان قزوین

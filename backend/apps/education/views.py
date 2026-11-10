@@ -15,7 +15,8 @@ from .serializers import (
     SwimmerGroupSerializer, GroupScheduleSerializer, GroupCoachSerializer,
     EnrollmentRequestSerializer, EnrollmentSerializer
 )
-from apps.accounts.permissions import IsAdminUserRole, IsAdminOrSupervisor
+from apps.accounts.permissions import IsAdminUserRole, IsAdminOrSupervisor, IsAdminOrCoach
+from apps.coaches.models import CoachProfile
 from apps.swimmers.models import SwimmerProfile
 from apps.finance.models import Invoice, InvoiceItem, Installment
 from apps.supervisor.models import AuditLog
@@ -29,6 +30,70 @@ class SkillLevelListView(generics.ListCreateAPIView):
         if self.request.method in permissions.SAFE_METHODS:
             return [permissions.AllowAny()]
         return [IsAdminUserRole()]
+
+
+class SkillListCreateView(generics.ListCreateAPIView):
+    serializer_class = SkillSerializer
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminOrCoach()]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = Skill.objects.all().select_related('level', 'coach__user')
+        level_id = self.request.query_params.get('level')
+        if level_id:
+            qs = qs.filter(level_id=level_id)
+
+        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+            mine = self.request.query_params.get('mine')
+            if mine in ['true', '1']:
+                return qs.filter(is_custom=False)
+            return qs
+
+        if user.role == 'COACH':
+            coach_profile = getattr(user, 'coach_profile', None)
+            mine = self.request.query_params.get('mine')
+            if mine in ['true', '1']:
+                return qs.filter(coach=coach_profile) if coach_profile else qs.none()
+            if coach_profile:
+                return qs.filter(Q(coach=coach_profile) | Q(coach__isnull=True))
+            return qs.filter(coach__isnull=True)
+
+        return qs.filter(coach__isnull=True)
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.role == 'COACH':
+            coach_profile = getattr(user, 'coach_profile', None)
+            serializer.save(coach=coach_profile, is_custom=True)
+        else:
+            serializer.save(is_custom=False)
+
+
+class SkillDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = SkillSerializer
+
+    def get_permissions(self):
+        if self.request.method in permissions.SAFE_METHODS:
+            return [permissions.IsAuthenticated()]
+        return [IsAdminOrCoach()]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = Skill.objects.all().select_related('level', 'coach__user')
+        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+            return qs
+        if user.role == 'COACH':
+            coach_profile = getattr(user, 'coach_profile', None)
+            if self.request.method in permissions.SAFE_METHODS:
+                if coach_profile:
+                    return qs.filter(Q(coach=coach_profile) | Q(coach__isnull=True))
+                return qs.filter(coach__isnull=True)
+            return qs.filter(coach=coach_profile) if coach_profile else qs.none()
+        return qs.filter(coach__isnull=True)
 
 
 class CourseListView(generics.ListCreateAPIView):

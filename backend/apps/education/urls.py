@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (
-    SkillLevelListView, CourseListView, CourseDetailView,
+    SkillLevelListView, SkillListCreateView, SkillDetailView,
+    CourseListView, CourseDetailView,
     SwimmerGroupListView, SwimmerGroupDetailView,
     EnrollmentRequestCreateView, EnrollmentRequestListView,
     EnrollmentRequestReviewView, EnrollmentListView, EnrollmentDetailView,
@@ -9,6 +10,8 @@ from .views import (
 
 urlpatterns = [
     path('levels/', SkillLevelListView.as_view(), name='skill_level_list'),
+    path('skills/', SkillListCreateView.as_view(), name='skill_list'),
+    path('skills/<int:pk>/', SkillDetailView.as_view(), name='skill_detail'),
     path('courses/', CourseListView.as_view(), name='course_list'),
     path('courses/<int:pk>/', CourseDetailView.as_view(), name='course_detail'),
     path('groups/', SwimmerGroupListView.as_view(), name='group_list'),

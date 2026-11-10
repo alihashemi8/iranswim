@@ -5,17 +5,33 @@ from .models import SkillAssessment, SwimmingRecord, LevelPromotionProposal
 class SkillAssessmentSerializer(serializers.ModelSerializer):
     swimmer_name = serializers.CharField(source='swimmer.full_name', read_only=True)
     skill_name = serializers.CharField(source='skill.name', read_only=True)
-    level_name = serializers.CharField(source='skill.level.name', read_only=True)
+    level_name = serializers.SerializerMethodField()
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    custom_skill_name = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = SkillAssessment
         fields = [
             'id', 'swimmer', 'swimmer_name', 'skill', 'skill_name',
-            'level_name', 'assessed_by', 'assessed_at', 'score',
-            'status', 'status_display', 'feedback', 'created_at'
+            'custom_skill_name', 'level_name', 'assessed_by', 'assessed_at',
+            'score', 'status', 'status_display', 'feedback', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+        extra_kwargs = {
+            'skill': {'required': False, 'allow_null': True}
+        }
+
+    def get_level_name(self, obj):
+        if obj.skill and obj.skill.level:
+            return obj.skill.level.name
+        return 'ارزیابی مربی'
+
+    def validate(self, attrs):
+        skill = attrs.get('skill')
+        custom_skill_name = (attrs.get('custom_skill_name') or '').strip()
+        if not skill and not custom_skill_name:
+            raise serializers.ValidationError({'skill': 'لطفاً مهارت شنا یا متن ارزیابی را مشخص فرمایید.'})
+        return attrs
 
 
 class SwimmingRecordSerializer(serializers.ModelSerializer):

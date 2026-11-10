@@ -6,9 +6,19 @@ from .models import (
 
 
 class SkillSerializer(serializers.ModelSerializer):
+    level_name = serializers.CharField(source='level.name', read_only=True, default='')
+    coach_name = serializers.CharField(source='coach.full_name', read_only=True, default='')
+
     class Meta:
         model = Skill
-        fields = ['id', 'level', 'name', 'criteria_description', 'order']
+        fields = [
+            'id', 'level', 'level_name', 'name', 'criteria_description',
+            'order', 'coach', 'coach_name', 'is_custom'
+        ]
+        read_only_fields = ['id', 'coach', 'is_custom']
+        extra_kwargs = {
+            'level': {'required': False, 'allow_null': True}
+        }
 
 
 class SkillLevelSerializer(serializers.ModelSerializer):

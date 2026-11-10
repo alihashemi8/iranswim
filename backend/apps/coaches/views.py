@@ -584,9 +584,9 @@ class CoachSwimmerDossierView(APIView):
         assessments_data = [
             {
                 'id': a.id,
-                'skill_id': a.skill.id,
-                'skill_name': a.skill.name,
-                'level_name': a.skill.level.name,
+                'skill_id': a.skill.id if a.skill else None,
+                'skill_name': a.skill.name if a.skill else '',
+                'level_name': a.skill.level.name if (a.skill and a.skill.level) else 'ارزیابی مربی',
                 'status': a.status,
                 'status_display': a.get_status_display(),
                 'score': float(a.score),

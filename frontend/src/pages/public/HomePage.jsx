@@ -3,7 +3,8 @@ import { Link } from 'react-router-dom';
 import {
   ShieldCheck, ArrowLeft, PhoneCall,
   CheckCircle2, Clock, MapPin, Check,
-  Sparkles, Droplet, ArrowDown, Waves, Users2, Award, CreditCard
+  Sparkles, Droplet, ArrowDown, Waves, Users2, Award, CreditCard,
+  ArrowUp
 } from 'lucide-react';
 import {
   SwimmerCrawlIcon,
@@ -365,6 +366,7 @@ export const HomePage = () => {
   const [coachGenderTab, setCoachGenderTab] = useState('ALL'); // 'ALL' | 'MALE' | 'FEMALE'
   const [news, setNews] = useState(INITIAL_NEWS);
   const [selectedNews, setSelectedNews] = useState(null);
+  const [showRaybanModal, setShowRaybanModal] = useState(false);
   const [pools, setPools] = useState(INITIAL_POOLS);
   const [selectedPool, setSelectedPool] = useState(null);
 
@@ -1670,7 +1672,8 @@ export const HomePage = () => {
                   className="px-7 sm:px-9 py-3.5 sm:py-4 bg-white hover:bg-cyan-50 text-slate-950 font-black rounded-2xl border-2 border-cyan-200/90 transition-all text-base sm:text-lg inline-flex items-center gap-2.5 shadow-md active:scale-95"
                 >
                   <PhoneCall className="w-5 h-5 text-cyan-600" />
-                  <span>تماس با پذیرش: ۰۲۸-۳۳۶۵۰۰۰۰</span>
+                  <span>تماس با پذیرش:</span>
+                  <span dir="ltr" className="inline-block tracking-wider">۰۲۸-۳۳۶۵۰۰۰۰</span>
                 </a>
               </div>
             </div>
@@ -1701,156 +1704,200 @@ export const HomePage = () => {
       {/* =========================================================================
           SECTION 8: ACCESSIBLE FOOTER
           ========================================================================= */}
-      <footer className="w-full bg-gradient-to-b from-[#0d3849] to-[#061e29] pt-12 sm:pt-14 pb-8 min-w-0">
-          <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-8">
-              
-              {/* Identity */}
-              <div className="lg:col-span-3 space-y-4">
-                <div className="flex items-center gap-2.5 text-cyan-300 font-extrabold text-lg">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-600 to-teal-400 text-white flex items-center justify-center shadow-md">
-                    <SwimmerCrawlIcon className="w-5 h-5" />
-                  </div>
-                  <span>مدرسه شنای ایران - قزوین</span>
+      <footer className="landing-footer w-full bg-gradient-to-b from-[#0d3849] to-[#061e29] pt-12 sm:pt-14 pb-8 min-w-0 relative">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-8 xl:gap-10">
+            
+            {/* Identity & About */}
+            <div className="sm:col-span-1 lg:col-span-4 space-y-4">
+              <div className="flex items-center gap-2.5 text-cyan-300 font-extrabold text-lg">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-600 to-teal-400 text-white flex items-center justify-center shadow-md shrink-0">
+                  <SwimmerCrawlIcon className="w-5 h-5" />
                 </div>
-                <p className="text-xs text-slate-300 leading-relaxed text-justify">
-                  مرکز تخصصی آموزش و استعدادیابی شنا در استان قزوین؛ برگزارکننده دوره‌های عمومی، نیمه‌خصوصی و خصوصی ۴ شنا ویژه کودکان، نوجوانان و بزرگسالان.
-                </p>
-                <div className="pt-2 flex items-center gap-2 text-[11px] text-emerald-400 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-500/30 w-fit">
-                  <ShieldCheck className="w-3.5 h-3.5" />
-                  <span>زیر نظر مربیان رسمی فدراسیون شنا</span>
-                </div>
+                <span className="text-white font-black text-lg">مدرسه شنای ایران - قزوین</span>
               </div>
-
-              {/* Quick Links */}
-              <div className="lg:col-span-2 space-y-3">
-                <h4 className="font-bold text-sm text-white">بخش‌های وبسایت</h4>
-                <ul className="space-y-2 text-xs text-slate-300">
-                  {isSectionEnabled('about') && (
-                    <li>
-                      <a href="#about" className="hover:text-cyan-300 transition-colors">
-                        ویژگی‌ها و مزایای کلاس‌ها
-                      </a>
-                    </li>
-                  )}
-                  {isSectionEnabled('courses') && (
-                    <li>
-                      <a href="#courses" className="hover:text-cyan-300 transition-colors">
-                        برنامه دوره‌ها و ثبت‌نام
-                      </a>
-                    </li>
-                  )}
-                  {isSectionEnabled('pools') && (
-                    <li>
-                      <a href="#pools" className="hover:text-cyan-300 transition-colors">
-                        استخرهای تحت پوشش قزوین
-                      </a>
-                    </li>
-                  )}
-                  {isSectionEnabled('facilities') && (
-                    <li>
-                      <a href="#facilities" className="hover:text-cyan-300 transition-colors">
-                        امکانات و شرایط استخرها
-                      </a>
-                    </li>
-                  )}
-                  {isSectionEnabled('coaches') && (
-                    <li>
-                      <a href="#coaches" className="hover:text-cyan-300 transition-colors">
-                        کادر مربیان قزوین
-                      </a>
-                    </li>
-                  )}
-                  {isSectionEnabled('news') && (
-                    <li>
-                      <a href="#news" className="hover:text-cyan-300 transition-colors">
-                        اخبار و اطلاعیه‌ها
-                      </a>
-                    </li>
-                  )}
-                </ul>
-              </div>
-
-              {/* Portal Access */}
-              <div className="lg:col-span-2 space-y-3">
-                <h4 className="font-bold text-sm text-white">ورود به سامانه‌ها</h4>
-                <ul className="space-y-2 text-xs text-cyan-300">
-                  <li>
-                    <Link to="/login" className="hover:underline flex items-center gap-1.5">
-                      <span>ورود شناگران و والدین</span>
-                      <ArrowLeft className="w-3 h-3" />
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/login" className="hover:underline flex items-center gap-1.5">
-                      <span>میز کار مربیان</span>
-                      <ArrowLeft className="w-3 h-3" />
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/login" className="hover:underline flex items-center gap-1.5">
-                      <span>مدیریت آموزشگاه</span>
-                      <ArrowLeft className="w-3 h-3" />
-                    </Link>
-                  </li>
-                </ul>
-              </div>
-
-              {/* Contact */}
-              <div className="lg:col-span-3 space-y-3">
-                <h4 className="font-bold text-sm text-white">اطلاعات تماس و استخرها</h4>
-                <div className="space-y-2 text-xs text-slate-300 leading-relaxed">
-                  <p className="flex items-start gap-2">
-                    <MapPin className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
-                    <span>قزوین، استخرها و مجموعه‌های ورزشی طرف قرارداد مدرسه شنای ایران</span>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <PhoneCall className="w-4 h-4 text-teal-400 shrink-0" />
-                    <span>تلفن هماهنگی: ۰۲۸-۳۳۶۵۰۰۰۰</span>
-                  </p>
-                  <p className="flex items-center gap-2">
-                    <Clock className="w-4 h-4 text-teal-400 shrink-0" />
-                    <span>پاسخگویی و هماهنگی: شنبه تا پنج‌شنبه ۹ الی ۲۰</span>
-                  </p>
-                </div>
-              </div>
-
-              {/* Trust Seal (Enamad) */}
-              <div className="md:col-span-2 lg:col-span-2 flex flex-col items-start md:items-center lg:items-end">
-                <div className="flex flex-col items-center space-y-3">
-                  <h4 className="font-bold text-sm text-white">نماد اعتماد</h4>
-                  <a
-                    referrerPolicy="origin"
-                    target="_blank"
-                    rel="noopener"
-                    href="https://trustseal.enamad.ir/?id=8412006&Code=JQjDkp1A7Vlcx7g8vFbifdbIAGnkdkJm"
-                    aria-label="نماد اعتماد الکترونیکی"
-                    className="inline-flex items-center justify-center rounded-2xl bg-white/95 hover:bg-white p-2.5 shadow-lg border border-cyan-200/30 transition-transform duration-200 hover:-translate-y-0.5"
-                  >
-                    <img
-                      referrerPolicy="origin"
-                      src="https://trustseal.enamad.ir/logo.aspx?id=8412006&Code=JQjDkp1A7Vlcx7g8vFbifdbIAGnkdkJm"
-                      alt="نماد اعتماد الکترونیکی"
-                      style={{ cursor: 'pointer' }}
-                      code="JQjDkp1A7Vlcx7g8vFbifdbIAGnkdkJm"
-                      className="w-24 h-24 sm:w-28 sm:h-28 object-contain"
-                    />
-                  </a>
-                </div>
+              <p className="text-xs text-slate-300 leading-relaxed text-justify sm:text-right">
+                مرکز تخصصی آموزش، اصلاح تکنیک و استعدادیابی شنا در استان قزوین؛ برگزارکننده دوره‌های عمومی، نیمه‌خصوصی و خصوصی ۴ شنا ویژه کودکان، نوجوانان و بزرگسالان.
+              </p>
+              <div className="pt-1 flex items-center gap-2 text-[11px] text-emerald-300 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-500/30 w-fit">
+                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+                <span>زیر نظر مربیان رسمی فدراسیون شنا</span>
               </div>
             </div>
 
-            <div className="border-t border-slate-800 pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
-              <p>
-                کلیه حقوق مادی و معنوی متعلق به مدرسه شنای ایران در استان قزوین می‌باشد © ۱۴۰۵
-              </p>
-              <div className="flex items-center gap-2 text-[11px] text-cyan-300">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span>سامانه ثبت‌نام آنلاین فعال است</span>
+            {/* Quick Links */}
+            <div className="sm:col-span-1 lg:col-span-2 space-y-3.5">
+              <h4 className="font-bold text-sm text-white flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                <span>بخش‌های وبسایت</span>
+              </h4>
+              <ul className="grid grid-cols-2 gap-x-2 gap-y-2.5 sm:grid-cols-1 sm:gap-2.5 text-xs text-slate-300">
+                {isSectionEnabled('about') && (
+                  <li>
+                    <a href="#about" className="hover:text-cyan-300 transition-colors flex items-center gap-1.5 py-0.5 group">
+                      <span className="text-cyan-400/60 group-hover:text-cyan-300 text-[10px] transition-colors">‹</span>
+                      <span>ویژگی‌ها و مزایا</span>
+                    </a>
+                  </li>
+                )}
+                {isSectionEnabled('courses') && (
+                  <li>
+                    <a href="#courses" className="hover:text-cyan-300 transition-colors flex items-center gap-1.5 py-0.5 group">
+                      <span className="text-cyan-400/60 group-hover:text-cyan-300 text-[10px] transition-colors">‹</span>
+                      <span>برنامه دوره‌ها</span>
+                    </a>
+                  </li>
+                )}
+                {isSectionEnabled('pools') && (
+                  <li>
+                    <a href="#pools" className="hover:text-cyan-300 transition-colors flex items-center gap-1.5 py-0.5 group">
+                      <span className="text-cyan-400/60 group-hover:text-cyan-300 text-[10px] transition-colors">‹</span>
+                      <span>استخرهای طرف قرارداد</span>
+                    </a>
+                  </li>
+                )}
+                {isSectionEnabled('facilities') && (
+                  <li>
+                    <a href="#facilities" className="hover:text-cyan-300 transition-colors flex items-center gap-1.5 py-0.5 group">
+                      <span className="text-cyan-400/60 group-hover:text-cyan-300 text-[10px] transition-colors">‹</span>
+                      <span>امکانات و شرایط</span>
+                    </a>
+                  </li>
+                )}
+                {isSectionEnabled('coaches') && (
+                  <li>
+                    <a href="#coaches" className="hover:text-cyan-300 transition-colors flex items-center gap-1.5 py-0.5 group">
+                      <span className="text-cyan-400/60 group-hover:text-cyan-300 text-[10px] transition-colors">‹</span>
+                      <span>کادر مربیان قزوین</span>
+                    </a>
+                  </li>
+                )}
+                {isSectionEnabled('news') && (
+                  <li>
+                    <a href="#news" className="hover:text-cyan-300 transition-colors flex items-center gap-1.5 py-0.5 group">
+                      <span className="text-cyan-400/60 group-hover:text-cyan-300 text-[10px] transition-colors">‹</span>
+                      <span>اخبار و اطلاعیه‌ها</span>
+                    </a>
+                  </li>
+                )}
+              </ul>
+            </div>
+
+            {/* Contact */}
+            <div className="sm:col-span-1 lg:col-span-3 space-y-3.5">
+              <h4 className="font-bold text-sm text-white flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                <span>اطلاعات تماس و استخرها</span>
+              </h4>
+              <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
+                <p className="flex items-start gap-2.5">
+                  <MapPin className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
+                  <span>قزوین، استخرها و مجموعه‌های ورزشی طرف قرارداد مدرسه شنای ایران</span>
+                </p>
+                <div className="flex items-center gap-2.5">
+                  <PhoneCall className="w-4 h-4 text-teal-400 shrink-0" />
+                  <a
+                    href="tel:02833650000"
+                    className="hover:text-cyan-300 transition-colors flex items-center gap-2 font-medium group"
+                  >
+                    <span>تلفن هماهنگی:</span>
+                    <span dir="ltr" className="inline-block font-bold text-cyan-300 group-hover:underline tracking-wider">۰۲۸-۳۳۶۵۰۰۰۰</span>
+                    <span className="text-[10px] text-cyan-400/80 bg-cyan-950/80 px-1.5 py-0.5 rounded border border-cyan-800/50">تماس مستقیم</span>
+                  </a>
+                </div>
+                <p className="flex items-center gap-2.5">
+                  <Clock className="w-4 h-4 text-teal-400 shrink-0" />
+                  <span>پاسخگویی: شنبه تا پنج‌شنبه ۹ الی ۲۰</span>
+                </p>
+              </div>
+            </div>
+
+            {/* Trust Seal (Enamad) */}
+            <div className="sm:col-span-1 lg:col-span-3 flex flex-col items-start sm:items-center lg:items-start space-y-3.5">
+              <h4 className="font-bold text-sm text-white flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                <span>نماد اعتماد</span>
+              </h4>
+              <a
+                referrerPolicy="origin"
+                target="_blank"
+                rel="noopener"
+                href="https://trustseal.enamad.ir/?id=8412006&Code=JQjDkp1A7Vlcx7g8vFbifdbIAGnkdkJm"
+                aria-label="نماد اعتماد الکترونیکی"
+                className="inline-flex items-center justify-center rounded-2xl bg-white/95 hover:bg-white p-2.5 shadow-lg border border-cyan-200/30 transition-transform duration-200 hover:-translate-y-0.5"
+              >
+                <img
+                  referrerPolicy="origin"
+                  src="https://trustseal.enamad.ir/logo.aspx?id=8412006&Code=JQjDkp1A7Vlcx7g8vFbifdbIAGnkdkJm"
+                  alt="نماد اعتماد الکترونیکی"
+                  style={{ cursor: 'pointer' }}
+                  code="JQjDkp1A7Vlcx7g8vFbifdbIAGnkdkJm"
+                  className="w-24 h-24 sm:w-28 sm:h-28 object-contain"
+                />
+              </a>
+            </div>
+          </div>
+
+          {/* About Rayban Team & Creator Banner */}
+          <div className="mt-10 pt-8 border-t border-cyan-900/40">
+            <div className="rounded-2xl bg-gradient-to-r from-slate-900/90 via-cyan-950/40 to-slate-900/90 border border-cyan-500/20 p-4 sm:p-5 backdrop-blur-sm shadow-xl">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start sm:items-center gap-3.5">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-teal-400 flex items-center justify-center text-white font-black text-lg shadow-md shadow-cyan-500/20 shrink-0">
+                    ر
+                  </div>
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h4 className="text-white font-extrabold text-sm sm:text-base">
+                        تیم نرم‌افزاری رایبان
+                      </h4>
+                      <span className="text-[10px] text-cyan-300 bg-cyan-950/90 border border-cyan-600/40 px-2 py-0.5 rounded-full font-bold">
+                        طراح و سازنده سامانه
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-300 leading-relaxed mt-1">
+                      طراحی، پیاده‌سازی و ساخت اختصاصی این سامانه جامع توسط <strong className="text-cyan-300 font-bold">تیم رایبان</strong> انجام شده است.
+                    </p>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowRaybanModal(true)}
+                  className="shrink-0 px-3.5 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-white border border-cyan-500/30 transition-all text-xs font-bold cursor-pointer inline-flex items-center gap-1.5 active:scale-95"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                  <span>درباره رایبان</span>
+                </button>
               </div>
             </div>
           </div>
-        </footer>
+
+          {/* Bottom Divider & Copyright */}
+          <div className="border-t border-slate-800/80 pt-6 mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-center sm:text-right leading-relaxed">
+              <p>
+                کلیه حقوق مادی و معنوی این سامانه متعلق به <span className="text-cyan-300 font-bold">تیم رایبان</span> می‌باشد © ۱۴۰۵
+              </p>
+              <span className="hidden sm:inline text-slate-600">•</span>
+              <p className="text-slate-400 flex items-center gap-1.5">
+                <span>سازنده سامانه:</span>
+                <span className="text-slate-200 font-medium">تیم نرم‌افزاری رایبان</span>
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+              className="inline-flex items-center gap-1.5 text-[11px] text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer group py-1.5 px-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-cyan-800/40"
+              aria-label="بازگشت به ابتدای صفحه"
+            >
+              <span>بازگشت به بالا</span>
+              <ArrowUp className="w-3.5 h-3.5 group-hover:-translate-y-0.5 transition-transform" />
+            </button>
+          </div>
+        </div>
+      </footer>
 
       </div>
 
@@ -1973,9 +2020,10 @@ export const HomePage = () => {
                 <span>{selectedPool.location}</span>
               </p>
               {selectedPool.phone && (
-                <p className="flex items-center gap-2 text-xs text-slate-400 font-mono">
+                <p className="flex items-center gap-2 text-xs text-slate-400">
                   <PhoneCall className="w-3.5 h-3.5 text-teal-400 shrink-0" />
-                  <span>تلفن هماهنگی: {selectedPool.phone}</span>
+                  <span>تلفن هماهنگی:</span>
+                  <span dir="ltr" className="inline-block font-medium">{selectedPool.phone}</span>
                 </p>
               )}
             </div>
@@ -2163,6 +2211,62 @@ export const HomePage = () => {
             </div>
           </form>
         )}
+      </Modal>
+
+      {/* =========================================================================
+          ABOUT RAYBAN TEAM MODAL
+          ========================================================================= */}
+      <Modal
+        isOpen={showRaybanModal}
+        onClose={() => setShowRaybanModal(false)}
+        title="درباره تیم نرم‌افزاری رایبان (Rayban)"
+        maxWidth="max-w-xl"
+      >
+        <div className="space-y-5 text-right p-1">
+          <div className="flex items-center gap-3.5 pb-4 border-b border-slate-100 dark:border-slate-800">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-600 to-teal-400 text-white font-black text-2xl flex items-center justify-center shadow-md shadow-cyan-500/20 shrink-0">
+              ر
+            </div>
+            <div>
+              <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+                تیم نرم‌افزاری و توسعه فناوری رایبان
+              </h3>
+              <p className="text-xs text-cyan-600 dark:text-cyan-400 font-semibold mt-0.5">
+                طراح، معمار و سازنده پلتفرم مدیریت مدرسه شنا
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3 text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed text-justify">
+            <p>
+              تیم نرم‌افزاری <strong>رایبان</strong> متشکل از متخصصان حوزه مهندسی نرم‌افزار، طراحی تجربه کاربری و سامانه‌های ابری است که با هدف ارتقای سطح کیفی مدیریت کسب‌وکارهای ورزشی و آموزشی، پلتفرم‌های اختصاصی، امن و پرسرعت را طراحی و پیاده‌سازی می‌نماید.
+            </p>
+            <p>
+              تمامی زیرساخت‌های این وب‌اپلیکیشن اعم از فرانت‌اند ریسپانسیو، سرویس‌های بک‌اند، ماژول‌های رزرو و ثبت‌نام آنلاین، پورتال مربیان و شناگران، جدول برنامه‌ریزی استخرها و مدیریت مالی به طور اختصاصی توسط تیم رایبان توسعه داده شده است.
+            </p>
+          </div>
+
+          <div className="bg-cyan-50 dark:bg-cyan-950/40 rounded-xl p-3.5 border border-cyan-200 dark:border-cyan-800/40 text-xs text-cyan-900 dark:text-cyan-200 space-y-1">
+            <div className="font-bold flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-cyan-600 dark:text-cyan-400" />
+              <span>مالکیت فکری و کپی‌رایت:</span>
+            </div>
+            <p className="text-[11px] leading-relaxed text-cyan-800 dark:text-cyan-300">
+              کلیه حقوق مادی و معنوی، کدهای منبع، ساختار دیتابیس و طراحی این سامانه در انحصار تیم نرم‌افزاری رایبان محفوظ می‌باشد.
+            </p>
+          </div>
+
+          <div className="pt-2 flex justify-end">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowRaybanModal(false)}
+              className="text-xs font-bold"
+            >
+              بستن
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );

@@ -23,21 +23,33 @@ class SkillLevel(models.Model):
 class Skill(models.Model):
     level = models.ForeignKey(
         SkillLevel,
-        on_delete=models.CASCADE,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
         related_name='skills',
         verbose_name=_('سطح مهارت مرتبط')
     )
     name = models.CharField(_('عنوان مهارت/آیتم آموزشی'), max_length=150)
     criteria_description = models.TextField(_('معیار سنجش و قبولی'), blank=True)
     order = models.PositiveSmallIntegerField(_('ترتیب'), default=1)
+    coach = models.ForeignKey(
+        'coaches.CoachProfile',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='custom_skills',
+        verbose_name=_('مربی تعریف‌کننده')
+    )
+    is_custom = models.BooleanField(_('آیتم اختصاصی مربی'), default=False)
 
     class Meta:
         verbose_name = _('مهارت آموزشی')
         verbose_name_plural = _('مهارت‌های آموزشی')
-        ordering = ['level', 'order']
+        ordering = ['order', 'name']
 
     def __str__(self):
-        return f"{self.name} ({self.level.name})"
+        level_str = self.level.name if self.level else (_('اختصاصی ') + (self.coach.full_name if self.coach else _('مربی')))
+        return f"{self.name} ({level_str})"
 
 
 class Course(models.Model):
