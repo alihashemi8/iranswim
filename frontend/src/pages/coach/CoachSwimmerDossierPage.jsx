@@ -234,15 +234,13 @@ export const CoachSwimmerDossierPage = () => {
             پیشنهاد ارتقای سطح
           </button>
 
-          <Button
-            variant="success"
-            size="md"
-            onClick={() => setShowAssessmentModal(true)}
-            className="flex-1 min-w-[165px] sm:flex-initial gap-2 min-h-[42px] font-bold text-xs sm:text-sm px-3.5 sm:px-4 py-2 cursor-pointer"
+          <Link
+            to={`/coach/progress/${swimmerId}/assessment`}
+            className="flex-1 min-w-[165px] sm:flex-initial inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 min-h-[42px] rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer active:scale-95 whitespace-nowrap"
           >
             <PlusCircle className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" />
             ثبت ارزیابی مهارت
-          </Button>
+          </Link>
         </div>
       </div>
 
@@ -407,118 +405,6 @@ export const CoachSwimmerDossierPage = () => {
           </div>
         </div>
       )}
-
-      {/* Assessment Modal */}
-      {showAssessmentModal &&
-        createPortal(
-          <div
-            dir="rtl"
-            className="coach-panel fixed inset-0 z-[9999] overflow-y-auto bg-slate-950/65 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overscroll-contain"
-            style={{ touchAction: 'pan-y', overscrollBehavior: 'contain' }}
-            onClick={() => setShowAssessmentModal(false)}
-          >
-            <div
-              className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl my-auto"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between gap-2 px-5 py-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 rounded-t-2xl">
-                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 min-w-0">
-                  <PlusCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                  <span className="truncate">ثبت ارزیابی مهارت برای {swimmer.full_name}</span>
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => setShowAssessmentModal(false)}
-                  className="p-1.5 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer shrink-0"
-                  aria-label="بستن"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <form onSubmit={handleSaveAssessment} className="p-5 space-y-4 text-sm">
-                <div>
-                  <CustomSelect
-                    label="انتخاب مهارت شنا:"
-                    value={selectedSkillId}
-                    onChange={(val) => setSelectedSkillId(val)}
-                    options={skillOptions}
-                    icon={BookOpen}
-                    placeholder={
-                      skillOptions.length > 0 ? 'انتخاب مهارت...' : 'مهارتی تعریف نشده است'
-                    }
-                    color="emerald"
-                    searchable={skillOptions.length > 5}
-                    menuClassName="w-full"
-                    disabled={skillOptions.length === 0}
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <CustomSelect
-                      label="نتیجه سنجش:"
-                      value={statusVal}
-                      onChange={(val) => setStatusVal(val || 'PASSED')}
-                      options={assessmentStatusOptions}
-                      color="emerald"
-                      menuClassName="w-full"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold mb-1">
-                      نمره (از 100):
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      value={score}
-                      onChange={(e) => setScore(e.target.value)}
-                      className="w-full min-h-[42px] rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3 py-2 text-slate-800 dark:text-slate-100 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold mb-1.5">
-                    توضیحات و بازخورد مربی:
-                  </label>
-                  <textarea
-                    rows="3"
-                    placeholder="نکات تکنیکی، اصلاحات مورد نیاز یا نقاط قوت شاگرد..."
-                    value={feedback}
-                    onChange={(e) => setFeedback(e.target.value)}
-                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end gap-2.5 pt-2">
-                  <Button
-                    type="button"
-                    variant="secondary"
-                    size="md"
-                    onClick={() => setShowAssessmentModal(false)}
-                    className="cursor-pointer"
-                  >
-                    انصراف
-                  </Button>
-                  <Button
-                    type="submit"
-                    variant="success"
-                    size="md"
-                    loading={savingAssessment}
-                    disabled={skillOptions.length === 0}
-                    className="font-bold cursor-pointer"
-                  >
-                    ثبت ارزیابی
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </div>,
-          document.body
-        )}
 
       {/* Promotion Proposal Modal */}
       {showPromotionModal &&
