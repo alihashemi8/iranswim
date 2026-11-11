@@ -1821,10 +1821,9 @@ export const HomePage = () => {
               <a
                 referrerPolicy="origin"
                 target="_blank"
-                rel="noopener"
                 href="https://trustseal.enamad.ir/?id=8412006&Code=JQjDkp1A7Vlcx7g8vFbifdbIAGnkdkJm"
                 aria-label="نماد اعتماد الکترونیکی"
-                className="inline-flex items-center justify-center rounded-2xl bg-white/95 hover:bg-white p-2.5 shadow-lg border border-cyan-200/30 transition-transform duration-200 hover:-translate-y-0.5"
+                className="inline-flex items-center justify-center rounded-2xl bg-white/95 hover:bg-white p-2.5 shadow-lg border border-cyan-200/30 transition-transform duration-200 hover:-translate-y-0.5 cursor-pointer"
               >
                 <img
                   referrerPolicy="origin"
