@@ -1,10 +1,9 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useParams, Link } from 'react-router-dom';
 import {
-  TrendingUp, Award, Calendar, ChevronRight, CheckCircle2,
-  Clock, AlertCircle, PlusCircle, Users,
-  UserCheck, X, BookOpen
+  TrendingUp, Award, Calendar, ChevronRight,
+  PlusCircle, Users, UserCheck, X
 } from 'lucide-react';
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
@@ -17,7 +16,6 @@ import { toShamsiDate } from '../../utils/date';
 export const CoachSwimmerDossierPage = () => {
   const { swimmerId } = useParams();
   const [data, setData] = useState(null);
-  const [skillsList, setSkillsList] = useState([]);
   const [loadedSwimmerId, setLoadedSwimmerId] = useState(null);
   const loading = loadedSwimmerId !== swimmerId;
 
@@ -42,51 +40,13 @@ export const CoachSwimmerDossierPage = () => {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [showPromotionModal]);
 
-  const fetchAllLevels = useCallback(async () => {
-    const firstRes = await api.get('/education/levels/');
-    const firstData = firstRes.data;
-    if (Array.isArray(firstData)) return firstData;
-
-    const allItems = [...(firstData?.results || [])];
-    let next = firstData?.next;
-    let page = 2;
-
-    while (next && page <= 20) {
-      const pageRes = await api.get('/education/levels/', { params: { page } });
-      const pageData = pageRes.data;
-      const pageItems = pageData?.results || (Array.isArray(pageData) ? pageData : []);
-      allItems.push(...pageItems);
-      next = pageData?.next;
-      page += 1;
-    }
-
-    return allItems;
-  }, []);
-
   const loadDossierData = useCallback(async () => {
-    const [dossierRes, allLevels] = await Promise.all([
-      api.get(`/coaches/swimmer-dossier/${swimmerId}/`),
-      fetchAllLevels(),
-    ]);
+    const res = await api.get(`/coaches/swimmer-dossier/${swimmerId}/`);
+    return res.data;
+  }, [swimmerId]);
 
-    const extractedSkills = [];
-    allLevels.forEach((lvl) => {
-      if (lvl?.skills && Array.isArray(lvl.skills)) {
-        lvl.skills.forEach((sk) => {
-          extractedSkills.push({ ...sk, level_name: lvl.name });
-        });
-      }
-    });
-
-    return { dossier: dossierRes.data, extractedSkills };
-  }, [swimmerId, fetchAllLevels]);
-
-  const applyDossierResult = useCallback(({ dossier, extractedSkills }) => {
+  const applyDossierResult = useCallback((dossier) => {
     setData(dossier);
-    setSkillsList(extractedSkills);
-    if (extractedSkills.length > 0) {
-      setSelectedSkillId((prev) => prev || String(extractedSkills[0].id));
-    }
   }, []);
 
   useEffect(() => {
@@ -145,6 +105,7 @@ export const CoachSwimmerDossierPage = () => {
       setShowPromotionModal(false);
       setTargetLevelId('');
       setCoachNotes('');
+      await refreshDossier();
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.detail || 'خطا در ثبت پیشنهاد ارتقا');

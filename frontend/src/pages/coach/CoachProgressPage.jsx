@@ -449,9 +449,9 @@ export const CoachProgressPage = () => {
           >
             <BookOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
             <span>بانک معیارهای ارزیابی</span>
-            {skillsList.filter((s) => s.is_custom).length > 0 && (
+            {skillsList.length > 0 && (
               <span className="px-1.5 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 text-[10px] font-mono">
-                {skillsList.filter((s) => s.is_custom).length}
+                {skillsList.length}
               </span>
             )}
           </button>
@@ -965,42 +965,40 @@ export const CoachProgressPage = () => {
           {/* Existing Skills List */}
           <div className="space-y-2">
             <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">
-              سرفصل‌های اختصاصی شما ({skillsList.filter((s) => s.is_custom).length}):
+              سرفصل‌های اختصاصی شما ({skillsList.length}):
             </h4>
             <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[300px] overflow-y-auto">
-              {skillsList.filter((s) => s.is_custom).length > 0 ? (
-                skillsList
-                  .filter((s) => s.is_custom)
-                  .map((sk) => (
-                    <div
-                      key={sk.id}
-                      className="py-2.5 px-2 flex items-center justify-between gap-3 text-xs sm:text-sm hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl transition-colors"
-                    >
-                      <div className="min-w-0 space-y-0.5">
-                        <span className="font-bold text-slate-900 dark:text-white block truncate">
-                          {sk.name}
+              {skillsList.length > 0 ? (
+                skillsList.map((sk) => (
+                  <div
+                    key={sk.id}
+                    className="py-2.5 px-2 flex items-center justify-between gap-3 text-xs sm:text-sm hover:bg-slate-50 dark:hover:bg-slate-800/40 rounded-xl transition-colors"
+                  >
+                    <div className="min-w-0 space-y-0.5">
+                      <span className="font-bold text-slate-900 dark:text-white block truncate">
+                        {sk.name}
+                      </span>
+                      {sk.criteria_description && (
+                        <span className="text-xs text-slate-500 dark:text-slate-400 block truncate">
+                          {sk.criteria_description}
                         </span>
-                        {sk.criteria_description && (
-                          <span className="text-xs text-slate-500 dark:text-slate-400 block truncate">
-                            {sk.criteria_description}
-                          </span>
-                        )}
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteSkill(sk.id)}
-                        disabled={deletingSkillId === sk.id}
-                        className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-lg transition-colors cursor-pointer shrink-0"
-                        title="حذف سرفصل"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
+                      )}
                     </div>
-                  ))
+
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteSkill(sk.id)}
+                      disabled={deletingSkillId === sk.id}
+                      className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-lg transition-colors cursor-pointer shrink-0"
+                      title="حذف سرفصل"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))
               ) : (
                 <div className="text-center py-6 text-xs text-slate-400">
-                  هنوز متن ارزیابی اختصاصی ثبت نشده است. از فرم بالا برای افزودن استفاده نمایید.
+                  هنوز متنی توسط شما ثبت نشده است. از فرم بالا برای افزودن سرفصل جدید استفاده نمایید.
                 </div>
               )}
             </div>

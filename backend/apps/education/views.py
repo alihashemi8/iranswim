@@ -55,12 +55,12 @@ class SkillListCreateView(generics.ListCreateAPIView):
 
         if user.role == 'COACH':
             coach_profile = getattr(user, 'coach_profile', None)
-            mine = self.request.query_params.get('mine')
-            if mine in ['true', '1']:
-                return qs.filter(coach=coach_profile) if coach_profile else qs.none()
-            if coach_profile:
+            if not coach_profile:
+                return qs.none()
+            all_param = self.request.query_params.get('all')
+            if all_param in ['true', '1']:
                 return qs.filter(Q(coach=coach_profile) | Q(coach__isnull=True))
-            return qs.filter(coach__isnull=True)
+            return qs.filter(coach=coach_profile)
 
         return qs.filter(coach__isnull=True)
 
@@ -71,6 +71,40 @@ class SkillListCreateView(generics.ListCreateAPIView):
             serializer.save(coach=coach_profile, is_custom=True)
         else:
             serializer.save(is_custom=False)
+
+
+class SkillImportDefaultsView(APIView):
+    """کپی کردن سرفصل‌های پایه در بانک ارزیابی اختصاصی مربی جهت شخصی‌سازی و استفاده در کلاس‌ها"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if user.role != 'COACH':
+            return Response({'detail': 'تنها مربیان مجاز به استفاده از این قابلیت هستند.'}, status=status.HTTP_403_FORBIDDEN)
+        coach_profile = getattr(user, 'coach_profile', None)
+        if not coach_profile:
+            return Response({'detail': 'پروفایل مربی یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        system_skills = Skill.objects.filter(coach__isnull=True)
+        created_count = 0
+        for sys_sk in system_skills:
+            if not Skill.objects.filter(coach=coach_profile, name=sys_sk.name).exists():
+                Skill.objects.create(
+                    name=sys_sk.name,
+                    criteria_description=sys_sk.criteria_description,
+                    level=sys_sk.level,
+                    coach=coach_profile,
+                    is_custom=True
+                )
+                created_count += 1
+
+        coach_skills = Skill.objects.filter(coach=coach_profile).select_related('level')
+        serializer = SkillSerializer(coach_skills, many=True)
+        return Response({
+            'message': f'{created_count} سرفصل به گزینه‌های شما اضافه شد.',
+            'skills': serializer.data,
+            'count': created_count,
+        }, status=status.HTTP_200_OK)
 
 
 class SkillDetailView(generics.RetrieveUpdateDestroyAPIView):

@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (
-    SkillLevelListView, SkillListCreateView, SkillDetailView,
+    SkillLevelListView, SkillListCreateView, SkillDetailView, SkillImportDefaultsView,
     CourseListView, CourseDetailView,
     SwimmerGroupListView, SwimmerGroupDetailView,
     EnrollmentRequestCreateView, EnrollmentRequestListView,
@@ -11,6 +11,7 @@ from .views import (
 urlpatterns = [
     path('levels/', SkillLevelListView.as_view(), name='skill_level_list'),
     path('skills/', SkillListCreateView.as_view(), name='skill_list'),
+    path('skills/import-defaults/', SkillImportDefaultsView.as_view(), name='skill_import_defaults'),
     path('skills/<int:pk>/', SkillDetailView.as_view(), name='skill_detail'),
     path('courses/', CourseListView.as_view(), name='course_list'),
     path('courses/<int:pk>/', CourseDetailView.as_view(), name='course_detail'),

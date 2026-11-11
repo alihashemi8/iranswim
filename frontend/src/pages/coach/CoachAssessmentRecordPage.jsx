@@ -3,7 +3,8 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
   TrendingUp, Award, Calendar, ChevronRight, CheckCircle2,
   Clock, AlertCircle, PlusCircle, Users, BookOpen,
-  ArrowRight, Sparkles, Trash2, Edit3, X, Check, FileText
+  ArrowRight, Sparkles, Trash2, Edit3, X, Check, FileText,
+  Plus, Download
 } from 'lucide-react';
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
@@ -86,32 +87,16 @@ export const CoachAssessmentRecordPage = () => {
   const assessments = dossierData?.assessments || [];
   const attSummary = dossierData?.attendance_summary || {};
 
-  // Custom skills vs standard skills
-  const customSkills = useMemo(
-    () => skillsList.filter((s) => s.is_custom),
-    [skillsList]
-  );
+  const [importingDefaults, setImportingDefaults] = useState(false);
 
+  // Evaluation items (purely coach's custom evaluation items)
   const skillOptions = useMemo(() => {
-    return skillsList.map((sk) => {
-      const isCoachCustom = sk.is_custom;
-      let badge = undefined;
-      let desc = undefined;
-      if (isCoachCustom) {
-        badge = 'متن تعریف‌شده شما';
-        desc = sk.criteria_description || 'سرفصل اختصاصی مربی (قابل استفاده در تمامی کلاس‌ها)';
-      } else if (sk.level_name) {
-        badge = `سطح: ${sk.level_name}`;
-        desc = sk.criteria_description;
-      }
-      return {
-        value: String(sk.id),
-        label: sk.name,
-        badge,
-        description: desc,
-        icon: BookOpen,
-      };
-    });
+    return skillsList.map((sk) => ({
+      value: String(sk.id),
+      label: sk.name,
+      description: sk.criteria_description || undefined,
+      icon: BookOpen,
+    }));
   }, [skillsList]);
 
   // Selected skill object
@@ -120,9 +105,9 @@ export const CoachAssessmentRecordPage = () => {
     [skillsList, selectedSkillId]
   );
 
-  // Quick save a brand new custom evaluation text
+  // Quick save a brand new custom evaluation text for the dropdown
   const handleSaveNewSkill = async (e) => {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
     const trimmedName = newSkillName.trim();
     if (!trimmedName) {
       toast.error('لطفاً عنوان یا متن ارزیابی را وارد نمایید.');
@@ -142,12 +127,33 @@ export const CoachAssessmentRecordPage = () => {
       setNewSkillName('');
       setNewSkillCriteria('');
       setShowNewSkillBox(false);
-      toast.success('متن ارزیابی جدید ذخیره شد و در تمامی کلاس‌های شما قابل استفاده است.');
+      toast.success('گزینه جدید به دراپ‌داون اضافه شد و در تمامی کلاس‌ها قابل استفاده است.');
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.name?.[0] || 'خطا در ذخیره متن ارزیابی جدید');
     } finally {
       setSavingNewSkill(false);
+    }
+  };
+
+  // Import standard starter templates into the coach's custom skills bank
+  const handleImportDefaults = async () => {
+    try {
+      setImportingDefaults(true);
+      const res = await api.post('/education/skills/import-defaults/');
+      const imported = res.data?.skills || [];
+      if (imported.length > 0) {
+        setSkillsList(imported);
+        setSelectedSkillId(String(imported[0].id));
+        toast.success(res.data?.message || 'سرفصل‌های پایه در دراپ‌داون شما قرار گرفتند.');
+      } else {
+        toast.info('سرفصل‌های پایه قبلاً در لیست شما ثبت شده‌اند.');
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error('خطا در درون‌ریزی سرفصل‌های پایه');
+    } finally {
+      setImportingDefaults(false);
     }
   };
 
@@ -328,17 +334,17 @@ export const CoachAssessmentRecordPage = () => {
                   className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 px-2.5 py-1.5 rounded-lg border border-emerald-200/80 dark:border-emerald-800/80 transition-colors cursor-pointer"
                 >
                   <PlusCircle className="w-3.5 h-3.5" />
-                  <span>{showNewSkillBox ? 'بستن فرم متن جدید' : 'نوشتن متن ارزیابی جدید'}</span>
+                  <span>{showNewSkillBox ? 'بستن کادر نگارش' : '➕ نوشتن گزینه جدید برای دراپ‌داون'}</span>
                 </button>
 
-                {customSkills.length > 0 && (
+                {skillsList.length > 0 && (
                   <button
                     type="button"
                     onClick={() => setIsManageSkillsModalOpen(true)}
                     className="inline-flex items-center gap-1 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
                   >
                     <Edit3 className="w-3.5 h-3.5" />
-                    <span>بانک معیارهای من ({customSkills.length})</span>
+                    <span>مدیریت گزینه‌ها ({skillsList.length})</span>
                   </button>
                 )}
               </div>
@@ -350,17 +356,17 @@ export const CoachAssessmentRecordPage = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-emerald-700 dark:text-emerald-300">
                     <Sparkles className="w-4 h-4 text-emerald-500" />
-                    <span>تعریف متن ارزیابی اختصاصی توسط مربی</span>
+                    <span>نگارش متن و سرفصل ارزیابی اختصاصی توسط مربی</span>
                   </div>
                   <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                    این متن برای تمامی کلاس‌های شما ذخیره می‌شود.
+                    قابل استفاده در تمامی کلاس‌ها
                   </span>
                 </div>
 
                 <div className="space-y-2">
                   <input
                     type="text"
-                    placeholder="مثال: پای کرال سینه استقامتی ۲۵ متر با فین..."
+                    placeholder="عنوان / متن ارزیابی (مثال: پای کرال سینه استقامتی ۲۵ متر)..."
                     value={newSkillName}
                     onChange={(e) => setNewSkillName(e.target.value)}
                     className="w-full min-h-[42px] rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3.5 py-2 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500"
@@ -391,49 +397,104 @@ export const CoachAssessmentRecordPage = () => {
                     className="gap-1.5 text-xs font-bold px-3.5 py-1.5 cursor-pointer"
                   >
                     <Check className="w-3.5 h-3.5" />
-                    ذخیره و انتخاب این متن
+                    ذخیره و افزودن به دراپ‌داون
                   </Button>
                 </div>
               </div>
             )}
 
-            {/* Select Skill Dropdown */}
-            <CustomSelect
-              label=""
-              value={selectedSkillId}
-              onChange={(val) => setSelectedSkillId(val)}
-              options={skillOptions}
-              icon={BookOpen}
-              placeholder={skillOptions.length > 0 ? 'انتخاب سرفصل ارزیابی...' : 'هنوز متنی تعریف نشده است'}
-              color="emerald"
-              searchable={skillOptions.length > 5}
-              menuClassName="w-full"
-              disabled={skillOptions.length === 0}
-            />
-
-            {/* Display details of currently selected skill */}
-            {currentSelectedSkill && (
-              <div className="p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/60 text-xs space-y-1">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-bold text-emerald-900 dark:text-emerald-200">
-                    {currentSelectedSkill.name}
-                  </span>
-                  {currentSelectedSkill.is_custom ? (
-                    <span className="px-2 py-0.5 rounded-md bg-emerald-200/80 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100 font-bold text-[10px]">
-                      سرفصل اختصاصی مربی
-                    </span>
-                  ) : currentSelectedSkill.level_name ? (
-                    <span className="px-2 py-0.5 rounded-md bg-slate-200/80 dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-medium text-[10px]">
-                      سطح: {currentSelectedSkill.level_name}
-                    </span>
-                  ) : null}
+            {/* Empty State when no skills written yet */}
+            {skillsList.length === 0 ? (
+              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/25 space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">
+                      متن گزینه‌های این دراپ‌داون را بنویسید
+                    </h4>
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                      هنوز هیچ سرفصلی توسط شما ثبت نشده است. عنوان ارزیابی مورد نظر خود را در کادر زیر بنویسید تا به گزینه‌های این دراپ‌داون اضافه شود (این سرفصل‌ها در تمامی کلاس‌های شما قابل استفاده خواهند بود):
+                    </p>
+                  </div>
                 </div>
-                {currentSelectedSkill.criteria_description && (
-                  <p className="text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                    معیار سنجش: {currentSelectedSkill.criteria_description}
-                  </p>
-                )}
+
+                <div className="space-y-2 pt-1">
+                  <input
+                    type="text"
+                    placeholder="عنوان / متن ارزیابی (مثلاً: پای کرال سینه با تخته ۲۵ متر)..."
+                    value={newSkillName}
+                    onChange={(e) => setNewSkillName(e.target.value)}
+                    className="w-full min-h-[44px] rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3.5 py-2 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500"
+                  />
+                  <input
+                    type="text"
+                    placeholder="معیار سنجش و قبولی یا توضیحات تکمیلی (اختیاری)..."
+                    value={newSkillCriteria}
+                    onChange={(e) => setNewSkillCriteria(e.target.value)}
+                    className="w-full min-h-[40px] rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3.5 py-2 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={handleImportDefaults}
+                    disabled={importingDefaults}
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline cursor-pointer"
+                  >
+                    <Download className="w-3.5 h-3.5" />
+                    <span>{importingDefaults ? 'در حال افزودن...' : 'افزودن گزینه‌های پرکاربرد شنا به لیست من برای شروع'}</span>
+                  </button>
+
+                  <Button
+                    type="button"
+                    variant="success"
+                    size="sm"
+                    loading={savingNewSkill}
+                    onClick={handleSaveNewSkill}
+                    className="gap-1.5 text-xs font-bold px-4 py-2 cursor-pointer shadow-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>افزودن این گزینه به دراپ‌داون</span>
+                  </Button>
+                </div>
               </div>
+            ) : (
+              <>
+                {/* Select Skill Dropdown */}
+                <CustomSelect
+                  label=""
+                  value={selectedSkillId}
+                  onChange={(val) => setSelectedSkillId(val)}
+                  options={skillOptions}
+                  icon={BookOpen}
+                  placeholder="انتخاب سرفصل ارزیابی نوشته‌شده توسط شما..."
+                  color="emerald"
+                  searchable={skillOptions.length > 5}
+                  menuClassName="w-full"
+                />
+
+                {/* Display details of currently selected skill */}
+                {currentSelectedSkill && (
+                  <div className="p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/60 text-xs space-y-1">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-bold text-emerald-900 dark:text-emerald-200">
+                        {currentSelectedSkill.name}
+                      </span>
+                      <span className="px-2 py-0.5 rounded-md bg-emerald-200/80 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100 font-bold text-[10px]">
+                        متن تعریف‌شده شما
+                      </span>
+                    </div>
+                    {currentSelectedSkill.criteria_description && (
+                      <p className="text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
+                        معیار سنجش: {currentSelectedSkill.criteria_description}
+                      </p>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </div>
 
@@ -693,8 +754,8 @@ export const CoachAssessmentRecordPage = () => {
           </p>
 
           <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[400px] overflow-y-auto">
-            {customSkills.length > 0 ? (
-              customSkills.map((sk) => (
+            {skillsList.length > 0 ? (
+              skillsList.map((sk) => (
                 <div
                   key={sk.id}
                   className="py-3 flex items-center justify-between gap-3 text-sm hover:bg-slate-50/80 dark:hover:bg-slate-800/50 px-2 rounded-xl transition-colors"
@@ -723,7 +784,7 @@ export const CoachAssessmentRecordPage = () => {
               ))
             ) : (
               <div className="text-center py-8 text-xs text-slate-400">
-                هنوز متن اختصاصی توسط شما ثبت نشده است. از دکمه «نوشتن متن ارزیابی جدید» برای افزودن استفاده کنید.
+                هنوز متنی توسط شما ثبت نشده است. از دکمه «نوشتن متن ارزیابی جدید» برای افزودن استفاده کنید.
               </div>
             )}
           </div>
