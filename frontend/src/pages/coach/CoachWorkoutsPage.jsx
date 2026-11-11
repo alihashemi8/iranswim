@@ -8,7 +8,6 @@ import {
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
 import { LoadingState } from '../../components/common/LoadingState';
-import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 
 export const CoachWorkoutsPage = () => {
@@ -134,17 +133,14 @@ export const CoachWorkoutsPage = () => {
     <div className="space-y-6 pb-12 coach-panel">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
-          <BackButton fallback="/coach/classes" title="بازگشت به کلاس‌های من" className="mt-0.5 sm:mt-0" />
-          <div className="min-w-0 flex-1">
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2 sm:gap-2.5 flex-wrap">
-              <Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600 shrink-0" />
-              <span>طراحی و بانک برنامه‌های تمرین</span>
-            </h1>
-            <p className="text-xs sm:text-sm md:text-base text-slate-500 dark:text-slate-400 mt-1">
-              طراحی جلسات آموزشی، تمرینات گرم‌کردن، ست‌های اصلی شنا و سردکردن
-            </p>
-          </div>
+        <div>
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2 sm:gap-2.5 flex-wrap">
+            <Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600 shrink-0" />
+            <span>طراحی و بانک برنامه‌های تمرین</span>
+          </h1>
+          <p className="text-xs sm:text-sm md:text-base text-slate-500 dark:text-slate-400 mt-1">
+            طراحی جلسات آموزشی، تمرینات گرم‌کردن، ست‌های اصلی شنا و سردکردن
+          </p>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">

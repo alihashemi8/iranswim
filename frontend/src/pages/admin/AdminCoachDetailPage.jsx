@@ -12,6 +12,7 @@ import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { LoadingState } from '../../components/common/LoadingState';
+import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 
 // Tabs
@@ -124,12 +125,9 @@ export const AdminCoachDetailPage = () => {
 
   if (!coach) {
     return (
-      <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-slate-200 dark:border-slate-800 text-center">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-slate-200 dark:border-slate-800 text-center space-y-4">
         <p className="text-slate-600 dark:text-slate-400">مربی مورد نظر یافت نشد.</p>
-        <Button onClick={() => navigate('/admin/coaches')} className="mt-4 gap-2">
-          <ArrowRight className="w-4 h-4" />
-          <span>بازگشت به کادر مربیان</span>
-        </Button>
+        <BackButton to="/admin/coaches" label="بازگشت به کادر مربیان" showLabelAlways />
       </div>
     );
   }
@@ -196,16 +194,9 @@ export const AdminCoachDetailPage = () => {
     <div className="space-y-6 pb-12">
       {/* Top Breadcrumb & Action Bar */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => navigate('/admin/coaches')}
-            className="p-2 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl transition-colors cursor-pointer shadow-xs"
-            title="بازگشت به کادر مربیان"
-          >
-            <ArrowRight className="w-4 h-4" />
-          </button>
-          <div>
+        <div className="flex items-center gap-3 min-w-0">
+          <BackButton fallback="/admin/coaches" title="بازگشت به کادر مربیان" />
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-400 font-medium">مدیریت مربیان و منابع انسانی</span>
               <span className="text-xs text-slate-300 dark:text-slate-700">/</span>
@@ -213,9 +204,9 @@ export const AdminCoachDetailPage = () => {
                 پرونده مربی
               </span>
             </div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white mt-1 flex items-center gap-2">
-              <UserCheck className="w-5 h-5 text-sky-600" />
-              پرونده پرسنلی و مالی: {coach.full_name}
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white mt-1 flex items-center gap-2 truncate">
+              <UserCheck className="w-5 h-5 text-sky-600 shrink-0" />
+              <span>پرونده پرسنلی و مالی: {coach.full_name}</span>
             </h1>
           </div>
         </div>

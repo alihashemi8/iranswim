@@ -12,6 +12,7 @@ import { Badge } from '../../components/common/Badge';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
+import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 
 export const AdminDirectEnrollPage = () => {
@@ -177,12 +178,13 @@ export const AdminDirectEnrollPage = () => {
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6" dir="rtl">
       {/* 1. Header & Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
-        <div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+      <div className="flex items-center gap-3 pb-4 border-b border-slate-200/80 dark:border-slate-800">
+        <BackButton fallback="/admin/swimmers" title="بازگشت به فهرست شناگران" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
             <Link
               to="/admin/swimmers"
-              className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+              className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors font-medium"
             >
               مدیریت شناگران
             </Link>
@@ -192,23 +194,13 @@ export const AdminDirectEnrollPage = () => {
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-            <GraduationCap className="w-6 h-6 text-sky-600 dark:text-sky-400" />
+            <GraduationCap className="w-6 h-6 text-sky-600 dark:text-sky-400 shrink-0" />
             <span>ثبت‌نام مستقیم شناگر در دوره آموزشی</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
             تخصیص شناگر به کلاس، تعیین سهمیه جلسات و تنظیم نحوه تسویه شهریه و اقساط
           </p>
         </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => navigate(-1)}
-          className="gap-2 text-xs self-start sm:self-auto cursor-pointer"
-        >
-          <ArrowRight className="w-4 h-4" />
-          <span>بازگشت</span>
-        </Button>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

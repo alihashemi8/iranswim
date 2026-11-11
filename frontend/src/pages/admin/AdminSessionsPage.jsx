@@ -6,6 +6,7 @@ import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
+import { BackButton } from '../../components/common/BackButton';
 import { Pagination } from '../../components/common/Pagination';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { useToast } from '../../context/ToastContext';
@@ -74,14 +75,17 @@ export const AdminSessionsPage = () => {
   return (
     <div className="space-y-6">
       <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Calendar className="w-5 h-5 text-sky-600" />
-            برنامه جلسات کلاسی و تقویم آموزشگاه
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            مشاهده زمان‌بندی روزانه، محل استخر، مربیان و مدیریت کنسلی و جبرانی جلسات
-          </p>
+        <div className="flex items-center gap-3.5 min-w-0">
+          <BackButton fallback="/admin/courses" title="بازگشت به برنامه‌ریزی دوره‌ها" />
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 truncate">
+              <Calendar className="w-5 h-5 text-sky-600 shrink-0" />
+              <span>برنامه جلسات کلاسی و تقویم آموزشگاه</span>
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+              مشاهده زمان‌بندی روزانه، محل استخر، مربیان و مدیریت کنسلی و جبرانی جلسات
+            </p>
+          </div>
         </div>
         <div className="w-full sm:w-60">
           <PersianDatePicker

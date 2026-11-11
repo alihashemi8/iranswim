@@ -9,6 +9,7 @@ import api from '../../api/client';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { CustomSelect } from '../../components/common/CustomSelect';
+import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 import { validatePassword, PasswordRequirementsList } from '../../utils/passwordValidator';
 
@@ -208,16 +209,9 @@ export const AdminCreateCoachPage = () => {
     <div className="space-y-6 pb-16">
       {/* Breadcrumb & Navigation */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => navigate('/admin/coaches')}
-            className="p-2.5 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl transition-colors cursor-pointer shadow-xs"
-            title="بازگشت به فهرست مربیان"
-          >
-            <ArrowRight className="w-4 h-4" />
-          </button>
-          <div>
+        <div className="flex items-center gap-3 min-w-0">
+          <BackButton fallback="/admin/coaches" title="بازگشت به فهرست مربیان" />
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-400 font-medium">مدیریت مربیان و منابع انسانی</span>
               <span className="text-xs text-slate-300 dark:text-slate-700">/</span>
@@ -227,8 +221,8 @@ export const AdminCreateCoachPage = () => {
                 {isEdit ? 'ویرایش مشخصات مربی' : 'افزودن مربی جدید'}
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1 flex items-center gap-2">
-              <UserCheck className="w-6 h-6 text-sky-600" />
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1 flex items-center gap-2 truncate">
+              <UserCheck className="w-6 h-6 text-sky-600 shrink-0" />
               <span>{isEdit ? `ویرایش پرونده مربی: ${form.first_name} ${form.last_name}` : 'تشکیل پرونده و استخدام مربی جدید'}</span>
             </h1>
           </div>

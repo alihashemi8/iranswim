@@ -9,6 +9,7 @@ import {
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
+import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 
 export const AdminCreateAnnouncementPage = () => {
@@ -258,12 +259,13 @@ export const AdminCreateAnnouncementPage = () => {
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6" dir="rtl">
       {/* 1. Header & Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
-        <div>
-          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+      <div className="flex items-center gap-3 pb-4 border-b border-slate-200/80 dark:border-slate-800">
+        <BackButton fallback="/admin/announcements" title="بازگشت به لیست اعلان‌ها" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 mb-1">
             <Link
               to="/admin/announcements"
-              className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
+              className="hover:text-sky-600 dark:hover:text-sky-400 transition-colors font-medium"
             >
               مرکز پیام‌ها و اعلان‌ها
             </Link>
@@ -274,7 +276,7 @@ export const AdminCreateAnnouncementPage = () => {
           </div>
 
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/70 border border-sky-200/70 dark:border-sky-800 text-sky-600 dark:text-sky-400">
+            <div className="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/70 border border-sky-200/70 dark:border-sky-800 text-sky-600 dark:text-sky-400 shrink-0">
               <Send className="w-5 h-5" />
             </div>
             <span>ارسال پیام و اعلان جدید</span>
@@ -283,16 +285,6 @@ export const AdminCreateAnnouncementPage = () => {
             تعیین عنوان، متن، تیک زدن مخاطبان هدف و ارسال فوری پیامک
           </p>
         </div>
-
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => navigate('/admin/announcements')}
-          className="gap-2 text-xs self-start sm:self-auto cursor-pointer"
-        >
-          <ArrowRight className="w-4 h-4" />
-          <span>بازگشت به لیست اعلان‌ها</span>
-        </Button>
       </div>
 
       {/* 2. Main Form & Live Preview Grid */}

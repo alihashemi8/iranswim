@@ -11,6 +11,7 @@ import { Button } from '../../../components/common/Button';
 import { Badge } from '../../../components/common/Badge';
 import { CustomSelect } from '../../../components/common/CustomSelect';
 import { LoadingState } from '../../../components/common/LoadingState';
+import { BackButton } from '../../../components/common/BackButton';
 import { useToast } from '../../../context/ToastContext';
 import { validatePassword, PasswordRequirementsList } from '../../../utils/passwordValidator';
 
@@ -269,25 +270,28 @@ export const AdminCoachEditPage = () => {
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6" dir="rtl">
       {/* Top Header & Breadcrumbs */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            <Link to="/admin/coaches" className="hover:text-sky-600 transition-colors">
-              مدیریت مربیان و منابع انسانی
-            </Link>
-            <span>/</span>
-            <Link to={`/admin/coaches/${id}?tab=INFO`} className="hover:text-sky-600 transition-colors">
-              پرونده {coach?.full_name}
-            </Link>
-            <span>/</span>
-            <span className="text-slate-800 dark:text-slate-200 font-semibold">ویرایش مشخصات پرونده</span>
+        <div className="flex items-center gap-3 min-w-0">
+          <BackButton to={`/admin/coaches/${id}?tab=INFO`} fallback={`/admin/coaches/${id}`} title="بازگشت به پرونده مربی" />
+          <div className="space-y-1 min-w-0">
+            <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 truncate">
+              <Link to="/admin/coaches" className="hover:text-sky-600 transition-colors shrink-0">
+                مدیریت مربیان و منابع انسانی
+              </Link>
+              <span>/</span>
+              <Link to={`/admin/coaches/${id}?tab=INFO`} className="hover:text-sky-600 transition-colors shrink-0 truncate">
+                پرونده {coach?.full_name}
+              </Link>
+              <span>/</span>
+              <span className="text-slate-800 dark:text-slate-200 font-semibold shrink-0">ویرایش مشخصات پرونده</span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5 truncate">
+              <UserCheck className="w-6 h-6 text-sky-600 shrink-0" />
+              <span>ویرایش مشخصات پرونده مربی</span>
+            </h1>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-            <UserCheck className="w-6 h-6 text-sky-600" />
-            <span>ویرایش مشخصات پرونده مربی</span>
-          </h1>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <Button
             variant="outline"
             onClick={() => navigate(`/admin/coaches/${id}?tab=INFO`)}

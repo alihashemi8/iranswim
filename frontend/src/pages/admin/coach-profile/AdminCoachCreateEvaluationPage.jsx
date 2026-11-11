@@ -9,6 +9,7 @@ import api from '../../../api/client';
 import { Button } from '../../../components/common/Button';
 import { Badge } from '../../../components/common/Badge';
 import { LoadingState } from '../../../components/common/LoadingState';
+import { BackButton } from '../../../components/common/BackButton';
 import { useToast } from '../../../context/ToastContext';
 
 const CRITERIA = [
@@ -130,33 +131,25 @@ export const AdminCoachCreateEvaluationPage = () => {
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6" dir="rtl">
       {/* Header & Breadcrumb */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-slate-200">
-        <div className="space-y-1">
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500">
-            <Link to="/admin/coaches" className="hover:text-sky-600 transition-colors">
+      <div className="flex items-center gap-3 pb-4 border-b border-slate-200">
+        <BackButton to={`/admin/coaches/${id}?tab=EVALUATION_AND_RECORDS`} fallback={`/admin/coaches/${id}`} title="بازگشت به پرونده مربی" />
+        <div className="space-y-1 min-w-0 flex-1">
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 truncate">
+            <Link to="/admin/coaches" className="hover:text-sky-600 transition-colors shrink-0">
               مدیریت مربیان
             </Link>
             <span>/</span>
-            <Link to={`/admin/coaches/${id}?tab=EVALUATION_AND_RECORDS`} className="hover:text-sky-600 transition-colors">
+            <Link to={`/admin/coaches/${id}?tab=EVALUATION_AND_RECORDS`} className="hover:text-sky-600 transition-colors shrink-0 truncate">
               پرونده {coach?.full_name}
             </Link>
             <span>/</span>
-            <span className="text-slate-800 font-semibold">ثبت فرم ارزیابی عملکرد</span>
+            <span className="text-slate-800 font-semibold shrink-0">ثبت فرم ارزیابی عملکرد</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2.5">
-            <Award className="w-6 h-6 text-sky-600" />
+          <h1 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2.5 truncate">
+            <Award className="w-6 h-6 text-sky-600 shrink-0" />
             <span>ثبت ارزیابی جامع عملکرد مربی</span>
           </h1>
         </div>
-
-        <Button
-          variant="outline"
-          onClick={() => navigate(`/admin/coaches/${id}?tab=EVALUATION_AND_RECORDS`)}
-          className="gap-2 self-start sm:self-auto text-xs sm:text-sm"
-        >
-          <ArrowRight className="w-4 h-4" />
-          <span>انصراف و بازگشت</span>
-        </Button>
       </div>
 
       {/* Coach Banner */}

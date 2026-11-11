@@ -13,6 +13,7 @@ import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { StatsCard } from '../../components/common/StatsCard';
 import { MapLocationPicker } from '../../components/common/MapLocationPicker';
+import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 
 export const AdminSwimmerDetailPage = () => {
@@ -197,10 +198,7 @@ export const AdminSwimmerDetailPage = () => {
         <AlertCircle className="w-12 h-12 text-rose-500 mx-auto" />
         <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">شناگر مورد نظر یافت نشد</h2>
         <p className="text-xs text-slate-500">ممکن است این شناگر حذف شده یا شناسه واردشده نامعتبر باشد.</p>
-        <Button onClick={() => navigate('/admin/swimmers')} variant="outline" className="text-xs gap-1.5">
-          <ArrowRight className="w-4 h-4" />
-          <span>بازگشت به فهرست شناگران</span>
-        </Button>
+        <BackButton to="/admin/swimmers" label="بازگشت به فهرست شناگران" showLabelAlways />
       </div>
     );
   }
@@ -210,22 +208,14 @@ export const AdminSwimmerDetailPage = () => {
   return (
     <div className="space-y-6">
       {/* Top Breadcrumb & Navigation */}
-      <div className="flex items-center justify-between gap-3">
-        <button
-          type="button"
-          onClick={() => navigate(-1)}
-          className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-        >
-          <ArrowRight className="w-4 h-4" />
-          <span>بازگشت</span>
-        </button>
-
-        <div className="flex items-center gap-2 text-xs text-slate-400">
-          <Link to="/admin/swimmers" className="hover:text-sky-600 transition-colors">
-            شناگران
+      <div className="flex items-center gap-3">
+        <BackButton fallback="/admin/swimmers" title="بازگشت به فهرست شناگران" />
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 min-w-0 flex-1">
+          <Link to="/admin/swimmers" className="hover:text-sky-600 dark:hover:text-sky-400 font-bold transition-colors shrink-0">
+            شناگران و پرونده‌ها
           </Link>
           <span>/</span>
-          <span className="text-slate-700 dark:text-slate-200 font-semibold">{swimmer.full_name}</span>
+          <span className="text-slate-700 dark:text-slate-200 font-semibold truncate">{swimmer.full_name}</span>
         </div>
       </div>
 

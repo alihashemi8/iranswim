@@ -10,6 +10,7 @@ import api from '../../api/client';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { LoadingState } from '../../components/common/LoadingState';
+import { BackButton } from '../../components/common/BackButton';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
 
@@ -212,19 +213,24 @@ export const AdminCourseAddCoachPage = () => {
 
   return (
     <div className="space-y-6 pb-20 select-none sm:select-auto" dir="rtl">
-      {/* Top Back Navigation */}
+      {/* Top Navigation & Breadcrumb */}
       <div className="flex items-center justify-between gap-4">
-        <button
-          type="button"
-          onClick={() => navigate(`/admin/courses/${id}`)}
-          className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors cursor-pointer group"
-        >
-          <ArrowRight className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-          <span>بازگشت به مشخصات دوره:</span>
-          <span className="text-slate-900 dark:text-white font-bold">{course.name}</span>
-        </button>
+        <div className="flex items-center gap-3 min-w-0">
+          <BackButton to={`/admin/courses/${id}`} fallback={`/admin/courses/${id}`} title="بازگشت به مشخصات دوره" />
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 min-w-0">
+            <Link to="/admin/courses" className="hover:text-sky-600 transition-colors shrink-0">
+              دوره‌ها
+            </Link>
+            <span>/</span>
+            <Link to={`/admin/courses/${id}`} className="hover:text-sky-600 transition-colors shrink-0 truncate max-w-[200px]">
+              {course.name}
+            </Link>
+            <span>/</span>
+            <span className="text-slate-800 dark:text-slate-200 font-bold shrink-0">مدیریت مربیان</span>
+          </div>
+        </div>
 
-        <Badge variant={course.status === 'ACTIVE' ? 'success' : 'default'}>
+        <Badge variant={course.status === 'ACTIVE' ? 'success' : 'default'} className="shrink-0">
           {course.status_display || (course.status === 'ACTIVE' ? 'دوره فعال' : course.status)}
         </Badge>
       </div>

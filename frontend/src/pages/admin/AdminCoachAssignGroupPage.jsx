@@ -11,6 +11,7 @@ import { LoadingState } from '../../components/common/LoadingState';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { Modal } from '../../components/common/Modal';
+import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 
 export const AdminCoachAssignGroupPage = () => {
@@ -179,12 +180,9 @@ export const AdminCoachAssignGroupPage = () => {
 
   if (!coach) {
     return (
-      <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-slate-200 dark:border-slate-800 text-center">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl p-8 border border-slate-200 dark:border-slate-800 text-center space-y-4">
         <p className="text-slate-600 dark:text-slate-400">مربی مورد نظر یافت نشد.</p>
-        <Button onClick={() => navigate('/admin/coaches')} className="mt-4 gap-2">
-          <ArrowRight className="w-4 h-4" />
-          <span>بازگشت به کادر مربیان</span>
-        </Button>
+        <BackButton to="/admin/coaches" label="بازگشت به کادر مربیان" showLabelAlways />
       </div>
     );
   }
@@ -193,16 +191,9 @@ export const AdminCoachAssignGroupPage = () => {
     <div className="space-y-6 pb-12">
       {/* Header / Breadcrumb */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => navigate('/admin/coaches')}
-            className="p-2 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl transition-colors cursor-pointer shadow-xs"
-            title="بازگشت به کادر مربیان"
-          >
-            <ArrowRight className="w-4 h-4" />
-          </button>
-          <div>
+        <div className="flex items-center gap-3 min-w-0">
+          <BackButton fallback={`/admin/coaches/${id}`} title="بازگشت به پرونده مربی" />
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-400 font-medium">کادر مربیان</span>
               <span className="text-xs text-slate-300 dark:text-slate-700">/</span>

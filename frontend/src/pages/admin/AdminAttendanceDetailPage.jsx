@@ -10,6 +10,7 @@ import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
+import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 
 export const AdminAttendanceDetailPage = () => {
@@ -187,10 +188,7 @@ export const AdminAttendanceDetailPage = () => {
         title="جلسه مورد نظر یافت نشد"
         description="ممکن است شناسه جلسه نامعتبر باشد یا جلسه حذف شده باشد."
         action={
-          <Button variant="outline" onClick={() => navigate('/admin/attendance')} className="mt-3 gap-1.5 text-xs">
-            <ArrowRight className="w-4 h-4" />
-            بازگشت به لیست حضور و غیاب
-          </Button>
+          <BackButton to="/admin/attendance" label="بازگشت به لیست حضور و غیاب" showLabelAlways />
         }
       />
     );
@@ -202,16 +200,9 @@ export const AdminAttendanceDetailPage = () => {
     <div className="space-y-6 pb-16">
       {/* 1. Navigation & Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2.5">
-          <button
-            type="button"
-            onClick={() => navigate('/admin/attendance')}
-            className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shadow-2xs cursor-pointer"
-            title="بازگشت به لیست جلسات"
-          >
-            <ArrowRight className="w-5 h-5" />
-          </button>
-          <div>
+        <div className="flex items-center gap-3 min-w-0">
+          <BackButton fallback="/admin/attendance" title="بازگشت به لیست جلسات" />
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                 دفتر حضور و غیاب
@@ -221,8 +212,8 @@ export const AdminAttendanceDetailPage = () => {
                 ثبت و بازبینی جلسه
               </span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 flex items-center gap-2">
-              <ClipboardCheck className="w-6 h-6 text-sky-600 dark:text-sky-400" />
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-0.5 flex items-center gap-2 truncate">
+              <ClipboardCheck className="w-6 h-6 text-sky-600 dark:text-sky-400 shrink-0" />
               <span>{session.group_name}</span>
             </h1>
           </div>

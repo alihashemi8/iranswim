@@ -10,7 +10,6 @@ import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
-import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 import { validatePassword, PasswordRequirementsList } from '../../utils/passwordValidator';
 
@@ -204,17 +203,14 @@ export const CoachProfilePage = () => {
   return (
     <div className="space-y-6 pb-12 max-w-5xl mx-auto coach-panel">
       {/* Header */}
-      <div className="flex items-start sm:items-center gap-3 min-w-0">
-        <BackButton fallback="/coach" title="بازگشت به داشبورد" className="mt-0.5 sm:mt-0" />
-        <div className="min-w-0 flex-1">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2 sm:gap-2.5 flex-wrap">
-            <UserCheck className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-emerald-600 shrink-0" />
-            <span>پروفایل، قراردادها و امور مالی مربی</span>
-          </h1>
-          <p className="text-xs sm:text-sm md:text-base text-slate-600 dark:text-slate-300 mt-1 font-medium">
-            مشاهده احکام کاری، فیش‌های حقوقی مصوب، ثبت مرخصی و تنظیمات حساب کاربری
-          </p>
-        </div>
+      <div>
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2 sm:gap-2.5 flex-wrap">
+          <UserCheck className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-emerald-600 shrink-0" />
+          <span>پروفایل، قراردادها و امور مالی مربی</span>
+        </h1>
+        <p className="text-xs sm:text-sm md:text-base text-slate-600 dark:text-slate-300 mt-1 font-medium">
+          مشاهده احکام کاری، فیش‌های حقوقی مصوب، ثبت مرخصی و تنظیمات حساب کاربری
+        </p>
       </div>
 
       {/* Profile Overview Card */}

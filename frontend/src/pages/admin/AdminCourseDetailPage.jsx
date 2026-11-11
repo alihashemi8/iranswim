@@ -13,6 +13,7 @@ import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
+import { BackButton } from '../../components/common/BackButton';
 import { ProgressBar } from '../../components/common/Charts';
 import { CoachSelectorDropdown } from '../../components/common/CoachSelectorDropdown';
 import { CustomSelect } from '../../components/common/CustomSelect';
@@ -353,10 +354,7 @@ export const AdminCourseDetailPage = () => {
           title="دوره آموزشی مورد نظر یافت نشد"
           description="دوره درخواست‌شده ممکن است حذف شده یا آدرس وارد شده نادرست باشد."
         />
-        <Button onClick={() => navigate('/admin/courses?tab=COURSES')} variant="outline" className="gap-2">
-          <ArrowRight className="w-4 h-4" />
-          <span>بازگشت به فهرست دوره‌ها</span>
-        </Button>
+        <BackButton to="/admin/courses?tab=COURSES" label="بازگشت به فهرست دوره‌ها" showLabelAlways />
       </div>
     );
   }
@@ -372,19 +370,22 @@ export const AdminCourseDetailPage = () => {
 
   return (
     <div className="space-y-6 pb-12 admin-course-detail-section" style={{ fontFeatureSettings: '"ss01" 0, "cv01" 1' }}>
-      {/* 1. Breadcrumb Navigation */}
+      {/* 1. Top Navigation & Breadcrumb */}
       <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-          <Link
-            to="/admin/courses?tab=COURSES"
-            className="hover:text-sky-600 dark:hover:text-sky-400 font-bold transition-colors flex items-center gap-1"
-          >
-            <span>برنامه‌ریزی، دوره‌ها و کلاس‌ها</span>
-          </Link>
-          <ChevronRight className="w-4 h-4 text-slate-400" />
-          <span className="font-bold text-slate-800 dark:text-slate-200 truncate">
-            {course.name}
-          </span>
+        <div className="flex items-center gap-3 min-w-0 flex-1">
+          <BackButton fallback="/admin/courses" title="بازگشت به دوره‌ها" />
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 min-w-0 flex-1">
+            <Link
+              to="/admin/courses?tab=COURSES"
+              className="hover:text-sky-600 dark:hover:text-sky-400 font-bold transition-colors shrink-0"
+            >
+              برنامه‌ریزی، دوره‌ها و کلاس‌ها
+            </Link>
+            <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+            <span className="font-bold text-slate-800 dark:text-slate-200 truncate">
+              {course.name}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">
@@ -397,16 +398,6 @@ export const AdminCourseDetailPage = () => {
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
             <span>به‌روزرسانی</span>
-          </Button>
-
-          <Button
-            variant="secondary"
-            size="sm"
-            onClick={() => navigate('/admin/courses?tab=COURSES')}
-            className="gap-1.5 text-xs"
-          >
-            <ArrowRight className="w-3.5 h-3.5" />
-            <span>بازگشت به دوره‌ها</span>
           </Button>
         </div>
       </div>

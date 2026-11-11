@@ -11,6 +11,7 @@ import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
+import { BackButton } from '../../components/common/BackButton';
 import { Pagination } from '../../components/common/Pagination';
 import { CoachSelectorDropdown } from '../../components/common/CoachSelectorDropdown';
 import { SwimmerCourseCard } from '../../components/common/SwimmerCourseCard';
@@ -382,22 +383,12 @@ export const AdminEnrollmentsPage = () => {
     <div className="space-y-6">
       {/* 1. Header Banner with Back Button */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
-        <div className="flex items-center gap-3.5">
-          {/* Back Button */}
-          <Button
-            variant="outline"
-            onClick={() => navigate(-1)}
-            className="gap-1.5 text-xs font-bold cursor-pointer shrink-0 shadow-2xs hover:bg-slate-100 dark:hover:bg-slate-800"
-            title="بازگشت به صفحه قبل"
-          >
-            <ArrowRight className="w-4 h-4 text-slate-500" />
-            <span>بازگشت</span>
-          </Button>
-
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Users className="w-5 h-5 text-sky-600" />
-              مرکز ثبت‌نام دوره‌ها و تخصیص شناگران به مربیان
+        <div className="flex items-center gap-3.5 min-w-0">
+          <BackButton fallback="/admin/courses" title="بازگشت به دوره‌ها" />
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 truncate">
+              <Users className="w-5 h-5 text-sky-600 shrink-0" />
+              <span>مرکز ثبت‌نام دوره‌ها و تخصیص شناگران به مربیان</span>
             </h1>
             <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               مشاهده ثبت‌نام‌های هر دوره، انتخاب مربی کلاس برای هر شناگر و بررسی درخواست‌های آنلاین

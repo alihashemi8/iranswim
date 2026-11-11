@@ -11,6 +11,7 @@ import api from '../../api/client';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { CustomSelect } from '../../components/common/CustomSelect';
+import { BackButton } from '../../components/common/BackButton';
 import { PersianDatePicker, toJalaliString, formatJalaliReadable } from '../../components/common/PersianDatePicker';
 import { useToast } from '../../context/ToastContext';
 
@@ -339,18 +340,12 @@ export const AdminCreateCoursePage = () => {
     <div className="space-y-6 max-w-5xl mx-auto pb-12">
       {/* 1. Header Banner */}
       <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
-        <div className="flex items-center gap-3">
-          <Link
-            to="/admin/courses"
-            className="w-10 h-10 rounded-2xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center transition-colors shrink-0"
-            title="بازگشت به لیست دوره‌ها"
-          >
-            <ArrowRight className="w-5 h-5" />
-          </Link>
-          <div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <SwimCourseSpecsIcon className="w-5 h-5 text-sky-600" />
-              تعریف دوره آموزشی جدید
+        <div className="flex items-center gap-3 min-w-0">
+          <BackButton fallback="/admin/courses" title="بازگشت به دوره‌ها و کلاس‌ها" />
+          <div className="min-w-0">
+            <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 truncate">
+              <SwimCourseSpecsIcon className="w-5 h-5 text-sky-600 shrink-0" />
+              <span>تعریف دوره آموزشی جدید</span>
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               مراحل ۴ گانه تعریف مشخصات، زمان‌بندی، کادر مربیان و شهریه

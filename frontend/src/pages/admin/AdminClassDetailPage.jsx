@@ -11,6 +11,7 @@ import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
+import { BackButton } from '../../components/common/BackButton';
 import { ProgressBar } from '../../components/common/Charts';
 import { useToast } from '../../context/ToastContext';
 
@@ -51,10 +52,7 @@ export const AdminClassDetailPage = () => {
           title="کلاس مورد نظر یافت نشد"
           description="اطلاعاتی برای این کلاس یا گروه آموزشی در سیستم ثبت نشده است."
         />
-        <Button onClick={() => navigate('/admin/courses')} variant="outline" className="gap-2">
-          <ArrowRight className="w-4 h-4" />
-          <span>بازگشت به برنامه‌ریزی دوره‌ها و کلاس‌ها</span>
-        </Button>
+        <BackButton to="/admin/courses" label="بازگشت به برنامه‌ریزی دوره‌ها و کلاس‌ها" showLabelAlways />
       </div>
     );
   }
@@ -78,16 +76,19 @@ export const AdminClassDetailPage = () => {
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Breadcrumb Navigation */}
-      <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-        <Link
-          to="/admin/courses"
-          className="hover:text-sky-600 dark:hover:text-sky-400 font-bold transition-colors flex items-center gap-1"
-        >
-          <span>برنامه‌ریزی، دوره‌ها و کلاس‌ها</span>
-        </Link>
-        <ChevronRight className="w-4 h-4 text-slate-400" />
-        <span className="font-bold text-slate-800 dark:text-slate-200 truncate">{data.name}</span>
+      {/* Top Navigation & Breadcrumb */}
+      <div className="flex items-center gap-3">
+        <BackButton fallback="/admin/courses" title="بازگشت به دوره‌ها و کلاس‌ها" />
+        <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 min-w-0 flex-1">
+          <Link
+            to="/admin/courses"
+            className="hover:text-sky-600 dark:hover:text-sky-400 font-bold transition-colors shrink-0"
+          >
+            برنامه‌ریزی، دوره‌ها و کلاس‌ها
+          </Link>
+          <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
+          <span className="font-bold text-slate-800 dark:text-slate-200 truncate">{data.name}</span>
+        </div>
       </div>
 
       {/* Main Class Hero Banner */}
