@@ -10,6 +10,7 @@ import { Button } from '../../components/common/Button';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { LoadingState } from '../../components/common/LoadingState';
 import { Modal } from '../../components/common/Modal';
+import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { useToast } from '../../context/ToastContext';
 import { toShamsiDate } from '../../utils/date';
 
@@ -525,22 +526,20 @@ export const CoachAssessmentRecordPage = () => {
               />
             </div>
 
-            {/* Assessment Date */}
+            {/* Assessment Date (Persian Calendar) */}
             <div className="space-y-1 pt-1">
-              <label className="block text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold">
-                تاریخ ارزیابی:
-              </label>
-              <div className="flex items-center gap-3">
-                <input
-                  type="date"
-                  value={assessedAt}
-                  onChange={(e) => setAssessedAt(e.target.value)}
-                  className="min-h-[42px] rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-3.5 py-2 text-slate-800 dark:text-slate-100 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500"
-                />
-                <span className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                  تاریخ شمسی: <strong className="text-slate-800 dark:text-slate-200 font-mono">{shamsiToday}</strong>
-                </span>
-              </div>
+              <PersianDatePicker
+                label="تاریخ ارزیابی:"
+                value={assessedAt}
+                onChange={(jalaliStr, gDate, gIso) => {
+                  if (gIso) {
+                    setAssessedAt(gIso);
+                  }
+                }}
+                placeholder="انتخاب تاریخ ارزیابی..."
+                clearable={false}
+                className="w-full sm:w-80"
+              />
             </div>
           </div>
 
