@@ -153,14 +153,18 @@ class SkillAssessmentListView(generics.ListCreateAPIView):
 
         skill = serializer.validated_data.get('skill')
         custom_skill_name = (serializer.validated_data.pop('custom_skill_name', None) or '').strip()
+        custom_criteria = (serializer.validated_data.pop('custom_criteria_description', None) or '').strip()
         if not skill and custom_skill_name:
             from apps.education.models import Skill
             # Look for existing skill with same name for this coach, or create a new one
-            skill, _ = Skill.objects.get_or_create(
+            skill, created = Skill.objects.get_or_create(
                 name=custom_skill_name,
                 coach=coach_profile,
-                defaults={'is_custom': True}
+                defaults={'is_custom': True, 'criteria_description': custom_criteria}
             )
+            if not created and custom_criteria and not skill.criteria_description:
+                skill.criteria_description = custom_criteria
+                skill.save(update_fields=['criteria_description'])
             serializer.validated_data['skill'] = skill
 
         serializer.save(assessed_by=user)

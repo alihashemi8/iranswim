@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import api from '../../api/client';
 import { LoadingState } from '../../components/common/LoadingState';
+import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 
 const ANNOUNCEMENT_TEMPLATES = [
@@ -183,11 +184,11 @@ export const CoachClassDetailPage = () => {
 
   if (!data) {
     return (
-      <div className="text-center py-12">
-        <p className="text-slate-500">کلاس مورد نظر یافت نشد.</p>
-        <Link to="/coach/classes" className="text-emerald-600 text-sm font-bold mt-2 inline-block">
-          بازگشت به فهرست کلاس‌ها
-        </Link>
+      <div className="coach-panel bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-center py-12 px-6 space-y-4">
+        <p className="text-sm sm:text-base font-bold text-slate-700 dark:text-slate-200">
+          کلاس مورد نظر یافت نشد.
+        </p>
+        <BackButton to="/coach/classes" label="بازگشت به فهرست کلاس‌ها" showLabelAlways />
       </div>
     );
   }
@@ -196,33 +197,35 @@ export const CoachClassDetailPage = () => {
     <div className="space-y-6 pb-12 coach-panel">
       {/* Back button and Title */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <Link
-              to="/coach/classes"
-              className="text-sm text-slate-500 hover:text-emerald-600 flex items-center gap-1 font-semibold transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
-              کلاس‌های من
-            </Link>
-            <span className="text-slate-300">/</span>
-            <span className="text-sm text-slate-700 dark:text-slate-300 font-bold">{data.name}</span>
+        <div className="flex items-start sm:items-center gap-3 min-w-0">
+          <BackButton to="/coach/classes" title="بازگشت به کلاس‌های من" className="mt-0.5 sm:mt-0" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2 mb-1 text-xs sm:text-sm">
+              <Link
+                to="/coach/classes"
+                className="text-slate-500 hover:text-emerald-600 font-semibold transition-colors truncate"
+              >
+                کلاس‌های من
+              </Link>
+              <span className="text-slate-300 dark:text-slate-600">/</span>
+              <span className="text-slate-700 dark:text-slate-300 font-bold truncate">{data.name}</span>
+            </div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2 sm:gap-2.5 flex-wrap">
+              <span>{data.name}</span>
+              <span className="text-xs sm:text-sm font-semibold px-2.5 sm:px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                سطح: {data.skill_level}
+              </span>
+            </h1>
+            <p className="text-xs sm:text-sm md:text-base text-slate-500 dark:text-slate-400 mt-1">
+              دوره {data.course_name} · محل: {data.pool_location}
+            </p>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-            {data.name}
-            <span className="text-xs sm:text-sm font-semibold px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-              سطح: {data.skill_level}
-            </span>
-          </h1>
-          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
-            دوره {data.course_name} · محل: {data.pool_location}
-          </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
           <Link
             to={`/coach/attendance?group_id=${data.id}`}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm sm:text-base font-bold shadow-md transition-all active:scale-95"
+            className="w-full sm:w-auto justify-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm sm:text-base font-bold shadow-md transition-all active:scale-95"
           >
             <ClipboardCheck className="w-4.5 h-4.5" />
             حضور و غیاب کلاس

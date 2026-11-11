@@ -1,28 +1,17 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import {
-  TrendingUp, Award, Calendar, ChevronRight, CheckCircle2,
+  TrendingUp, Award, ChevronRight, CheckCircle2,
   Clock, AlertCircle, PlusCircle, Users, BookOpen,
-  ArrowRight, Sparkles, Trash2, Edit3, X, Check, FileText,
-  Plus, Download
+  Sparkles, FileText
 } from 'lucide-react';
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
-import { CustomSelect } from '../../components/common/CustomSelect';
 import { LoadingState } from '../../components/common/LoadingState';
-import { Modal } from '../../components/common/Modal';
+import { BackButton } from '../../components/common/BackButton';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { useToast } from '../../context/ToastContext';
 import { toShamsiDate } from '../../utils/date';
-
-const QUICK_FEEDBACK_PRESETS = [
-  'تکنیک دست‌ها و زاویه کشش آرنج بسیار استاندارد است.',
-  'ریتم تنفس منظم و با چرخش به موقع سر انجام شد.',
-  'آرامش کامل در آب عمیق و شناوری ایده‌آل بدون ترس.',
-  'افت لگن در مترهای پایانی، نیاز به تقویت پای مداوم.',
-  'شتاب و هماهنگی دست و پا در فاز پایانی عالی بود.',
-  'اجرای استارت و ورود زاویه‌دار به آب بدون ایجاد مقاومت.'
-];
 
 const SCORE_PRESETS = [100, 95, 90, 85, 80, 75, 70, 60];
 
@@ -32,48 +21,26 @@ export const CoachAssessmentRecordPage = () => {
   const toast = useToast();
 
   const [dossierData, setDossierData] = useState(null);
-  const [skillsList, setSkillsList] = useState([]);
   const [loading, setLoading] = useState(true);
 
   // Form state
-  const [selectedSkillId, setSelectedSkillId] = useState('');
+  const [skillTitle, setSkillTitle] = useState('');
+  const [criteriaDescription, setCriteriaDescription] = useState('');
   const [score, setScore] = useState(85);
   const [statusVal, setStatusVal] = useState('PASSED');
   const [feedback, setFeedback] = useState('');
   const [assessedAt, setAssessedAt] = useState(new Date().toISOString().split('T')[0]);
   const [submitting, setSubmitting] = useState(false);
 
-  // Inline "Write new evaluation text" state
-  const [showNewSkillBox, setShowNewSkillBox] = useState(false);
-  const [newSkillName, setNewSkillName] = useState('');
-  const [newSkillCriteria, setNewSkillCriteria] = useState('');
-  const [savingNewSkill, setSavingNewSkill] = useState(false);
-
-  // Manage custom skills modal
-  const [isManageSkillsModalOpen, setIsManageSkillsModalOpen] = useState(false);
-  const [deletingSkillId, setDeletingSkillId] = useState(null);
-
-  // Load swimmer data and available skills
+  // Load swimmer data
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [dossierRes, skillsRes] = await Promise.all([
-        api.get(`/coaches/swimmer-dossier/${swimmerId}/`),
-        api.get('/education/skills/'),
-      ]);
-
+      const dossierRes = await api.get(`/coaches/swimmer-dossier/${swimmerId}/`);
       setDossierData(dossierRes.data);
-      const skills = Array.isArray(skillsRes.data)
-        ? skillsRes.data
-        : skillsRes.data?.results || [];
-      setSkillsList(skills);
-
-      if (skills.length > 0) {
-        setSelectedSkillId(String(skills[0].id));
-      }
     } catch (err) {
-      console.error('Error fetching assessment data:', err);
-      toast.error('خطا در دریافت اطلاعات شناگر یا سرفصل‌های ارزیابی');
+      console.error('Error fetching swimmer dossier:', err);
+      toast.error('خطا در دریافت اطلاعات شناگر');
     } finally {
       setLoading(false);
     }
@@ -87,101 +54,12 @@ export const CoachAssessmentRecordPage = () => {
   const assessments = dossierData?.assessments || [];
   const attSummary = dossierData?.attendance_summary || {};
 
-  const [importingDefaults, setImportingDefaults] = useState(false);
-
-  // Evaluation items (purely coach's custom evaluation items)
-  const skillOptions = useMemo(() => {
-    return skillsList.map((sk) => ({
-      value: String(sk.id),
-      label: sk.name,
-      description: sk.criteria_description || undefined,
-      icon: BookOpen,
-    }));
-  }, [skillsList]);
-
-  // Selected skill object
-  const currentSelectedSkill = useMemo(
-    () => skillsList.find((s) => String(s.id) === String(selectedSkillId)),
-    [skillsList, selectedSkillId]
-  );
-
-  // Quick save a brand new custom evaluation text for the dropdown
-  const handleSaveNewSkill = async (e) => {
-    if (e && e.preventDefault) e.preventDefault();
-    const trimmedName = newSkillName.trim();
-    if (!trimmedName) {
-      toast.error('لطفاً عنوان یا متن ارزیابی را وارد نمایید.');
-      return;
-    }
-
-    try {
-      setSavingNewSkill(true);
-      const res = await api.post('/education/skills/', {
-        name: trimmedName,
-        criteria_description: newSkillCriteria.trim(),
-      });
-
-      const createdSkill = res.data;
-      setSkillsList((prev) => [createdSkill, ...prev]);
-      setSelectedSkillId(String(createdSkill.id));
-      setNewSkillName('');
-      setNewSkillCriteria('');
-      setShowNewSkillBox(false);
-      toast.success('گزینه جدید به دراپ‌داون اضافه شد و در تمامی کلاس‌ها قابل استفاده است.');
-    } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.name?.[0] || 'خطا در ذخیره متن ارزیابی جدید');
-    } finally {
-      setSavingNewSkill(false);
-    }
-  };
-
-  // Import standard starter templates into the coach's custom skills bank
-  const handleImportDefaults = async () => {
-    try {
-      setImportingDefaults(true);
-      const res = await api.post('/education/skills/import-defaults/');
-      const imported = res.data?.skills || [];
-      if (imported.length > 0) {
-        setSkillsList(imported);
-        setSelectedSkillId(String(imported[0].id));
-        toast.success(res.data?.message || 'سرفصل‌های پایه در دراپ‌داون شما قرار گرفتند.');
-      } else {
-        toast.info('سرفصل‌های پایه قبلاً در لیست شما ثبت شده‌اند.');
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error('خطا در درون‌ریزی سرفصل‌های پایه');
-    } finally {
-      setImportingDefaults(false);
-    }
-  };
-
-  // Delete custom skill
-  const handleDeleteCustomSkill = async (skillId) => {
-    if (!window.confirm('آیا از حذف این متن ارزیابی اطمینان دارید؟')) return;
-    try {
-      setDeletingSkillId(skillId);
-      await api.delete(`/education/skills/${skillId}/`);
-      setSkillsList((prev) => prev.filter((s) => s.id !== skillId));
-      if (String(selectedSkillId) === String(skillId)) {
-        const remaining = skillsList.filter((s) => s.id !== skillId);
-        setSelectedSkillId(remaining.length > 0 ? String(remaining[0].id) : '');
-      }
-      toast.success('متن ارزیابی با موفقیت حذف گردید.');
-    } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.detail || 'خطا در حذف سرفصل ارزیابی');
-    } finally {
-      setDeletingSkillId(null);
-    }
-  };
-
   // Submit Final Assessment
   const handleSubmitAssessment = async (e) => {
     e.preventDefault();
-    if (!selectedSkillId) {
-      toast.error('لطفاً یک متن ارزیابی انتخاب فرمایید یا متن جدیدی بنویسید.');
+    const trimmedTitle = skillTitle.trim();
+    if (!trimmedTitle) {
+      toast.error('لطفاً عنوان یا متن ارزیابی را وارد نمایید.');
       return;
     }
 
@@ -195,7 +73,8 @@ export const CoachAssessmentRecordPage = () => {
       setSubmitting(true);
       await api.post('/assessments/skills/', {
         swimmer: Number(swimmerId),
-        skill: Number(selectedSkillId),
+        custom_skill_name: trimmedTitle,
+        custom_criteria_description: criteriaDescription.trim(),
         score: numScore,
         status: statusVal,
         feedback: feedback.trim(),
@@ -206,7 +85,7 @@ export const CoachAssessmentRecordPage = () => {
       navigate(`/coach/progress/${swimmerId}`);
     } catch (err) {
       console.error('Error saving assessment:', err);
-      toast.error(err.response?.data?.detail || 'خطا در ثبت نهایی ارزیابی');
+      toast.error(err.response?.data?.detail || err.response?.data?.skill?.[0] || 'خطا در ثبت نهایی ارزیابی');
     } finally {
       setSubmitting(false);
     }
@@ -223,13 +102,7 @@ export const CoachAssessmentRecordPage = () => {
         <p className="text-sm sm:text-base font-bold text-slate-700 dark:text-slate-200">
           شناگر یافت نشد یا شما به پرونده او دسترسی ندارید.
         </p>
-        <Link
-          to="/coach/progress"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white text-sm font-bold transition-colors"
-        >
-          <ChevronRight className="w-4 h-4" />
-          بازگشت به لیست پیشرفت
-        </Link>
+        <BackButton to="/coach/progress" label="بازگشت به لیست پیشرفت" showLabelAlways />
       </div>
     );
   }
@@ -241,38 +114,33 @@ export const CoachAssessmentRecordPage = () => {
     <div className="coach-panel space-y-6 pb-16 max-w-5xl mx-auto">
       {/* 1. Breadcrumbs & Top Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="space-y-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-            <Link
-              to="/coach/progress"
-              className="hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold transition-colors flex items-center gap-1"
-            >
-              <TrendingUp className="w-3.5 h-3.5" />
-              ارزیابی و پیشرفت
-            </Link>
-            <span className="text-slate-300 dark:text-slate-600">/</span>
-            <Link
-              to={`/coach/progress/${swimmerId}`}
-              className="hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold transition-colors"
-            >
-              پرونده مهارتی: {swimmer.full_name}
-            </Link>
-            <span className="text-slate-300 dark:text-slate-600">/</span>
-            <span className="text-slate-800 dark:text-slate-200 font-bold">ثبت ارزیابی جدید</span>
+        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+          <BackButton to={`/coach/progress/${swimmerId}`} title="بازگشت به پرونده شناگر" className="mt-0.5 sm:mt-0" />
+          <div className="space-y-1 min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+              <Link
+                to="/coach/progress"
+                className="hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold transition-colors flex items-center gap-1"
+              >
+                <TrendingUp className="w-3.5 h-3.5" />
+                ارزیابی و پیشرفت
+              </Link>
+              <span className="text-slate-300 dark:text-slate-600">/</span>
+              <Link
+                to={`/coach/progress/${swimmerId}`}
+                className="hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold transition-colors"
+              >
+                پرونده مهارتی: {swimmer.full_name}
+              </Link>
+              <span className="text-slate-300 dark:text-slate-600">/</span>
+              <span className="text-slate-800 dark:text-slate-200 font-bold">ثبت ارزیابی جدید</span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
+              <PlusCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span>ثبت ارزیابی مهارت برای {swimmer.full_name}</span>
+            </h1>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2">
-            <PlusCircle className="w-6 h-6 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <span>ثبت ارزیابی مهارت برای {swimmer.full_name}</span>
-          </h1>
         </div>
-
-        <Link
-          to={`/coach/progress/${swimmerId}`}
-          className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-bold transition-all self-start sm:self-auto cursor-pointer"
-        >
-          <ChevronRight className="w-4 h-4 shrink-0" />
-          <span>بازگشت به پرونده</span>
-        </Link>
       </div>
 
       {/* 2. Swimmer Snapshot Card */}
@@ -291,7 +159,7 @@ export const CoachAssessmentRecordPage = () => {
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              ارزیابی سرفصل‌های شنا با قابلیت استفاده از بانک معیارهای مربی در تمام کلاس‌ها
+              ثبت ارزیابی مهارتی و فنی شناگر به همراه نمره، تاریخ و بازخورد مربی
             </p>
           </div>
         </div>
@@ -319,183 +187,36 @@ export const CoachAssessmentRecordPage = () => {
           onSubmit={handleSubmitAssessment}
           className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 space-y-6 shadow-xs"
         >
-          {/* Section 1: Evaluation Item (متن ارزیابی) */}
-          <div className="space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <label className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+          {/* Section 1: Evaluation Item Title & Criteria */}
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5 mb-2">
                 <BookOpen className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span>متن و سرفصل ارزیابی:</span>
+                <span>عنوان ارزیابی / مهارت شنا:</span>
+                <span className="text-rose-500 font-black">*</span>
               </label>
-
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setShowNewSkillBox((prev) => !prev)}
-                  className="inline-flex items-center gap-1 text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 px-2.5 py-1.5 rounded-lg border border-emerald-200/80 dark:border-emerald-800/80 transition-colors cursor-pointer"
-                >
-                  <PlusCircle className="w-3.5 h-3.5" />
-                  <span>{showNewSkillBox ? 'بستن کادر نگارش' : '➕ نوشتن گزینه جدید برای دراپ‌داون'}</span>
-                </button>
-
-                {skillsList.length > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => setIsManageSkillsModalOpen(true)}
-                    className="inline-flex items-center gap-1 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
-                  >
-                    <Edit3 className="w-3.5 h-3.5" />
-                    <span>مدیریت گزینه‌ها ({skillsList.length})</span>
-                  </button>
-                )}
-              </div>
+              <input
+                type="text"
+                value={skillTitle}
+                onChange={(e) => setSkillTitle(e.target.value)}
+                placeholder="مثال: پای کرال سینه ۲۵ متر، استارت مسابقاتی، هواگیری دوطرفه، سالتو برگشت..."
+                className="w-full min-h-[46px] rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2.5 text-slate-900 dark:text-white text-sm font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500 transition-all placeholder:text-slate-400"
+              />
             </div>
 
-            {/* Inline Box: Write New Evaluation Text */}
-            {showNewSkillBox && (
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-emerald-300/60 dark:border-emerald-700/60 space-y-3 transition-all animate-fadeIn">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold text-emerald-700 dark:text-emerald-300">
-                    <Sparkles className="w-4 h-4 text-emerald-500" />
-                    <span>نگارش متن و سرفصل ارزیابی اختصاصی توسط مربی</span>
-                  </div>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                    قابل استفاده در تمامی کلاس‌ها
-                  </span>
-                </div>
-
-                <div className="space-y-2">
-                  <input
-                    type="text"
-                    placeholder="عنوان / متن ارزیابی (مثال: پای کرال سینه استقامتی ۲۵ متر)..."
-                    value={newSkillName}
-                    onChange={(e) => setNewSkillName(e.target.value)}
-                    className="w-full min-h-[42px] rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3.5 py-2 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500"
-                  />
-                  <input
-                    type="text"
-                    placeholder="معیار قبولی یا توضیحات تکمیلی سرفصل (اختیاری)..."
-                    value={newSkillCriteria}
-                    onChange={(e) => setNewSkillCriteria(e.target.value)}
-                    className="w-full min-h-[40px] rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 px-3.5 py-2 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500"
-                  />
-                </div>
-
-                <div className="flex items-center justify-end gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={() => setShowNewSkillBox(false)}
-                    className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"
-                  >
-                    انصراف
-                  </button>
-                  <Button
-                    type="button"
-                    variant="success"
-                    size="sm"
-                    loading={savingNewSkill}
-                    onClick={handleSaveNewSkill}
-                    className="gap-1.5 text-xs font-bold px-3.5 py-1.5 cursor-pointer"
-                  >
-                    <Check className="w-3.5 h-3.5" />
-                    ذخیره و افزودن به دراپ‌داون
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {/* Empty State when no skills written yet */}
-            {skillsList.length === 0 ? (
-              <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-emerald-500/10 via-teal-500/5 to-transparent border border-emerald-500/25 space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0 mt-0.5 shadow-sm">
-                    <Sparkles className="w-5 h-5" />
-                  </div>
-                  <div className="space-y-1">
-                    <h4 className="text-sm font-bold text-slate-900 dark:text-white">
-                      متن گزینه‌های این دراپ‌داون را بنویسید
-                    </h4>
-                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                      هنوز هیچ سرفصلی توسط شما ثبت نشده است. عنوان ارزیابی مورد نظر خود را در کادر زیر بنویسید تا به گزینه‌های این دراپ‌داون اضافه شود (این سرفصل‌ها در تمامی کلاس‌های شما قابل استفاده خواهند بود):
-                    </p>
-                  </div>
-                </div>
-
-                <div className="space-y-2 pt-1">
-                  <input
-                    type="text"
-                    placeholder="عنوان / متن ارزیابی (مثلاً: پای کرال سینه با تخته ۲۵ متر)..."
-                    value={newSkillName}
-                    onChange={(e) => setNewSkillName(e.target.value)}
-                    className="w-full min-h-[44px] rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3.5 py-2 text-slate-800 dark:text-slate-100 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500"
-                  />
-                  <input
-                    type="text"
-                    placeholder="معیار سنجش و قبولی یا توضیحات تکمیلی (اختیاری)..."
-                    value={newSkillCriteria}
-                    onChange={(e) => setNewSkillCriteria(e.target.value)}
-                    className="w-full min-h-[40px] rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 px-3.5 py-2 text-slate-800 dark:text-slate-100 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500"
-                  />
-                </div>
-
-                <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
-                  <button
-                    type="button"
-                    onClick={handleImportDefaults}
-                    disabled={importingDefaults}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400 hover:underline cursor-pointer"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    <span>{importingDefaults ? 'در حال افزودن...' : 'افزودن گزینه‌های پرکاربرد شنا به لیست من برای شروع'}</span>
-                  </button>
-
-                  <Button
-                    type="button"
-                    variant="success"
-                    size="sm"
-                    loading={savingNewSkill}
-                    onClick={handleSaveNewSkill}
-                    className="gap-1.5 text-xs font-bold px-4 py-2 cursor-pointer shadow-xs"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>افزودن این گزینه به دراپ‌داون</span>
-                  </Button>
-                </div>
-              </div>
-            ) : (
-              <>
-                {/* Select Skill Dropdown */}
-                <CustomSelect
-                  label=""
-                  value={selectedSkillId}
-                  onChange={(val) => setSelectedSkillId(val)}
-                  options={skillOptions}
-                  icon={BookOpen}
-                  placeholder="انتخاب سرفصل ارزیابی نوشته‌شده توسط شما..."
-                  color="emerald"
-                  searchable={skillOptions.length > 5}
-                  menuClassName="w-full"
-                />
-
-                {/* Display details of currently selected skill */}
-                {currentSelectedSkill && (
-                  <div className="p-3 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/60 text-xs space-y-1">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-bold text-emerald-900 dark:text-emerald-200">
-                        {currentSelectedSkill.name}
-                      </span>
-                      <span className="px-2 py-0.5 rounded-md bg-emerald-200/80 dark:bg-emerald-800 text-emerald-900 dark:text-emerald-100 font-bold text-[10px]">
-                        متن تعریف‌شده شما
-                      </span>
-                    </div>
-                    {currentSelectedSkill.criteria_description && (
-                      <p className="text-slate-600 dark:text-slate-300 leading-relaxed font-normal">
-                        معیار سنجش: {currentSelectedSkill.criteria_description}
-                      </p>
-                    )}
-                  </div>
-                )}
-              </>
-            )}
+            <div>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1 mb-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <span>معیار سنجش یا توضیحات تکمیلی سرفصل (اختیاری):</span>
+              </label>
+              <input
+                type="text"
+                value={criteriaDescription}
+                onChange={(e) => setCriteriaDescription(e.target.value)}
+                placeholder="مثال: حفظ خط هیدرودینامیک بدن، ضربه شلاقی مچ پا بدون خم شدن زانو..."
+                className="w-full min-h-[42px] rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 text-slate-800 dark:text-slate-200 text-xs focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500 transition-all placeholder:text-slate-400"
+              />
+            </div>
           </div>
 
           <hr className="border-slate-100 dark:border-slate-800" />
@@ -625,25 +346,6 @@ export const CoachAssessmentRecordPage = () => {
               onChange={(e) => setFeedback(e.target.value)}
               className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3.5 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-emerald-500/25 focus:border-emerald-500"
             />
-
-            {/* Quick Suggestions Chips */}
-            <div className="space-y-1.5 pt-1">
-              <span className="text-[11px] text-slate-400 font-semibold block">عبارت‌های پیشنهادی:</span>
-              <div className="flex flex-wrap gap-1.5">
-                {QUICK_FEEDBACK_PRESETS.map((txt, idx) => (
-                  <button
-                    key={idx}
-                    type="button"
-                    onClick={() => {
-                      setFeedback((prev) => (prev ? `${prev} ${txt}` : txt));
-                    }}
-                    className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 font-normal transition-colors cursor-pointer text-right"
-                  >
-                    + {txt}
-                  </button>
-                ))}
-              </div>
-            </div>
           </div>
 
           {/* Form Actions */}
@@ -660,7 +362,7 @@ export const CoachAssessmentRecordPage = () => {
               variant="success"
               size="md"
               loading={submitting}
-              disabled={!selectedSkillId}
+              disabled={!skillTitle.trim() || submitting}
               className="w-full sm:w-auto font-bold text-sm px-6 py-2.5 cursor-pointer shadow-sm"
             >
               <CheckCircle2 className="w-4 h-4 shrink-0" />
@@ -732,76 +434,14 @@ export const CoachAssessmentRecordPage = () => {
           <div className="bg-sky-50/70 dark:bg-sky-950/30 border border-sky-200/70 dark:border-sky-800/60 rounded-2xl p-4 text-xs space-y-2">
             <div className="flex items-center gap-1.5 font-bold text-sky-900 dark:text-sky-200">
               <Sparkles className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
-              <span>درباره سیستم ارزیابی مربی</span>
+              <span>نحوه ثبت ارزیابی مهارت</span>
             </div>
             <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
-              شما می‌توانید متن‌ها و معیارهای ارزیابی دلخواه خود را بنویسید. تمامی معیارهای تعریف‌شده توسط شما در بانک اختصاصی‌تان ذخیره شده و در تمامی کلاس‌ها و دوره‌های آموزشی قابل استفاده خواهند بود.
+              عنوان مهارت یا سرفصل مورد نظر را مستقیماً بنویسید (مثلاً پای کرال، استارت، تنفس). نمره، وضعیت قبولی و بازخورد فنی شما در پرونده شاگرد ثبت شده و در کارنامه و اپلیکیشن او قابل مشاهده خواهد بود.
             </p>
           </div>
         </div>
       </div>
-
-      {/* 5. Modal: Manage Coach Custom Skills Bank */}
-      <Modal
-        isOpen={isManageSkillsModalOpen}
-        onClose={() => setIsManageSkillsModalOpen(false)}
-        title="بانک سرفصل‌ها و معیارهای ارزیابی مربی"
-        size="lg"
-      >
-        <div className="space-y-4">
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-            لیست متن‌ها و سرفصل‌های ارزیابی اختصاصی شما. این سرفصل‌ها در تمامی کلاس‌های شما در دسترس هستند.
-          </p>
-
-          <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[400px] overflow-y-auto">
-            {skillsList.length > 0 ? (
-              skillsList.map((sk) => (
-                <div
-                  key={sk.id}
-                  className="py-3 flex items-center justify-between gap-3 text-sm hover:bg-slate-50/80 dark:hover:bg-slate-800/50 px-2 rounded-xl transition-colors"
-                >
-                  <div className="min-w-0 space-y-0.5">
-                    <span className="font-bold text-slate-900 dark:text-white block truncate">
-                      {sk.name}
-                    </span>
-                    {sk.criteria_description && (
-                      <span className="text-xs text-slate-500 dark:text-slate-400 block truncate">
-                        {sk.criteria_description}
-                      </span>
-                    )}
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={() => handleDeleteCustomSkill(sk.id)}
-                    disabled={deletingSkillId === sk.id}
-                    className="p-1.5 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/60 rounded-lg transition-colors cursor-pointer shrink-0"
-                    title="حذف سرفصل"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-8 text-xs text-slate-400">
-                هنوز متنی توسط شما ثبت نشده است. از دکمه «نوشتن متن ارزیابی جدید» برای افزودن استفاده کنید.
-              </div>
-            )}
-          </div>
-
-          <div className="flex justify-end pt-3 border-t border-slate-100 dark:border-slate-800">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              onClick={() => setIsManageSkillsModalOpen(false)}
-              className="cursor-pointer"
-            >
-              بستن
-            </Button>
-          </div>
-        </div>
-      </Modal>
     </div>
   );
 };

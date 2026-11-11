@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import api from '../../api/client';
 import { LoadingState } from '../../components/common/LoadingState';
+import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 
 export const CoachClassesArchivePage = () => {
@@ -52,34 +53,29 @@ export const CoachClassesArchivePage = () => {
   }
 
   return (
-    <div className="space-y-6 pb-12">
+    <div className="space-y-6 pb-12 coach-panel">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <Link
-            to="/coach/classes"
-            className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-slate-500 hover:text-emerald-600 transition-colors mb-2 group"
-          >
-            <ArrowRight className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-            بازگشت به کلاس‌های جاری
-          </Link>
-
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-            <Archive className="w-6 h-6 sm:w-7 sm:h-7 text-amber-500" />
-            بایگانی کلاس‌های خاتمه‌یافته
-            <span className="text-xs sm:text-sm font-bold font-mono px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
-              {completedClasses.length} کلاس
-            </span>
-          </h1>
-          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
-            سوابق گروه‌ها، سانس‌ها و دوره‌های آموزشی که دوره برگزاری آن‌ها به پایان رسیده است
-          </p>
+        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+          <BackButton to="/coach/classes" title="بازگشت به کلاس‌های من" className="mt-0.5 sm:mt-0" />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2 sm:gap-2.5 flex-wrap">
+              <Archive className="w-6 h-6 sm:w-7 sm:h-7 text-amber-500 shrink-0" />
+              <span>بایگانی کلاس‌های خاتمه‌یافته</span>
+              <span className="text-xs sm:text-sm font-bold font-mono px-2.5 py-0.5 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/60">
+                {completedClasses.length} کلاس
+              </span>
+            </h1>
+            <p className="text-xs sm:text-sm md:text-base text-slate-500 dark:text-slate-400 mt-1">
+              سوابق گروه‌ها، سانس‌ها و دوره‌های آموزشی که دوره برگزاری آن‌ها به پایان رسیده است
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
           <Link
             to="/coach/workouts"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-200 text-sm sm:text-base font-bold shadow-xs transition-all active:scale-95"
+            className="w-full sm:w-auto justify-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-200 text-sm sm:text-base font-bold shadow-xs transition-all active:scale-95"
           >
             <Calendar className="w-4.5 h-4.5" />
             برنامه تمرینات

@@ -434,6 +434,7 @@ def test_coach_custom_evaluation_skills_and_assessment(coach_user, sample_setup)
     assess_payload_custom_text = {
         'swimmer': swimmer.id,
         'custom_skill_name': 'شیرجه و استارت از روی سکو',
+        'custom_criteria_description': 'زاویه ورود ۴۵ درجه و کشیدگی دست‌ها',
         'score': '88.00',
         'status': 'PASSED',
         'feedback': 'ورود تمیز به آب با زاویه ۴۵ درجه.',

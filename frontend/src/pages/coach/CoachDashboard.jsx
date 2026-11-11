@@ -65,20 +65,20 @@ export const CoachDashboard = () => {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
             <Link
               to="/coach/attendance"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-emerald-800 text-sm sm:text-base font-bold shadow-md hover:bg-emerald-50 transition-all active:scale-95"
+              className="flex-1 md:flex-initial justify-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-emerald-800 text-sm sm:text-base font-bold shadow-md hover:bg-emerald-50 transition-all active:scale-95 whitespace-nowrap"
             >
-              <ClipboardCheck className="w-4.5 h-4.5 text-emerald-600" />
-              ثبت حضور و غیاب
+              <ClipboardCheck className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
+              <span>ثبت حضور و غیاب</span>
             </Link>
             <Link
               to="/coach/workouts"
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-700/60 hover:bg-emerald-700 text-white text-sm sm:text-base font-semibold backdrop-blur-sm border border-emerald-400/30 transition-all active:scale-95"
+              className="flex-1 md:flex-initial justify-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-700/60 hover:bg-emerald-700 text-white text-sm sm:text-base font-semibold backdrop-blur-sm border border-emerald-400/30 transition-all active:scale-95 whitespace-nowrap"
             >
-              <PlusCircle className="w-4.5 h-4.5" />
-              طرح تمرین امروز
+              <PlusCircle className="w-4.5 h-4.5 shrink-0" />
+              <span>طرح تمرین امروز</span>
             </Link>
           </div>
         </div>

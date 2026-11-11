@@ -8,6 +8,7 @@ import {
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
 import { LoadingState } from '../../components/common/LoadingState';
+import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 
 export const CoachWorkoutsPage = () => {
@@ -133,23 +134,26 @@ export const CoachWorkoutsPage = () => {
     <div className="space-y-6 pb-12 coach-panel">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-            <Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600" />
-            طراحی و بانک برنامه‌های تمرین
-          </h1>
-          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
-            طراحی جلسات آموزشی، تمرینات گرم‌کردن، ست‌های اصلی شنا و سردکردن
-          </p>
+        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+          <BackButton fallback="/coach/classes" title="بازگشت به کلاس‌های من" className="mt-0.5 sm:mt-0" />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2 sm:gap-2.5 flex-wrap">
+              <Calendar className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600 shrink-0" />
+              <span>طراحی و بانک برنامه‌های تمرین</span>
+            </h1>
+            <p className="text-xs sm:text-sm md:text-base text-slate-500 dark:text-slate-400 mt-1">
+              طراحی جلسات آموزشی، تمرینات گرم‌کردن، ست‌های اصلی شنا و سردکردن
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
           {!showEditor && (
             <Button
               variant="primary"
               size="sm"
               onClick={() => setShowEditor(true)}
-              className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base px-4 py-2.5"
+              className="w-full sm:w-auto justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base px-4 py-2.5"
             >
               <PlusCircle className="w-4.5 h-4.5" />
               طراحی برنامه تمرین جدید

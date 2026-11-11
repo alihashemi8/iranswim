@@ -70,6 +70,7 @@ import { CoachAttendancePage } from './pages/coach/CoachAttendancePage';
 import { CoachProgressPage } from './pages/coach/CoachProgressPage';
 import { CoachSwimmerDossierPage } from './pages/coach/CoachSwimmerDossierPage';
 import { CoachAssessmentRecordPage } from './pages/coach/CoachAssessmentRecordPage';
+import { CoachSkillsManagerPage } from './pages/coach/CoachSkillsManagerPage';
 import { CoachAssessmentsPage } from './pages/coach/CoachAssessmentsPage';
 import { CoachExamsPage } from './pages/coach/CoachExamsPage';
 import { CoachWorkoutsPage } from './pages/coach/CoachWorkoutsPage';
@@ -259,6 +260,8 @@ export default function App() {
 
                 {/* 4. Progress & Swimmer Dossier */}
                 <Route path="progress" element={<CoachProgressPage />} />
+                <Route path="progress/skills" element={<CoachSkillsManagerPage />} />
+                <Route path="skills" element={<CoachSkillsManagerPage />} />
                 <Route path="progress/:swimmerId" element={<CoachSwimmerDossierPage />} />
                 <Route path="progress/:swimmerId/assessment" element={<CoachAssessmentRecordPage />} />
                 <Route path="assessments" element={<Navigate to="/coach/progress" replace />} />

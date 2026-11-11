@@ -5,6 +5,7 @@ import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
+import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 
 export const CoachAssessmentsPage = () => {
@@ -107,17 +108,20 @@ export const CoachAssessmentsPage = () => {
   return (
     <div className="space-y-6 coach-panel">
       <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-            <Award className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600 dark:text-emerald-400" />
-            ارزیابی مهارت‌های آموزشی و رکوردهای زمانی شنا
-          </h1>
-          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
-            سنجش سرفصل‌های آموزشی شناگران و ثبت رکوردهای رسمی آزمون و مسابقات
-          </p>
+        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+          <BackButton fallback="/coach/progress" title="بازگشت به ارزیابی و پیشرفت" className="mt-0.5 sm:mt-0" />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2 sm:gap-2.5 flex-wrap">
+              <Award className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span>ارزیابی مهارت‌های آموزشی و رکوردهای زمانی شنا</span>
+            </h1>
+            <p className="text-xs sm:text-sm md:text-base text-slate-500 dark:text-slate-400 mt-1">
+              سنجش سرفصل‌های آموزشی شناگران و ثبت رکوردهای رسمی آزمون و مسابقات
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-2.5">
-          <Button size="sm" onClick={() => setIsAssModalOpen(true)} className="gap-2 text-sm sm:text-base font-bold px-4 py-2.5">
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto shrink-0">
+          <Button size="sm" onClick={() => setIsAssModalOpen(true)} className="flex-1 sm:flex-initial gap-2 text-sm sm:text-base font-bold px-4 py-2.5 justify-center">
             <Plus className="w-4.5 h-4.5" />
             <span>ثبت ارزیابی مهارت</span>
           </Button>

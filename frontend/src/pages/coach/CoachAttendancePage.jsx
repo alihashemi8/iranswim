@@ -9,6 +9,7 @@ import api from '../../api/client';
 import { Button } from '../../components/common/Button';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { LoadingState } from '../../components/common/LoadingState';
+import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 import { toShamsiDate } from '../../utils/date';
 
@@ -71,14 +72,6 @@ export const CoachAttendancePage = () => {
   const [notesSavedSuccess, setNotesSavedSuccess] = useState(false);
 
   const toast = useToast();
-
-  const handleBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate('/coach/classes');
-    }
-  };
 
   // 1. Fetch Coach's Sessions
   useEffect(() => {
@@ -296,18 +289,10 @@ export const CoachAttendancePage = () => {
     <div className="space-y-6 pb-12 coach-panel">
       {/* 1. Header & Session Selection */}
       <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 md:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4 relative z-20">
-        <div className="flex items-start sm:items-center gap-3">
-          <button
-            type="button"
-            onClick={handleBack}
-            className="inline-flex items-center gap-2 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-200 hover:text-emerald-700 dark:hover:text-emerald-300 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-200/80 dark:border-slate-700 transition-all cursor-pointer shadow-xs shrink-0 mt-0.5 sm:mt-0 active:scale-95"
-            title="بازگشت به صفحه قبل"
-          >
-            <ArrowRight className="w-4 h-4 text-emerald-600" />
-            <span className="hidden sm:inline">بازگشت</span>
-          </button>
+        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+          <BackButton fallback="/coach/classes" title="بازگشت به صفحه قبل" className="mt-0.5 sm:mt-0" />
 
-          <div>
+          <div className="min-w-0 flex-1">
             <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2">
               <ClipboardCheck className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600 shrink-0" />
               حضور و غیاب کنار استخر (Poolside)

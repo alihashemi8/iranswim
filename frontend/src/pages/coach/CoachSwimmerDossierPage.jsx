@@ -9,6 +9,7 @@ import api from '../../api/client';
 import { Button } from '../../components/common/Button';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { LoadingState } from '../../components/common/LoadingState';
+import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import { toShamsiDate } from '../../utils/date';
@@ -120,18 +121,12 @@ export const CoachSwimmerDossierPage = () => {
 
   if (!data) {
     return (
-      <div className="coach-panel bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-center py-12 px-6 space-y-3">
+      <div className="coach-panel bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 text-center py-12 px-6 space-y-4">
         <Users className="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto" />
         <p className="text-sm sm:text-base font-bold text-slate-700 dark:text-slate-200">
           شناگر یافت نشد یا شما به پرونده او دسترسی ندارید.
         </p>
-        <Link
-          to="/coach/progress"
-          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-600 hover:text-white text-sm font-bold transition-colors"
-        >
-          <ChevronRight className="w-4 h-4" />
-          بازگشت به لیست پیشرفت
-        </Link>
+        <BackButton to="/coach/progress" label="بازگشت به لیست پیشرفت" showLabelAlways />
       </div>
     );
   }
@@ -161,27 +156,29 @@ export const CoachSwimmerDossierPage = () => {
     <div className="space-y-5 sm:space-y-6 pb-12 coach-panel">
       {/* 1. Header & Navigation */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div className="min-w-0 space-y-1.5">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm">
-            <Link
-              to="/coach/progress"
-              className="text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 inline-flex items-center gap-1 font-semibold transition-colors"
-            >
-              <ChevronRight className="w-4 h-4 shrink-0" />
-              ارزیابی و پیشرفت شناگران
-            </Link>
-            <span className="text-slate-300 dark:text-slate-600">/</span>
-            <span className="text-slate-700 dark:text-slate-200 font-bold truncate max-w-[200px] sm:max-w-xs">
-              {swimmer.full_name}
-            </span>
-          </div>
+        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+          <BackButton to="/coach/progress" title="بازگشت به ارزیابی و پیشرفت" className="mt-0.5 sm:mt-0" />
+          <div className="min-w-0 flex-1 space-y-1">
+            <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs sm:text-sm">
+              <Link
+                to="/coach/progress"
+                className="text-slate-500 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold transition-colors"
+              >
+                ارزیابی و پیشرفت شناگران
+              </Link>
+              <span className="text-slate-300 dark:text-slate-600">/</span>
+              <span className="text-slate-700 dark:text-slate-200 font-bold truncate max-w-[200px] sm:max-w-xs">
+                {swimmer.full_name}
+              </span>
+            </div>
 
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white flex flex-wrap items-center gap-2 sm:gap-2.5">
-            <span>{swimmer.full_name}</span>
-            <span className="inline-flex items-center text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80">
-              سطح: {swimmer.current_level_name}
-            </span>
-          </h1>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white flex flex-wrap items-center gap-2 sm:gap-2.5">
+              <span>{swimmer.full_name}</span>
+              <span className="inline-flex items-center text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80">
+                سطح: {swimmer.current_level_name}
+              </span>
+            </h1>
+          </div>
         </div>
 
         {/* Action Buttons */}

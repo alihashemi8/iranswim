@@ -8,12 +8,13 @@ class SkillAssessmentSerializer(serializers.ModelSerializer):
     level_name = serializers.SerializerMethodField()
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     custom_skill_name = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    custom_criteria_description = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
     class Meta:
         model = SkillAssessment
         fields = [
             'id', 'swimmer', 'swimmer_name', 'skill', 'skill_name',
-            'custom_skill_name', 'level_name', 'assessed_by', 'assessed_at',
+            'custom_skill_name', 'custom_criteria_description', 'level_name', 'assessed_by', 'assessed_at',
             'score', 'status', 'status_display', 'feedback', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']

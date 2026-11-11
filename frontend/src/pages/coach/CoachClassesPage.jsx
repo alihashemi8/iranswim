@@ -57,19 +57,19 @@ export const CoachClassesPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-            <BookOpen className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600" />
-            کلاس‌های من
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2 sm:gap-2.5 flex-wrap">
+            <BookOpen className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600 shrink-0" />
+            <span>کلاس‌های من</span>
           </h1>
-          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm md:text-base text-slate-500 dark:text-slate-400 mt-1">
             گروه‌های آموزشی، سانس‌های استخر و شناگران تحت آموزش شما
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto shrink-0">
           <Link
             to="/coach/workouts"
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm sm:text-base font-bold shadow-xs transition-all active:scale-95"
+            className="w-full sm:w-auto justify-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm sm:text-base font-bold shadow-xs transition-all active:scale-95"
           >
             <Calendar className="w-4.5 h-4.5" />
             برنامه تمرینات

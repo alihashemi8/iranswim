@@ -9,6 +9,7 @@ import api from '../../api/client';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { LoadingState } from '../../components/common/LoadingState';
+import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 
 const ANNOUNCEMENT_TEMPLATES = [
@@ -201,40 +202,33 @@ export const CoachCreateAnnouncementPage = () => {
     <div className="space-y-6 pb-12 coach-panel max-w-6xl mx-auto" dir="rtl">
       {/* Header & Breadcrumb */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200/80 dark:border-slate-800">
-        <div>
-          <div className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-2">
-            <Link
-              to="/coach/messages"
-              className="hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold transition-colors"
-            >
-              پیام‌ها و اطلاعیه‌ها
-            </Link>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400 rotate-180" />
-            <span className="text-slate-800 dark:text-slate-200 font-bold">
-              ارسال اطلاعیه جدید
-            </span>
-          </div>
-
-          <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200/70 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400">
-              <Send className="w-5 h-5" />
+        <div className="flex items-start sm:items-center gap-3 min-w-0 flex-1">
+          <BackButton to="/coach/messages" title="بازگشت به مرکز پیام" className="mt-0.5 sm:mt-0" />
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400 mb-1">
+              <Link
+                to="/coach/messages"
+                className="hover:text-emerald-600 dark:hover:text-emerald-400 font-semibold transition-colors"
+              >
+                پیام‌ها و اطلاعیه‌ها
+              </Link>
+              <ChevronRight className="w-3.5 h-3.5 text-slate-400 rotate-180" />
+              <span className="text-slate-800 dark:text-slate-200 font-bold">
+                ارسال اطلاعیه جدید
+              </span>
             </div>
-            <span>ارسال پیام و اطلاعیه به کلاس</span>
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            انتخاب کلاس مخاطب، تنظیم متن پیام یا استفاده از الگوهای آماده و اطلاع‌رسانی به شناگران و اولیا
-          </p>
-        </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => navigate('/coach/messages')}
-          className="gap-2 text-xs sm:text-sm self-start sm:self-auto cursor-pointer border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
-        >
-          <ArrowRight className="w-4 h-4" />
-          <span>بازگشت به مرکز پیام</span>
-        </Button>
+            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200/70 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400">
+                <Send className="w-5 h-5" />
+              </div>
+              <span>ارسال پیام و اطلاعیه به کلاس</span>
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+              انتخاب کلاس مخاطب، تنظیم متن پیام یا استفاده از الگوهای آماده و اطلاع‌رسانی به شناگران و اولیا
+            </p>
+          </div>
+        </div>
       </div>
 
       {classes.length === 0 ? (

@@ -43,11 +43,11 @@ export const CoachMessagesPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-            <MessageSquare className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600" />
-            مرکز پیام و ارتباطات آموزشی
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2 sm:gap-2.5 flex-wrap">
+            <MessageSquare className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600 shrink-0" />
+            <span>مرکز پیام و ارتباطات آموزشی</span>
           </h1>
-          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm md:text-base text-slate-500 dark:text-slate-400 mt-1">
             اطلاع‌رسانی تغییرات کلاس به شناگران، ارتباط آموزشی و اطلاعیه‌های رسمی آکادمی
           </p>
         </div>
@@ -56,7 +56,7 @@ export const CoachMessagesPage = () => {
           variant="success"
           size="sm"
           onClick={() => navigate('/coach/messages/new')}
-          className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base px-4 py-2.5 cursor-pointer"
+          className="w-full sm:w-auto justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base px-4 py-2.5 cursor-pointer shrink-0"
         >
           <Send className="w-4.5 h-4.5" />
           ارسال اطلاعیه به کلاس
