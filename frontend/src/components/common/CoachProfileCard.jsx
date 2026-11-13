@@ -205,15 +205,15 @@ export const CoachProfileCard = ({
               </p>
             </div>
 
-            {/* 5. Supported Specialties Section (Uniform height on all cards) */}
+            {/* 5. Coach Credentials Section (Uniform height on all cards) */}
             <div className="mt-3 h-16 sm:h-[4.25rem] bg-[#bbf0eb]/60 border border-[#7de0d6]/70 rounded-2xl px-2.5 py-1.5 flex items-center justify-center gap-1.5 sm:gap-2 overflow-hidden shrink-0">
-              {(specialtiesList.length > 0 ? specialtiesList.slice(0, 3) : ['شنای تخصصی', 'اصلاح تکنیک']).map((spec, idx) => (
+              {credentialsList.slice(0, 3).map((cred, idx) => (
                 <span
                   key={idx}
                   className="px-2.5 py-1 bg-white/95 rounded-lg text-xs sm:text-sm font-black text-[#06544f] shadow-2xs border border-[#7de0d6]/60 truncate max-w-[125px] sm:max-w-[140px]"
-                  title={spec}
+                  title={cred}
                 >
-                  {spec}
+                  {cred}
                 </span>
               ))}
             </div>
