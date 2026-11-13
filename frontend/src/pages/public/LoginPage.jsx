@@ -141,7 +141,11 @@ export const LoginPage = ({ defaultMode }) => {
         navigate('/admin');
         break;
       case 'COACH':
-        navigate('/coach');
+        if (!userData.is_profile_completed) {
+          navigate('/coach/complete-profile');
+        } else {
+          navigate('/coach');
+        }
         break;
       default:
         navigate('/');

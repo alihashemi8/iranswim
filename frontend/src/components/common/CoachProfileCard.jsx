@@ -63,25 +63,29 @@ export const CoachProfileCard = ({
 
   // Extract certification
   const getCertificationText = () => {
-    const spec = (coach.specialties || '').toLowerCase();
+    const degree = (coach.coaching_degree_display || coach.coaching_degree || '').toLowerCase();
     const bio = (coach.bio || '').toLowerCase();
-    if (spec.includes('نجات غریق') || bio.includes('نجات غریق')) {
-      return 'نجات‌غریق ۱';
+    if (degree.includes('درجه ۱') || degree.includes('grade_1')) {
+      return 'مربیگری درجه ۱';
+    }
+    if (degree.includes('درجه ۲') || degree.includes('grade_2')) {
+      return 'مربیگری درجه ۲';
+    }
+    if (degree.includes('ملی') || degree.includes('national')) {
+      return 'مربی ملی';
     }
     if (bio.includes('کارشناس تربیت بدنی')) {
       return 'تربیت بدنی';
     }
-    if (bio.includes('مدرس رسمی')) {
-      return 'مدرس فدراسیون';
-    }
-    return 'مربی فدراسیون';
+    return coach.coaching_degree_display || 'مربی رسمی فدراسیون';
   };
 
-  // Specialties parsed as tags
-  const specialtiesList = (coach.specialties || '')
-    .split(/[,،]+/)
-    .map((s) => s.trim())
-    .filter(Boolean);
+  // Badges parsed from degree and experience
+  const credentialsList = [
+    coach.coaching_degree_display || coach.coaching_degree || 'مربی رسمی',
+    coach.years_of_experience ? `${coach.years_of_experience} سال سابقه` : 'با سابقه تدریس',
+    'فدراسیون شنا'
+  ].filter(Boolean);
 
   return (
     <div

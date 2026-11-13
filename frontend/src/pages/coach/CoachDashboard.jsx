@@ -41,6 +41,30 @@ export const CoachDashboard = () => {
 
   return (
     <div className="space-y-6 pb-12 coach-panel">
+      {/* 0. Incomplete Profile Alert Banner */}
+      {coach && coach.is_profile_completed === false && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border-2 border-amber-300 dark:border-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-sm sm:text-base font-bold text-amber-900 dark:text-amber-200">
+                پرونده مربیگری شما ناقص است!
+              </h4>
+              <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-300 mt-1 leading-relaxed">
+                جهت فعال‌سازی صلاحیت برگزاری جلسات و تسویه مالی حق‌الزحمه، تکمیل فرم چندمرحله‌ای پرونده (شامل مدارک مربیگری و شماره شبا) الزامی است.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/coach/complete-profile"
+            className="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs sm:text-sm font-bold shadow-md transition-all active:scale-95 whitespace-nowrap"
+          >
+            <span>تکمیل مشخصات و مدارک</span>
+            <ArrowLeft className="w-4 h-4" />
+          </Link>
+        </div>
+      )}
+
       {/* 1. Header Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-emerald-600 via-teal-600 to-cyan-700 p-6 sm:p-8 text-white shadow-sm">
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
