@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import {
   UserCheck, Shield, Key, Bell, CheckCircle2,
   Lock, Phone, BookOpen, AlertCircle, Save, Calendar, CreditCard,
-  FileText, Award, Download, Plus, Clock, Star, X
+  FileText, Award, Download, Plus, Clock, Star, X, MapPin, ArrowLeft
 } from 'lucide-react';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
@@ -27,8 +28,11 @@ export const CoachProfilePage = () => {
   const [leaves, setLeaves] = useState([]);
   const [evaluations, setEvaluations] = useState([]);
 
-  // Form states
-  const [specialties, setSpecialties] = useState('');
+  // Form states (specialties removed, 14 mandatory fields supported)
+  const [coachingDegree, setCoachingDegree] = useState('GRADE_3');
+  const [yearsOfExperience, setYearsOfExperience] = useState(1);
+  const [cardNumber, setCardNumber] = useState('');
+  const [shabaNumber, setShabaNumber] = useState('');
   const [bio, setBio] = useState('');
   const [emergencyName, setEmergencyName] = useState('');
   const [emergencyPhone, setEmergencyPhone] = useState('');
@@ -59,7 +63,6 @@ export const CoachProfilePage = () => {
       const res = await api.get('/coaches/dashboard-overview/');
       const c = res.data.coach || {};
       setProfile(c);
-      setSpecialties(c.specialties || '');
       setBio(c.bio || '');
 
       if (c.id) {
@@ -78,9 +81,15 @@ export const CoachProfilePage = () => {
         setEvaluations(evalsRes.data || []);
 
         if (fullCoachRes.data) {
-          setEmergencyName(fullCoachRes.data.emergency_contact_name || '');
-          setEmergencyPhone(fullCoachRes.data.emergency_contact_phone || '');
-          setAddress(fullCoachRes.data.address || '');
+          const fc = fullCoachRes.data;
+          setCoachingDegree(fc.coaching_degree || 'GRADE_3');
+          setYearsOfExperience(fc.years_of_experience ?? 1);
+          setCardNumber(fc.card_number || '');
+          setShabaNumber(fc.shaba_number || '');
+          setEmergencyName(fc.emergency_contact_name || '');
+          setEmergencyPhone(fc.emergency_contact_phone || '');
+          setAddress(fc.address || '');
+          if (fc.bio) setBio(fc.bio);
         }
       }
     } catch (err) {
@@ -100,13 +109,17 @@ export const CoachProfilePage = () => {
       setSavingProfile(true);
       if (profile?.id) {
         await api.patch(`/coaches/${profile.id}/`, {
-          specialties,
+          coaching_degree: coachingDegree,
+          years_of_experience: Number(yearsOfExperience || 0),
+          card_number: cardNumber.replace(/\D/g, ''),
+          shaba_number: shabaNumber.replace(/\s+/g, '').toUpperCase(),
           bio,
           emergency_contact_name: emergencyName,
           emergency_contact_phone: emergencyPhone,
           address,
         });
         toast.success('مشخصات فردی با موفقیت به‌روزرسانی شد.');
+        fetchProfile();
       }
     } catch (err) {
       console.error(err);
