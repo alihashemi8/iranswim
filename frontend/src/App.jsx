@@ -77,6 +77,7 @@ import { CoachWorkoutsPage } from './pages/coach/CoachWorkoutsPage';
 import { CoachMessagesPage } from './pages/coach/CoachMessagesPage';
 import { CoachCreateAnnouncementPage } from './pages/coach/CoachCreateAnnouncementPage';
 import { CoachProfilePage } from './pages/coach/CoachProfilePage';
+import { CoachCompleteProfilePage } from './pages/coach/CoachCompleteProfilePage';
 
 
 // Swimmer Pages
@@ -283,6 +284,7 @@ export default function App() {
 
                 {/* 9. Profile & Settings */}
                 <Route path="profile" element={<CoachProfilePage />} />
+                <Route path="complete-profile" element={<CoachCompleteProfilePage />} />
               </Route>
 
 
