@@ -117,14 +117,14 @@ export const CoachSelectField = ({
     };
   }, [isOpen]);
 
-  // Filter coaches by name or specialties
+  // Filter coaches by name or coaching degree
   const filteredCoaches = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
     if (!q) return coaches;
     return coaches.filter((c) => {
       const name = (c.full_name || '').toLowerCase();
-      const spec = (c.specialties || '').toLowerCase();
-      return name.includes(q) || spec.includes(q);
+      const deg = (c.coaching_degree_display || c.coaching_degree || '').toLowerCase();
+      return name.includes(q) || deg.includes(q);
     });
   }, [coaches, searchQuery]);
 
@@ -196,9 +196,9 @@ export const CoachSelectField = ({
                     کادر آکادمی
                   </span>
                 </div>
-                {selectedCoach.specialties && (
+                {(selectedCoach.coaching_degree_display || selectedCoach.coaching_degree) && (
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                    {selectedCoach.specialties}
+                    {selectedCoach.coaching_degree_display || selectedCoach.coaching_degree}
                   </p>
                 )}
               </div>
@@ -337,9 +337,9 @@ export const CoachSelectField = ({
                               مربی {c.full_name}
                             </span>
                           </div>
-                          {c.specialties ? (
+                          {c.coaching_degree_display || c.coaching_degree ? (
                             <span className="text-[11px] text-slate-500 dark:text-slate-400 block truncate mt-0.5">
-                              {c.specialties}
+                              {c.coaching_degree_display || c.coaching_degree}
                             </span>
                           ) : (
                             <span className="text-[11px] text-slate-400 dark:text-slate-500 block truncate mt-0.5">
