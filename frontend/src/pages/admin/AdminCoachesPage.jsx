@@ -197,7 +197,7 @@ export const AdminCoachesPage = () => {
       phone: c.phone,
       national_id: c.national_id || '—',
       gender: c.gender === 'MALE' ? 'مرد' : 'زن',
-      specialties: c.specialties || '—',
+      coaching_degree: c.coaching_degree_display || c.coaching_degree || 'درجه ۳',
       employment_type: c.employment_type === 'HOURLY' ? 'ساعتی' : c.employment_type === 'FIXED' ? 'حقوق ثابت' : 'درصدی',
       status: c.employment_status_display || c.employment_status,
       rate_salary: c.employment_type === 'HOURLY'
@@ -215,7 +215,7 @@ export const AdminCoachesPage = () => {
       phone: 'شماره همراه',
       national_id: 'کد ملی',
       gender: 'جنسیت',
-      specialties: 'تخصص‌ها',
+      coaching_degree: 'درجه مربیگری',
       employment_type: 'مدل همکاری',
       status: 'وضعیت کاری',
       rate_salary: 'نرخ / دستمزد مصوب',
@@ -653,12 +653,12 @@ export const AdminCoachesPage = () => {
                   </Badge>
                 </div>
 
-                {/* Specialties & Contract */}
+                {/* Degree & Contract */}
                 <div className="space-y-2.5 text-xs sm:text-sm flex-1">
                   <div>
-                    <span className="text-slate-400 dark:text-slate-500 block mb-0.5 text-xs">تخصص‌ها:</span>
+                    <span className="text-slate-400 dark:text-slate-500 block mb-0.5 text-xs">درجه مربیگری:</span>
                     <span className="font-semibold text-slate-800 dark:text-slate-200 line-clamp-1">
-                      {coach.specialties || 'شنای عمومی و مقدماتی'}
+                      {coach.coaching_degree_display || coach.coaching_degree || 'درجه ۳'}
                     </span>
                   </div>
 
@@ -753,7 +753,7 @@ export const AdminCoachesPage = () => {
                   <th className="py-3 px-4 font-bold">کد پرسنلی</th>
                   <th className="py-3 px-4 font-bold">شماره همراه</th>
                   <th className="py-3 px-4 font-bold">جنسیت</th>
-                  <th className="py-3 px-4 font-bold">تخصص‌ها</th>
+                  <th className="py-3 px-4 font-bold">درجه مربیگری</th>
                   <th className="py-3 px-4 font-bold">مدل همکاری</th>
                   <th className="py-3 px-4 font-bold">نرخ / دستمزد</th>
                   <th className="py-3 px-4 font-bold text-center">کلاس‌های فعال</th>
@@ -780,7 +780,7 @@ export const AdminCoachesPage = () => {
                     <td className="py-3 px-4 font-mono font-bold text-sky-700 dark:text-sky-400">{c.personnel_id || '—'}</td>
                     <td className="py-3 px-4 font-mono">{c.phone}</td>
                     <td className="py-3 px-4">{c.gender === 'MALE' ? 'مرد' : 'زن'}</td>
-                    <td className="py-3 px-4 max-w-[150px] truncate">{c.specialties || 'عمومی'}</td>
+                    <td className="py-3 px-4 max-w-[150px] truncate">{c.coaching_degree_display || c.coaching_degree || 'درجه ۳'}</td>
                     <td className="py-3 px-4 font-semibold">{c.employment_type_display || c.employment_type}</td>
                     <td className="py-3 px-4 font-mono font-bold">
                       {c.employment_type === 'HOURLY' && `${formatPrice(c.hourly_rate)} ت`}

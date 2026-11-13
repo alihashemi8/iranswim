@@ -249,10 +249,10 @@ export const AdminCoachSchedulePage = () => {
             </div>
             <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 dark:text-slate-400 flex-wrap">
               <span>تلفن تماس: <strong className="font-mono text-slate-700 dark:text-slate-300">{coach.phone}</strong></span>
-              {coach.specialties && (
+              {(coach.coaching_degree_display || coach.coaching_degree) && (
                 <>
                   <span>•</span>
-                  <span>تخصص: <strong className="text-slate-700 dark:text-slate-300">{coach.specialties}</strong></span>
+                  <span>درجه: <strong className="text-slate-700 dark:text-slate-300">{coach.coaching_degree_display || coach.coaching_degree}</strong></span>
                 </>
               )}
             </div>

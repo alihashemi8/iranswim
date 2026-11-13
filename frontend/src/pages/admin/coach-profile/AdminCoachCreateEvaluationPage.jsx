@@ -166,7 +166,7 @@ export const AdminCoachCreateEvaluationPage = () => {
               </Badge>
             </div>
             <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
-              سابقه: <span className="font-mono font-bold text-slate-800">{coach?.years_of_experience || 0} سال</span> • تخصص: {coach?.specialties || 'تعیین‌نشده'}
+              سابقه: <span className="font-mono font-bold text-slate-800">{coach?.years_of_experience || 0} سال</span> • درجه: {coach?.coaching_degree_display || coach?.coaching_degree || 'درجه ۳'}
             </p>
           </div>
         </div>

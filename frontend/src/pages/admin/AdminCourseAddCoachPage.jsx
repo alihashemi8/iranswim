@@ -90,8 +90,8 @@ export const AdminCourseAddCoachPage = () => {
     if (!q) return unassignedCoaches;
     return unassignedCoaches.filter((c) => {
       const name = (c.full_name || '').toLowerCase();
-      const spec = (c.specialties || '').toLowerCase();
-      return name.includes(q) || spec.includes(q);
+      const deg = (c.coaching_degree_display || c.coaching_degree || '').toLowerCase();
+      return name.includes(q) || deg.includes(q);
     });
   }, [unassignedCoaches, searchQuery]);
 
@@ -403,13 +403,13 @@ export const AdminCourseAddCoachPage = () => {
                       <span className="absolute -bottom-1 -left-1 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
                     </div>
 
-                    {/* Coach Name & Specialties */}
+                    {/* Coach Name & Degree */}
                     <div className="min-w-0">
                       <span className="font-bold text-sm text-slate-900 dark:text-white block truncate group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
                         مربی {c.full_name}
                       </span>
                       <span className="text-xs text-slate-500 dark:text-slate-400 block truncate mt-0.5">
-                        {c.specialties || 'مربی رسمی شنا'}
+                        {c.coaching_degree_display || c.coaching_degree || 'مربی رسمی شنا'}
                       </span>
                       {isSelected && (
                         <span className="inline-block text-[10px] text-sky-700 dark:text-sky-300 font-bold bg-sky-100 dark:bg-sky-900/60 px-2 py-0.5 rounded-md mt-1.5">

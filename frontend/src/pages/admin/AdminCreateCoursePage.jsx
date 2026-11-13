@@ -330,8 +330,8 @@ export const AdminCreateCoursePage = () => {
     if (!coachSearch.trim()) return true;
     const query = coachSearch.trim().toLowerCase();
     const name = (c.full_name || '').toLowerCase();
-    const spec = (c.specialties || '').toLowerCase();
-    return name.includes(query) || spec.includes(query);
+    const deg = (c.coaching_degree_display || c.coaching_degree || '').toLowerCase();
+    return name.includes(query) || deg.includes(query);
   });
 
   const selectedCoachObjects = coaches.filter((c) => formData.coach_ids.includes(c.id));
@@ -933,7 +933,7 @@ export const AdminCreateCoursePage = () => {
                             {c.full_name}
                           </span>
                           <span className="text-[11px] text-slate-400 block truncate mt-0.5">
-                            {c.specialties || 'مربی رسمی شنا'}
+                            {c.coaching_degree_display || c.coaching_degree || 'مربی رسمی شنا'}
                           </span>
                           {isSelected && (
                             <span className="inline-block text-[10px] text-sky-700 dark:text-sky-300 font-bold bg-sky-100 dark:bg-sky-900/60 px-2 py-0.5 rounded-md mt-1">

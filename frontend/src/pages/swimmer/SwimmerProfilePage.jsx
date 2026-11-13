@@ -725,7 +725,7 @@ export const SwimmerProfilePage = () => {
 
                 <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl text-xs sm:text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2.5 font-medium leading-relaxed">
                   <Phone className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                  <span>ثبت اطلاعات تماس و <strong>شغل هر دو والد (پدر و مادر)</strong> الزامی است.</span>
+                  <span>ثبت اطلاعات تماس و <strong>شغل هر دو والد (پدر و مادر)</strong> الزامی است (جهت اعزام به مسابقات اصناف و ادارات).</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
@@ -751,6 +751,7 @@ export const SwimmerProfilePage = () => {
                   <div>
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                       شغل پدر <span className="text-rose-500 font-bold">*</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 font-normal mr-2">(جهت اعزام به مسابقات اصناف و ادارات)</span>
                     </label>
                     <div className="relative">
                       <Briefcase className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
@@ -787,6 +788,7 @@ export const SwimmerProfilePage = () => {
                   <div>
                     <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                       شغل مادر <span className="text-rose-500 font-bold">*</span>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 font-normal mr-2">(جهت اعزام به مسابقات اصناف و ادارات)</span>
                     </label>
                     <div className="relative">
                       <Briefcase className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />

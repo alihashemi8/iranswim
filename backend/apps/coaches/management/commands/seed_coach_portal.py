@@ -67,13 +67,13 @@ class Command(BaseCommand):
         coach_profile, _ = CoachProfile.objects.get_or_create(
             user=coach_user,
             defaults={
-                'specialties': 'کرال سینه، شنای پروانه، نجات غریق بین‌المللی',
+                'coaching_degree': 'درجه ۱',
                 'bio': 'مربی ارشد و رسمی فدراسیون شنا با ۱۲ سال سابقه تدریس، هدایت تیم‌های استانی و قهرمانی در رده‌های پایه کشور.',
                 'employment_status': CoachProfile.EmploymentStatus.ACTIVE,
                 'hourly_rate': Decimal('450000.00'),
             }
         )
-        coach_profile.specialties = 'کرال سینه، شنای پروانه، نجات غریق بین‌المللی'
+        coach_profile.coaching_degree = 'درجه ۱'
         coach_profile.bio = 'مربی ارشد و رسمی فدراسیون شنا با ۱۲ سال سابقه تدریس، هدایت تیم‌های استانی و قهرمانی در رده‌های پایه کشور.'
         coach_profile.lifeguard_certificate = 'کارت بین‌المللی نجات‌غریق درجه یک ILS'
         coach_profile.lifeguard_expiration = today + datetime.timedelta(days=580)
@@ -108,7 +108,7 @@ class Command(BaseCommand):
         CoachProfile.objects.get_or_create(
             user=coach2_user,
             defaults={
-                'specialties': 'شنای موزون، آب‌درمانی، کرال پشت و قورباغه',
+                'coaching_degree': 'درجه ۲',
                 'bio': 'مدرس رسمی فدراسیون و کارشناس ارشد فیزیولوژی ورزش با سابقه ۱۰ سال هدایت تیم‌های شنای بانوان.',
                 'employment_status': CoachProfile.EmploymentStatus.ACTIVE,
                 'hourly_rate': Decimal('400000.00'),

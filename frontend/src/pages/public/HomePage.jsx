@@ -128,7 +128,7 @@ const INITIAL_COACHES = [
     id: 1,
     full_name: 'محمد رضایی',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=500&q=80',
-    specialties: 'کرال سینه، شنای پروانه، نجات غریق درجه ۱',
+    coaching_degree: 'درجه ۱ فدراسیون',
     bio: 'مربی رسمی فدراسیون شنا با ۱۰ سال سابقه آموزش تیم‌های پایه و استعدادیابی در استخرهای قزوین',
     icon: SwimmerCrawlIcon,
   },
@@ -136,7 +136,7 @@ const INITIAL_COACHES = [
     id: 4,
     full_name: 'نیما سعادتی',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=80',
-    specialties: 'شنای قورباغه، اصلاح تکنیک و استارت',
+    coaching_degree: 'درجه ۲ فدراسیون',
     bio: 'مربی تخصصی اصلاح حرکت، استارت و استقامت بدنی شناگران در رده‌های نوجوانان و جوانان قزوین',
     icon: PoolStartingBlockIcon,
   },
@@ -144,7 +144,7 @@ const INITIAL_COACHES = [
     id: 2,
     full_name: 'علیرضا مرادی (مربی)',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=500&q=80',
-    specialties: 'کرال سینه، شنای پروانه، نجات غریق',
+    coaching_degree: 'ملی شنا',
     bio: 'مربی رسمی فدراسیون شنا با ۱۲ سال سابقه تدریس شنای مبتدی و پیشرفته برای کودکان و بزرگسالان در قزوین',
     icon: RescueBuoyRingIcon,
   },
@@ -152,7 +152,7 @@ const INITIAL_COACHES = [
     id: 3,
     full_name: 'سارا کاظمی',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=500&q=80',
-    specialties: 'آموزش بانوان و کودکان، آب‌درمانی و کرال پشت',
+    coaching_degree: 'درجه ۱ فدراسیون',
     bio: 'مدرس رسمی فدراسیون و کارشناس تربیت بدنی با سابقه ۱۰ سال برگزاری کلاس‌های آموزش شنای بانوان در قزوین',
     icon: SynchroSwimIcon,
   },
@@ -160,7 +160,7 @@ const INITIAL_COACHES = [
     id: 5,
     full_name: 'مهدی یزدانی',
     avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=500&q=80',
-    specialties: 'استعدادیابی نونهالان، آب‌بازی و رفع ترس از آب',
+    coaching_degree: 'درجه ۳ فدراسیون',
     bio: 'مربی باحوصله و مجرب در حوزه آموزش اصولی شنا از پایه برای رده‌های سنی ۵ تا ۱۲ سال',
     icon: WaterMedalTrophyIcon,
   },
@@ -651,13 +651,14 @@ export const HomePage = () => {
 
   const getCoachSpecialtyIcon = (coach) => {
     const name = coach?.full_name || '';
-    const spec = (coach?.specialties || '').toLowerCase();
-    if (name.includes('سارا') || spec.includes('موزون') || spec.includes('آب‌درمانی')) return SynchroSwimIcon;
-    if (name.includes('نیما') || spec.includes('استارت') || spec.includes('سرعتی')) return PoolStartingBlockIcon;
-    if (name.includes('علیرضا') || spec.includes('نجات') || spec.includes('غریق')) return RescueBuoyRingIcon;
-    if (name.includes('مهدی') || spec.includes('نونهالان') || spec.includes('استعدادیابی')) return WaterMedalTrophyIcon;
-    if (spec.includes('پروانه')) return SwimmerButterflyIcon;
-    if (spec.includes('قورباغه')) return SwimmerBreaststrokeIcon;
+    const bio = (coach?.bio || '').toLowerCase();
+    const deg = (coach?.coaching_degree_display || coach?.coaching_degree || '').toLowerCase();
+    if (name.includes('سارا') || bio.includes('موزون') || bio.includes('آب‌درمانی')) return SynchroSwimIcon;
+    if (name.includes('نیما') || bio.includes('استارت') || bio.includes('سرعتی')) return PoolStartingBlockIcon;
+    if (name.includes('علیرضا') || bio.includes('نجات') || bio.includes('غریق')) return RescueBuoyRingIcon;
+    if (name.includes('مهدی') || bio.includes('نونهالان') || bio.includes('استعدادیابی')) return WaterMedalTrophyIcon;
+    if (deg.includes('۱') || bio.includes('پروانه')) return SwimmerButterflyIcon;
+    if (deg.includes('۲') || bio.includes('قورباغه')) return SwimmerBreaststrokeIcon;
     return SwimmerCrawlIcon;
   };
 

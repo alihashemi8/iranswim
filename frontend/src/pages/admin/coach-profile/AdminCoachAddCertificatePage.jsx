@@ -135,7 +135,7 @@ export const AdminCoachAddCertificatePage = () => {
               </Badge>
             </div>
             <p className="text-xs sm:text-sm text-slate-600 mt-0.5">
-              تخصص‌ها: {coach?.specialties || 'تعیین‌نشده'}
+              درجه مربیگری: {coach?.coaching_degree_display || coach?.coaching_degree || 'درجه ۳'}
             </p>
           </div>
         </div>

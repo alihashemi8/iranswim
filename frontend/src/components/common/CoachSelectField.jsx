@@ -330,7 +330,7 @@ export const CoachSelectField = ({
                           <span className="absolute -bottom-0.5 -left-0.5 w-2.5 h-2.5 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
                         </div>
 
-                        {/* Name & Specialties */}
+                        {/* Name & Coaching Degree */}
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-2">
                             <span className="text-xs sm:text-sm font-bold block truncate">

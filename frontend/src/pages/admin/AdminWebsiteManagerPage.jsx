@@ -111,7 +111,7 @@ export const AdminWebsiteManagerPage = () => {
     phone: '',
     gender: 'MALE',
     display_order: 1,
-    specialties: '',
+    coaching_degree: 'GRADE_3',
     bio: '',
     employment_status: 'ACTIVE',
   });
@@ -373,7 +373,7 @@ export const AdminWebsiteManagerPage = () => {
       phone: coach.phone || '',
       gender: coach.gender || (isFemaleCoach(coach) ? 'FEMALE' : 'MALE'),
       display_order: coach.display_order ?? 1,
-      specialties: coach.specialties || '',
+      coaching_degree: coach.coaching_degree || 'GRADE_3',
       bio: coach.bio || '',
       employment_status: coach.employment_status || 'ACTIVE',
     });
@@ -1215,7 +1215,7 @@ export const AdminWebsiteManagerPage = () => {
                             </Badge>
                           </div>
                           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-semibold line-clamp-1">
-                            {coach.specialties || 'کرال سینه، شنای پروانه، نجات غریق'}
+                            {coach.coaching_degree_display || coach.coaching_degree || 'مربی رسمی شنا'}
                           </p>
                         </div>
                       </div>
@@ -1703,14 +1703,18 @@ export const AdminWebsiteManagerPage = () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">تخصص‌ها</label>
-            <input
-              type="text"
-              value={coachForm.specialties}
-              onChange={(e) => setCoachForm({ ...coachForm, specialties: e.target.value })}
-              placeholder="کرال سینه، شنای پروانه، نجات غریق درجه ۱"
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">درجه رسمی مربی‌گری</label>
+            <select
+              value={coachForm.coaching_degree}
+              onChange={(e) => setCoachForm({ ...coachForm, coaching_degree: e.target.value })}
               className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border rounded-xl"
-            />
+            >
+              <option value="GRADE_3">مربیگری درجه ۳ فدراسیون</option>
+              <option value="GRADE_2">مربیگری درجه ۲ فدراسیون</option>
+              <option value="GRADE_1">مربیگری درجه ۱ فدراسیون</option>
+              <option value="NATIONAL">مربیگری ملی شنا</option>
+              <option value="INTERNATIONAL">مربیگری بین‌المللی (FINA)</option>
+            </select>
           </div>
 
           <div>

@@ -278,7 +278,9 @@ class CoachDetailHRView(generics.RetrieveUpdateDestroyAPIView):
         return CoachPublicSerializer
 
     COACH_SELF_UPDATE_ALLOWED_FIELDS = {
-        'specialties', 'bio', 'emergency_contact_name', 'emergency_contact_phone', 'address'
+        'coaching_degree', 'coaching_certificate_date', 'years_of_experience',
+        'card_number', 'shaba_number',
+        'bio', 'emergency_contact_name', 'emergency_contact_phone', 'address'
     }
 
     def get_permissions(self):

@@ -169,8 +169,8 @@ export const AdminCourseDetailPage = () => {
     if (!q) return unassignedCoaches;
     return unassignedCoaches.filter((c) => {
       const name = (c.full_name || '').toLowerCase();
-      const spec = (c.specialties || '').toLowerCase();
-      return name.includes(q) || spec.includes(q);
+      const deg = (c.coaching_degree_display || c.coaching_degree || '').toLowerCase();
+      return name.includes(q) || deg.includes(q);
     });
   }, [unassignedCoaches, coachSearchQuery]);
 
@@ -1247,7 +1247,7 @@ export const AdminCourseDetailPage = () => {
                               مربی {c.full_name}
                             </span>
                             <span className="text-[11px] text-slate-500 dark:text-slate-400 block truncate mt-0.5">
-                              {c.specialties || 'مربی رسمی شنا'}
+                              {c.coaching_degree_display || c.coaching_degree || 'مربی رسمی شنا'}
                             </span>
                             {isSelected && (
                               <span className="inline-block text-[10px] text-sky-700 dark:text-sky-300 font-bold bg-sky-100 dark:bg-sky-900/60 px-2 py-0.5 rounded-md mt-1">

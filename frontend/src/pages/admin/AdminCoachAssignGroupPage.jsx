@@ -268,7 +268,7 @@ export const AdminCoachAssignGroupPage = () => {
               </Badge>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              شماره همراه: <span className="font-mono">{coach.phone}</span> | تخصص‌ها: {coach.specialties || 'شنای عمومی'}
+              شماره همراه: <span className="font-mono">{coach.phone}</span> | درجه مربیگری: {coach.coaching_degree_display || coach.coaching_degree || 'درجه ۳'}
             </p>
           </div>
         </div>

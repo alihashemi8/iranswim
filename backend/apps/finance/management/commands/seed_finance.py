@@ -55,7 +55,7 @@ class Command(BaseCommand):
             c_prof, _ = CoachProfile.objects.get_or_create(
                 user=c_user,
                 defaults={
-                    'specialties': spec,
+                    'coaching_degree': 'درجه ۱',
                     'bio': f'مربی رسمی با بیش از ۱۰ سال تجربه حرفه‌ای در {spec}',
                     'hourly_rate': rate,
                     'employment_status': CoachProfile.EmploymentStatus.ACTIVE

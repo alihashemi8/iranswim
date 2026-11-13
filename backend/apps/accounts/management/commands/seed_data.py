@@ -58,7 +58,7 @@ class Command(BaseCommand):
         coach_profile, _ = CoachProfile.objects.get_or_create(
             user=coach_user,
             defaults={
-                'specialties': 'کرال سینه، شنای پروانه، نجات غریق بین‌المللی',
+                'coaching_degree': 'درجه ۱',
                 'bio': 'مربی رسمی فدراسیون شنا با ۱۲ سال سابقه تدریس و قهرمانی رده‌های پایه کشور',
                 'employment_status': CoachProfile.EmploymentStatus.ACTIVE,
                 'hourly_rate': Decimal('450000.00'),
@@ -79,7 +79,7 @@ class Command(BaseCommand):
         CoachProfile.objects.get_or_create(
             user=coach2_user,
             defaults={
-                'specialties': 'شنای موزون (سینکرونایز)، آب‌درمانی و کرال پشت',
+                'coaching_degree': 'درجه ۱',
                 'bio': 'مدرس رسمی فدراسیون و کارشناس ارشد فیزیولوژی ورزش با سابقه ۱۰ سال هدایت تیم‌های استانی',
                 'employment_status': CoachProfile.EmploymentStatus.ACTIVE,
                 'hourly_rate': Decimal('400000.00'),
@@ -99,7 +99,7 @@ class Command(BaseCommand):
         CoachProfile.objects.get_or_create(
             user=coach3_user,
             defaults={
-                'specialties': 'شنای قورباغه، استارت و برگشت‌های سرعتی المپیک',
+                'coaching_degree': 'درجه ۲',
                 'bio': 'عضو اسبق تیم ملی شنا و مربی تخصصی اصلاح تکنیک و استقامت بدنی شناگران نخبه',
                 'employment_status': CoachProfile.EmploymentStatus.ACTIVE,
                 'hourly_rate': Decimal('420000.00'),
@@ -119,7 +119,7 @@ class Command(BaseCommand):
         CoachProfile.objects.get_or_create(
             user=coach4_user,
             defaults={
-                'specialties': 'استعدادیابی نونهالان و آموزش آب‌بازی و مبتدی',
+                'coaching_degree': 'درجه ۳',
                 'bio': 'مربی باحوصله و مجرب در حوزه آموزش اصولی شنا از پایه برای رده‌های سنی ۵ تا ۱۲ سال',
                 'employment_status': CoachProfile.EmploymentStatus.ACTIVE,
                 'hourly_rate': Decimal('380000.00'),
