@@ -250,6 +250,29 @@ export const CoachProfilePage = () => {
         </div>
       </div>
 
+      {/* Incomplete Profile Alert Banner */}
+      {profile && !profile.is_profile_completed && (
+        <div className="p-4 sm:p-5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-sm font-bold text-amber-900 dark:text-amber-200">
+                پرونده پرسنلی و مدارک مربیگری شما تکمیل نشده است!
+              </h4>
+              <p className="text-xs text-amber-800 dark:text-amber-300 mt-1 leading-relaxed">
+                جهت فعال‌سازی صلاحیت تدریس و اتصال به سیستم پرداخت، تکمیل مراحل ۴ گانه پرونده شامل مدارک مربیگری، شماره کارت و شبا الزامی است.
+              </p>
+            </div>
+          </div>
+          <Link to="/coach/complete-profile" className="shrink-0">
+            <Button className="w-full sm:w-auto text-xs bg-amber-600 hover:bg-amber-500 text-white font-bold gap-1.5 shadow-xs">
+              <span>تکمیل مرحله‌ای پرونده</span>
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          </Link>
+        </div>
+      )}
+
       {/* Tabs Switcher */}
       <div className="flex items-center gap-1.5 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-x-auto">
         {coachTabs.map((tab) => {
@@ -283,80 +306,137 @@ export const CoachProfilePage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Professional Details Form */}
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
-            <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
-              <BookOpen className="w-5 h-5 text-emerald-600" />
-              مشخصات فردی و تماس
-            </h3>
+            <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-emerald-600" />
+                <span>مشخصات فردی و پرونده مربی</span>
+              </h3>
+              <Link to="/coach/complete-profile" className="text-xs text-emerald-600 hover:underline font-bold">
+                ویرایش در فرم مرحله‌ای
+              </Link>
+            </div>
 
             <form onSubmit={handleUpdateProfile} className="space-y-4 text-sm sm:text-base">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1 text-xs sm:text-sm">
+                    درجه رسمی مربیگری:
+                  </label>
+                  <select
+                    value={coachingDegree}
+                    onChange={(e) => setCoachingDegree(e.target.value)}
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white text-xs sm:text-sm font-medium"
+                  >
+                    <option value="GRADE_3">درجه ۳ فدراسیون</option>
+                    <option value="GRADE_2">درجه ۲ فدراسیون</option>
+                    <option value="GRADE_1">درجه ۱ فدراسیون</option>
+                    <option value="NATIONAL">ملی شنا</option>
+                    <option value="INTERNATIONAL">بین‌المللی (FINA)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1 text-xs sm:text-sm">
+                    سابقه تدریس (سال):
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="50"
+                    value={yearsOfExperience}
+                    onChange={(e) => setYearsOfExperience(e.target.value)}
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white font-mono text-xs sm:text-sm font-medium"
+                  />
+                </div>
+              </div>
+
               <div>
-                <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1.5 text-sm sm:text-base">
-                  تخصص‌های ورزشی شنا:
+                <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1 text-xs sm:text-sm">
+                  شماره کارت بانکی (۱۶ رقمی جهت تسویه):
                 </label>
                 <input
                   type="text"
-                  placeholder="مثال: کرال سینه، شنای پروانه"
-                  value={specialties}
-                  onChange={(e) => setSpecialties(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white text-sm sm:text-base font-medium"
+                  dir="ltr"
+                  maxLength={16}
+                  value={cardNumber}
+                  onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, ''))}
+                  placeholder="6037..."
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white font-mono text-xs sm:text-sm font-medium text-center"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1.5 text-sm sm:text-base">
-                  نام مخاطب اضطراری:
+                <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1 text-xs sm:text-sm">
+                  شماره شبا بانکی (IBAN):
                 </label>
                 <input
                   type="text"
-                  value={emergencyName}
-                  onChange={(e) => setEmergencyName(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white text-sm sm:text-base font-medium"
+                  dir="ltr"
+                  value={shabaNumber}
+                  onChange={(e) => setShabaNumber(e.target.value.replace(/\s+/g, '').toUpperCase())}
+                  placeholder="IR..."
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white font-mono text-xs sm:text-sm font-medium text-left"
                 />
               </div>
 
-              <div>
-                <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1.5 text-sm sm:text-base">
-                  تلفن تماس اضطراری:
-                </label>
-                <input
-                  type="text"
-                  value={emergencyPhone}
-                  onChange={(e) => setEmergencyPhone(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white font-mono text-sm sm:text-base font-medium"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1 text-xs sm:text-sm">
+                    نام مخاطب اضطراری:
+                  </label>
+                  <input
+                    type="text"
+                    value={emergencyName}
+                    onChange={(e) => setEmergencyName(e.target.value)}
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white text-xs sm:text-sm font-medium"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1 text-xs sm:text-sm">
+                    تلفن تماس اضطراری:
+                  </label>
+                  <input
+                    type="text"
+                    dir="ltr"
+                    value={emergencyPhone}
+                    onChange={(e) => setEmergencyPhone(e.target.value)}
+                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white font-mono text-xs sm:text-sm font-medium"
+                  />
+                </div>
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1.5 text-sm sm:text-base">
+                <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1 text-xs sm:text-sm">
                   آدرس محل سکونت:
                 </label>
                 <input
                   type="text"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white text-sm sm:text-base font-medium"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white text-xs sm:text-sm font-medium"
                 />
               </div>
 
               <div>
-                <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1.5 text-sm sm:text-base">
+                <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1 text-xs sm:text-sm">
                   بیوگرافی و رزومه رسمی:
                 </label>
                 <textarea
                   rows="3"
                   value={bio}
                   onChange={(e) => setBio(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white leading-relaxed text-sm sm:text-base font-medium"
+                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white leading-relaxed text-xs sm:text-sm font-medium"
                 />
               </div>
 
               <Button
                 type="submit"
                 loading={savingProfile}
-                className="w-full justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 gap-2 text-sm sm:text-base"
+                className="w-full justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 gap-2 text-xs sm:text-sm"
               >
-                <Save className="w-5 h-5" />
-                ذخیره تغییرات مشخصات
+                <Save className="w-4 h-4" />
+                <span>ذخیره تغییرات مشخصات</span>
               </Button>
             </form>
           </div>
