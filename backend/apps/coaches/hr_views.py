@@ -197,7 +197,7 @@ class CoachListHRView(generics.ListCreateAPIView):
                 Q(user__phone__icontains=search) |
                 Q(user__national_id__icontains=search) |
                 Q(personnel_id__icontains=search) |
-                Q(specialties__icontains=search)
+                Q(coaching_degree__icontains=search)
             )
 
         # 2. Employment Status
@@ -215,10 +215,10 @@ class CoachListHRView(generics.ListCreateAPIView):
         if emp_type:
             qs = qs.filter(employment_type=emp_type)
 
-        # 5. Specialty
-        specialty = params.get('specialty')
-        if specialty:
-            qs = qs.filter(specialties__icontains=specialty)
+        # 5. Coaching Degree
+        coaching_degree = params.get('coaching_degree') or params.get('degree')
+        if coaching_degree:
+            qs = qs.filter(coaching_degree__icontains=coaching_degree)
 
         # 6. Contract Status (ACTIVE, EXPIRING_SOON, EXPIRED, NO_CONTRACT)
         contract_status = params.get('contract_status')

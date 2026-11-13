@@ -20,7 +20,7 @@ def coach_user(db):
         last_name='نمونه',
         role=User.Role.COACH
     )
-    CoachProfile.objects.create(user=user, specialties='کرال سینه، استقامت')
+    CoachProfile.objects.create(user=user, coaching_degree='درجه ۱')
     return user
 
 
@@ -451,4 +451,73 @@ def test_coach_custom_evaluation_skills_and_assessment(coach_user, sample_setup)
     dossier_skill_names = [a['skill_name'] for a in dossier_assessments]
     assert 'پای کرال سینه استقامتی ۲۵ متر' in dossier_skill_names
     assert 'شیرجه و استارت از روی سکو' in dossier_skill_names
+
+
+@pytest.mark.django_db
+def test_coach_profile_completion_and_validation(coach_user):
+    import io
+    from PIL import Image
+    from django.core.files.uploadedfile import SimpleUploadedFile
+
+    def create_dummy_file(name='cert.jpg'):
+        file_obj = io.BytesIO()
+        image = Image.new('RGB', (100, 100), color=(100, 150, 200))
+        image.save(file_obj, format='JPEG')
+        file_obj.seek(0)
+        return SimpleUploadedFile(name, file_obj.read(), content_type='image/jpeg')
+
+    client = APIClient()
+    client.force_authenticate(user=coach_user)
+
+    # 1. Fetch coach me profile
+    me_res = client.get('/api/coaches/me/')
+    assert me_res.status_code == 200
+    assert me_res.data['is_profile_completed'] is False
+
+    # 2. Incomplete submission should fail with missing_fields
+    fail_res = client.post('/api/coaches/me/complete/', {})
+    assert fail_res.status_code == 400
+    assert 'missing_fields' in fail_res.data
+    assert 'کد ملی ۱۰ رقمی معتبر' in fail_res.data['missing_fields']
+    assert 'تاریخ تولد' in fail_res.data['missing_fields']
+    assert 'تاریخ اخذ مربیگری' in fail_res.data['missing_fields']
+    assert 'شماره کارت ۱۶ رقمی معتبر' in fail_res.data['missing_fields']
+    assert 'شماره شبا معتبر' in fail_res.data['missing_fields']
+    assert 'آپلود مدرک مربیگری' in fail_res.data['missing_fields']
+
+    # 3. Complete submission with all 14 mandatory fields
+    complete_payload = {
+        'first_name': 'رضا',
+        'last_name': 'سهرابی',
+        'national_id': '0077889911',
+        'date_of_birth': '1370-04-12',
+        'coaching_degree': 'درجه ۲',
+        'coaching_certificate_date': '1398-06-20',
+        'years_of_experience': 6,
+        'bio': 'مربی رسمی فدراسیون شنا با ۶ سال سابقه تدریس تیم‌های پایه',
+        'address': 'تهران، سعادت آباد، بلوار پاکنژاد، کوچه مریم، پلاک ۱۰',
+        'card_number': '6037991122334455',
+        'shaba_number': 'IR120170000000112233445566',
+        'emergency_contact_name': 'علی سهرابی (برادر)',
+        'emergency_contact_phone': '09123334455',
+        'coaching_certificate_file': create_dummy_file('certificate.jpg'),
+    }
+
+    comp_res = client.post('/api/coaches/me/complete/', complete_payload, format='multipart')
+    assert comp_res.status_code == 200
+    assert comp_res.data['profile']['is_profile_completed'] is True
+    assert comp_res.data['profile']['first_name'] == 'رضا'
+    assert comp_res.data['profile']['last_name'] == 'سهرابی'
+    assert comp_res.data['profile']['coaching_degree'] == 'درجه ۲'
+    assert comp_res.data['profile']['card_number'] == '6037991122334455'
+    assert comp_res.data['profile']['shaba_number'] == 'IR120170000000112233445566'
+
+    # Check database persistence and user sync
+    coach_user.refresh_from_db()
+    assert coach_user.first_name == 'رضا'
+    assert coach_user.last_name == 'سهرابی'
+    assert coach_user.national_id == '0077889911'
+    coach_profile = coach_user.coach_profile
+    assert coach_profile.is_profile_completed is True
+
 

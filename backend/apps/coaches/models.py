@@ -21,12 +21,22 @@ class CoachProfile(models.Model):
         MALE = 'MALE', _('آقا / مرد')
         FEMALE = 'FEMALE', _('خانم / زن')
 
+    class CoachingDegree(models.TextChoices):
+        GRADE_3 = 'GRADE_3', _('مربیگری درجه ۳')
+        GRADE_2 = 'GRADE_2', _('مربیگری درجه ۲')
+        GRADE_1 = 'GRADE_1', _('مربیگری درجه ۱')
+        INTERNATIONAL = 'INTERNATIONAL', _('مربیگری بین‌المللی')
+        OTHER = 'OTHER', _('سایر مدارک رسمی')
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='coach_profile',
         verbose_name=_('حساب کاربری مربی')
     )
+    first_name = models.CharField(_('نام'), max_length=100, blank=True)
+    last_name = models.CharField(_('نام خانوادگی'), max_length=100, blank=True)
+    national_id = models.CharField(_('کد ملی'), max_length=10, blank=True, db_index=True)
     personnel_id = models.CharField(
         _('کد پرسنلی'),
         max_length=50,
@@ -43,10 +53,30 @@ class CoachProfile(models.Model):
         db_index=True
     )
     date_of_birth = models.DateField(_('تاریخ تولد'), null=True, blank=True)
-    emergency_contact_name = models.CharField(_('نام مخاطب اضطراری'), max_length=150, blank=True)
-    emergency_contact_phone = models.CharField(_('تلفن تماس اضطراری'), max_length=20, blank=True)
+    emergency_contact_name = models.CharField(_('نام و نام خانوادگی مخاطب اضطراری'), max_length=150, blank=True)
+    emergency_contact_phone = models.CharField(_('شماره مخاطب اضطراری'), max_length=20, blank=True)
     address = models.TextField(_('آدرس محل سکونت'), blank=True)
     internal_notes = models.TextField(_('یادداشت محرمانه اداری'), blank=True)
+
+    # Coaching Credentials & Professional details
+    coaching_degree = models.CharField(
+        _('درجه مربیگری'),
+        max_length=100,
+        choices=CoachingDegree.choices,
+        blank=True
+    )
+    coaching_certificate_date = models.DateField(_('تاریخ اخذ مربیگری'), null=True, blank=True)
+    coaching_certificate_file = models.FileField(_('آپلود مدرک مربیگری'), upload_to='coach_certificates/', null=True, blank=True)
+    years_of_experience = models.PositiveIntegerField(_('سابقه کار (سال)'), default=0)
+    bio = models.TextField(_('رزومه و بیوگرافی'), blank=True)
+    resume_file = models.FileField(_('فایل رزومه'), upload_to='coach_resumes/', null=True, blank=True)
+
+    # Financial & Banking details
+    card_number = models.CharField(_('شماره کارت'), max_length=20, blank=True)
+    shaba_number = models.CharField(_('شماره شبا'), max_length=30, blank=True)
+
+    # Profile completion status
+    is_profile_completed = models.BooleanField(_('تکمیل پرونده انجام شده'), default=False, db_index=True)
 
     display_order = models.PositiveIntegerField(
         _('ترتیب نمایش در سایت'),
@@ -58,13 +88,10 @@ class CoachProfile(models.Model):
         default=True,
         db_index=True
     )
-    specialties = models.CharField(_('تخصص‌ها (کرال سینه، پروانه و...)'), max_length=255, blank=True)
-    bio = models.TextField(_('رزومه و بیوگرافی'), blank=True)
     
     # Professional fields
     lifeguard_certificate = models.CharField(_('مدرک نجات‌غریق'), max_length=150, blank=True)
     lifeguard_expiration = models.DateField(_('تاریخ انقضای کارت نجات‌غریق'), null=True, blank=True)
-    years_of_experience = models.PositiveIntegerField(_('سابقه مربیگری (سال)'), default=0)
     previous_experience = models.TextField(_('سوابق کاری و باشگاه‌های قبلی'), blank=True)
     additional_skills = models.TextField(_('سایر مهارت‌ها و دوره‌ها'), blank=True)
 
@@ -108,11 +135,40 @@ class CoachProfile(models.Model):
         ordering = ['display_order', 'user__last_name', 'user__first_name']
 
     def __str__(self):
-        return f"مربی {self.user.get_full_name() or self.user.phone}"
+        return f"مربی {self.full_name}"
 
     @property
     def full_name(self):
-        return self.user.get_full_name() or self.user.phone
+        fn = self.first_name or (self.user.first_name if self.user else '')
+        ln = self.last_name or (self.user.last_name if self.user else '')
+        combined = f"{fn} {ln}".strip()
+        if combined:
+            return combined
+        return self.user.get_full_name() if self.user else (self.user.phone if self.user else '')
+
+    @property
+    def has_required_info(self):
+        fn = self.first_name or (self.user.first_name if self.user else '')
+        ln = self.last_name or (self.user.last_name if self.user else '')
+        nid = self.national_id or (self.user.national_id if self.user else '')
+        return bool(
+            fn and ln and nid and len(nid.strip()) == 10 and
+            self.date_of_birth and
+            self.coaching_degree and
+            self.coaching_certificate_date and
+            self.years_of_experience is not None and
+            (self.bio or self.resume_file) and
+            self.address and
+            self.card_number and
+            self.shaba_number and
+            self.emergency_contact_name and
+            self.emergency_contact_phone and
+            self.coaching_certificate_file
+        )
+
+    def get_coaching_degree_display(self):
+        degree_map = dict(self.CoachingDegree.choices)
+        return degree_map.get(self.coaching_degree, self.coaching_degree or 'نامشخص')
 
     @property
     def active_contract(self):
@@ -131,6 +187,30 @@ class CoachProfile(models.Model):
             else:
                 seq = 1001 + (self.id or 0)
             self.personnel_id = f"EMP-{seq}"
+
+        if self.user:
+            user_changed = False
+            if self.first_name and self.user.first_name != self.first_name:
+                self.user.first_name = self.first_name
+                user_changed = True
+            elif not self.first_name and self.user.first_name:
+                self.first_name = self.user.first_name
+
+            if self.last_name and self.user.last_name != self.last_name:
+                self.user.last_name = self.last_name
+                user_changed = True
+            elif not self.last_name and self.user.last_name:
+                self.last_name = self.user.last_name
+
+            if self.national_id and self.user.national_id != self.national_id:
+                self.user.national_id = self.national_id
+                user_changed = True
+            elif not self.national_id and self.user.national_id:
+                self.national_id = self.user.national_id
+
+            if user_changed:
+                self.user.save()
+
         super().save(*args, **kwargs)
 
 

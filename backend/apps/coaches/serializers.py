@@ -33,7 +33,7 @@ class CoachPublicSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'first_name', 'last_name', 'full_name',
             'avatar', 'gender', 'gender_display', 'display_order', 'show_on_landing',
-            'specialties', 'bio', 'years_of_experience', 'assigned_groups_count'
+            'coaching_degree', 'bio', 'years_of_experience', 'assigned_groups_count'
         ]
         read_only_fields = fields
 
@@ -284,10 +284,19 @@ class CoachAttendanceCorrectionAuditSerializer(serializers.ModelSerializer):
 class CoachProfileSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(read_only=True)
     phone = serializers.CharField(required=False)
-    first_name = serializers.CharField(required=False)
-    last_name = serializers.CharField(required=False)
+    first_name = serializers.CharField(required=False, allow_blank=True)
+    last_name = serializers.CharField(required=False, allow_blank=True)
     national_id = serializers.CharField(required=False, allow_blank=True, allow_null=True)
     date_of_birth = serializers.DateField(required=False, allow_null=True)
+    coaching_degree = serializers.CharField(required=False, allow_blank=True)
+    coaching_degree_display = serializers.CharField(source='get_coaching_degree_display', read_only=True)
+    coaching_certificate_date = serializers.DateField(required=False, allow_null=True)
+    coaching_certificate_file = serializers.FileField(required=False, allow_null=True)
+    resume_file = serializers.FileField(required=False, allow_null=True)
+    card_number = serializers.CharField(required=False, allow_blank=True)
+    shaba_number = serializers.CharField(required=False, allow_blank=True)
+    is_profile_completed = serializers.BooleanField(required=False)
+    has_required_info = serializers.BooleanField(read_only=True)
     lifeguard_expiration = serializers.DateField(required=False, allow_null=True)
     employment_start_date = serializers.DateField(required=False, allow_null=True)
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
@@ -306,8 +315,11 @@ class CoachProfileSerializer(serializers.ModelSerializer):
             'id', 'user', 'first_name', 'last_name', 'full_name', 'phone', 'national_id',
             'password', 'avatar', 'personnel_id', 'gender', 'gender_display',
             'date_of_birth', 'emergency_contact_name', 'emergency_contact_phone', 'address', 'internal_notes',
-            'display_order', 'show_on_landing', 'specialties', 'bio',
-            'lifeguard_certificate', 'lifeguard_expiration', 'years_of_experience',
+            'coaching_degree', 'coaching_degree_display', 'coaching_certificate_date',
+            'coaching_certificate_file', 'years_of_experience', 'bio', 'resume_file',
+            'card_number', 'shaba_number', 'is_profile_completed', 'has_required_info',
+            'display_order', 'show_on_landing',
+            'lifeguard_certificate', 'lifeguard_expiration',
             'previous_experience', 'additional_skills',
             'employment_start_date', 'employment_status', 'employment_status_display',
             'employment_type', 'employment_type_display',
@@ -383,7 +395,7 @@ class CoachProfileSerializer(serializers.ModelSerializer):
 
     def to_internal_value(self, data):
         data = data.copy() if hasattr(data, 'copy') else dict(data)
-        for date_field in ['date_of_birth', 'lifeguard_expiration', 'employment_start_date']:
+        for date_field in ['date_of_birth', 'coaching_certificate_date', 'lifeguard_expiration', 'employment_start_date']:
             if date_field in data and (data[date_field] == '' or data[date_field] is None):
                 data[date_field] = None
 
@@ -409,23 +421,32 @@ class CoachProfileSerializer(serializers.ModelSerializer):
         is_supervisor = bool(user and user.role == 'SUPERVISOR')
         is_self = bool(user and instance.user and instance.user == user)
 
+        fn = instance.first_name or (instance.user.first_name if instance.user else '')
+        ln = instance.last_name or (instance.user.last_name if instance.user else '')
+        nid = instance.national_id or (instance.user.national_id if instance.user else '')
+        ret['first_name'] = fn
+        ret['last_name'] = ln
+        ret['full_name'] = f"{fn} {ln}".strip() or (instance.user.get_full_name() if instance.user else '') or (instance.user.phone if instance.user else '')
+
         if instance.user:
-            ret['first_name'] = instance.user.first_name or ''
-            ret['last_name'] = instance.user.last_name or ''
-            ret['full_name'] = instance.user.get_full_name() or instance.user.phone or ''
             if is_admin or is_self or is_supervisor:
                 ret['phone'] = instance.user.phone or ''
             else:
                 ret.pop('phone', None)
 
             if is_admin or is_self or is_supervisor:
-                ret['national_id'] = instance.user.national_id or ''
+                ret['national_id'] = nid
             else:
                 ret.pop('national_id', None)
         else:
             if not (is_admin or is_self or is_supervisor):
                 ret.pop('phone', None)
                 ret.pop('national_id', None)
+
+        if instance.coaching_certificate_file:
+            ret['coaching_certificate_file'] = request.build_absolute_uri(instance.coaching_certificate_file.url) if request else instance.coaching_certificate_file.url
+        if instance.resume_file:
+            ret['resume_file'] = request.build_absolute_uri(instance.resume_file.url) if request else instance.resume_file.url
 
         # Confidential fields handling
         if not (is_admin or is_supervisor):
@@ -437,6 +458,7 @@ class CoachProfileSerializer(serializers.ModelSerializer):
                 'percentage_revenue_basis', 'employment_status', 'employment_status_display',
                 'employment_type', 'employment_type_display', 'employment_start_date',
                 'emergency_contact_name', 'emergency_contact_phone', 'address',
+                'card_number', 'shaba_number',
                 'date_of_birth', 'lifeguard_certificate', 'lifeguard_expiration',
                 'previous_experience', 'personnel_id', 'contractual_weekly_hours',
                 'active_contract_summary', 'current_month_payroll_status',
@@ -486,12 +508,26 @@ class CoachProfileSerializer(serializers.ModelSerializer):
         if not created:
             for k, v in validated_data.items():
                 setattr(profile, k, v)
-            profile.save()
+
+        if first_name:
+            profile.first_name = first_name
+        if last_name:
+            profile.last_name = last_name
+        if national_id:
+            profile.national_id = national_id
 
         request = self.context.get('request')
         if request and 'avatar' in request.FILES:
             user.avatar = request.FILES['avatar']
             user.save(update_fields=['avatar'])
+
+        if request:
+            if 'coaching_certificate_file' in request.FILES:
+                profile.coaching_certificate_file = request.FILES['coaching_certificate_file']
+            if 'resume_file' in request.FILES:
+                profile.resume_file = request.FILES['resume_file']
+
+        profile.save()
 
         actor = request.user if request and hasattr(request, 'user') else None
         from .services import CoachActivityLogger
@@ -511,6 +547,13 @@ class CoachProfileSerializer(serializers.ModelSerializer):
         national_id = validated_data.pop('national_id', None)
         password = validated_data.pop('password', None)
         validated_data.pop('user', None)
+
+        if first_name is not None:
+            instance.first_name = str(first_name).strip()
+        if last_name is not None:
+            instance.last_name = str(last_name).strip()
+        if national_id is not None:
+            instance.national_id = str(national_id).strip()
 
         if instance.user:
             user_obj = instance.user
@@ -539,6 +582,14 @@ class CoachProfileSerializer(serializers.ModelSerializer):
 
         for k, v in validated_data.items():
             setattr(instance, k, v)
+
+        request = self.context.get('request')
+        if request:
+            if 'coaching_certificate_file' in request.FILES:
+                instance.coaching_certificate_file = request.FILES['coaching_certificate_file']
+            if 'resume_file' in request.FILES:
+                instance.resume_file = request.FILES['resume_file']
+
         instance.save()
 
         request = self.context.get('request')

@@ -83,7 +83,7 @@ def coach1_profile(db):
     return CoachProfile.objects.create(
         user=coach_user,
         gender=CoachProfile.Gender.MALE,
-        specialties='کرال سینه، شنای پروانه',
+        coaching_degree='درجه ۱',
         bio='مربی رسمی فدراسیون شنا با ۱۰ سال سابقه تدریس',
         hourly_rate=Decimal('350000.00'),
         employment_status=CoachProfile.EmploymentStatus.ACTIVE,
@@ -105,7 +105,7 @@ def coach2_profile(db):
     return CoachProfile.objects.create(
         user=coach_user,
         gender=CoachProfile.Gender.FEMALE,
-        specialties='قورباغه، آموزش کودکان',
+        coaching_degree='درجه ۲',
         bio='مربی درجه یک فدراسیون با ۸ سال سابقه',
         hourly_rate=Decimal('420000.00'),
         employment_status=CoachProfile.EmploymentStatus.ACTIVE,
@@ -174,7 +174,7 @@ def test_legitimate_otp_delivery_and_verification_workflow(api_client):
 
         # دریافت ایمن کد از دیتابیس (مشابه دریافت پیامک توسط کاربر)
         otp_record = OTPVerification.objects.filter(phone=phone, is_used=False).latest('created_at')
-        assert len(otp_record.code) == 6
+        assert len(otp_record.code) == 5
         assert otp_record.code.isdigit()
 
         # ثبت‌نام با کد معتبر

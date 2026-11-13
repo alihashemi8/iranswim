@@ -22,14 +22,14 @@ export const MobileBottomNav = () => {
     const isSchedule = currentPath.startsWith('/swimmer/schedule');
     const isProgress = currentPath.startsWith('/swimmer/progress') || currentPath.startsWith('/swimmer/league');
     const isFinance = currentPath.startsWith('/swimmer/finance');
-    const isAccount = currentPath.startsWith('/swimmer/documents') || currentPath.startsWith('/swimmer/settings') || currentPath.startsWith('/swimmer/complete-profile');
+    const isAccount = currentPath.startsWith('/swimmer/profile') || currentPath.startsWith('/swimmer/documents') || currentPath.startsWith('/swimmer/settings') || currentPath.startsWith('/swimmer/complete-profile');
 
     const swimmerNavItems = [
       { to: '/swimmer', label: 'خانه', icon: LayoutDashboard, active: isHome, end: true },
       { to: '/swimmer/schedule', label: 'برنامه', icon: Calendar, active: isSchedule },
       { to: '/swimmer/progress', label: 'پیشرفت', icon: TrendingUp, active: isProgress },
       { to: '/swimmer/finance', label: 'مالی', icon: CreditCard, active: isFinance },
-      { to: '/swimmer/documents', label: 'حساب من', icon: UserCheck, active: isAccount },
+      { to: '/swimmer/profile', label: 'پروفایل', icon: UserCheck, active: isAccount },
     ];
 
     return (

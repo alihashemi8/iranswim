@@ -3,7 +3,8 @@ from .views import (
     CoachDashboardOverviewView, CoachMyClassesView, CoachClassDetailView,
     CoachClassAnnouncementDeleteView,
     CoachSwimmerDossierView, CoachWorkoutPlanListView, CoachWorkoutPlanDetailView,
-    CoachAIAssistantView, CoachMessagesView, CoachReorderView
+    CoachAIAssistantView, CoachMessagesView, CoachReorderView,
+    CoachMeProfileView, CoachCompleteProfileView
 )
 from .hr_views import (
     CoachStatisticsView, CoachListHRView, CoachDetailHRView,
@@ -24,6 +25,8 @@ urlpatterns = [
     path('reorder/', CoachReorderView.as_view(), name='coach_reorder'),
 
     # 2. Coach Portal dedicated endpoints (Preserved)
+    path('me/', CoachMeProfileView.as_view(), name='coach_me_profile'),
+    path('me/complete/', CoachCompleteProfileView.as_view(), name='coach_complete_profile'),
     path('dashboard-overview/', CoachDashboardOverviewView.as_view(), name='coach_dashboard_overview'),
     path('my-classes/', CoachMyClassesView.as_view(), name='coach_my_classes'),
     path('my-classes/<int:pk>/', CoachClassDetailView.as_view(), name='coach_class_detail'),

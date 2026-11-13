@@ -165,11 +165,34 @@ export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertif
               </span>
             </div>
 
-            <div className="col-span-2">
+            <div className="col-span-1 sm:col-span-2">
               <span className="text-slate-400 block mb-0.5">آدرس محل سکونت:</span>
               <span className="text-slate-700 dark:text-slate-300">
                 {coach.address || 'آدرسی ثبت نشده است.'}
               </span>
+            </div>
+
+            <div>
+              <span className="text-slate-400 block mb-0.5">شماره کارت بانکی:</span>
+              <span className="font-mono font-bold text-slate-800 dark:text-slate-200 tracking-wider">
+                {coach.card_number ? coach.card_number.replace(/(\d{4})/g, '$1-').replace(/-$/, '') : 'ثبت نشده'}
+              </span>
+            </div>
+
+            <div>
+              <span className="text-slate-400 block mb-0.5">شماره شبا بانکی (IBAN):</span>
+              <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300">
+                {coach.shaba_number || 'ثبت نشده'}
+              </span>
+            </div>
+
+            <div>
+              <span className="text-slate-400 block mb-0.5">وضعیت تکمیل پرونده:</span>
+              {coach.is_profile_completed ? (
+                <Badge variant="success">تکمیل و تأیید شده</Badge>
+              ) : (
+                <Badge variant="warning">نیازمند تکمیل مدارک</Badge>
+              )}
             </div>
 
             {coach.internal_notes && (
@@ -190,27 +213,43 @@ export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertif
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs space-y-4">
           <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
             <Briefcase className="w-4 h-4 text-emerald-600" />
-            ب) سوابق حرفه‌ای و شایستگی‌ها
+            ب) سوابق حرفه‌ای، درجه و مدارک مربیگری
           </h4>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 text-xs sm:text-sm">
-            <div className="col-span-1 sm:col-span-2">
-              <span className="text-slate-400 block mb-0.5">تخصص‌های آموزشی شنا:</span>
-              <div className="flex flex-wrap gap-1.5 mt-1">
-                {coach.specialties ? (
-                  coach.specialties.split(/[,،]/).map((spec, idx) => (
-                    <span key={idx} className="bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 px-2.5 py-0.5 rounded-lg font-semibold border border-sky-100 dark:border-sky-900/50">
-                      {spec.trim()}
-                    </span>
-                  ))
-                ) : (
-                  <span className="text-slate-500">عمومی و پایه</span>
-                )}
-              </div>
+            <div>
+              <span className="text-slate-400 block mb-0.5">درجه رسمی مربی‌گری:</span>
+              <span className="font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 px-2.5 py-1 rounded-lg border border-sky-200 dark:border-sky-800 inline-block">
+                {coach.coaching_degree_display || coach.coaching_degree || 'درجه ۳'}
+              </span>
             </div>
 
             <div>
-              <span className="text-slate-400 block mb-0.5">سابقه مربیگری:</span>
+              <span className="text-slate-400 block mb-0.5">تاریخ اخذ مربی‌گری:</span>
+              <span className="font-mono text-slate-700 dark:text-slate-300">
+                {coach.coaching_certificate_date ? new Date(coach.coaching_certificate_date).toLocaleDateString('fa-IR') : '—'}
+              </span>
+            </div>
+
+            <div>
+              <span className="text-slate-400 block mb-0.5">مدرک مربیگری بارگذاری‌شده:</span>
+              {coach.coaching_certificate_file ? (
+                <a
+                  href={coach.coaching_certificate_file}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-600 hover:text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>دانلود / مشاهده مدرک</span>
+                </a>
+              ) : (
+                <span className="text-rose-500 font-medium">مدرکی بارگذاری نشده است</span>
+              )}
+            </div>
+
+            <div>
+              <span className="text-slate-400 block mb-0.5">سابقه تدریس و مربیگری:</span>
               <span className="font-bold text-slate-800 dark:text-slate-200">
                 {coach.years_of_experience || 0} سال سابقه
               </span>
@@ -229,6 +268,21 @@ export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertif
                 {coach.lifeguard_expiration ? new Date(coach.lifeguard_expiration).toLocaleDateString('fa-IR') : '—'}
               </span>
             </div>
+
+            {coach.resume_file && (
+              <div className="col-span-2">
+                <span className="text-slate-400 block mb-0.5">فایل رزومه پیوست:</span>
+                <a
+                  href={coach.resume_file}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-sky-600 hover:text-sky-700 bg-sky-50 dark:bg-sky-950/40 px-2.5 py-1 rounded-lg border border-sky-200 dark:border-sky-800"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>دانلود فایل رزومه</span>
+                </a>
+              </div>
+            )}
 
             <div className="col-span-2">
               <span className="text-slate-400 block mb-0.5">سوابق کاری و باشگاه‌های قبلی:</span>

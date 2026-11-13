@@ -125,17 +125,17 @@ export const SwimmerDashboardPage = () => {
       id: 'incomplete_profile',
       title: 'تکمیل مدارک و مشخصات فردی',
       desc: 'جهت صدور کارت تردد استخر و عضویت فدراسیون، پرونده نیازمند بارگذاری مدارک است.',
-      link: '/swimmer/documents',
+      link: '/swimmer/profile',
       level: 'warning',
-      actionText: 'تکمیل مدارک',
+      actionText: 'تکمیل مدارک و پروفایل',
     });
   }
   if (user && !user.is_password_changed) {
     actionItems.push({
       id: 'initial_password',
-      title: 'تغییر کلمه عبور اولیه (کد ملی)',
-      desc: 'کد ملی اطلاعات قابل افشا است؛ لطفاً کلمه عبور اختصاصی و ایمن برای حساب تعریف فرمایید.',
-      link: '/swimmer/settings',
+      title: 'تعیین کلمه عبور اختصاصی',
+      desc: 'برای افزایش امنیت، کلمه عبور اختصاصی و ایمن برای حساب کاربری خود تعریف فرمایید.',
+      link: '/swimmer/profile?tab=security',
       level: 'danger',
       actionText: 'تعیین رمز قوی',
     });

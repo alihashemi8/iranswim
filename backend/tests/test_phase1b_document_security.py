@@ -114,7 +114,7 @@ def coach_with_assignment(db, swimmer1):
         last_name='تخصیص‌یافته',
         role=User.Role.COACH
     )
-    coach = CoachProfile.objects.create(user=coach_user, specialties='کرال سینه')
+    coach = CoachProfile.objects.create(user=coach_user, coaching_degree='درجه ۱')
 
     level = SkillLevel.objects.create(name='مقدماتی', order=1)
     course = Course.objects.create(
@@ -140,7 +140,7 @@ def unrelated_coach(db):
         last_name='غیرمرتبط',
         role=User.Role.COACH
     )
-    return CoachProfile.objects.create(user=coach_user, specialties='پروانه')
+    return CoachProfile.objects.create(user=coach_user, coaching_degree='درجه ۲')
 
 
 # ==============================================================================

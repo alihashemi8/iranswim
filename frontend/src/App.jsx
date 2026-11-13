@@ -91,6 +91,7 @@ import { SwimmerAttendancePage } from './pages/swimmer/SwimmerAttendancePage';
 import { SwimmerDocumentsPage } from './pages/swimmer/SwimmerDocumentsPage';
 import { SwimmerAnnouncementsPage } from './pages/swimmer/SwimmerAnnouncementsPage';
 import { SwimmerSupportPage } from './pages/swimmer/SwimmerSupportPage';
+import { SwimmerProfilePage } from './pages/swimmer/SwimmerProfilePage';
 import { SwimmerSettingsPage } from './pages/swimmer/SwimmerSettingsPage';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
@@ -310,8 +311,9 @@ export default function App() {
 
                 {/* 4. Account & Documents */}
                 <Route path="documents" element={<SwimmerDocumentsPage />} />
-                <Route path="settings" element={<SwimmerSettingsPage />} />
-                <Route path="complete-profile" element={<SwimmerCompleteProfilePage />} />
+                <Route path="profile" element={<SwimmerProfilePage />} />
+                <Route path="settings" element={<Navigate to="/swimmer/profile?tab=security" replace />} />
+                <Route path="complete-profile" element={<Navigate to="/swimmer/profile" replace />} />
               </Route>
 
               {/* Fallback */}

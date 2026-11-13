@@ -56,7 +56,7 @@ def coach1(db):
     return CoachProfile.objects.create(
         user=u,
         personnel_id='EMP-1001',
-        specialties='کرال سینه، شنای استقامتی',
+        coaching_degree='درجه ۱',
         employment_type=CoachProfile.EmploymentType.HOURLY,
         hourly_rate=Decimal('250000.00'),
         contractual_weekly_hours=20,
@@ -76,7 +76,7 @@ def coach2(db):
     return CoachProfile.objects.create(
         user=u,
         personnel_id='EMP-1002',
-        specialties='پروانه، کرال پشت',
+        coaching_degree='درجه ۲',
         gender=CoachProfile.Gender.FEMALE,
         employment_type=CoachProfile.EmploymentType.FIXED,
         fixed_monthly_salary=Decimal('20000000.00'),

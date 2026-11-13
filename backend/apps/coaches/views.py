@@ -4,6 +4,7 @@ from django.db.models import Q, Count, Avg
 from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 
 from .models import CoachProfile, WorkoutPlan
 from .serializers import (
@@ -29,6 +30,7 @@ def get_coach_profile(user):
 class CoachListView(generics.ListCreateAPIView):
     queryset = CoachProfile.objects.all().select_related('user')
     serializer_class = CoachProfileSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_serializer_class(self):
         user = self.request.user if hasattr(self, 'request') else None
@@ -58,6 +60,7 @@ class CoachListView(generics.ListCreateAPIView):
 class CoachDetailView(generics.RetrieveUpdateDestroyAPIView):
     queryset = CoachProfile.objects.all().select_related('user')
     serializer_class = CoachProfileSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_serializer_class(self):
         user = self.request.user if hasattr(self, 'request') else None
@@ -207,7 +210,12 @@ class CoachDashboardOverviewView(APIView):
             'coach': {
                 'id': coach.id,
                 'full_name': coach.full_name,
-                'specialties': coach.specialties,
+                'first_name': coach.first_name or (coach.user.first_name if coach.user else ''),
+                'last_name': coach.last_name or (coach.user.last_name if coach.user else ''),
+                'coaching_degree': coach.coaching_degree,
+                'coaching_degree_display': coach.get_coaching_degree_display(),
+                'is_profile_completed': coach.is_profile_completed,
+                'has_required_info': coach.has_required_info,
             },
             'today': {
                 'date': today.strftime('%Y-%m-%d'),
@@ -226,6 +234,140 @@ class CoachDashboardOverviewView(APIView):
                 'unrecorded_sessions': unrecorded_data,
             }
         })
+
+
+class CoachMeProfileView(APIView):
+    """دریافت اطلاعات کامل پرونده مربی جاری"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        coach = get_coach_profile(user)
+        if not coach and (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser):
+            coach_id = request.query_params.get('coach_id')
+            if coach_id:
+                coach = CoachProfile.objects.filter(pk=coach_id).first()
+            else:
+                coach = CoachProfile.objects.first()
+
+        if not coach:
+            return Response({'detail': 'پروفایل مربی یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = CoachProfileSerializer(coach, context={'request': request})
+        return Response(serializer.data)
+
+
+class CoachCompleteProfileView(APIView):
+    """
+    اعتبارسنجی و ثبت نهایی مشخصات و مدارک مربی (چندمرحله‌ای)
+    تمام ۱۴ فیلد مشخص‌شده توسط کاربر اجباری است:
+    نام، نام خانوادگی، کد ملی، تاریخ تولد، درجه مربیگری، تاریخ اخذ مربیگری،
+    سابقه کار، رزومه، آدرس محل سکونت، شماره کارت، شماره شبا،
+    نام و نام خانوادگی مخاطب اضطراری، شماره مخاطب اضطراری، آپلود مدرک مربیگری
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def post(self, request):
+        user = request.user
+        coach = get_coach_profile(user)
+
+        coach_id = request.data.get('coach_id') or request.query_params.get('coach_id')
+        if coach_id and (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser):
+            coach = CoachProfile.objects.filter(pk=coach_id).first()
+            if not coach:
+                return Response({'detail': 'مربی مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if not coach:
+            if user.role == User.Role.COACH:
+                coach, _ = CoachProfile.objects.get_or_create(user=user)
+            else:
+                return Response({'detail': 'پروفایل مربی برای این کاربر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = CoachProfileSerializer(coach, data=request.data, partial=True, context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        coach = serializer.save()
+
+        # Handle uploaded files
+        if 'coaching_certificate_file' in request.FILES:
+            coach.coaching_certificate_file = request.FILES['coaching_certificate_file']
+        if 'resume_file' in request.FILES:
+            coach.resume_file = request.FILES['resume_file']
+        if 'avatar' in request.FILES and coach.user:
+            coach.user.avatar = request.FILES['avatar']
+            coach.user.save(update_fields=['avatar'])
+
+        # Validate mandatory 14 fields:
+        missing = []
+        fn = coach.first_name or (coach.user.first_name if coach.user else '')
+        ln = coach.last_name or (coach.user.last_name if coach.user else '')
+        nid = coach.national_id or (coach.user.national_id if coach.user else '')
+
+        if not fn or not fn.strip():
+            missing.append('نام')
+        if not ln or not ln.strip():
+            missing.append('نام خانوادگی')
+        if not nid or len(nid.strip()) != 10 or not nid.strip().isdigit():
+            missing.append('کد ملی ۱۰ رقمی معتبر')
+        if not coach.date_of_birth:
+            missing.append('تاریخ تولد')
+        if not coach.coaching_degree or not str(coach.coaching_degree).strip():
+            missing.append('درجه مربیگری')
+        if not coach.coaching_certificate_date:
+            missing.append('تاریخ اخذ مربیگری')
+        if coach.years_of_experience is None or coach.years_of_experience < 0:
+            missing.append('سابقه کار')
+        if not coach.bio and not coach.resume_file:
+            missing.append('رزومه')
+        if not coach.address or not coach.address.strip():
+            missing.append('آدرس محل سکونت')
+        clean_card = str(coach.card_number or '').replace(' ', '').replace('-', '').strip()
+        if not clean_card or len(clean_card) != 16 or not clean_card.isdigit():
+            missing.append('شماره کارت ۱۶ رقمی معتبر')
+        clean_shaba = str(coach.shaba_number or '').replace(' ', '').upper().strip()
+        if not clean_shaba or len(clean_shaba) < 24:
+            missing.append('شماره شبا معتبر')
+        if not coach.emergency_contact_name or not coach.emergency_contact_name.strip():
+            missing.append('نام و نام خانوادگی مخاطب اضطراری')
+        clean_emerg_phone = str(coach.emergency_contact_phone or '').strip()
+        if not clean_emerg_phone:
+            missing.append('شماره مخاطب اضطراری')
+        if not coach.coaching_certificate_file:
+            missing.append('آپلود مدرک مربیگری')
+
+        if missing:
+            coach.save()
+            return Response({
+                'detail': f'تکمیل موارد ستاره‌دار زیر الزامی است: {", ".join(missing)}',
+                'missing_fields': missing
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        coach.is_profile_completed = True
+        coach.save()
+
+        # Send notification to admins about newly submitted coach credentials
+        from apps.accounts.models import User
+        from apps.content.models import Notification
+
+        admin_users = list(User.objects.filter(role__in=['ADMIN', 'SUPERVISOR'], is_active=True))
+        notification_title = f'تکمیل و ارسال مدارک مربیگری: {coach.full_name}'
+        notification_msg = f'مربی «{coach.full_name}» اطلاعات هویتی، مدرک مربیگری ({coach.coaching_degree}) و شماره حساب خود را تکمیل و ارسال نموده است.'
+        notification_link = f'/admin/coaches/{coach.id}'
+
+        for admin in admin_users:
+            Notification.objects.create(
+                recipient=admin,
+                title=notification_title,
+                message=notification_msg,
+                notification_type='SYSTEM',
+                link=notification_link
+            )
+
+        return Response({
+            'status': 'success',
+            'message': 'پرونده و مشخصات مربی با موفقیت تأیید و تکمیل گردید.',
+            'profile': CoachProfileSerializer(coach, context={'request': request}).data
+        }, status=status.HTTP_200_OK)
 
 
 class CoachMyClassesView(APIView):

@@ -426,6 +426,12 @@ export const AdminSwimmerDetailPage = () => {
                   )}
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                  <span className="text-slate-400 block mb-1">شغل پدر:</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-100">
+                    {swimmer.father_job || 'ثبت‌نشده'}
+                  </span>
+                </div>
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
                   <span className="text-slate-400 block mb-1">شماره تماس مادر:</span>
                   {swimmer.mother_phone ? (
                     <a href={`tel:${swimmer.mother_phone}`} className="font-mono font-bold text-pink-600 hover:underline">
@@ -436,6 +442,12 @@ export const AdminSwimmerDetailPage = () => {
                   )}
                 </div>
                 <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60">
+                  <span className="text-slate-400 block mb-1">شغل مادر:</span>
+                  <span className="font-bold text-slate-800 dark:text-slate-100">
+                    {swimmer.mother_job || 'ثبت‌نشده'}
+                  </span>
+                </div>
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 sm:col-span-2 lg:col-span-2">
                   <span className="text-slate-400 block mb-1">رابط اضطراری:</span>
                   <span className="font-bold text-slate-800 dark:text-slate-100">
                     {swimmer.emergency_contact_name ? `${swimmer.emergency_contact_name} (${swimmer.emergency_contact_phone || '—'})` : '—'}

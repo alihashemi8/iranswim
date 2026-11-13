@@ -113,7 +113,7 @@ def active_coach(db):
         last_name='فعال',
         role=User.Role.COACH
     )
-    return CoachProfile.objects.create(user=coach_user, specialties='کرال سینه')
+    return CoachProfile.objects.create(user=coach_user, coaching_degree='درجه ۱')
 
 
 @pytest.fixture
@@ -125,7 +125,7 @@ def expired_coach(db):
         last_name='منقضی',
         role=User.Role.COACH
     )
-    return CoachProfile.objects.create(user=coach_user, specialties='کرال پشت')
+    return CoachProfile.objects.create(user=coach_user, coaching_degree='درجه ۲')
 
 
 # --------------------------------------------------------------------------
@@ -534,7 +534,7 @@ def test_unrelated_coach_is_denied(api_client, child_swimmer):
         last_name='نامرتبط',
         role=User.Role.COACH
     )
-    CoachProfile.objects.create(user=unrelated_user, specialties='قورباغه')
+    CoachProfile.objects.create(user=unrelated_user, coaching_degree='درجه ۳')
 
     api_client.force_authenticate(user=unrelated_user)
 

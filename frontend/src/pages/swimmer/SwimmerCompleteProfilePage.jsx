@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   User, Calendar, CreditCard, Home, Phone, Upload, CheckCircle2,
   AlertCircle, ShieldCheck, FileText, Image as ImageIcon, School,
-  Sparkles, ArrowLeft, ArrowRight, Trash2, Eye, MapPin
+  Sparkles, ArrowLeft, ArrowRight, Trash2, Eye, MapPin, Briefcase
 } from 'lucide-react';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
@@ -36,9 +36,11 @@ export const SwimmerCompleteProfilePage = () => {
   const [avatar, setAvatar] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState(null);
 
-  // Form Fields - Step 2: Parent Phones & Address
+  // Form Fields - Step 2: Parent Phones, Jobs & Address
   const [fatherPhone, setFatherPhone] = useState('');
+  const [fatherJob, setFatherJob] = useState('');
   const [motherPhone, setMotherPhone] = useState('');
+  const [motherJob, setMotherJob] = useState('');
   const [address, setAddress] = useState('');
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
@@ -71,7 +73,9 @@ export const SwimmerCompleteProfilePage = () => {
         setSchoolName(data.school_name || '');
 
         setFatherPhone(data.father_phone || '');
+        setFatherJob(data.father_job || '');
         setMotherPhone(data.mother_phone || '');
+        setMotherJob(data.mother_job || '');
         setAddress(data.address || '');
         setLatitude(data.latitude || 35.6892);
         setLongitude(data.longitude || 51.3890);
@@ -141,11 +145,14 @@ export const SwimmerCompleteProfilePage = () => {
     return true;
   };
 
-  // Step 2 Validation
+  // Step 2 Validation: Father phone & job, Mother phone & job, and Address are all MANDATORY!
   const validateStep2 = () => {
     setError('');
     const cleanFatherPhone = fatherPhone.trim();
     const cleanMotherPhone = motherPhone.trim();
+    const cleanFatherJob = fatherJob.trim();
+    const cleanMotherJob = motherJob.trim();
+
     if (!cleanFatherPhone) {
       setError('شماره تماس پدر الزامی است.');
       return false;
@@ -154,6 +161,11 @@ export const SwimmerCompleteProfilePage = () => {
       setError('شماره تماس پدر باید یک شماره موبایل معتبر ۱۱ رقمی (شروع با ۰۹) باشد.');
       return false;
     }
+    if (!cleanFatherJob) {
+      setError('شغل پدر الزامی است. لطفاً آن را وارد فرمایید.');
+      return false;
+    }
+
     if (!cleanMotherPhone) {
       setError('شماره تماس مادر الزامی است.');
       return false;
@@ -162,6 +174,11 @@ export const SwimmerCompleteProfilePage = () => {
       setError('شماره تماس مادر باید یک شماره موبایل معتبر ۱۱ رقمی (شروع با ۰۹) باشد.');
       return false;
     }
+    if (!cleanMotherJob) {
+      setError('شغل مادر الزامی است. لطفاً آن را وارد فرمایید.');
+      return false;
+    }
+
     if (!address.trim()) {
       setError('آدرس دقیق منزل الزامی است.');
       return false;
@@ -229,7 +246,9 @@ export const SwimmerCompleteProfilePage = () => {
     formData.append('date_of_birth', dateOfBirth);
     formData.append('father_name', fatherName.trim());
     formData.append('father_phone', fatherPhone.trim());
+    formData.append('father_job', fatherJob.trim());
     formData.append('mother_phone', motherPhone.trim());
+    formData.append('mother_job', motherJob.trim());
     formData.append('gender', gender);
     formData.append('address', address.trim());
     if (latitude) formData.append('latitude', latitude);
@@ -607,6 +626,23 @@ export const SwimmerCompleteProfilePage = () => {
 
               <div>
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                  شغل پدر <span className="text-rose-500 font-bold">*</span>
+                </label>
+                <div className="relative">
+                  <Briefcase className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    value={fatherJob}
+                    onChange={(e) => setFatherJob(e.target.value)}
+                    placeholder="مثال: مهندس، پزشک، کارمند، آزاد..."
+                    className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                   شماره تماس مادر <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="relative">
@@ -618,6 +654,23 @@ export const SwimmerCompleteProfilePage = () => {
                     onChange={(e) => setMotherPhone(e.target.value)}
                     placeholder="09129876543"
                     className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 font-mono font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                  شغل مادر <span className="text-rose-500 font-bold">*</span>
+                </label>
+                <div className="relative">
+                  <Briefcase className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                  <input
+                    type="text"
+                    required
+                    value={motherJob}
+                    onChange={(e) => setMotherJob(e.target.value)}
+                    placeholder="مثال: فرهنگی، پزشک، خانه‌دار، کارمند..."
+                    className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                   />
                 </div>
               </div>

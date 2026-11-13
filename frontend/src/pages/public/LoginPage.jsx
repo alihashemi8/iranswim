@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import {
   Waves, LogIn, KeyRound, Phone, ArrowRight, ArrowLeft, UserPlus,
   CreditCard, Sparkles, MessageSquare, Timer, CheckCircle2,
-  AlertCircle, Eye, EyeOff, ShieldCheck, Calendar, Award, Droplets
+  AlertCircle, Eye, EyeOff, ShieldCheck, Calendar, Award, Droplets,
+  Edit3, RotateCcw
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { Button } from '../../components/common/Button';
@@ -16,27 +17,40 @@ export const toEnglishDigits = (str) => {
   return str
     .toString()
     .replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
-    .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+    .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧۸۹'.indexOf(d));
 };
 
 export const LoginPage = ({ defaultMode }) => {
-  const [searchParams] = useSearchParams();
-  const initialMode = defaultMode || (searchParams.get('mode') === 'register' ? 'register' : 'login');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlMode = searchParams.get('mode');
+  const savedMode = sessionStorage.getItem('iranswim_auth_mode');
+  const initialMode = defaultMode || urlMode || savedMode || 'login';
   const [mode, setMode] = useState(initialMode); // 'login' | 'register'
+
+  const switchMode = (newMode) => {
+    setMode(newMode);
+    setError('');
+    sessionStorage.setItem('iranswim_auth_mode', newMode);
+    setSearchParams({ mode: newMode }, { replace: true });
+  };
 
   useEffect(() => {
     if (defaultMode) {
       setMode(defaultMode);
+      sessionStorage.setItem('iranswim_auth_mode', defaultMode);
     } else {
       const qMode = searchParams.get('mode');
       if (qMode === 'register' || qMode === 'login') {
         setMode(qMode);
+        sessionStorage.setItem('iranswim_auth_mode', qMode);
       }
     }
   }, [defaultMode, searchParams]);
 
   // Login Method: 'password' (phone + national_id / password) vs 'otp' (phone + sms code)
-  const [loginMethod, setLoginMethod] = useState('password');
+  const [loginMethod, setLoginMethod] = useState(() => {
+    return sessionStorage.getItem('iranswim_login_method') || 'password';
+  });
   const [showPassword, setShowPassword] = useState(false);
 
   // Form states: Login with password
@@ -44,20 +58,40 @@ export const LoginPage = ({ defaultMode }) => {
   const [loginPassword, setLoginPassword] = useState('');
 
   // Form states: Login with OTP
-  const [otpLoginPhone, setOtpLoginPhone] = useState('');
+  const [otpLoginPhone, setOtpLoginPhone] = useState(() => {
+    return sessionStorage.getItem('iranswim_otp_login_phone') || '';
+  });
   const [otpLoginCode, setOtpLoginCode] = useState('');
-  const [otpLoginSent, setOtpLoginSent] = useState(false);
-  const [otpLoginTimer, setOtpLoginTimer] = useState(0);
+  const [otpLoginSent, setOtpLoginSent] = useState(() => {
+    return sessionStorage.getItem('iranswim_otp_login_sent') === 'true';
+  });
+  const [otpLoginTimer, setOtpLoginTimer] = useState(() => {
+    const expiresAt = Number(sessionStorage.getItem('iranswim_otp_login_expires_at') || 0);
+    if (expiresAt > Date.now()) {
+      return Math.floor((expiresAt - Date.now()) / 1000);
+    }
+    return 0;
+  });
 
-  // Form states: Registration with OTP
-  const [regPhone, setRegPhone] = useState('');
-  const [regOtpCode, setRegOtpCode] = useState('');
-  const [regOtpSent, setRegOtpSent] = useState(false);
-  const [regOtpTimer, setRegOtpTimer] = useState(0);
-  const [regFirstName, setRegFirstName] = useState('');
-  const [regLastName, setRegLastName] = useState('');
-  const [regNationalId, setRegNationalId] = useState('');
+  // Form states: Registration with OTP (Mobile + 5-digit SMS Code only)
+  const [regPhone, setRegPhone] = useState(() => {
+    return sessionStorage.getItem('iranswim_reg_phone') || '';
+  });
+  const [regOtpCode, setRegOtpCode] = useState(() => {
+    return sessionStorage.getItem('iranswim_reg_otp_code') || '';
+  });
+  const [regOtpSent, setRegOtpSent] = useState(() => {
+    return sessionStorage.getItem('iranswim_reg_otp_sent') === 'true';
+  });
+  const [regOtpTimer, setRegOtpTimer] = useState(() => {
+    const expiresAt = Number(sessionStorage.getItem('iranswim_reg_otp_expires_at') || 0);
+    if (expiresAt > Date.now()) {
+      return Math.floor((expiresAt - Date.now()) / 1000);
+    }
+    return 0;
+  });
 
+  const otpInputRefs = useRef([]);
   const [error, setError] = useState('');
   const [sendingOtp, setSendingOtp] = useState(false);
 
@@ -92,7 +126,7 @@ export const LoginPage = ({ defaultMode }) => {
   const redirectUser = (userData) => {
     if (userData.role === 'SWIMMER') {
       if (!userData.is_profile_completed) {
-        navigate('/swimmer/complete-profile');
+        navigate('/swimmer/profile');
       } else {
         navigate('/swimmer');
       }
@@ -156,12 +190,17 @@ export const LoginPage = ({ defaultMode }) => {
 
     if (res.success) {
       setOtpLoginSent(true);
-      setOtpLoginTimer(120);
+      const secs = 120;
+      setOtpLoginTimer(secs);
+      sessionStorage.setItem('iranswim_otp_login_phone', cleanPhone);
+      sessionStorage.setItem('iranswim_otp_login_sent', 'true');
+      sessionStorage.setItem('iranswim_otp_login_expires_at', String(Date.now() + secs * 1000));
+
       if (res.data?.code) {
-        setOtpLoginCode(res.data.code);
-        toast.info(`کد تایید پیامکی ارسال شد: ${res.data.code}`);
+        setOtpLoginCode(String(res.data.code));
+        toast.info(`کد تایید پیامکی ۵ رقمی: ${res.data.code}`);
       } else {
-        toast.success('کد تأیید یکبار مصرف به شماره همراه شما پیامک گردید.');
+        toast.success('کد تأیید ۵ رقمی به شماره همراه شما پیامک گردید.');
       }
     } else {
       setError(res.error);
@@ -176,18 +215,92 @@ export const LoginPage = ({ defaultMode }) => {
     const cleanPhone = toEnglishDigits(otpLoginPhone).trim();
     const cleanCode = toEnglishDigits(otpLoginCode).trim();
 
-    if (!cleanCode) {
-      setError('لطفاً کد تایید پیامکی را وارد فرمایید.');
+    if (!cleanCode || cleanCode.length !== 5) {
+      setError('لطفاً کد تأیید ۵ رقمی پیامک‌شده را وارد فرمایید.');
       return;
     }
 
     const res = await loginWithOtp(cleanPhone, cleanCode);
     if (res.success) {
+      sessionStorage.removeItem('iranswim_otp_login_phone');
+      sessionStorage.removeItem('iranswim_otp_login_sent');
+      sessionStorage.removeItem('iranswim_otp_login_expires_at');
       toast.success(`خوش آمدید ${res.user.full_name}! ورود با رمز یکبار مصرف انجام شد.`);
       redirectUser(res.user);
     } else {
       setError(res.error);
       toast.error(res.error || 'کد تایید نامعتبر یا منقضی شده است.');
+    }
+  };
+
+  // Phone input change with persistence
+  const handlePhoneChange = (val) => {
+    setRegPhone(val);
+    sessionStorage.setItem('iranswim_reg_phone', val);
+  };
+
+  // Edit phone number (back to phone input step)
+  const handleEditPhone = () => {
+    setRegOtpSent(false);
+    setRegOtpCode('');
+    setRegOtpTimer(0);
+    sessionStorage.removeItem('iranswim_reg_otp_sent');
+    sessionStorage.removeItem('iranswim_reg_otp_code');
+    sessionStorage.removeItem('iranswim_reg_otp_expires_at');
+  };
+
+  // Handle 5-box OTP digit input
+  const handleOtpDigitChange = (index, value) => {
+    const cleaned = toEnglishDigits(value).replace(/[^0-9]/g, '');
+    let codeArr = regOtpCode.padEnd(5, ' ').split('').slice(0, 5);
+
+    if (cleaned.length > 0) {
+      if (cleaned.length > 1) {
+        // Multi-digit paste or typing
+        const pasteDigits = cleaned.slice(0, 5);
+        setRegOtpCode(pasteDigits);
+        sessionStorage.setItem('iranswim_reg_otp_code', pasteDigits);
+        const nextIdx = Math.min(pasteDigits.length, 4);
+        otpInputRefs.current[nextIdx]?.focus();
+        return;
+      }
+      codeArr[index] = cleaned[cleaned.length - 1];
+      const newCode = codeArr.join('').trimEnd();
+      setRegOtpCode(newCode);
+      sessionStorage.setItem('iranswim_reg_otp_code', newCode);
+      if (index < 4) {
+        otpInputRefs.current[index + 1]?.focus();
+      }
+    } else {
+      codeArr[index] = ' ';
+      const newCode = codeArr.join('').trimEnd();
+      setRegOtpCode(newCode);
+      sessionStorage.setItem('iranswim_reg_otp_code', newCode);
+    }
+  };
+
+  const handleOtpDigitKeyDown = (index, e) => {
+    if (e.key === 'Backspace') {
+      if (!regOtpCode[index] && index > 0) {
+        e.preventDefault();
+        otpInputRefs.current[index - 1]?.focus();
+      }
+    } else if (e.key === 'ArrowRight' && index > 0) {
+      otpInputRefs.current[index - 1]?.focus();
+    } else if (e.key === 'ArrowLeft' && index < 4) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text');
+    const cleaned = toEnglishDigits(pasted).replace(/[^0-9]/g, '').slice(0, 5);
+    if (cleaned) {
+      setRegOtpCode(cleaned);
+      sessionStorage.setItem('iranswim_reg_otp_code', cleaned);
+      const nextIdx = Math.min(cleaned.length, 4);
+      otpInputRefs.current[nextIdx]?.focus();
     }
   };
 
@@ -207,62 +320,69 @@ export const LoginPage = ({ defaultMode }) => {
 
     if (res.success) {
       setRegOtpSent(true);
-      setRegOtpTimer(120);
+      const secs = 120;
+      setRegOtpTimer(secs);
+      const expiresAt = Date.now() + secs * 1000;
+      sessionStorage.setItem('iranswim_reg_phone', cleanPhone);
+      sessionStorage.setItem('iranswim_reg_otp_sent', 'true');
+      sessionStorage.setItem('iranswim_reg_otp_expires_at', String(expiresAt));
+
       if (res.data?.code) {
-        setRegOtpCode(res.data.code);
-        toast.info(`کد تایید پیامکی ثبت‌نام ارسال شد: ${res.data.code}`);
+        const codeStr = String(res.data.code);
+        setRegOtpCode(codeStr);
+        sessionStorage.setItem('iranswim_reg_otp_code', codeStr);
+        toast.info(`کد تایید پیامکی ۵ رقمی: ${codeStr}`);
       } else {
-        toast.success('کد تأیید یکبار مصرف به شماره همراه شما ارسال شد.');
+        toast.success('کد تأیید ۵ رقمی به شماره همراه شما ارسال شد.');
       }
+      setTimeout(() => {
+        otpInputRefs.current[0]?.focus();
+      }, 150);
     } else {
       setError(res.error);
       toast.error(res.error || 'خطا در ارسال پیامک.');
     }
   };
 
-  // Submit: Register with OTP
+  // Submit: Register with OTP (Mobile + 5-digit Code)
   const handleRegisterSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     const cleanPhone = toEnglishDigits(regPhone).trim();
     const cleanCode = toEnglishDigits(regOtpCode).trim();
-    const cleanNationalId = toEnglishDigits(regNationalId).trim();
+
+    if (!cleanPhone || cleanPhone.length !== 11 || !cleanPhone.startsWith('09')) {
+      setError('شماره تلفن همراه باید ۱۱ رقم بوده و با ۰۹ آغاز شود.');
+      toast.error('شماره همراه نامعتبر است.');
+      return;
+    }
 
     if (!regOtpSent) {
-      setError('لطفاً ابتدا روی دکمه دریافت کد تایید پیامکی کلیک کنید.');
+      handleSendRegisterOtp();
       return;
     }
 
-    if (!cleanCode) {
-      setError('کد تأیید پیامکی الزامی است.');
-      return;
-    }
-
-    if (!regFirstName.trim() || !regLastName.trim()) {
-      setError('نام و نام خانوادگی الزامی است.');
-      return;
-    }
-
-    if (!cleanNationalId || cleanNationalId.length !== 10 || !/^\d+$/.test(cleanNationalId)) {
-      setError('کد ملی باید ۱۰ رقم عددی معتبر باشد.');
+    if (!cleanCode || cleanCode.length !== 5) {
+      setError('لطفاً کد تأیید ۵ رقمی پیامک‌شده را کامل وارد کنید.');
       return;
     }
 
     const res = await registerWithOtp({
       phone: cleanPhone,
       code: cleanCode,
-      first_name: regFirstName.trim(),
-      last_name: regLastName.trim(),
-      national_id: cleanNationalId,
     });
 
     if (res.success) {
-      toast.success('ثبت‌نام شما با موفقیت انجام شد! در حال هدایت به تکمیل مدارک شناگر...');
-      navigate('/swimmer/complete-profile');
+      sessionStorage.removeItem('iranswim_reg_phone');
+      sessionStorage.removeItem('iranswim_reg_otp_sent');
+      sessionStorage.removeItem('iranswim_reg_otp_code');
+      sessionStorage.removeItem('iranswim_reg_otp_expires_at');
+      toast.success('ورود با موفقیت انجام شد! در حال هدایت به بخش پروفایل...');
+      navigate('/swimmer/profile');
     } else {
       setError(res.error);
-      toast.error(res.error || 'ثبت‌نام ناموفق بود.');
+      toast.error(res.error || 'کد تایید نامعتبر است.');
     }
   };
 
@@ -378,7 +498,7 @@ export const LoginPage = ({ defaultMode }) => {
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {mode === 'login'
                   ? 'نام کاربری: شماره تلفن همراه | رمز عبور: کد ملی شناگر'
-                  : 'عضویت اولیه با تأیید پیامکی (OTP) و کد ملی شناگر'}
+                  : 'عضویت و ورود سریع با شماره همراه و کد تأیید پیامکی (OTP)'}
               </p>
             </div>
 
@@ -526,18 +646,18 @@ export const LoginPage = ({ defaultMode }) => {
                     {otpLoginSent && (
                       <div className="space-y-1.5 animate-in fade-in">
                         <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block text-right">
-                          کد ۶ رقمی پیامک‌شده
+                          کد ۵ رقمی پیامک‌شده
                         </label>
                         <div className="relative">
                           <KeyRound className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
                           <input
                             type="text"
-                            maxLength={6}
+                            maxLength={5}
                             required
                             value={otpLoginCode}
                             onChange={(e) => setOtpLoginCode(e.target.value)}
-                            placeholder="123456"
-                            className="w-full text-center tracking-[0.5em] text-lg font-mono font-bold bg-slate-50 dark:bg-slate-800/80 border border-sky-300 dark:border-sky-800 rounded-2xl py-2.5 px-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                            placeholder="12345"
+                            className="w-full text-center tracking-[0.6em] text-lg font-mono font-bold bg-slate-50 dark:bg-slate-800/80 border border-sky-300 dark:border-sky-800 rounded-2xl py-2.5 px-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                           />
                         </div>
                       </div>
@@ -546,7 +666,7 @@ export const LoginPage = ({ defaultMode }) => {
                     <Button
                       type="submit"
                       loading={loading}
-                      disabled={!otpLoginSent}
+                      disabled={!otpLoginSent || otpLoginCode.length !== 5}
                       className="w-full py-3.5 text-sm font-bold gap-2 mt-2 rounded-2xl shadow-md shadow-sky-500/20 cursor-pointer"
                     >
                       <LogIn className="w-4 h-4" />
@@ -561,7 +681,7 @@ export const LoginPage = ({ defaultMode }) => {
                     هنوز حساب کاربری ندارید؟{' '}
                     <button
                       type="button"
-                      onClick={() => { setMode('register'); setError(''); }}
+                      onClick={() => switchMode('register')}
                       className="text-sky-600 dark:text-sky-400 font-bold hover:underline cursor-pointer transition-colors"
                     >
                       ثبت‌نام شناگر جدید
@@ -572,166 +692,124 @@ export const LoginPage = ({ defaultMode }) => {
             )}
 
             {/* ========================================================== */}
-            {/* TAB 2: REGISTER (WITH OTP)                                 */}
+            {/* TAB 2: REGISTER (WITH 5-DIGIT OTP)                         */}
             {/* ========================================================== */}
             {mode === 'register' && (
-              <form onSubmit={handleRegisterSubmit} className="space-y-3.5 pt-1">
-                {/* Stepper Progress Bar */}
-                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-200/60 dark:border-slate-800 space-y-2">
-                  <div className="flex items-center justify-between text-[11px] font-bold">
-                    <span className="text-slate-700 dark:text-slate-300">
-                      {!regOtpSent ? 'مرحله ۱ از ۲: تأیید شماره همراه' : 'مرحله ۲ از ۲: مشخصات فردی شناگر'}
-                    </span>
-                    <span className="font-mono text-sky-600 dark:text-sky-400">
-                      {!regOtpSent ? '۵۰٪' : '۱۰۰٪'}
-                    </span>
-                  </div>
-                  <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
-                    <div
-                      className="bg-gradient-to-r from-sky-500 to-indigo-500 h-full rounded-full transition-all duration-500"
-                      style={{ width: !regOtpSent ? '50%' : '100%' }}
-                    />
-                  </div>
-                </div>
-
-                {/* Step 1: Phone & OTP */}
-                <div>
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5 text-right">
-                    شماره تلفن همراه شناگر (نام کاربری) <span className="text-rose-500 font-bold">*</span>
-                  </label>
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <Phone className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
-                      <input
-                        type="tel"
-                        required
-                        value={regPhone}
-                        onChange={(e) => setRegPhone(e.target.value)}
-                        placeholder="09123456789"
-                        className="w-full text-sm font-mono bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all text-left"
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      disabled={sendingOtp || regOtpTimer > 0}
-                      onClick={handleSendRegisterOtp}
-                      className="text-xs shrink-0 rounded-2xl px-4 cursor-pointer"
-                    >
-                      {regOtpTimer > 0 ? (
-                        <span className="font-mono flex items-center gap-1 text-sky-600">
-                          <Timer className="w-3.5 h-3.5 animate-pulse" />
-                          {regOtpTimer} ثانیه
-                        </span>
-                      ) : (
-                        <span>{regOtpSent ? 'ارسال مجدد' : 'دریافت کد تایید'}</span>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-
+              <form onSubmit={handleRegisterSubmit} className="space-y-4 pt-1">
                 {!regOtpSent ? (
-                  <div className="pt-2">
+                  /* State 1: Enter Phone Number + Send Button Directly Below */
+                  <div className="space-y-4 animate-in fade-in duration-300">
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1.5 text-right">
+                        شماره تلفن همراه شناگر <span className="text-rose-500 font-bold">*</span>
+                      </label>
+                      <div className="relative">
+                        <Phone className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                        <input
+                          type="tel"
+                          required
+                          autoFocus
+                          value={regPhone}
+                          onChange={(e) => handlePhoneChange(e.target.value)}
+                          placeholder="09123456789"
+                          className="w-full text-sm font-mono bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 pr-10 pl-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all text-left"
+                        />
+                      </div>
+                    </div>
+
                     <Button
                       type="button"
-                      onClick={handleSendRegisterOtp}
+                      loading={sendingOtp}
                       disabled={sendingOtp || !regPhone.trim()}
+                      onClick={handleSendRegisterOtp}
                       className="w-full py-3.5 text-sm font-bold gap-2 rounded-2xl shadow-md shadow-sky-500/20 cursor-pointer"
                     >
-                      <span>ادامه و دریافت کد پیامکی (OTP)</span>
+                      <span>دریافت کد تأیید (پیامک)</span>
                       <ArrowLeft className="w-4 h-4" />
                     </Button>
                   </div>
                 ) : (
-                  <div className="space-y-3.5 animate-in fade-in">
-                    {/* OTP Code Input */}
-                    <div>
-                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1 text-right">
-                        کد تأیید ۶ رقمی پیامک‌شده <span className="text-rose-500 font-bold">*</span>
+                  /* State 2: Enter 5-Digit OTP Code with Edit Phone & Countdown */
+                  <div className="space-y-5 animate-in fade-in zoom-in-95 duration-300">
+                    {/* Active Phone Display & Edit Button */}
+                    <div className="flex items-center justify-between p-3 bg-sky-50/70 dark:bg-sky-950/40 border border-sky-100 dark:border-sky-900/50 rounded-2xl text-xs">
+                      <div className="flex items-center gap-1.5 text-slate-700 dark:text-slate-300 font-medium">
+                        <span className="text-slate-500 dark:text-slate-400 text-[11px]">ارسال کد به:</span>
+                        <span className="font-mono font-bold text-sky-700 dark:text-sky-300 tracking-wider dir-ltr text-left">{regPhone}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleEditPhone}
+                        className="text-[11px] font-bold text-sky-600 dark:text-sky-400 hover:text-sky-700 hover:underline inline-flex items-center gap-1 cursor-pointer transition-colors"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        <span>ویرایش شماره</span>
+                      </button>
+                    </div>
+
+                    {/* 5-Box Segmented OTP Input */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block text-center">
+                        کد تأیید ۵ رقمی پیامک‌شده را وارد کنید <span className="text-rose-500 font-bold">*</span>
                       </label>
-                      <div className="relative">
-                        <KeyRound className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
-                        <input
-                          type="text"
-                          maxLength={6}
-                          required
-                          value={regOtpCode}
-                          onChange={(e) => setRegOtpCode(e.target.value)}
-                          placeholder="کد ۶ رقمی پیامک‌شده"
-                          className="w-full text-center tracking-[0.5em] text-base font-mono font-bold bg-slate-50 dark:bg-slate-800/80 border border-sky-300 dark:border-sky-800 rounded-2xl py-2.5 px-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
-                        />
+                      <div className="flex items-center justify-center gap-2 sm:gap-3 dir-ltr" dir="ltr">
+                        {[0, 1, 2, 3, 4].map((index) => {
+                          const digit = regOtpCode[index] || '';
+                          return (
+                            <input
+                              key={index}
+                              ref={(el) => (otpInputRefs.current[index] = el)}
+                              type="text"
+                              inputMode="numeric"
+                              pattern="[0-9]*"
+                              maxLength={1}
+                              value={digit}
+                              onChange={(e) => handleOtpDigitChange(index, e.target.value)}
+                              onKeyDown={(e) => handleOtpDigitKeyDown(index, e)}
+                              onPaste={handleOtpPaste}
+                              className={`w-11 h-13 sm:w-12 sm:h-14 text-center text-xl sm:text-2xl font-mono font-black rounded-2xl border transition-all outline-none ${
+                                digit
+                                  ? 'border-sky-500 bg-sky-50/60 dark:bg-sky-950/40 text-sky-900 dark:text-sky-100 ring-2 ring-sky-500/20 shadow-xs'
+                                  : 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 focus:border-sky-500 focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-sky-500/20'
+                              }`}
+                            />
+                          );
+                        })}
                       </div>
                     </div>
 
-                    {/* Name & Family */}
-                    <div className="grid grid-cols-2 gap-2">
-                      <div>
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1 text-right">
-                          نام <span className="text-rose-500 font-bold">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={regFirstName}
-                          onChange={(e) => setRegFirstName(e.target.value)}
-                          placeholder="مثال: بردیا"
-                          className="w-full text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl py-2.5 px-3.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all text-right"
-                        />
-                      </div>
-                      <div>
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-1 text-right">
-                          نام خانوادگی <span className="text-rose-500 font-bold">*</span>
-                        </label>
-                        <input
-                          type="text"
-                          required
-                          value={regLastName}
-                          onChange={(e) => setRegLastName(e.target.value)}
-                          placeholder="مثال: حسینی"
-                          className="w-full text-sm bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl py-2.5 px-3.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all text-right"
-                        />
-                      </div>
-                    </div>
-
-                    {/* National ID */}
-                    <div>
-                      <div className="flex items-center justify-between mb-1">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                          کد ملی شناگر (۱۰ رقمی) <span className="text-rose-500 font-bold">*</span>
-                        </label>
-                        <span className="text-[10px] text-sky-600 dark:text-sky-400 font-semibold">
-                          رمز عبور = کد ملی
+                    {/* Countdown Timer / Resend Button */}
+                    <div className="flex items-center justify-center text-xs">
+                      {regOtpTimer > 0 ? (
+                        <span className="text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
+                          <Timer className="w-3.5 h-3.5 text-sky-500 animate-pulse" />
+                          <span>ارسال مجدد کد تا</span>
+                          <span className="font-mono font-bold text-sky-600 dark:text-sky-400">
+                            {Math.floor(regOtpTimer / 60)}:{(regOtpTimer % 60).toString().padStart(2, '0')}
+                          </span>
                         </span>
-                      </div>
-                      <div className="relative">
-                        <CreditCard className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
-                        <input
-                          type="text"
-                          required
-                          maxLength={10}
-                          value={regNationalId}
-                          onChange={(e) => setRegNationalId(e.target.value)}
-                          placeholder="0012345678"
-                          className="w-full text-sm font-mono bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all text-left"
-                        />
-                      </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleSendRegisterOtp}
+                          disabled={sendingOtp}
+                          className="text-sky-600 dark:text-sky-400 font-bold hover:underline flex items-center gap-1.5 cursor-pointer transition-colors"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          <span>ارسال مجدد کد پیامکی</span>
+                        </button>
+                      )}
                     </div>
 
-                    {/* Onboarding hint */}
-                    <div className="p-3 bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60 rounded-2xl text-[11px] text-sky-800 dark:text-sky-300 flex items-start gap-2">
-                      <Sparkles className="w-4 h-4 shrink-0 text-sky-600 mt-0.5" />
-                      <span className="leading-relaxed">
-                        پس از ثبت‌نام، مستقیماً به گام‌های ۳ گانه <strong>تکمیل پرونده، مدارک شناسنامه، کارت ملی و نشانی روی نقشه</strong> هدایت خواهید شد.
-                      </span>
-                    </div>
-
+                    {/* Submit Button */}
                     <Button
                       type="submit"
                       loading={loading}
-                      className="w-full py-3.5 text-sm font-bold gap-2 mt-1 rounded-2xl shadow-md shadow-sky-500/20 cursor-pointer"
+                      disabled={regOtpCode.length !== 5}
+                      className="w-full py-3.5 text-sm font-bold gap-2 rounded-2xl shadow-md shadow-sky-500/20 cursor-pointer"
                     >
-                      <UserPlus className="w-4 h-4" />
-                      <span>ثبت‌نام نهایی و ورود به آکادمی</span>
+                      <LogIn className="w-4 h-4" />
+                      <span>تأیید و ورود به پنل شناگر</span>
                     </Button>
                   </div>
                 )}
@@ -742,7 +820,7 @@ export const LoginPage = ({ defaultMode }) => {
                     قبلاً در سامانه عضو شده‌اید؟{' '}
                     <button
                       type="button"
-                      onClick={() => { setMode('login'); setError(''); }}
+                      onClick={() => switchMode('login')}
                       className="text-sky-600 dark:text-sky-400 font-bold hover:underline cursor-pointer transition-colors"
                     >
                       ورود به حساب کاربری

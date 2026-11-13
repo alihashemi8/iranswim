@@ -23,15 +23,17 @@ class SwimmerProfile(models.Model):
         related_name='swimmer_profile',
         verbose_name=_('حساب کاربری')
     )
-    first_name = models.CharField(_('نام'), max_length=100)
-    last_name = models.CharField(_('نام خانوادگی'), max_length=100)
+    first_name = models.CharField(_('نام'), max_length=100, blank=True)
+    last_name = models.CharField(_('نام خانوادگی'), max_length=100, blank=True)
     gender = models.CharField(_('جنسیت'), max_length=10, choices=Gender.choices, default=Gender.MALE, blank=True)
     phone = models.CharField(_('تلفن تماس'), max_length=15, blank=True)
     national_id = models.CharField(_('کد ملی'), max_length=10, blank=True, db_index=True)
     date_of_birth = models.DateField(_('تاریخ تولد'), null=True, blank=True)
     father_name = models.CharField(_('نام پدر'), max_length=100, blank=True)
     father_phone = models.CharField(_('شماره تماس پدر'), max_length=20, blank=True)
+    father_job = models.CharField(_('شغل پدر'), max_length=100, blank=True)
     mother_phone = models.CharField(_('شماره تماس مادر'), max_length=20, blank=True)
+    mother_job = models.CharField(_('شغل مادر'), max_length=100, blank=True)
     emergency_contact_name = models.CharField(_('نام مخاطب اضطراری/ولی'), max_length=100, blank=True)
     emergency_contact_phone = models.CharField(_('شماره تماس اضطراری'), max_length=20, blank=True)
     address = models.TextField(_('آدرس منزل'), blank=True)
@@ -76,10 +78,11 @@ class SwimmerProfile(models.Model):
     @property
     def has_required_info(self):
         has_parents_phone = bool(self.father_phone and self.mother_phone)
+        has_parents_job = bool(self.father_job and self.mother_job)
         return bool(
             self.first_name and self.last_name and self.date_of_birth and
             self.father_name and self.national_id and self.school_name and
-            self.avatar and self.address and has_parents_phone and self.gender and
+            self.avatar and self.address and has_parents_phone and has_parents_job and self.gender and
             self.birth_certificate_image and self.national_card_image and
             self.sports_insurance_image
         )

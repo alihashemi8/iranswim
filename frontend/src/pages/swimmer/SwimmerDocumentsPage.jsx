@@ -87,11 +87,11 @@ export const SwimmerDocumentsPage = () => {
         </div>
 
         <Link
-          to="/swimmer/complete-profile"
+          to="/swimmer/profile"
           className="px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-2xl transition-colors shadow-2xs flex items-center gap-2 cursor-pointer self-end md:self-auto"
         >
           <Edit3 className="w-4.5 h-4.5" />
-          <span>ویرایش و بارگذاری مدارک جدید</span>
+          <span>ویرایش پرونده و مدارک</span>
         </Link>
       </div>
 
@@ -172,9 +172,21 @@ export const SwimmerDocumentsPage = () => {
               </span>
             </div>
             <div>
+              <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 block mb-1 font-medium">شغل پدر:</span>
+              <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+                {profile?.father_job || '—'}
+              </span>
+            </div>
+            <div>
               <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 block mb-1 font-medium">شماره همراه مادر:</span>
               <span className="font-mono font-bold text-slate-900 dark:text-white text-sm sm:text-base">
                 {profile?.mother_phone || '—'}
+              </span>
+            </div>
+            <div>
+              <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 block mb-1 font-medium">شغل مادر:</span>
+              <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base">
+                {profile?.mother_job || '—'}
               </span>
             </div>
             <div>

@@ -219,8 +219,8 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     {
       groupTitle: 'حساب کاربری',
       items: [
+        { to: '/swimmer/profile', label: 'پروفایل و امنیت', icon: Settings },
         { to: '/swimmer/documents', label: 'پرونده و مدارک', icon: FileText },
-        { to: '/swimmer/settings', label: 'تنظیمات حساب', icon: Settings },
       ],
     },
   ];
@@ -252,8 +252,10 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const renderTopProfile = (isMobile = false) => {
     const profilePath = user.role === 'ADMIN' ? '/admin/profile' :
       user.role === 'COACH' ? '/coach/profile' :
-      user.role === 'SWIMMER' ? '/swimmer' :
+      user.role === 'SWIMMER' ? '/swimmer/profile' :
       user.role === 'SUPERVISOR' ? '/supervisor' : '/';
+
+    const displayName = user.full_name || user.phone || 'شناگر محترم';
 
     if (isMobile) {
       return (
@@ -269,14 +271,18 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                     : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
                 }`
               }
-              title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : 'مشاهده پروفایل'}
+              title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'SWIMMER' ? 'مشاهده صفحه پروفایل شناگر' : 'مشاهده پروفایل'}
             >
-              <div className={`w-11 h-11 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-base shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}>
-                {user.full_name ? user.full_name.charAt(0) : 'U'}
+              <div className={`w-11 h-11 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-base shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden`}>
+                {user.avatar ? (
+                  <img src={user.avatar} alt={displayName} className="w-full h-full object-cover" />
+                ) : (
+                  displayName.charAt(0)
+                )}
               </div>
               <div className="flex flex-col min-w-0 flex-1">
                 <span className="text-base font-black text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                  {user.full_name}
+                  {displayName}
                 </span>
                 <span className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-bold truncate">
                   {roleTitles[user.role] || 'کاربر سیستم'}
@@ -316,14 +322,18 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                   : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
               }`
             }
-            title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : 'مشاهده پروفایل'}
+            title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'SWIMMER' ? 'مشاهده صفحه پروفایل شناگر' : 'مشاهده پروفایل'}
           >
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-base shrink-0 shadow-2xs group-hover:scale-105 transition-transform`}>
-              {user.full_name ? user.full_name.charAt(0) : 'U'}
+            <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-base shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden`}>
+              {user.avatar ? (
+                <img src={user.avatar} alt={displayName} className="w-full h-full object-cover" />
+              ) : (
+                displayName.charAt(0)
+              )}
             </div>
             <div className="flex flex-col min-w-0 flex-1">
               <span className="text-sm xl:text-[15px] font-black text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
-                {user.full_name}
+                {displayName}
               </span>
               <span className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-bold truncate">
                 {roleTitles[user.role] || 'کاربر سیستم'}
@@ -351,10 +361,14 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
           <NavLink
             to={profilePath}
             className="relative group flex justify-center cursor-pointer"
-            title={`${user.full_name || 'کاربر'} (${roleTitles[user.role] || ''})`}
+            title={`${displayName} (${roleTitles[user.role] || ''})`}
           >
-            <div className={`w-11 h-11 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-black text-base shrink-0 shadow-2xs hover:ring-2 hover:ring-sky-400 transition-all`}>
-              {user.full_name ? user.full_name.charAt(0) : 'U'}
+            <div className={`w-11 h-11 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-black text-base shrink-0 shadow-2xs hover:ring-2 hover:ring-sky-400 transition-all overflow-hidden`}>
+              {user.avatar ? (
+                <img src={user.avatar} alt={displayName} className="w-full h-full object-cover" />
+              ) : (
+                displayName.charAt(0)
+              )}
             </div>
 
             {/* Tooltip in icon-only mode */}
@@ -362,11 +376,11 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
               role="tooltip"
               className="absolute right-full mr-2.5 top-1/2 -translate-y-1/2 px-3 py-2 bg-slate-900/95 dark:bg-slate-800/95 text-white text-xs font-semibold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 backdrop-blur-xs"
             >
-              <div className="font-black text-sm">{user.full_name}</div>
+              <div className="font-black text-sm">{displayName}</div>
               <div className="text-xs font-bold text-sky-400 mt-0.5">{roleTitles[user.role] || 'کاربر سیستم'}</div>
               {user.phone && <div className="text-xs text-slate-300 font-mono mt-0.5">{user.phone}</div>}
               <div className="text-xs text-slate-300 border-t border-slate-700/60 mt-1 pt-1 font-medium">
-                {user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : 'کلیک برای ورود به صفحه'}
+                {user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'SWIMMER' ? 'مشاهده صفحه پروفایل شناگر' : 'کلیک برای ورود به صفحه'}
               </div>
               <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-y-4 border-y-transparent border-l-4 border-l-slate-900/95 dark:border-l-slate-800/95" />
             </div>

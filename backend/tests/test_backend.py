@@ -52,7 +52,7 @@ def coach_user(db):
         last_name='تست',
         role=User.Role.COACH
     )
-    CoachProfile.objects.create(user=user, specialties='کرال')
+    CoachProfile.objects.create(user=user, coaching_degree='درجه ۱')
     return user
 
 
@@ -521,7 +521,7 @@ def test_otp_registration_and_login_flow(api_client):
     send_res = api_client.post('/api/auth/otp/send/', {'phone': phone, 'purpose': 'REGISTER'})
     assert send_res.status_code == 200
     otp_code = send_res.data['code']
-    assert len(otp_code) == 6
+    assert len(otp_code) == 5
 
     # 2. Register swimmer with OTP and national_id
     national_id = '0012345678'
@@ -554,6 +554,22 @@ def test_otp_registration_and_login_flow(api_client):
     assert otp_verify_res.status_code == 200
     assert 'access' in otp_verify_res.data
     assert otp_verify_res.data['user']['phone'] == phone
+
+    # 5. OTP-only registration (Phone + Code only, no name or national ID required)
+    phone_otp_only = '09120003344'
+    send_res2 = api_client.post('/api/auth/otp/send/', {'phone': phone_otp_only, 'purpose': 'REGISTER'})
+    assert send_res2.status_code == 200
+    code2 = send_res2.data['code']
+
+    reg_otp_only_res = api_client.post('/api/auth/register-otp/', {
+        'phone': phone_otp_only,
+        'code': code2,
+    })
+    assert reg_otp_only_res.status_code == 201
+    assert 'access' in reg_otp_only_res.data
+    assert reg_otp_only_res.data['user']['phone'] == phone_otp_only
+    assert reg_otp_only_res.data['user']['role'] == 'SWIMMER'
+    assert reg_otp_only_res.data['user']['is_profile_completed'] is False
 
 
 @pytest.mark.django_db
@@ -596,8 +612,10 @@ def test_swimmer_profile_completion_and_validation(api_client):
     fail_res = api_client.post('/api/swimmers/me/complete/', {})
     assert fail_res.status_code == 400
     assert 'missing_fields' in fail_res.data
+    assert 'شغل پدر' in fail_res.data['missing_fields']
+    assert 'شغل مادر' in fail_res.data['missing_fields']
 
-    # 3. Complete profile with all required star fields
+    # 3. Complete profile with all required star fields (including father_job and mother_job)
     complete_payload = {
         'first_name': 'سهراب',
         'last_name': 'سپهری',
@@ -608,7 +626,9 @@ def test_swimmer_profile_completion_and_validation(api_client):
         'latitude': 35.6892,
         'longitude': 51.3890,
         'father_phone': '09121112233',
+        'father_job': 'مهندس برق',
         'mother_phone': '09124445566',
+        'mother_job': 'پزشک متخصص',
         'gender': 'MALE',
         'school_name': 'دبیرستان رازی',
         'birth_certificate_image': create_dummy_image('shenasname.jpg'),
@@ -620,6 +640,8 @@ def test_swimmer_profile_completion_and_validation(api_client):
     assert comp_res.status_code == 200
     assert comp_res.data['profile']['is_profile_completed'] is True
     assert comp_res.data['profile']['father_name'] == 'مهدی'
+    assert comp_res.data['profile']['father_job'] == 'مهندس برق'
+    assert comp_res.data['profile']['mother_job'] == 'پزشک متخصص'
     assert comp_res.data['profile']['address'] == complete_payload['address']
 
 

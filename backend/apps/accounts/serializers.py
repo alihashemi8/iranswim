@@ -58,7 +58,13 @@ class IranSwimTokenObtainPairSerializer(TokenObtainPairSerializer):
         }
 
         profile = getattr(user, 'swimmer_profile', None)
-        is_profile_completed = profile.is_profile_completed if profile else True
+        coach_profile = getattr(user, 'coach_profile', None)
+        if user.role == User.Role.SWIMMER:
+            is_profile_completed = profile.is_profile_completed if profile else False
+        elif user.role == User.Role.COACH:
+            is_profile_completed = coach_profile.is_profile_completed if coach_profile else False
+        else:
+            is_profile_completed = True
 
         data['user'] = {
             'id': user.id,
@@ -70,7 +76,7 @@ class IranSwimTokenObtainPairSerializer(TokenObtainPairSerializer):
             'is_superuser': user.is_superuser,
             'is_password_changed': user.is_password_changed,
             'swimmer_id': getattr(profile, 'id', None),
-            'coach_id': getattr(getattr(user, 'coach_profile', None), 'id', None),
+            'coach_id': getattr(coach_profile, 'id', None),
             'is_profile_completed': is_profile_completed,
         }
         return data
@@ -249,6 +255,8 @@ class UserSerializer(serializers.ModelSerializer):
     def get_is_profile_completed(self, obj):
         if obj.role == User.Role.SWIMMER and hasattr(obj, 'swimmer_profile'):
             return obj.swimmer_profile.is_profile_completed
+        if obj.role == User.Role.COACH and hasattr(obj, 'coach_profile'):
+            return obj.coach_profile.is_profile_completed
         return True
 
 
@@ -277,27 +285,25 @@ class VerifyOTPLoginSerializer(serializers.Serializer):
 class RegisterWithOTPSerializer(serializers.Serializer):
     phone = serializers.CharField(max_length=15)
     code = serializers.CharField(max_length=6)
-    first_name = serializers.CharField(max_length=100)
-    last_name = serializers.CharField(max_length=100)
-    national_id = serializers.CharField(max_length=10)
+    first_name = serializers.CharField(max_length=100, required=False, allow_blank=True, default='')
+    last_name = serializers.CharField(max_length=100, required=False, allow_blank=True, default='')
+    national_id = serializers.CharField(max_length=10, required=False, allow_blank=True, default='')
 
     def validate_phone(self, value):
-        val = to_english_digits(value).strip()
+        val = to_english_digits(value).strip() if value else ''
         if not (val.startswith('09') and len(val) == 11 and val.isdigit()):
             raise ValidationError('شماره موبایل باید ۱۱ رقم بوده و با ۰۹ آغاز شود.')
-        if User.objects.filter(phone=val).exists():
-            raise ValidationError('کاربری با این شماره همراه قبلاً در سامانه ثبت شده است. لطفاً وارد شوید.')
         return val
 
     def validate_code(self, value):
-        return to_english_digits(value).strip()
+        return to_english_digits(value).strip() if value else ''
 
     def validate_national_id(self, value):
+        if not value:
+            return ''
         val = to_english_digits(value).strip()
         if not (len(val) == 10 and val.isdigit()):
             raise ValidationError('کد ملی باید دقیقاً ۱۰ رقم عددی باشد.')
-        if User.objects.filter(national_id=val).exists():
-            raise ValidationError('این کد ملی قبلاً برای کاربر دیگری ثبت شده است.')
         return val
 
 
@@ -335,6 +341,8 @@ class SelfProfileSerializer(serializers.ModelSerializer):
     def get_is_profile_completed(self, obj):
         if obj.role == User.Role.SWIMMER and hasattr(obj, 'swimmer_profile'):
             return obj.swimmer_profile.is_profile_completed
+        if obj.role == User.Role.COACH and hasattr(obj, 'coach_profile'):
+            return obj.coach_profile.is_profile_completed
         return True
 
     def validate_national_id(self, value):

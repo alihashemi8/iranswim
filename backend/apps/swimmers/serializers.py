@@ -30,7 +30,8 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'user', 'first_name', 'last_name', 'full_name',
             'gender', 'gender_display', 'phone', 'national_id',
-            'date_of_birth', 'father_name', 'father_phone', 'mother_phone',
+            'date_of_birth', 'father_name', 'father_phone', 'father_job',
+            'mother_phone', 'mother_job',
             'emergency_contact_name', 'emergency_contact_phone',
             'address', 'latitude', 'longitude', 'school_name',
             'avatar', 'birth_certificate_image', 'birth_certificate_status', 'birth_certificate_status_display',

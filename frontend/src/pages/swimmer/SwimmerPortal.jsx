@@ -97,7 +97,7 @@ export const SwimmerPortal = () => {
         </div>
 
         <Link
-          to="/swimmer/complete-profile"
+          to="/swimmer/profile"
           className="px-5 py-3 bg-white text-sky-800 hover:bg-sky-50 rounded-2xl text-xs sm:text-sm font-bold transition-all shadow-md flex items-center gap-2 self-start sm:self-auto cursor-pointer"
         >
           <FileText className="w-4 h-4 text-sky-600" />
@@ -123,7 +123,7 @@ export const SwimmerPortal = () => {
             </div>
           </div>
           <Link
-            to="/swimmer/complete-profile"
+            to="/swimmer/profile"
             className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm font-bold rounded-xl transition-colors shadow-xs flex items-center gap-1.5 shrink-0 self-end sm:self-auto"
           >
             <span>تکمیل فوری پرونده</span>

@@ -179,8 +179,12 @@ class SwimmerCompleteProfileView(APIView):
             missing.append('آدرس منزل')
         if not profile.father_phone:
             missing.append('شماره تماس پدر')
+        if not profile.father_job or not profile.father_job.strip():
+            missing.append('شغل پدر')
         if not profile.mother_phone:
             missing.append('شماره تماس مادر')
+        if not profile.mother_job or not profile.mother_job.strip():
+            missing.append('شغل مادر')
         if not profile.gender:
             missing.append('جنسیت')
         if not profile.birth_certificate_image:
@@ -199,6 +203,21 @@ class SwimmerCompleteProfileView(APIView):
 
         profile.is_profile_completed = True
         profile.save()
+
+        # Synchronize first_name, last_name, and national_id with linked User account
+        if profile.user:
+            user_updated = False
+            if profile.first_name and profile.user.first_name != profile.first_name:
+                profile.user.first_name = profile.first_name
+                user_updated = True
+            if profile.last_name and profile.user.last_name != profile.last_name:
+                profile.user.last_name = profile.last_name
+                user_updated = True
+            if profile.national_id and profile.user.national_id != profile.national_id:
+                profile.user.national_id = profile.national_id
+                user_updated = True
+            if user_updated:
+                profile.user.save()
 
         # Send notification to admins about newly submitted/updated documents
         from apps.accounts.models import User

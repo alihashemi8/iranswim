@@ -44,17 +44,11 @@ class SendOTPView(APIView):
                 status=status.HTTP_404_NOT_FOUND
             )
 
-        if purpose == 'REGISTER' and user_exists:
-            return Response(
-                {'detail': 'این شماره همراه قبلاً در سامانه ثبت شده است. لطفاً وارد شوید.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
         # Invalidate existing unused codes for this phone
         OTPVerification.objects.filter(phone=phone, is_used=False).update(is_used=True)
 
-        # Generate a cryptographically secure 6-digit code
-        code = f"{secrets.SystemRandom().randint(100000, 999999)}"
+        # Generate a cryptographically secure 5-digit code
+        code = f"{secrets.SystemRandom().randint(10000, 99999)}"
         expires_at = timezone.now() + timedelta(minutes=2)
 
         otp_record = OTPVerification.objects.create(
@@ -127,7 +121,13 @@ class VerifyOTPLoginView(APIView):
 
         refresh = RefreshToken.for_user(user)
         profile = getattr(user, 'swimmer_profile', None)
-        is_profile_completed = profile.is_profile_completed if profile else True
+        coach_profile = getattr(user, 'coach_profile', None)
+        if user.role == User.Role.SWIMMER:
+            is_profile_completed = profile.is_profile_completed if profile else False
+        elif user.role == User.Role.COACH:
+            is_profile_completed = coach_profile.is_profile_completed if coach_profile else False
+        else:
+            is_profile_completed = True
 
         return Response({
             'access': str(refresh.access_token),
@@ -142,14 +142,14 @@ class VerifyOTPLoginView(APIView):
                 'is_superuser': user.is_superuser,
                 'is_password_changed': user.is_password_changed,
                 'swimmer_id': getattr(profile, 'id', None),
-                'coach_id': getattr(getattr(user, 'coach_profile', None), 'id', None),
+                'coach_id': getattr(coach_profile, 'id', None),
                 'is_profile_completed': is_profile_completed,
             }
         }, status=status.HTTP_200_OK)
 
 
 class RegisterWithOTPView(APIView):
-    """ثبت‌نام شناگر جدید با تایید کد یکبار مصرف (رمز عبور به صورت خودکار کد ملی تنظیم می‌شود)"""
+    """ثبت‌نام شناگر جدید فقط با شماره همراه و کد یکبار مصرف پیامکی"""
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
@@ -158,9 +158,9 @@ class RegisterWithOTPView(APIView):
 
         phone = serializer.validated_data['phone']
         code = serializer.validated_data['code']
-        first_name = serializer.validated_data['first_name']
-        last_name = serializer.validated_data['last_name']
-        national_id = serializer.validated_data['national_id']
+        first_name = serializer.validated_data.get('first_name', '').strip()
+        last_name = serializer.validated_data.get('last_name', '').strip()
+        national_id = serializer.validated_data.get('national_id', '').strip()
 
         otp = OTPVerification.objects.filter(
             phone=phone,
@@ -178,25 +178,47 @@ class RegisterWithOTPView(APIView):
         otp.is_used = True
         otp.save()
 
-        # Create user with password = national_id as temporary initial password
-        user = User.objects.create_user(
-            phone=phone,
-            password=national_id,
-            national_id=national_id,
-            first_name=first_name,
-            last_name=last_name,
-            role=User.Role.SWIMMER,
-            is_password_changed=False
-        )
+        # Check if user already exists with this phone
+        user = User.objects.filter(phone=phone).first()
+        is_new = False
+        if not user:
+            is_new = True
+            user = User.objects.create_user(
+                phone=phone,
+                password=national_id if national_id else None,
+                national_id=national_id or None,
+                first_name=first_name,
+                last_name=last_name,
+                role=User.Role.SWIMMER,
+                is_password_changed=False
+            )
+            if not national_id:
+                user.set_unusable_password()
+                user.save()
+        else:
+            updated = False
+            if first_name and not user.first_name:
+                user.first_name = first_name
+                updated = True
+            if last_name and not user.last_name:
+                user.last_name = last_name
+                updated = True
+            if national_id and not user.national_id:
+                user.national_id = national_id
+                updated = True
+            if updated:
+                user.save()
 
         from apps.swimmers.models import SwimmerProfile, SwimmerGuardianRelation
-        swimmer_profile = SwimmerProfile.objects.create(
+        swimmer_profile, _ = SwimmerProfile.objects.get_or_create(
             user=user,
-            first_name=first_name,
-            last_name=last_name,
-            phone=phone,
-            national_id=national_id,
-            is_profile_completed=False
+            defaults={
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'phone': user.phone,
+                'national_id': user.national_id or '',
+                'is_profile_completed': False
+            }
         )
 
         # Create primary guardian relation
@@ -209,7 +231,7 @@ class RegisterWithOTPView(APIView):
         refresh = RefreshToken.for_user(user)
 
         return Response({
-            'detail': 'ثبت‌نام با موفقیت انجام شد. خوش آمدید!',
+            'detail': 'ثبت‌نام شما با موفقیت انجام شد. خوش آمدید!' if is_new else 'ورود با موفقیت انجام شد. خوش آمدید!',
             'access': str(refresh.access_token),
             'refresh': str(refresh),
             'user': {
@@ -220,12 +242,12 @@ class RegisterWithOTPView(APIView):
                 'full_name': f"{user.first_name} {user.last_name}".strip() or user.phone,
                 'role': user.role,
                 'is_superuser': user.is_superuser,
-                'is_password_changed': False,
+                'is_password_changed': user.is_password_changed,
                 'swimmer_id': swimmer_profile.id,
                 'coach_id': None,
-                'is_profile_completed': False,
+                'is_profile_completed': swimmer_profile.is_profile_completed,
             }
-        }, status=status.HTTP_201_CREATED)
+        }, status=status.HTTP_201_CREATED if is_new else status.HTTP_200_OK)
 
 
 class ChangePasswordView(APIView):
