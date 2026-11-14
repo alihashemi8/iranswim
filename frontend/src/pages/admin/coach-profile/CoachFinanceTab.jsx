@@ -763,7 +763,7 @@ export const CoachFinanceTab = ({
                           <p>هنوز هیچ فیش پرداختی یا سند واریزی برای این مربی بارگذاری نشده است.</p>
                           <Button
                             size="sm"
-                            onClick={() => handleOpenUploadReceipt()}
+                            onClick={() => navigate(`/admin/coaches/${coach.id}/payments/new`)}
                             className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold mx-auto"
                           >
                             <Upload className="w-3.5 h-3.5 ml-1" />
