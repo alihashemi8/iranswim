@@ -9,9 +9,9 @@ import { toShamsiDate } from '../../utils/date';
  */
 export const SwimmerAvatar = ({ fullName, avatar, alt, size = 'md', className = '' }) => {
   const sizeClasses = {
-    sm: 'w-9 h-9 text-sm',
-    md: 'w-10 h-10 text-sm',
-    lg: 'w-12 h-12 sm:w-14 sm:h-14 text-lg',
+    sm: 'w-11 h-11 text-sm',
+    md: 'w-12 h-12 text-base',
+    lg: 'w-14 h-14 sm:w-20 sm:h-20 text-xl',
   };
   const fallbackInitial = fullName?.trim()?.charAt(0) || 'ش';
 

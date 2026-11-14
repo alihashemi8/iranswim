@@ -22,14 +22,14 @@ def delete_user_old_avatar(user):
 
 
 def get_user_avatar_url(user, request=None):
-    """دریافت آدرس کامل تصویر پروفایل کاربر"""
+    """دریافت آدرس تصویر پروفایل کاربر"""
     if not user:
         return None
     if user.avatar:
-        return request.build_absolute_uri(user.avatar.url) if request else user.avatar.url
+        return user.avatar.url
     profile = getattr(user, 'swimmer_profile', None)
     if profile and profile.avatar:
-        return request.build_absolute_uri(profile.avatar.url) if request else profile.avatar.url
+        return profile.avatar.url
     return None
 
 
