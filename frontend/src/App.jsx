@@ -22,6 +22,7 @@ import { SupervisorConfigPage } from './pages/supervisor/SupervisorConfigPage';
 import { SupervisorAuditPage } from './pages/supervisor/SupervisorAuditPage';
 import { SupervisorTestTriggerPage } from './pages/supervisor/SupervisorTestTriggerPage';
 import { SupervisorUsersPage } from './pages/supervisor/SupervisorUsersPage';
+import { SupervisorProfilePage } from './pages/supervisor/SupervisorProfilePage';
 
 // Admin Pages
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -170,6 +171,7 @@ export default function App() {
                 <Route path="audit" element={<SupervisorAuditPage />} />
                 <Route path="test" element={<SupervisorTestTriggerPage />} />
                 <Route path="users" element={<SupervisorUsersPage />} />
+                <Route path="profile" element={<SupervisorProfilePage />} />
               </Route>
 
               {/* Admin Protected Routes - Full 13 Operations Hub */}
@@ -198,6 +200,7 @@ export default function App() {
                 <Route path="coaches/:id/assign-group" element={<AdminCoachAssignGroupPage />} />
                 <Route path="coaches/:id/contracts/new" element={<AdminCoachCreateContractPage />} />
                 <Route path="coaches/:id/payrolls/new" element={<AdminCoachCreatePayrollPage />} />
+                <Route path="coaches/:id/payments/new" element={<AdminCoachRegisterPaymentPage />} />
                 <Route path="coaches/:id/payrolls/:payrollId/payments/new" element={<AdminCoachRegisterPaymentPage />} />
                 <Route path="coaches/:id/certificates/new" element={<AdminCoachAddCertificatePage />} />
                 <Route path="coaches/:id/evaluations/new" element={<AdminCoachCreateEvaluationPage />} />

@@ -151,6 +151,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     {
       groupTitle: 'امنیت و تنظیمات',
       items: [
+        { to: '/supervisor/profile', label: 'پروفایل و مشخصات ناظر', icon: UserCheck },
         { to: '/supervisor/activity', label: 'نشست‌ها و امنیت کاربران', icon: Users },
         { to: '/supervisor/audit', label: 'حسابرسی عملیات (Audit)', icon: ShieldCheck },
         { to: '/supervisor/config', label: 'تنظیمات فنی و Flagها', icon: Sliders },
@@ -253,7 +254,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     const profilePath = user.role === 'ADMIN' ? '/admin/profile' :
       user.role === 'COACH' ? '/coach/profile' :
       user.role === 'SWIMMER' ? '/swimmer/profile' :
-      user.role === 'SUPERVISOR' ? '/supervisor' : '/';
+      user.role === 'SUPERVISOR' ? '/supervisor/profile' : '/';
 
     const displayName = user.full_name || user.phone || 'شناگر محترم';
 
@@ -271,11 +272,11 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                     : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
                 }`
               }
-              title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'SWIMMER' ? 'مشاهده صفحه پروفایل شناگر' : 'مشاهده پروفایل'}
+              title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'SWIMMER' ? 'مشاهده صفحه پروفایل شناگر' : user.role === 'SUPERVISOR' ? 'مشاهده صفحه پروفایل ناظر فنی' : 'مشاهده پروفایل'}
             >
               <div className={`w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-lg sm:text-xl shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800`}>
                 {user.avatar ? (
-                  <img src={user.avatar} alt={displayName} className="w-full h-full object-cover" />
+                  <img src={user.avatar} alt={displayName} onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover" />
                 ) : (
                   displayName.charAt(0)
                 )}
@@ -322,11 +323,11 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                   : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
               }`
             }
-            title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'SWIMMER' ? 'مشاهده صفحه پروفایل شناگر' : 'مشاهده پروفایل'}
+            title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'SWIMMER' ? 'مشاهده صفحه پروفایل شناگر' : user.role === 'SUPERVISOR' ? 'مشاهده صفحه پروفایل ناظر فنی' : 'مشاهده پروفایل'}
           >
             <div className={`w-14 h-14 rounded-2xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-xl shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800`}>
               {user.avatar ? (
-                <img src={user.avatar} alt={displayName} className="w-full h-full object-cover" />
+                <img src={user.avatar} alt={displayName} onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover" />
               ) : (
                 displayName.charAt(0)
               )}
@@ -365,7 +366,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
           >
             <div className={`w-12 h-12 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-lg shrink-0 shadow-2xs ring-2 ring-slate-100 dark:ring-slate-800 hover:ring-sky-400 dark:hover:ring-sky-400 transition-all overflow-hidden`}>
               {user.avatar ? (
-                <img src={user.avatar} alt={displayName} className="w-full h-full object-cover" />
+                <img src={user.avatar} alt={displayName} onError={(e) => { e.currentTarget.style.display = 'none'; }} className="w-full h-full object-cover" />
               ) : (
                 displayName.charAt(0)
               )}

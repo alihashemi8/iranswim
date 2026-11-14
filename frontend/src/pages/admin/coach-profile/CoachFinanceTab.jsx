@@ -29,19 +29,6 @@ export const CoachFinanceTab = ({
   // Selected payroll for detail drill-down
   const [selectedPayroll, setSelectedPayroll] = useState(null);
 
-  // Upload Payment Receipt Modal state
-  const [isUploadReceiptModalOpen, setIsUploadReceiptModalOpen] = useState(false);
-  const [uploadReceiptForm, setUploadReceiptForm] = useState({
-    payroll_id: '',
-    amount: '',
-    payment_date: new Date().toISOString().split('T')[0],
-    payment_method: 'BANK_TRANSFER',
-    reference_number: '',
-    description: '',
-  });
-  const [receiptFile, setReceiptFile] = useState(null);
-  const [submittingReceipt, setSubmittingReceipt] = useState(false);
-
   // Add Adjustment Modal (Bonus / Deduction)
   const [isAdjModalOpen, setIsAdjModalOpen] = useState(false);
   const [adjForm, setAdjForm] = useState({
@@ -98,89 +85,6 @@ export const CoachFinanceTab = ({
     } catch (err) {
       console.error(err);
       toast.error('خطا در دریافت جزئیات فیش حقوقی');
-    }
-  };
-
-  // Open Upload Receipt Modal for a specific payroll or general
-  const handleOpenUploadReceipt = (preselectedPayrollId = '') => {
-    let targetPayroll = null;
-    if (preselectedPayrollId) {
-      targetPayroll = payrolls.find((p) => String(p.id) === String(preselectedPayrollId));
-    } else if (selectedPayroll) {
-      targetPayroll = selectedPayroll;
-    } else {
-      // Find first payroll with remaining balance > 0
-      targetPayroll = payrolls.find((p) => Number(p.remaining_balance) > 0) || payrolls[0];
-    }
-
-    const defaultPid = targetPayroll ? String(targetPayroll.id) : (payrolls[0] ? String(payrolls[0].id) : '');
-    const defaultAmount = targetPayroll ? (Number(targetPayroll.remaining_balance) > 0 ? String(Math.round(Number(targetPayroll.remaining_balance))) : '') : '';
-
-    setUploadReceiptForm({
-      payroll_id: defaultPid,
-      amount: defaultAmount,
-      payment_date: new Date().toISOString().split('T')[0],
-      payment_method: 'BANK_TRANSFER',
-      reference_number: '',
-      description: '',
-    });
-    setReceiptFile(null);
-    setIsUploadReceiptModalOpen(true);
-  };
-
-  // Handle Payroll selection change in Upload Modal
-  const handlePayrollChangeInModal = (payrollId) => {
-    const selected = payrolls.find((p) => String(p.id) === String(payrollId));
-    setUploadReceiptForm((prev) => ({
-      ...prev,
-      payroll_id: payrollId,
-      amount: selected && Number(selected.remaining_balance) > 0 ? String(Math.round(Number(selected.remaining_balance))) : prev.amount,
-    }));
-  };
-
-  // Submit Receipt and Register Payment
-  const handleUploadReceiptSubmit = async (e) => {
-    e.preventDefault();
-    if (!uploadReceiptForm.payroll_id) {
-      toast.error('لطفاً دوره حقوقی مربوطه را انتخاب کنید.');
-      return;
-    }
-    if (!uploadReceiptForm.amount || Number(uploadReceiptForm.amount) <= 0) {
-      toast.error('مبلغ پرداختی باید بزرگتر از صفر باشد.');
-      return;
-    }
-    if (!receiptFile) {
-      toast.error('لطفاً تصویر یا فایل فیش پرداختی را انتخاب کنید.');
-      return;
-    }
-
-    try {
-      setSubmittingReceipt(true);
-      const formData = new FormData();
-      formData.append('amount', uploadReceiptForm.amount);
-      formData.append('payment_date', uploadReceiptForm.payment_date);
-      formData.append('payment_method', uploadReceiptForm.payment_method);
-      if (uploadReceiptForm.reference_number) formData.append('reference_number', uploadReceiptForm.reference_number.trim());
-      if (uploadReceiptForm.description) formData.append('description', uploadReceiptForm.description.trim());
-      formData.append('receipt_document', receiptFile);
-
-      await api.post(`/coaches/payrolls/${uploadReceiptForm.payroll_id}/payments/`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
-      toast.success('فیش پرداختی و سند واریز حقوق با موفقیت در سیستم ثبت گردید.');
-      setIsUploadReceiptModalOpen(false);
-      setReceiptFile(null);
-
-      if (onPayrollsUpdated) onPayrollsUpdated();
-      if (selectedPayroll && String(selectedPayroll.id) === String(uploadReceiptForm.payroll_id)) {
-        fetchPayrollDetails(selectedPayroll.id);
-      }
-    } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.detail || 'خطا در آپلود فیش و ثبت پرداخت');
-    } finally {
-      setSubmittingReceipt(false);
     }
   };
 

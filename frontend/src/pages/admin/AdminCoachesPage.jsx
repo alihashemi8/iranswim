@@ -735,16 +735,8 @@ export const AdminCoachesPage = () => {
                         <h3 className="font-bold text-slate-900 dark:text-white text-base group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors truncate max-w-[170px]">
                           {coach.full_name}
                         </h3>
-                        <div className="flex items-center gap-2 mt-1 text-xs text-slate-500 dark:text-slate-400 font-mono">
+                        <div className="mt-1 text-xs text-slate-500 dark:text-slate-400 font-mono">
                           <span>{coach.phone}</span>
-                          {coach.personnel_id && (
-                            <>
-                              <span>•</span>
-                              <span className="text-sky-700 dark:text-sky-400 font-bold">
-                                {coach.personnel_id}
-                              </span>
-                            </>
-                          )}
                         </div>
                       </div>
                     </div>
