@@ -367,7 +367,7 @@ class UserAvatarView(APIView):
             swimmer_profile.avatar = user.avatar
             swimmer_profile.save(update_fields=['avatar'])
 
-        avatar_url = request.build_absolute_uri(user.avatar.url)
+        avatar_url = user.avatar.url
         return Response({
             'detail': 'تصویر پروفایل شما با موفقیت ذخیره شد.',
             'avatar': avatar_url,
