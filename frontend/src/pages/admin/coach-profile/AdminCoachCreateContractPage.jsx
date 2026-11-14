@@ -149,7 +149,7 @@ export const AdminCoachCreateContractPage = () => {
         toast.success('قرارداد جدید با موفقیت منعقد و ثبت شد.');
       }
 
-      navigate(`/admin/coaches/${id}?tab=CONTRACTS_FINANCE&subtab=CONTRACTS`);
+      navigate(`/admin/coaches/${id}?tab=FINANCE`);
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.detail || 'خطا در ثبت قرارداد مربی');
@@ -170,14 +170,14 @@ export const AdminCoachCreateContractPage = () => {
     <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6" dir="rtl">
       {/* Breadcrumb & Navigation */}
       <div className="flex items-center gap-3 pb-4 border-b border-slate-200">
-        <BackButton to={`/admin/coaches/${id}?tab=CONTRACTS_FINANCE&subtab=CONTRACTS`} fallback={`/admin/coaches/${id}`} title="بازگشت به پرونده مربی" />
+        <BackButton to={`/admin/coaches/${id}?tab=FINANCE`} fallback={`/admin/coaches/${id}`} title="بازگشت به پرونده مربی" />
         <div className="space-y-1 min-w-0 flex-1">
           <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 truncate">
             <Link to="/admin/coaches" className="hover:text-sky-600 transition-colors shrink-0">
               مدیریت مربیان
             </Link>
             <span>/</span>
-            <Link to={`/admin/coaches/${id}?tab=CONTRACTS_FINANCE&subtab=CONTRACTS`} className="hover:text-sky-600 transition-colors shrink-0 truncate">
+            <Link to={`/admin/coaches/${id}?tab=FINANCE`} className="hover:text-sky-600 transition-colors shrink-0 truncate">
               پرونده {coach?.full_name}
             </Link>
             <span>/</span>
@@ -285,7 +285,7 @@ export const AdminCoachCreateContractPage = () => {
           <div className="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-sm space-y-5">
             <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 pb-3 border-b border-slate-100">
               <DollarSign className="w-4 h-4 text-emerald-600" />
-              <span>مدل مالی و حقوق و دستمزد قرارداد</span>
+              <span>تعیین نرخ و نحوه محاسبه حقوق و دستمزد قرارداد</span>
             </h3>
 
             <div>
@@ -469,11 +469,11 @@ export const AdminCoachCreateContractPage = () => {
                   className="w-4 h-4 rounded text-sky-600 focus:ring-sky-500"
                 />
                 <span className="text-xs font-bold text-slate-800">
-                  همگام‌سازی خودکار مدل مالی با پروفایل اصلی مربی
+                  همگام‌سازی خودکار نرخ و شرایط مالی با پروفایل اصلی مربی
                 </span>
               </label>
               <p className="text-[11px] text-slate-500 mt-1 mr-6">
-                در صورت فعال بودن، مدل پرداختی و نرخ جدید بلافاصله در فیش‌های حقوقی آینده اعمال می‌شود.
+                در صورت فعال بودن، نرخ و شرایط جدید بلافاصله در فیش‌های حقوقی آینده اعمال می‌شود.
               </p>
             </div>
           </div>
@@ -494,7 +494,7 @@ export const AdminCoachCreateContractPage = () => {
                 <span className="font-bold text-slate-900">{coach?.full_name}</span>
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-slate-50">
-                <span className="text-slate-500">مدل تسویه:</span>
+                <span className="text-slate-500">نوع پرداخت:</span>
                 <Badge variant={form.employment_type === 'FIXED' ? 'success' : form.employment_type === 'PERCENTAGE' ? 'warning' : 'info'} className="text-[10px]">
                   {form.employment_type === 'HOURLY' && 'حق‌التدریس ساعتی'}
                   {form.employment_type === 'FIXED' && 'حقوق ماهیانه ثابت'}

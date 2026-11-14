@@ -248,7 +248,7 @@ export const CoachPayrollTab = ({ coach, payrolls, onPayrollsUpdated }) => {
       {/* Model Overview Card */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs grid grid-cols-2 sm:grid-cols-4 gap-4 text-xs">
         <div>
-          <span className="text-slate-400 block mb-1">مدل پرداخت جاری:</span>
+          <span className="text-slate-400 block mb-1">نحوه پرداخت حقوق:</span>
           <span className="font-bold text-slate-900 dark:text-white">
             {coach.employment_type === 'HOURLY' && 'ساعتی (حق‌التدریس بر اساس جلسه)'}
             {coach.employment_type === 'FIXED' && 'حقوق ثابت ماهانه'}

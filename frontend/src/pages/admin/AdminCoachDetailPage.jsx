@@ -17,7 +17,7 @@ import { useToast } from '../../context/ToastContext';
 
 // Tabs
 import { CoachPersonalTab } from './coach-profile/CoachPersonalTab';
-import { CoachContractsAndFinanceTab } from './coach-profile/CoachContractsAndFinanceTab';
+import { CoachFinanceTab } from './coach-profile/CoachFinanceTab';
 import { CoachWorkAndLeavesTab } from './coach-profile/CoachWorkAndLeavesTab';
 import { CoachScheduleTab } from './coach-profile/CoachScheduleTab';
 import { CoachEvaluationAndRecordsTab } from './coach-profile/CoachEvaluationAndRecordsTab';
@@ -40,8 +40,8 @@ export const AdminCoachDetailPage = () => {
   // Active Tab initialized from query parameter if present
   const tabParam = searchParams.get('tab');
   const resolveTab = (t) => {
-    if (t === 'CONTRACTS' || t === 'PAYROLL' || t === 'CONTRACTS_AND_FINANCE') {
-      return 'CONTRACTS_AND_FINANCE';
+    if (t === 'FINANCE' || t === 'PAYROLL' || t === 'CONTRACTS' || t === 'CONTRACTS_AND_FINANCE') {
+      return 'FINANCE';
     }
     return t || 'INFO';
   };
@@ -182,10 +182,10 @@ export const AdminCoachDetailPage = () => {
   const tabs = [
     { id: 'INFO', label: 'مشخصات و مدارک', icon: UserCheck },
     {
-      id: 'CONTRACTS_AND_FINANCE',
-      label: 'احکام، قراردادها و امور مالی',
+      id: 'FINANCE',
+      label: 'امور مالی',
       icon: CreditCard,
-      count: (contracts.length + payrolls.length) || undefined,
+      count: payrolls.length || undefined,
     },
     {
       id: 'WORK_AND_LEAVES',
@@ -379,8 +379,8 @@ export const AdminCoachDetailPage = () => {
           />
         )}
 
-        {activeTab === 'CONTRACTS_AND_FINANCE' && (
-          <CoachContractsAndFinanceTab
+        {activeTab === 'FINANCE' && (
+          <CoachFinanceTab
             coach={coach}
             contracts={contracts}
             payrolls={payrolls}

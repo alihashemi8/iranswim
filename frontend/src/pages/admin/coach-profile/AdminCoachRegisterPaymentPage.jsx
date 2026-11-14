@@ -54,7 +54,7 @@ export const AdminCoachRegisterPaymentPage = () => {
       } catch (err) {
         console.error(err);
         toast.error('خطا در دریافت اطلاعات فیش حقوقی');
-        navigate(`/admin/coaches/${id}?tab=CONTRACTS_FINANCE&subtab=PAYROLL`);
+        navigate(`/admin/coaches/${id}?tab=FINANCE`);
       } finally {
         setLoading(false);
       }
@@ -102,7 +102,7 @@ export const AdminCoachRegisterPaymentPage = () => {
       });
 
       toast.success('پرداخت حقوق با موفقیت در سیستم ثبت گردید.');
-      navigate(`/admin/coaches/${id}?tab=CONTRACTS_FINANCE&subtab=PAYROLL`);
+      navigate(`/admin/coaches/${id}?tab=FINANCE`);
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.detail || 'خطا در ثبت پرداخت حقوق');
@@ -123,14 +123,14 @@ export const AdminCoachRegisterPaymentPage = () => {
     <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6" dir="rtl">
       {/* Header & Breadcrumb */}
       <div className="flex items-center gap-3 pb-4 border-b border-slate-200">
-        <BackButton to={`/admin/coaches/${id}?tab=CONTRACTS_FINANCE&subtab=PAYROLL`} fallback={`/admin/coaches/${id}`} title="بازگشت به پرونده مالی مربی" />
+        <BackButton to={`/admin/coaches/${id}?tab=FINANCE`} fallback={`/admin/coaches/${id}`} title="بازگشت به پرونده مالی مربی" />
         <div className="space-y-1 min-w-0 flex-1">
           <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 truncate">
             <Link to="/admin/coaches" className="hover:text-sky-600 transition-colors shrink-0">
               مدیریت مربیان
             </Link>
             <span>/</span>
-            <Link to={`/admin/coaches/${id}?tab=CONTRACTS_FINANCE&subtab=PAYROLL`} className="hover:text-sky-600 transition-colors shrink-0 truncate">
+            <Link to={`/admin/coaches/${id}?tab=FINANCE`} className="hover:text-sky-600 transition-colors shrink-0 truncate">
               پرونده مالی {coach?.full_name}
             </Link>
             <span>/</span>

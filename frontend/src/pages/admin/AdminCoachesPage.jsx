@@ -50,27 +50,6 @@ export const AdminCoachesPage = () => {
     }
   }, [viewMode]);
 
-  // Finance Column Mode: 'combined' (e.g. 12.4M / 20M) | 'split' (3 separate columns)
-  const [financeColumnMode, setFinanceColumnMode] = useState(() => {
-    try {
-      const saved = localStorage.getItem('admin_coaches_finance_col_mode');
-      if (saved === 'combined' || saved === 'split') {
-        return saved;
-      }
-    } catch (e) {
-      console.error('Error reading financeColumnMode:', e);
-    }
-    return 'combined';
-  });
-
-  useEffect(() => {
-    try {
-      localStorage.setItem('admin_coaches_finance_col_mode', financeColumnMode);
-    } catch (e) {
-      console.error('Error saving financeColumnMode:', e);
-    }
-  }, [financeColumnMode]);
-
   // Track copied card state for visual checkmark feedback
   const [copiedCard, setCopiedCard] = useState(null);
 
@@ -685,61 +664,30 @@ export const AdminCoachesPage = () => {
             </Button>
           </div>
 
-          {/* View Switcher & Finance Column Mode */}
-          <div className="hidden md:flex items-center gap-3 shrink-0">
-            {effectiveViewMode === 'table' && (
-              <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl text-xs font-bold">
-                <button
-                  type="button"
-                  onClick={() => setFinanceColumnMode('combined')}
-                  className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
-                    financeColumnMode === 'combined'
-                      ? 'bg-white dark:bg-slate-700 text-sky-600 shadow-2xs'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                  }`}
-                  title="نمایش حقوق و تسویه در یک ستون با فرمت اعشاری (12.4م/20م)"
-                >
-                  ستون مالی تجمیعی (12.4م/20م)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setFinanceColumnMode('split')}
-                  className={`px-2.5 py-1 rounded-lg transition-colors cursor-pointer ${
-                    financeColumnMode === 'split'
-                      ? 'bg-white dark:bg-slate-700 text-sky-600 shadow-2xs'
-                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
-                  }`}
-                  title="تفکیک به سه ستون مجزا (کل حقوق، پرداختی، مانده)"
-                >
-                  تفکیک ۳ ستون
-                </button>
-              </div>
-            )}
-
-            <div className="flex items-center gap-2">
-              <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">حالت نمایش:</span>
-              <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
-                <button
-                  type="button"
-                  onClick={() => setViewMode('cards')}
-                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                    viewMode === 'cards' ? 'bg-white dark:bg-slate-700 text-sky-600 shadow-2xs' : 'text-slate-500 dark:text-slate-400'
-                  }`}
-                  title="نمای کارت‌ها"
-                >
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setViewMode('table')}
-                  className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
-                    viewMode === 'table' ? 'bg-white dark:bg-slate-700 text-sky-600 shadow-2xs' : 'text-slate-500 dark:text-slate-400'
-                  }`}
-                  title="نمای جدول"
-                >
-                  <List className="w-4 h-4" />
-                </button>
-              </div>
+          {/* View Switcher (Cards / Table) */}
+          <div className="hidden md:flex items-center gap-2 shrink-0">
+            <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">حالت نمایش:</span>
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
+              <button
+                type="button"
+                onClick={() => setViewMode('cards')}
+                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                  viewMode === 'cards' ? 'bg-white dark:bg-slate-700 text-sky-600 shadow-2xs' : 'text-slate-500 dark:text-slate-400'
+                }`}
+                title="نمای کارت‌ها"
+              >
+                <LayoutGrid className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode('table')}
+                className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                  viewMode === 'table' ? 'bg-white dark:bg-slate-700 text-sky-600 shadow-2xs' : 'text-slate-500 dark:text-slate-400'
+                }`}
+                title="نمای جدول"
+              >
+                <List className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>

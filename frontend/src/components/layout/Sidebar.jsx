@@ -273,14 +273,14 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
               }
               title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'SWIMMER' ? 'مشاهده صفحه پروفایل شناگر' : 'مشاهده پروفایل'}
             >
-              <div className={`w-11 h-11 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-base shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden`}>
+              <div className={`w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-lg sm:text-xl shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800`}>
                 {user.avatar ? (
                   <img src={user.avatar} alt={displayName} className="w-full h-full object-cover" />
                 ) : (
                   displayName.charAt(0)
                 )}
               </div>
-              <div className="flex flex-col min-w-0 flex-1">
+              <div className="flex flex-col min-w-0 flex-1 justify-center">
                 <span className="text-base font-black text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   {displayName}
                 </span>
@@ -324,14 +324,14 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
             }
             title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'SWIMMER' ? 'مشاهده صفحه پروفایل شناگر' : 'مشاهده پروفایل'}
           >
-            <div className={`w-10 h-10 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-base shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden`}>
+            <div className={`w-14 h-14 rounded-2xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-xl shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800`}>
               {user.avatar ? (
                 <img src={user.avatar} alt={displayName} className="w-full h-full object-cover" />
               ) : (
                 displayName.charAt(0)
               )}
             </div>
-            <div className="flex flex-col min-w-0 flex-1">
+            <div className="flex flex-col min-w-0 flex-1 justify-center">
               <span className="text-sm xl:text-[15px] font-black text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 {displayName}
               </span>
@@ -363,7 +363,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
             className="relative group flex justify-center cursor-pointer"
             title={`${displayName} (${roleTitles[user.role] || ''})`}
           >
-            <div className={`w-11 h-11 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-sky-600 to-cyan-500'} text-white flex items-center justify-center font-black text-base shrink-0 shadow-2xs hover:ring-2 hover:ring-sky-400 transition-all overflow-hidden`}>
+            <div className={`w-12 h-12 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-lg shrink-0 shadow-2xs ring-2 ring-slate-100 dark:ring-slate-800 hover:ring-sky-400 dark:hover:ring-sky-400 transition-all overflow-hidden`}>
               {user.avatar ? (
                 <img src={user.avatar} alt={displayName} className="w-full h-full object-cover" />
               ) : (
