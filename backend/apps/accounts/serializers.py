@@ -1,3 +1,4 @@
+import os
 import random
 from datetime import timedelta
 from django.utils import timezone
@@ -7,7 +8,56 @@ from rest_framework.exceptions import ValidationError, AuthenticationFailed
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework_simplejwt.tokens import RefreshToken
 from .models import User, OTPVerification
-from .validators import validate_password_complexity
+from .validators import validate_password_complexity, validate_avatar_file
+
+
+def delete_user_old_avatar(user):
+    """حذف فایل فیزیکی تصویر پروفایل قبلی کاربر جهت تضمین وجود فقط یک عکس (فقط یکی)"""
+    if user and user.avatar:
+        try:
+            if hasattr(user.avatar, 'path') and os.path.isfile(user.avatar.path):
+                os.remove(user.avatar.path)
+        except Exception:
+            pass
+
+
+def get_user_avatar_url(user, request=None):
+    """دریافت آدرس کامل تصویر پروفایل کاربر"""
+    if not user:
+        return None
+    if user.avatar:
+        return request.build_absolute_uri(user.avatar.url) if request else user.avatar.url
+    profile = getattr(user, 'swimmer_profile', None)
+    if profile and profile.avatar:
+        return request.build_absolute_uri(profile.avatar.url) if request else profile.avatar.url
+    return None
+
+
+def get_user_data(user, request=None):
+    """تولید ساختار استاندارد اطلاعات کاربر جهت پاسخ‌های ورود، احراز هویت و پروفایل"""
+    profile = getattr(user, 'swimmer_profile', None)
+    coach_profile = getattr(user, 'coach_profile', None)
+    if user.role == User.Role.SWIMMER:
+        is_profile_completed = profile.is_profile_completed if profile else False
+    elif user.role == User.Role.COACH:
+        is_profile_completed = coach_profile.is_profile_completed if coach_profile else False
+    else:
+        is_profile_completed = True
+
+    return {
+        'id': user.id,
+        'phone': user.phone,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
+        'full_name': f"{user.first_name} {user.last_name}".strip() or user.phone,
+        'role': user.role,
+        'is_superuser': user.is_superuser,
+        'is_password_changed': user.is_password_changed,
+        'swimmer_id': getattr(profile, 'id', None),
+        'coach_id': getattr(coach_profile, 'id', None),
+        'is_profile_completed': is_profile_completed,
+        'avatar': get_user_avatar_url(user, request),
+    }
 
 
 def to_english_digits(text):
@@ -57,28 +107,7 @@ class IranSwimTokenObtainPairSerializer(TokenObtainPairSerializer):
             'access': str(refresh.access_token),
         }
 
-        profile = getattr(user, 'swimmer_profile', None)
-        coach_profile = getattr(user, 'coach_profile', None)
-        if user.role == User.Role.SWIMMER:
-            is_profile_completed = profile.is_profile_completed if profile else False
-        elif user.role == User.Role.COACH:
-            is_profile_completed = coach_profile.is_profile_completed if coach_profile else False
-        else:
-            is_profile_completed = True
-
-        data['user'] = {
-            'id': user.id,
-            'phone': user.phone,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'full_name': f"{user.first_name} {user.last_name}".strip() or user.phone,
-            'role': user.role,
-            'is_superuser': user.is_superuser,
-            'is_password_changed': user.is_password_changed,
-            'swimmer_id': getattr(profile, 'id', None),
-            'coach_id': getattr(coach_profile, 'id', None),
-            'is_profile_completed': is_profile_completed,
-        }
+        data['user'] = get_user_data(user, self.context.get('request'))
         return data
 
 

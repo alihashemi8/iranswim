@@ -911,18 +911,10 @@ export const AdminCoachesPage = () => {
                   <th className="py-3.5 px-4 font-bold min-w-[175px]">شماره کارت بانکی</th>
                   <th className="py-3.5 px-4 font-bold text-center">تعداد حضور</th>
                   <th className="py-3.5 px-4 font-bold text-center">کلاس‌ها</th>
-                  {financeColumnMode === 'combined' ? (
-                    <th className="py-3.5 px-4 font-bold min-w-[220px]">
-                      <div>حقوق و تسویه</div>
-                      <span className="text-[11px] text-slate-400 font-normal">پرداختی / کل (مانده)</span>
-                    </th>
-                  ) : (
-                    <>
-                      <th className="py-3.5 px-4 font-bold">مبلغ کل حقوق</th>
-                      <th className="py-3.5 px-4 font-bold">مبلغ پرداختی</th>
-                      <th className="py-3.5 px-4 font-bold">مبلغ مانده</th>
-                    </>
-                  )}
+                  <th className="py-3.5 px-4 font-bold min-w-[220px]">
+                    <div>حقوق و تسویه</div>
+                    <span className="text-[11px] text-slate-400 font-normal">پرداختی / کل (مانده)</span>
+                  </th>
                   <th className="py-3.5 px-4 font-bold text-center">عملیات</th>
                 </tr>
               </thead>
@@ -1017,94 +1009,55 @@ export const AdminCoachesPage = () => {
                       </td>
 
                       {/* 5. Salary, Paid, Remaining */}
-                      {financeColumnMode === 'combined' ? (
-                        <td className="py-3.5 px-4">
-                          <div
-                            className="space-y-1.5 min-w-[210px] max-w-[260px]"
-                            title={`مبلغ کل حقوق: ${formatPrice(total)} تومان\nمبلغ پرداختی: ${formatPrice(paid)} تومان\nمبلغ مانده: ${formatPrice(rem)} تومان`}
-                          >
-                            <div className="flex items-center justify-between text-xs sm:text-sm">
-                              <div className="flex items-baseline gap-1">
-                                <span className="font-mono font-black text-slate-900 dark:text-white text-sm sm:text-base">
-                                  {formatMillion(paid)} / {formatMillion(total)}
-                                </span>
-                                <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">تومان</span>
-                              </div>
-                              <span className="font-mono font-bold text-xs text-slate-500 dark:text-slate-400">
-                                {percent}%
+                      <td className="py-3.5 px-4">
+                        <div
+                          className="space-y-1.5 min-w-[210px] max-w-[260px]"
+                          title={`مبلغ کل حقوق: ${formatPrice(total)} تومان\nمبلغ پرداختی: ${formatPrice(paid)} تومان\nمبلغ مانده: ${formatPrice(rem)} تومان`}
+                        >
+                          <div className="flex items-center justify-between text-xs sm:text-sm">
+                            <div className="flex items-baseline gap-1">
+                              <span className="font-mono font-black text-slate-900 dark:text-white text-sm sm:text-base">
+                                {formatMillion(paid)} / {formatMillion(total)}
                               </span>
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">تومان</span>
                             </div>
-
-                            {/* Mini progress bar */}
-                            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
-                              <div
-                                className={`h-full rounded-full transition-all ${
-                                  isSettled ? 'bg-emerald-500' : isUnpaid ? 'bg-rose-400' : 'bg-sky-500'
-                                }`}
-                                style={{ width: `${percent}%` }}
-                              />
-                            </div>
-
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-slate-500 dark:text-slate-400">مانده:</span>
-                              {isSettled ? (
-                                <span className="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800 text-[11px]">
-                                  تسویه کامل ✓
-                                </span>
-                              ) : total === 0 ? (
-                                <span className="text-slate-400 text-[11px]">—</span>
-                              ) : (
-                                <span
-                                  className={`font-mono font-bold px-2 py-0.5 rounded-md text-[11px] ${
-                                    isUnpaid
-                                      ? 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900'
-                                      : 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900'
-                                  }`}
-                                >
-                                  {formatMillion(rem)} تومان
-                                </span>
-                              )}
-                            </div>
+                            <span className="font-mono font-bold text-xs text-slate-500 dark:text-slate-400">
+                              {percent}%
+                            </span>
                           </div>
-                        </td>
-                      ) : (
-                        <>
-                          <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white text-xs sm:text-sm">
-                            {total > 0 ? (
-                              <div>
-                                <span className="font-black text-sm">{formatMillion(total)}</span>
-                                <span className="text-[11px] text-slate-400 block font-normal">{formatPrice(total)} ت</span>
-                              </div>
-                            ) : (
-                              '—'
-                            )}
-                          </td>
-                          <td className="py-3.5 px-4 font-mono font-bold text-emerald-600 dark:text-emerald-400 text-xs sm:text-sm">
-                            {paid > 0 ? (
-                              <div>
-                                <span className="font-black text-sm">{formatMillion(paid)}</span>
-                                <span className="text-[11px] text-emerald-600/70 dark:text-emerald-400/70 block font-normal">{formatPrice(paid)} ت</span>
-                              </div>
-                            ) : (
-                              '۰'
-                            )}
-                          </td>
-                          <td className="py-3.5 px-4 font-mono font-bold text-xs sm:text-sm">
-                            {total === 0 ? (
-                              <span className="text-slate-400">—</span>
-                            ) : isSettled ? (
-                              <span className="text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/60 text-xs">
+
+                          {/* Mini progress bar */}
+                          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-1.5 overflow-hidden">
+                            <div
+                              className={`h-full rounded-full transition-all ${
+                                isSettled ? 'bg-emerald-500' : isUnpaid ? 'bg-rose-400' : 'bg-sky-500'
+                              }`}
+                              style={{ width: `${percent}%` }}
+                            />
+                          </div>
+
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-slate-500 dark:text-slate-400">مانده:</span>
+                            {isSettled ? (
+                              <span className="font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-800 text-[11px]">
                                 تسویه کامل ✓
                               </span>
+                            ) : total === 0 ? (
+                              <span className="text-slate-400 text-[11px]">—</span>
                             ) : (
-                              <div className="text-amber-600 dark:text-amber-400">
-                                <span className="font-black text-sm">{formatMillion(rem)}</span>
-                                <span className="text-[11px] text-amber-600/70 dark:text-amber-400/70 block font-normal">{formatPrice(rem)} ت</span>
-                              </div>
+                              <span
+                                className={`font-mono font-bold px-2 py-0.5 rounded-md text-[11px] ${
+                                  isUnpaid
+                                    ? 'text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200/60 dark:border-rose-900'
+                                    : 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/60 dark:border-amber-900'
+                                }`}
+                              >
+                                {formatMillion(rem)} تومان
+                              </span>
                             )}
-                          </td>
-                        </>
-                      )}
+                          </div>
+                        </div>
+                      </td>
 
                       {/* 6. Operations / Actions */}
                       <td className="py-3.5 px-4 text-center" onClick={(e) => e.stopPropagation()}>

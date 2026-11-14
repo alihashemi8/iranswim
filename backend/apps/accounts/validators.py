@@ -1,5 +1,7 @@
+import os
 import re
 import string
+from PIL import Image
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError as DRFValidationError
 
@@ -7,6 +9,82 @@ from rest_framework.exceptions import ValidationError as DRFValidationError
 ALLOWED_ASCII_PUNCTUATION = string.punctuation
 ALLOWED_PASSWORD_CHARACTERS = set(string.ascii_letters + string.digits + ALLOWED_ASCII_PUNCTUATION)
 PUNCTUATION_REGEX = re.compile(r'[' + re.escape(ALLOWED_ASCII_PUNCTUATION) + r']')
+
+ALLOWED_AVATAR_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.jfif'}
+MAX_AVATAR_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
+DANGEROUS_PAYLOADS = [
+    b'<svg', b'<?xml', b'<html', b'<!doctype', b'<script', b'javascript:', b'onload=', b'onerror='
+]
+
+
+def validate_avatar_file(file_obj):
+    """
+    اعتبارسنجی فایل تصویر پروفایل کاربر:
+    ۱. بررسی پسوند مجاز (jpg, jpeg, png, webp, jfif)
+    ۲. بررسی سقف حجم فایل (حداکثر ۵ مگابایت)
+    ۳. بررسی امضای باینری تصویر (Magic Numbers)
+    ۴. جلوگیری از تزریق اسکریپت یا اسناد وب خطرناک (SVG/HTML)
+    ۵. اعتبارسنجی فایل با کتابخانه Pillow جهت اطمینان از سلامت تصویر
+    """
+    if not file_obj:
+        return file_obj
+
+    filename = getattr(file_obj, 'name', '')
+    if not filename:
+        return file_obj
+
+    # 1. Path traversal check in original filename
+    if '..' in filename or '/' in filename or '\\' in filename:
+        raise DRFValidationError('نام فایل تصویر نامعتبر است و شامل کاراکترهای غیرمجاز می‌باشد.')
+
+    # 2. Extension check
+    _, ext = os.path.splitext(filename)
+    ext = ext.lower()
+    if ext not in ALLOWED_AVATAR_EXTENSIONS:
+        raise DRFValidationError(f'فرمت تصویر نامعتبر است. فرمت‌های مجاز: {", ".join(sorted(ALLOWED_AVATAR_EXTENSIONS))}')
+
+    # 3. File size check
+    size = getattr(file_obj, 'size', None)
+    if size and size > MAX_AVATAR_FILE_SIZE:
+        raise DRFValidationError('حجم تصویر پروفایل نباید بیشتر از ۵ مگابایت باشد.')
+
+    # 4. Binary header / Magic signature inspection
+    try:
+        file_obj.seek(0)
+        header = file_obj.read(512)
+        file_obj.seek(0)
+    except Exception:
+        raise DRFValidationError('امکان پردازش و خواندن فایل تصویر وجود ندارد.')
+
+    if not header:
+        raise DRFValidationError('فایل تصویر ارسالی خالی است.')
+
+    lower_header = header.lower()
+    for dangerous in DANGEROUS_PAYLOADS:
+        if dangerous in lower_header:
+            raise DRFValidationError('بارگذاری فایل‌های حاوی کدهای اسکریپت یا وب (مانند SVG/HTML) به عنوان عکس پروفایل مجاز نیست.')
+
+    is_valid_signature = False
+    if header.startswith(b'\xff\xd8\xff'):  # JPEG
+        is_valid_signature = True
+    elif header.startswith(b'\x89PNG\r\n\x1a\n'):  # PNG
+        is_valid_signature = True
+    elif header.startswith(b'RIFF') and b'WEBP' in header[:16]:  # WebP
+        is_valid_signature = True
+
+    if not is_valid_signature:
+        raise DRFValidationError('محتوای فایل ارسالی با فرمت تصویر اعلام‌شده مطابقت ندارد.')
+
+    # 5. Pillow validation
+    try:
+        file_obj.seek(0)
+        with Image.open(file_obj) as img:
+            img.verify()
+        file_obj.seek(0)
+    except Exception:
+        raise DRFValidationError('فایل ارسالی یک تصویر سالم و معتبر نیست.')
+
+    return file_obj
 
 
 def check_password_rules(password):
