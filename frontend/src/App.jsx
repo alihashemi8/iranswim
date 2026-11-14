@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SwimmerProvider } from './context/SwimmerContext';
 import { LandingSectionsProvider } from './context/LandingSectionsContext';
@@ -34,7 +34,11 @@ import { AdminCreateCoachPage } from './pages/admin/AdminCreateCoachPage';
 import { AdminCoachDetailPage } from './pages/admin/AdminCoachDetailPage';
 import { AdminCoachSchedulePage } from './pages/admin/AdminCoachSchedulePage';
 import { AdminCoachAssignGroupPage } from './pages/admin/AdminCoachAssignGroupPage';
-import { AdminCoachCreateContractPage } from './pages/admin/coach-profile/AdminCoachCreateContractPage';
+// Redirect removed coach contract creation page to coach finance profile
+const CoachContractRedirect = () => {
+  const { id } = useParams();
+  return <Navigate to={`/admin/coaches/${id}?tab=FINANCE`} replace />;
+};
 import { AdminCoachCreatePayrollPage } from './pages/admin/coach-profile/AdminCoachCreatePayrollPage';
 import { AdminCoachRegisterPaymentPage } from './pages/admin/coach-profile/AdminCoachRegisterPaymentPage';
 import { AdminCoachAddCertificatePage } from './pages/admin/coach-profile/AdminCoachAddCertificatePage';
@@ -198,7 +202,8 @@ export default function App() {
                 <Route path="coaches/:id/schedule" element={<AdminCoachSchedulePage />} />
                 <Route path="coaches/:id/assign" element={<AdminCoachAssignGroupPage />} />
                 <Route path="coaches/:id/assign-group" element={<AdminCoachAssignGroupPage />} />
-                <Route path="coaches/:id/contracts/new" element={<AdminCoachCreateContractPage />} />
+                <Route path="coaches/:id/contracts/new" element={<CoachContractRedirect />} />
+                <Route path="coaches/:id/contracts" element={<CoachContractRedirect />} />
                 <Route path="coaches/:id/payrolls/new" element={<AdminCoachCreatePayrollPage />} />
                 <Route path="coaches/:id/payments/new" element={<AdminCoachRegisterPaymentPage />} />
                 <Route path="coaches/:id/payrolls/:payrollId/payments/new" element={<AdminCoachRegisterPaymentPage />} />
