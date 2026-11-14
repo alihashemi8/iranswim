@@ -344,7 +344,7 @@ class UserAvatarView(APIView):
 
         try:
             validate_avatar_file(avatar_file)
-        except DRFValidationError as e:
+        except ValidationError as e:
             detail = e.detail if isinstance(e.detail, (str, list, dict)) else str(e)
             if isinstance(detail, list) and detail:
                 detail = detail[0]
