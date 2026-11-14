@@ -63,6 +63,19 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
   const [savingPassword, setSavingPassword] = useState(false);
 
   useEffect(() => {
+    // Fetch latest user data on mount to ensure fresh profile and avatar
+    api.get('/auth/me/')
+      .then((res) => {
+        if (res.data && updateUserData) {
+          updateUserData(res.data);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to refresh admin profile on mount:', err);
+      });
+  }, []);
+
+  useEffect(() => {
     if (user) {
       setProfileForm({
         first_name: user.first_name || '',

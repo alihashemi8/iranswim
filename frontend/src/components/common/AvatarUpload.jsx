@@ -1,8 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Trash2, Loader2, User, UploadCloud } from 'lucide-react';
+import { Camera, Trash2, Loader2, User, UploadCloud, Crop } from 'lucide-react';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
+import { getMediaUrl } from '../../utils/media';
+import { ImageCropModal } from './ImageCropModal';
 
 const roleGradients = {
   ADMIN: 'from-sky-600 to-cyan-500',
@@ -27,24 +29,29 @@ export const AvatarUpload = ({
   autoUpload = true,
   onAvatarChange,
   label = 'تصویر پروفایل',
-  subtitle = 'فقط یک عکس مجاز است (JPG, PNG یا WebP تا سقف ۵ مگابایت)',
+  subtitle = 'فقط یک عکس مجاز است (قابلیت زوم، کراپ و چرخش قبل از ذخیره)',
   className = '',
 }) => {
   const { user, updateUserData } = useAuth();
   const toast = useToast();
   const fileInputRef = useRef(null);
 
-  const [avatarUrl, setAvatarUrl] = useState(currentAvatar || user?.avatar || null);
+  const [avatarUrl, setAvatarUrl] = useState(() => getMediaUrl(currentAvatar || user?.avatar) || null);
   const [loading, setLoading] = useState(false);
   const [imgError, setImgError] = useState(false);
 
+  // Crop modal state
+  const [isCropModalOpen, setIsCropModalOpen] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState(null);
+
   useEffect(() => {
     const nextAvatar = currentAvatar !== undefined ? currentAvatar : user?.avatar;
-    setAvatarUrl(nextAvatar || null);
+    const normalized = getMediaUrl(nextAvatar) || null;
+    setAvatarUrl(normalized);
     setImgError(false);
   }, [currentAvatar, user?.avatar]);
 
-  const handleFileSelect = async (e) => {
+  const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -66,24 +73,40 @@ export const AvatarUpload = ({
       return;
     }
 
+    // Open image cropper modal with file preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      setCropImageSrc(reader.result);
+      setIsCropModalOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleCropComplete = async (croppedFile, previewUrl) => {
+    setIsCropModalOpen(false);
+    setCropImageSrc(null);
+
     if (autoUpload) {
       setLoading(true);
       try {
         const formData = new FormData();
-        formData.append('avatar', file);
+        formData.append('avatar', croppedFile);
 
         const res = await api.post('/auth/me/avatar/', formData);
 
-        const newUrl = res.data.avatar || (res.data.user && res.data.user.avatar);
+        const rawUrl = res.data.avatar || (res.data.user && res.data.user.avatar);
+        const newUrl = getMediaUrl(rawUrl);
+
         setAvatarUrl(newUrl);
         setImgError(false);
+
         if (updateUserData) {
           updateUserData({ avatar: newUrl });
         }
         if (onAvatarChange) {
-          onAvatarChange(newUrl, file);
+          onAvatarChange(newUrl, croppedFile);
         }
-        toast.success('تصویر پروفایل با موفقیت ثبت و جایگزین گردید.');
+        toast.success('تصویر پروفایل با موفقیت برش، تنظیم و ذخیره گردید.');
       } catch (err) {
         console.error('Avatar upload error:', err);
         const data = err.response?.data;
@@ -106,16 +129,17 @@ export const AvatarUpload = ({
       }
     } else {
       // Local preview mode
-      const reader = new FileReader();
-      reader.onload = () => {
-        setAvatarUrl(reader.result);
-        setImgError(false);
-        if (onAvatarChange) {
-          onAvatarChange(reader.result, file);
-        }
-      };
-      reader.readAsDataURL(file);
+      setAvatarUrl(previewUrl);
+      setImgError(false);
+      if (onAvatarChange) {
+        onAvatarChange(previewUrl, croppedFile);
+      }
     }
+  };
+
+  const handleCloseCropModal = () => {
+    setIsCropModalOpen(false);
+    setCropImageSrc(null);
   };
 
   const handleDelete = async (e) => {
@@ -150,6 +174,18 @@ export const AvatarUpload = ({
     }
   };
 
+  const handleImageError = () => {
+    // If the image URL is absolute with a host like 127.0.0.1:8080, try relative
+    if (avatarUrl && (avatarUrl.includes('8080') || avatarUrl.includes('8000'))) {
+      const normalized = getMediaUrl(avatarUrl);
+      if (normalized && normalized !== avatarUrl) {
+        setAvatarUrl(normalized);
+        return;
+      }
+    }
+    setImgError(true);
+  };
+
   const initialLetter = displayName ? displayName.trim().charAt(0) : '?';
   const gradientClass = roleGradients[role] || roleGradients.SWIMMER;
   const sizeClass = sizeClasses[size] || sizeClasses.lg;
@@ -167,18 +203,26 @@ export const AvatarUpload = ({
         aria-label="بارگذاری تصویر پروفایل"
       />
 
+      {/* Image Crop & Edit Modal */}
+      <ImageCropModal
+        isOpen={isCropModalOpen}
+        imageSrc={cropImageSrc}
+        onClose={handleCloseCropModal}
+        onCropComplete={handleCropComplete}
+      />
+
       {/* Avatar Container with Hover Controls */}
       <div className="relative group shrink-0">
         <div
           onClick={() => !loading && fileInputRef.current?.click()}
           className={`${sizeClass} rounded-2xl overflow-hidden shadow-md ring-4 ring-white dark:ring-slate-800 border border-slate-200 dark:border-slate-700 cursor-pointer relative transition-transform duration-200 group-hover:scale-102 flex items-center justify-center`}
-          title="کلیک برای تغییر عکس پروفایل"
+          title="کلیک برای تغییر عکس و کادربندی"
         >
           {avatarUrl && !imgError ? (
             <img
               src={avatarUrl}
               alt={displayName}
-              onError={() => setImgError(true)}
+              onError={handleImageError}
               className="w-full h-full object-cover"
             />
           ) : (
@@ -187,11 +231,11 @@ export const AvatarUpload = ({
             </div>
           )}
 
-          {/* Hover overlay with Camera Icon */}
+          {/* Hover overlay with Camera & Crop Icon */}
           <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-2xs opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white p-2">
             <Camera className="w-6 h-6 mb-1 drop-shadow-md" />
             <span className="text-[11px] font-bold text-center drop-shadow-md">
-              {avatarUrl ? 'تغییر عکس' : 'افزودن عکس'}
+              {avatarUrl ? 'تغییر و کراپ' : 'افزودن و کراپ'}
             </span>
           </div>
 
@@ -239,8 +283,8 @@ export const AvatarUpload = ({
             onClick={() => fileInputRef.current?.click()}
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/70 border border-sky-200/80 dark:border-sky-800 cursor-pointer transition-colors"
           >
-            <UploadCloud className="w-3.5 h-3.5" />
-            <span>{avatarUrl ? 'تغییر عکس' : 'انتخاب عکس جدید'}</span>
+            <Crop className="w-3.5 h-3.5" />
+            <span>{avatarUrl ? 'تغییر و کراپ عکس' : 'انتخاب و کادربندی عکس'}</span>
           </button>
 
           {canDelete && avatarUrl && (

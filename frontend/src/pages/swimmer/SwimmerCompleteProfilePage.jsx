@@ -12,6 +12,7 @@ import { Button } from '../../components/common/Button';
 import { LoadingState } from '../../components/common/LoadingState';
 import { MapLocationPicker } from '../../components/common/MapLocationPicker';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
+import { getMediaUrl } from '../../utils/media';
 
 export const SwimmerCompleteProfilePage = () => {
   const { user, updateUserData } = useAuth();
@@ -80,7 +81,7 @@ export const SwimmerCompleteProfilePage = () => {
         setLatitude(data.latitude || 35.6892);
         setLongitude(data.longitude || 51.3890);
 
-        if (data.avatar) setAvatarPreview(data.avatar);
+        if (data.avatar) setAvatarPreview(getMediaUrl(data.avatar));
         if (data.birth_certificate_image) setBirthCertPreview(data.birth_certificate_image);
         if (data.national_card_image) setNationalCardPreview(data.national_card_image);
         if (data.sports_insurance_image) setSportsInsurancePreview(data.sports_insurance_image);
@@ -559,7 +560,7 @@ export const SwimmerCompleteProfilePage = () => {
                 <div className="flex items-center gap-3">
                   <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 overflow-hidden">
                     {avatarPreview ? (
-                      <img src={avatarPreview} alt="عکس پرسنلی" className="w-full h-full object-cover" />
+                      <img src={getMediaUrl(avatarPreview)} alt="عکس پرسنلی" className="w-full h-full object-cover" />
                     ) : (
                       <ImageIcon className="w-5 h-5 text-slate-400" />
                     )}

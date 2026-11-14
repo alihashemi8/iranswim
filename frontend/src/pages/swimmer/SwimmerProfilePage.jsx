@@ -16,6 +16,7 @@ import { MapLocationPicker } from '../../components/common/MapLocationPicker';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { LogoutModal } from '../../components/common/LogoutModal';
 import { validatePassword, PasswordRequirementsList } from '../../utils/passwordValidator';
+import { getMediaUrl } from '../../utils/media';
 
 export const SwimmerProfilePage = () => {
   const { user, updateUserData, logout } = useAuth();
@@ -119,7 +120,7 @@ export const SwimmerProfilePage = () => {
         setLatitude(data.latitude || 35.6892);
         setLongitude(data.longitude || 51.3890);
 
-        if (data.avatar) setAvatarPreview(data.avatar);
+        if (data.avatar) setAvatarPreview(getMediaUrl(data.avatar));
         if (data.birth_certificate_image) setBirthCertPreview(data.birth_certificate_image);
         if (data.national_card_image) setNationalCardPreview(data.national_card_image);
         if (data.sports_insurance_image) setSportsInsurancePreview(data.sports_insurance_image);
@@ -387,7 +388,7 @@ export const SwimmerProfilePage = () => {
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-blue-600 via-sky-600 to-teal-500 text-white flex items-center justify-center font-black text-2xl shrink-0 shadow-md overflow-hidden ring-4 ring-sky-50 dark:ring-sky-950/60">
             {avatarPreview ? (
-              <img src={avatarPreview} alt={displayName} className="w-full h-full object-cover" />
+              <img src={getMediaUrl(avatarPreview)} alt={displayName} className="w-full h-full object-cover" />
             ) : (
               <span>{displayName.charAt(0)}</span>
             )}
@@ -684,7 +685,7 @@ export const SwimmerProfilePage = () => {
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 overflow-hidden">
                         {avatarPreview ? (
-                          <img src={avatarPreview} alt="عکس پرسنلی" className="w-full h-full object-cover" />
+                          <img src={getMediaUrl(avatarPreview)} alt="عکس پرسنلی" className="w-full h-full object-cover" />
                         ) : (
                           <ImageIcon className="w-5 h-5 text-slate-400" />
                         )}
