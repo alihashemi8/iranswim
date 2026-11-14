@@ -31,7 +31,7 @@ export const AdminCoachCreatePayrollPage = () => {
   const [form, setForm] = useState({
     period_start: firstDayOfMonth,
     period_end: lastDayOfMonth,
-    period_label: `حقوق دوره ${today.toLocaleDateString('fa-IR', { month: 'long', year: 'numeric' })}`,
+    period_label: `حقوق دوره ${today.toLocaleDateString('fa-IR-u-nu-latn', { month: 'long', year: 'numeric' })}`,
     notes: '',
   });
 
@@ -172,9 +172,9 @@ export const AdminCoachCreatePayrollPage = () => {
           <div className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs text-slate-700 shadow-xs">
             <span className="text-slate-400">نرخ مبنا: </span>
             <span className="font-bold font-mono text-slate-900">
-              {coach?.employment_type === 'HOURLY' && `${(Number(coach.hourly_rate) || 0).toLocaleString('fa-IR')} ت/ساعت`}
-              {coach?.employment_type === 'FIXED' && `${(Number(coach.fixed_monthly_salary) || 0).toLocaleString('fa-IR')} تومان/ماه`}
-              {coach?.employment_type === 'PERCENTAGE' && `${coach.revenue_percentage || 0}٪`}
+              {coach?.employment_type === 'HOURLY' && `${(Number(coach.hourly_rate) || 0).toLocaleString('en-US')} ت/ساعت`}
+              {coach?.employment_type === 'FIXED' && `${(Number(coach.fixed_monthly_salary) || 0).toLocaleString('en-US')} تومان/ماه`}
+              {coach?.employment_type === 'PERCENTAGE' && `${coach.revenue_percentage || 0}%`}
             </span>
           </div>
         </div>
@@ -220,7 +220,7 @@ export const AdminCoachCreatePayrollPage = () => {
                 type="text"
                 value={form.period_label}
                 onChange={(e) => handleChange('period_label', e.target.value)}
-                placeholder="مثال: حقوق و دستمزد دی‌ماه ۱۴۰۳"
+                placeholder="مثال: حقوق و دستمزد دی‌ماه 1403"
                 className="w-full text-xs sm:text-sm rounded-xl border border-slate-200 px-3 py-2.5 focus:ring-2 focus:ring-sky-500 focus:outline-none"
                 required
               />
@@ -234,6 +234,7 @@ export const AdminCoachCreatePayrollPage = () => {
                 placeholder="انتخاب شروع دوره..."
                 color="sky"
                 size="md"
+                englishDigits={true}
                 required
               />
             </div>
@@ -246,6 +247,7 @@ export const AdminCoachCreatePayrollPage = () => {
                 placeholder="انتخاب پایان دوره..."
                 color="sky"
                 size="md"
+                englishDigits={true}
                 required
               />
             </div>
@@ -295,13 +297,13 @@ export const AdminCoachCreatePayrollPage = () => {
               <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
                 <span className="text-[11px] text-slate-500 block">مبلغ پایه محاسبه‌شده</span>
                 <span className="text-base sm:text-lg font-black text-slate-900 font-mono">
-                  {(Number(previewData.base_compensation) || 0).toLocaleString('fa-IR')} ت
+                  {(Number(previewData.base_compensation) || 0).toLocaleString('en-US')} ت
                 </span>
               </div>
               <div className="bg-emerald-50 p-3.5 rounded-xl border border-emerald-200">
                 <span className="text-[11px] text-emerald-700 font-bold block">مبلغ خالص قابل پرداخت</span>
                 <span className="text-base sm:text-lg font-black text-emerald-800 font-mono">
-                  {(Number(previewData.final_payable) || 0).toLocaleString('fa-IR')} ت
+                  {(Number(previewData.final_payable) || 0).toLocaleString('en-US')} ت
                 </span>
               </div>
             </div>
@@ -311,14 +313,14 @@ export const AdminCoachCreatePayrollPage = () => {
               <div className="flex justify-between items-center py-1">
                 <span className="text-slate-600">نرخ مبنای اعمال‌شده در قرارداد:</span>
                 <span className="font-mono font-bold text-slate-800">
-                  {(Number(previewData.applied_rate) || 0).toLocaleString('fa-IR')} تومان
+                  {(Number(previewData.applied_rate) || 0).toLocaleString('en-US')} تومان
                 </span>
               </div>
               {Number(previewData.total_bonuses) > 0 && (
                 <div className="flex justify-between items-center py-1 text-emerald-700">
                   <span>مجموع پاداش‌ها و اضافه کار:</span>
                   <span className="font-mono font-bold">
-                    +{(Number(previewData.total_bonuses) || 0).toLocaleString('fa-IR')} تومان
+                    +{(Number(previewData.total_bonuses) || 0).toLocaleString('en-US')} تومان
                   </span>
                 </div>
               )}
@@ -326,14 +328,14 @@ export const AdminCoachCreatePayrollPage = () => {
                 <div className="flex justify-between items-center py-1 text-rose-700">
                   <span>مجموع کسورات و غیبت‌ها:</span>
                   <span className="font-mono font-bold">
-                    -{(Number(previewData.total_deductions) || 0).toLocaleString('fa-IR')} تومان
+                    -{(Number(previewData.total_deductions) || 0).toLocaleString('en-US')} تومان
                   </span>
                 </div>
               )}
               <div className="flex justify-between items-center pt-2 border-t border-slate-200 text-sm font-bold text-slate-900">
                 <span>خالص نهایی صدور فیش:</span>
                 <span className="font-mono text-emerald-700 text-base">
-                  {(Number(previewData.final_payable) || 0).toLocaleString('fa-IR')} تومان
+                  {(Number(previewData.final_payable) || 0).toLocaleString('en-US')} تومان
                 </span>
               </div>
             </div>

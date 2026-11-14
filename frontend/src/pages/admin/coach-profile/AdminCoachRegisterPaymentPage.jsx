@@ -459,7 +459,7 @@ export const AdminCoachRegisterPaymentPage = () => {
                       step="1000"
                       value={form.amount}
                       onChange={(e) => handleChange('amount', e.target.value)}
-                      placeholder="مثال: ۷۶۰۰۰۰۰"
+                      placeholder="مثال: 7600000"
                       className="w-full text-sm font-bold rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white px-3 py-2.5 pr-9 focus:ring-2 focus:ring-emerald-500 focus:outline-none font-mono"
                       required
                     />
@@ -482,7 +482,7 @@ export const AdminCoachRegisterPaymentPage = () => {
                           onClick={() => handleChange('amount', String(Math.round(remainingBalance / 2)))}
                           className="px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition-colors cursor-pointer"
                         >
-                          ۵۰٪ مانده ({formatPrice(Math.round(remainingBalance / 2))} ت)
+                          50% مانده ({formatPrice(Math.round(remainingBalance / 2))} ت)
                         </button>
                       )}
                     </div>
@@ -499,6 +499,7 @@ export const AdminCoachRegisterPaymentPage = () => {
                       placeholder="انتخاب تاریخ واریز..."
                       color="emerald"
                       size="md"
+                      englishDigits={true}
                       required
                     />
                   </div>
@@ -579,7 +580,7 @@ export const AdminCoachRegisterPaymentPage = () => {
                             کلیک کنید یا فایل فیش را اینجا رها کنید
                           </span>
                           <span className="text-[11px] text-slate-400 mt-1 block">
-                            فرمت‌های مجاز: JPG, PNG, PDF (حداکثر ۱۰ مگابایت)
+                            فرمت‌های مجاز: JPG, PNG, PDF (حداکثر 10 مگابایت)
                           </span>
                         </div>
                       </label>
@@ -685,7 +686,7 @@ export const AdminCoachRegisterPaymentPage = () => {
                           newRemainingBalance <= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'
                         }`}
                       >
-                        {newRemainingBalance <= 0 ? 'تسویه کامل (۰ تومان)' : `${formatPrice(newRemainingBalance)} تومان`}
+                        {newRemainingBalance <= 0 ? 'تسویه کامل (0 تومان)' : `${formatPrice(newRemainingBalance)} تومان`}
                       </span>
                     </div>
                   </div>

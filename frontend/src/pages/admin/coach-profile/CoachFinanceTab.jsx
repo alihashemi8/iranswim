@@ -45,7 +45,7 @@ export const CoachFinanceTab = ({
   const [submittingReverse, setSubmittingReverse] = useState(false);
 
   // Format price helper
-  const formatPrice = (v) => Number(v || 0).toLocaleString('fa-IR');
+  const formatPrice = (v) => Number(v || 0).toLocaleString('en-US');
 
   // Overall Financial Totals
   const totalReceivable = payrolls.reduce(
@@ -225,7 +225,7 @@ export const CoachFinanceTab = ({
           </div>
           <div className="mt-3 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px]">
             <span className="text-slate-500">{totalReceiptsCount} فیش بانکی آپلودشده</span>
-            <span className="font-bold text-emerald-600 font-mono">{settlementPercentage}٪ تسویه</span>
+            <span className="font-bold text-emerald-600 font-mono">{settlementPercentage}% تسویه</span>
           </div>
         </div>
 
@@ -432,11 +432,11 @@ export const CoachFinanceTab = ({
                           <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white">
                             <div>{p.period_label}</div>
                             <div className="text-[11px] text-slate-400 font-normal font-mono">
-                              {new Date(p.period_start).toLocaleDateString('fa-IR')} تا {new Date(p.period_end).toLocaleDateString('fa-IR')}
+                              {new Date(p.period_start).toLocaleDateString('fa-IR-u-nu-latn')} تا {new Date(p.period_end).toLocaleDateString('fa-IR-u-nu-latn')}
                             </div>
                           </td>
                           <td className="py-3.5 px-4 font-mono">
-                            {Number(p.teaching_hours || 0).toLocaleString('fa-IR')} س ({p.completed_sessions_count} جلسه)
+                            {Number(p.teaching_hours || 0).toLocaleString('en-US')} س ({p.completed_sessions_count} جلسه)
                           </td>
                           <td className="py-3.5 px-4 font-mono font-bold text-slate-900 dark:text-white">
                             {formatPrice(p.net_payable_amount)} تومان
@@ -540,7 +540,7 @@ export const CoachFinanceTab = ({
                     </Badge>
                   </div>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    بازه زمانی دوره: {new Date(selectedPayroll.period_start).toLocaleDateString('fa-IR')} تا {new Date(selectedPayroll.period_end).toLocaleDateString('fa-IR')}
+                    بازه زمانی دوره: {new Date(selectedPayroll.period_start).toLocaleDateString('fa-IR-u-nu-latn')} تا {new Date(selectedPayroll.period_end).toLocaleDateString('fa-IR-u-nu-latn')}
                   </p>
                 </div>
 
@@ -666,7 +666,7 @@ export const CoachFinanceTab = ({
                             <td className="py-2 px-3 font-mono font-bold text-slate-900 dark:text-white">
                               {formatPrice(pmt.amount)} تومان
                             </td>
-                            <td className="py-2 px-3 font-mono">{new Date(pmt.payment_date).toLocaleDateString('fa-IR')}</td>
+                            <td className="py-2 px-3 font-mono">{new Date(pmt.payment_date).toLocaleDateString('fa-IR-u-nu-latn')}</td>
                             <td className="py-2 px-3 font-mono text-slate-500">{pmt.reference_number || '—'}</td>
                             <td className="py-2 px-3 text-center">
                               {pmt.receipt_document_url ? (
@@ -788,7 +788,7 @@ export const CoachFinanceTab = ({
                           {formatPrice(pmt.amount)} تومان
                         </td>
                         <td className="py-3 px-4 font-mono">
-                          {new Date(pmt.payment_date).toLocaleDateString('fa-IR')}
+                          {new Date(pmt.payment_date).toLocaleDateString('fa-IR-u-nu-latn')}
                         </td>
                         <td className="py-3 px-4">{pmt.payment_method_display}</td>
                         <td className="py-3 px-4 font-mono text-slate-500">{pmt.reference_number || '—'}</td>
@@ -855,7 +855,7 @@ export const CoachFinanceTab = ({
                       {activeContract.is_expiring_soon && (
                         <span className="bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 text-[10px] px-2 py-0.5 rounded-full font-bold flex items-center gap-1 animate-pulse">
                           <AlertTriangle className="w-3 h-3 text-amber-600" />
-                          کمتر از ۳۰ روز تا پایان اعتبار
+                          کمتر از 30 روز تا پایان اعتبار
                         </span>
                       )}
                     </div>
@@ -881,16 +881,16 @@ export const CoachFinanceTab = ({
                 <div className="bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
                   <span className="text-slate-400 block mb-1">نرخ / دستمزد مصوب:</span>
                   <span className="font-bold font-mono text-slate-900 dark:text-white text-sm sm:text-base">
-                    {activeContract.employment_type === 'HOURLY' && `${Number(activeContract.hourly_rate).toLocaleString('fa-IR')} ت/ساعت`}
-                    {activeContract.employment_type === 'FIXED' && `${Number(activeContract.fixed_salary).toLocaleString('fa-IR')} ت/ماه`}
-                    {activeContract.employment_type === 'PERCENTAGE' && `${activeContract.percentage_rate}٪ از شهریه`}
+                    {activeContract.employment_type === 'HOURLY' && `${Number(activeContract.hourly_rate).toLocaleString('en-US')} ت/ساعت`}
+                    {activeContract.employment_type === 'FIXED' && `${Number(activeContract.fixed_salary).toLocaleString('en-US')} ت/ماه`}
+                    {activeContract.employment_type === 'PERCENTAGE' && `${activeContract.percentage_rate}% از شهریه`}
                   </span>
                 </div>
 
                 <div className="bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
                   <span className="text-slate-400 block mb-1">بازه زمانی اعتبار:</span>
                   <span className="font-mono text-slate-700 dark:text-slate-300">
-                    {new Date(activeContract.start_date).toLocaleDateString('fa-IR')} تا {new Date(activeContract.end_date).toLocaleDateString('fa-IR')}
+                    {new Date(activeContract.start_date).toLocaleDateString('fa-IR-u-nu-latn')} تا {new Date(activeContract.end_date).toLocaleDateString('fa-IR-u-nu-latn')}
                   </span>
                 </div>
 
@@ -956,12 +956,12 @@ export const CoachFinanceTab = ({
                         <td className="py-3 px-4 font-mono font-bold text-sky-700 dark:text-sky-400">
                           {c.contract_number}
                         </td>
-                        <td className="py-3 px-4 font-mono">{new Date(c.start_date).toLocaleDateString('fa-IR')}</td>
-                        <td className="py-3 px-4 font-mono">{new Date(c.end_date).toLocaleDateString('fa-IR')}</td>
+                        <td className="py-3 px-4 font-mono">{new Date(c.start_date).toLocaleDateString('fa-IR-u-nu-latn')}</td>
+                        <td className="py-3 px-4 font-mono">{new Date(c.end_date).toLocaleDateString('fa-IR-u-nu-latn')}</td>
                         <td className="py-3 px-4 font-mono font-semibold">
-                          {c.employment_type === 'HOURLY' && `${Number(c.hourly_rate).toLocaleString('fa-IR')} تومان`}
-                          {c.employment_type === 'FIXED' && `${Number(c.fixed_salary).toLocaleString('fa-IR')} تومان`}
-                          {c.employment_type === 'PERCENTAGE' && `${c.percentage_rate}٪`}
+                          {c.employment_type === 'HOURLY' && `${Number(c.hourly_rate).toLocaleString('en-US')} تومان`}
+                          {c.employment_type === 'FIXED' && `${Number(c.fixed_salary).toLocaleString('en-US')} تومان`}
+                          {c.employment_type === 'PERCENTAGE' && `${c.percentage_rate}%`}
                         </td>
                         <td className="py-3 px-4 font-mono">{c.agreed_weekly_hours} ساعت</td>
                         <td className="py-3 px-4">
@@ -1043,7 +1043,7 @@ export const CoachFinanceTab = ({
                 type="number"
                 value={adjForm.amount}
                 onChange={(e) => setAdjForm({ ...adjForm, amount: e.target.value })}
-                placeholder="مثال: ۵۰۰۰۰۰"
+                placeholder="مثال: 500000"
                 className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
                 required
               />
