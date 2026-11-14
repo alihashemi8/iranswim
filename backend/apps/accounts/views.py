@@ -121,31 +121,10 @@ class VerifyOTPLoginView(APIView):
         otp.save()
 
         refresh = RefreshToken.for_user(user)
-        profile = getattr(user, 'swimmer_profile', None)
-        coach_profile = getattr(user, 'coach_profile', None)
-        if user.role == User.Role.SWIMMER:
-            is_profile_completed = profile.is_profile_completed if profile else False
-        elif user.role == User.Role.COACH:
-            is_profile_completed = coach_profile.is_profile_completed if coach_profile else False
-        else:
-            is_profile_completed = True
-
         return Response({
             'access': str(refresh.access_token),
             'refresh': str(refresh),
-            'user': {
-                'id': user.id,
-                'phone': user.phone,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'full_name': f"{user.first_name} {user.last_name}".strip() or user.phone,
-                'role': user.role,
-                'is_superuser': user.is_superuser,
-                'is_password_changed': user.is_password_changed,
-                'swimmer_id': getattr(profile, 'id', None),
-                'coach_id': getattr(coach_profile, 'id', None),
-                'is_profile_completed': is_profile_completed,
-            }
+            'user': get_user_data(user, request)
         }, status=status.HTTP_200_OK)
 
 
@@ -235,19 +214,7 @@ class RegisterWithOTPView(APIView):
             'detail': 'ثبت‌نام شما با موفقیت انجام شد. خوش آمدید!' if is_new else 'ورود با موفقیت انجام شد. خوش آمدید!',
             'access': str(refresh.access_token),
             'refresh': str(refresh),
-            'user': {
-                'id': user.id,
-                'phone': user.phone,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'full_name': f"{user.first_name} {user.last_name}".strip() or user.phone,
-                'role': user.role,
-                'is_superuser': user.is_superuser,
-                'is_password_changed': user.is_password_changed,
-                'swimmer_id': swimmer_profile.id,
-                'coach_id': None,
-                'is_profile_completed': swimmer_profile.is_profile_completed,
-            }
+            'user': get_user_data(user, request)
         }, status=status.HTTP_201_CREATED if is_new else status.HTTP_200_OK)
 
 
@@ -310,24 +277,105 @@ class CurrentUserView(APIView):
     یا ویرایش فیلدهای حساس امنیتی به طور کامل مسدود شده است.
     """
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get(self, request):
-        serializer = SelfProfileSerializer(request.user)
+        serializer = SelfProfileSerializer(request.user, context={'request': request})
         return Response(serializer.data)
 
     def patch(self, request):
         user = request.user
-        serializer = SelfProfileSerializer(user, data=request.data, partial=True)
+        serializer = SelfProfileSerializer(user, data=request.data, partial=True, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
 
     def put(self, request):
         user = request.user
-        serializer = SelfProfileSerializer(user, data=request.data, partial=True)
+        serializer = SelfProfileSerializer(user, data=request.data, partial=True, context={'request': request})
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+class UserAvatarView(APIView):
+    """
+    مدیریت اختصاصی تصویر پروفایل کاربر جاری (/api/auth/me/avatar/):
+    - امکان بارگذاری، به‌روزرسانی و حذف تصویر برای کلیه کاربران با هر نقشی (مدیر، مربی، شناگر، ناظر)
+    - تضمین وجود فقط یک تصویر (فقط یکی): فایل قبلی از دیسک پاکسازی و با فایل جدید جایگزین می‌شود
+    - حذف فایل با متد DELETE
+    """
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get(self, request):
+        user = request.user
+        avatar_url = get_user_avatar_url(user, request)
+        return Response({'avatar': avatar_url}, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        return self._handle_avatar_upload(request)
+
+    def put(self, request):
+        return self._handle_avatar_upload(request)
+
+    def patch(self, request):
+        return self._handle_avatar_upload(request)
+
+    def _handle_avatar_upload(self, request):
+        user = request.user
+        avatar_file = (
+            request.FILES.get('avatar') or
+            request.FILES.get('image') or
+            request.FILES.get('photo') or
+            request.FILES.get('file')
+        )
+
+        if not avatar_file:
+            if 'avatar' in request.data and not request.data.get('avatar'):
+                return self.delete(request)
+            return Response(
+                {'detail': 'فایل تصویر پروفایل انتخاب نشده است.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
+        validate_avatar_file(avatar_file)
+
+        # پاکسازی تصویر قبلی از روی دیسک (تضمین قاعده فقط یکی)
+        delete_user_old_avatar(user)
+
+        user.avatar = avatar_file
+        user.save(update_fields=['avatar'])
+
+        # همگام‌سازی با پرونده شناگر در صورت وجود
+        if hasattr(user, 'swimmer_profile') and user.swimmer_profile:
+            swimmer_profile = user.swimmer_profile
+            swimmer_profile.avatar = user.avatar
+            swimmer_profile.save(update_fields=['avatar'])
+
+        avatar_url = request.build_absolute_uri(user.avatar.url)
+        return Response({
+            'detail': 'تصویر پروفایل شما با موفقیت ذخیره شد.',
+            'avatar': avatar_url,
+            'user': get_user_data(user, request)
+        }, status=status.HTTP_200_OK)
+
+    def delete(self, request):
+        user = request.user
+        delete_user_old_avatar(user)
+        user.avatar = None
+        user.save(update_fields=['avatar'])
+
+        if hasattr(user, 'swimmer_profile') and user.swimmer_profile:
+            swimmer_profile = user.swimmer_profile
+            swimmer_profile.avatar = None
+            swimmer_profile.save(update_fields=['avatar'])
+
+        return Response({
+            'detail': 'تصویر پروفایل با موفقیت حذف گردید.',
+            'avatar': None,
+            'user': get_user_data(user, request)
+        }, status=status.HTTP_200_OK)
 
 
 class RegisterView(generics.CreateAPIView):

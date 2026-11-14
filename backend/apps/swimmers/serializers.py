@@ -316,7 +316,7 @@ class SwimmerGuardianRelationSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         profile = super().update(instance, validated_data)
-        # Synchronize first_name and last_name with linked User model if changed
+        # Synchronize first_name, last_name, national_id, and avatar with linked User model if changed
         if profile.user:
             user_changed = False
             if 'first_name' in validated_data and profile.user.first_name != profile.first_name:
@@ -327,6 +327,9 @@ class SwimmerGuardianRelationSerializer(serializers.ModelSerializer):
                 user_changed = True
             if 'national_id' in validated_data and profile.user.national_id != profile.national_id:
                 profile.user.national_id = profile.national_id
+                user_changed = True
+            if 'avatar' in validated_data and profile.user.avatar != profile.avatar:
+                profile.user.avatar = profile.avatar
                 user_changed = True
             if user_changed:
                 profile.user.save()

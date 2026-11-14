@@ -469,8 +469,14 @@ export const AdminFinancePage = () => {
 
   const filterItem = (item) => {
     if (genderFilter !== 'ALL' && item.gender !== genderFilter) return false;
-    if (poolFilter !== 'ALL' && item.pool_name !== poolFilter) return false;
-    if (coachFilter !== 'ALL' && item.coach_name !== coachFilter && !item.coach_name?.includes(coachFilter)) return false;
+    if (poolFilter !== 'ALL' && item.pool_name !== poolFilter && String(item.pool_name || '').trim() !== String(poolFilter).trim()) return false;
+    if (coachFilter !== 'ALL') {
+      const itemCoach = cleanCoachName(item.coach_name);
+      const selCoach = cleanCoachName(coachFilter);
+      if (itemCoach !== selCoach && !itemCoach.includes(selCoach) && !selCoach.includes(itemCoach)) {
+        return false;
+      }
+    }
     if (birthYearFilter !== 'ALL' && String(item.birth_year) !== String(birthYearFilter)) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.trim().toLowerCase();
@@ -507,7 +513,14 @@ export const AdminFinancePage = () => {
   const filteredPayments = useMemo(() => {
     return payments.filter((p) => {
       if (genderFilter !== 'ALL' && p.gender !== genderFilter) return false;
-      if (coachFilter !== 'ALL' && p.coach_name !== coachFilter && !p.coach_name?.includes(coachFilter)) return false;
+      if (poolFilter !== 'ALL' && p.pool_name !== poolFilter && String(p.pool_name || '').trim() !== String(poolFilter).trim()) return false;
+      if (coachFilter !== 'ALL') {
+        const itemCoach = cleanCoachName(p.coach_name);
+        const selCoach = cleanCoachName(coachFilter);
+        if (itemCoach !== selCoach && !itemCoach.includes(selCoach) && !selCoach.includes(itemCoach)) {
+          return false;
+        }
+      }
       if (birthYearFilter !== 'ALL' && String(p.birth_year) !== String(birthYearFilter)) return false;
       if (paymentDateFilter) {
         const itemDateStr = toJalaliString(p.paid_at || p.created_at);
@@ -521,6 +534,7 @@ export const AdminFinancePage = () => {
         const phone = String(p.swimmer_phone || '').toLowerCase();
         const ref = String(p.transaction_ref || '').toLowerCase();
         const notes = String(p.notes || '').toLowerCase();
+        const pool = String(p.pool_name || '').toLowerCase();
         const coach = String(p.coach_name || '').toLowerCase();
         const match =
           swimmer.includes(q) ||
@@ -529,19 +543,63 @@ export const AdminFinancePage = () => {
           phone.includes(q) ||
           ref.includes(q) ||
           notes.includes(q) ||
+          pool.includes(q) ||
           coach.includes(q);
         if (!match) return false;
       }
       return true;
     });
-  }, [payments, genderFilter, coachFilter, birthYearFilter, paymentDateFilter, searchQuery]);
+  }, [payments, genderFilter, poolFilter, coachFilter, birthYearFilter, paymentDateFilter, searchQuery]);
 
   const isAnyFilterActive =
     genderFilter !== 'ALL' ||
-    (activeTab === 'PAYMENTS' ? Boolean(paymentDateFilter) : poolFilter !== 'ALL') ||
+    poolFilter !== 'ALL' ||
     coachFilter !== 'ALL' ||
     birthYearFilter !== 'ALL' ||
+    Boolean(paymentDateFilter) ||
     Boolean(searchQuery.trim());
+
+  // Dynamic KPI summary based on user filters
+  const displaySummary = useMemo(() => {
+    if (!isAnyFilterActive && summary) {
+      return {
+        total_invoiced: Number(summary.total_invoiced || 0),
+        total_paid: Number(summary.total_paid || 0),
+        receivables: Number(summary.receivables || 0),
+        overdue_installments_count: Number(summary.overdue_installments_count || 0),
+        isFiltered: false,
+      };
+    }
+
+    const total_invoiced = filteredInvoices.reduce((sum, inv) => sum + Number(inv.total_amount || 0), 0);
+    const total_paid_from_invoices = filteredInvoices.reduce((sum, inv) => sum + Number(inv.total_paid || 0), 0);
+    const total_paid_from_payments = filteredPayments
+      .filter((p) => p.status === 'SUCCESSFUL')
+      .reduce((sum, p) => sum + Number(p.amount || 0), 0);
+
+    const total_paid = (activeTab === 'PAYMENTS' && paymentDateFilter)
+      ? total_paid_from_payments
+      : (filteredInvoices.length > 0 ? total_paid_from_invoices : total_paid_from_payments);
+
+    const receivables = filteredInvoices.reduce((sum, inv) => sum + Number(inv.remaining_balance || 0), 0);
+    const overdue_installments_count = filteredInstallments.length;
+
+    return {
+      total_invoiced,
+      total_paid,
+      receivables,
+      overdue_installments_count,
+      isFiltered: isAnyFilterActive,
+    };
+  }, [
+    isAnyFilterActive,
+    summary,
+    filteredInvoices,
+    filteredInstallments,
+    filteredPayments,
+    activeTab,
+    paymentDateFilter,
+  ]);
 
   const handleResetFilters = () => {
     setSearchQuery('');
@@ -659,31 +717,35 @@ export const AdminFinancePage = () => {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <StatsCard
             title="مجموع فاکتورهای صادرشده"
-            value={`${formatPrice(summary?.total_invoiced)} تومان`}
-            subtitle="تعهدات مالی ثبت‌شده شناگران"
+            value={`${formatPrice(displaySummary.total_invoiced)} تومان`}
+            subtitle={displaySummary.isFiltered ? `${filteredInvoices.length.toLocaleString('fa-IR')} فاکتور منطبق با فیلتر` : "تعهدات مالی ثبت‌شده شناگران"}
             icon={FileText}
             color="indigo"
+            badge={displaySummary.isFiltered ? 'فیلترشده' : undefined}
           />
           <StatsCard
             title="درآمد واقعاً وصول‌شده"
-            value={`${formatPrice(summary?.total_paid)} تومان`}
-            subtitle="تراکنش‌های قطعی کارتخوان و نقدی"
+            value={`${formatPrice(displaySummary.total_paid)} تومان`}
+            subtitle={displaySummary.isFiltered ? "وصول‌شده در فیلتر انتخابی" : "تراکنش‌های قطعی کارتخوان و نقدی"}
             icon={CheckCircle2}
             color="emerald"
+            badge={displaySummary.isFiltered ? 'فیلترشده' : undefined}
           />
           <StatsCard
             title="مانده مطالبات معوق (بدهکاران)"
-            value={`${formatPrice(summary?.receivables)} تومان`}
-            subtitle="نیازمند پیگیری وصول شهریه"
+            value={`${formatPrice(displaySummary.receivables)} تومان`}
+            subtitle={displaySummary.isFiltered ? (Number(displaySummary.receivables || 0) > 0 ? 'بدهی معوق فیلتر انتخابی' : 'تسویه کامل بدهی') : "نیازمند پیگیری وصول شهریه"}
             icon={AlertCircle}
-            color={Number(summary?.receivables || 0) > 0 ? 'amber' : 'emerald'}
+            color={Number(displaySummary.receivables || 0) > 0 ? 'amber' : 'emerald'}
+            badge={displaySummary.isFiltered ? 'فیلترشده' : undefined}
           />
           <StatsCard
             title="اقساط سررسید گذشته"
-            value={`${(summary?.overdue_installments_count ?? 0).toLocaleString('fa-IR')} مورد`}
-            subtitle="اقساط معوق پرداخت‌نشده"
+            value={`${(displaySummary.overdue_installments_count ?? 0).toLocaleString('fa-IR')} مورد`}
+            subtitle={displaySummary.isFiltered ? `${filteredInstallments.length.toLocaleString('fa-IR')} قسط معوق فیلترشده` : "اقساط معوق پرداخت‌نشده"}
             icon={AlertCircle}
-            color={(summary?.overdue_installments_count || 0) > 0 ? 'rose' : 'emerald'}
+            color={(displaySummary.overdue_installments_count || 0) > 0 ? 'rose' : 'emerald'}
+            badge={displaySummary.isFiltered ? 'فیلترشده' : undefined}
           />
         </div>
       )}
@@ -862,12 +924,12 @@ export const AdminFinancePage = () => {
                 </button>
               </span>
             )}
-            {activeTab !== 'PAYMENTS' && poolFilter !== 'ALL' && (
+            {poolFilter !== 'ALL' && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 font-bold">
                 <span>استخر: {poolFilter}</span>
                 <button
                   type="button"
-                  onClick={() => setPoolFilter('ALL')}
+                  onClick={() => { setPoolFilter('ALL'); setCurrentPage(1); }}
                   className="hover:text-rose-600 cursor-pointer p-0.5 rounded-md"
                   title="حذف این فیلتر"
                 >
@@ -875,12 +937,12 @@ export const AdminFinancePage = () => {
                 </button>
               </span>
             )}
-            {activeTab === 'PAYMENTS' && paymentDateFilter && (
+            {paymentDateFilter && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 font-bold">
                 <span>تاریخ: {formatJalaliReadable(paymentDateFilter)}</span>
                 <button
                   type="button"
-                  onClick={() => setPaymentDateFilter('')}
+                  onClick={() => { setPaymentDateFilter(''); setCurrentPage(1); }}
                   className="hover:text-rose-600 cursor-pointer p-0.5 rounded-md"
                   title="حذف این فیلتر"
                 >

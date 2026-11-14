@@ -290,6 +290,7 @@ export const CoachCompleteProfilePage = () => {
           last_name: lastName.trim(),
           national_id: nationalId.trim(),
           is_profile_completed: true,
+          ...(res.data.coach?.avatar ? { avatar: res.data.coach.avatar } : {}),
         });
       }
 

@@ -15,6 +15,7 @@ import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Pagination } from '../../components/common/Pagination';
 import { CustomSelect } from '../../components/common/CustomSelect';
+import { AvatarUpload } from '../../components/common/AvatarUpload';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import { formatPersianDate } from '../../utils/date';
@@ -718,6 +719,18 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               </div>
 
               <form onSubmit={handleUpdateProfile} className="space-y-4">
+                {/* Admin Profile Picture Upload */}
+                <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <AvatarUpload
+                    currentAvatar={user?.avatar}
+                    displayName={user?.full_name || 'مدیر آموزشگاه'}
+                    role="ADMIN"
+                    size="md"
+                    label="تصویر پروفایل مدیر آموزشگاه"
+                    subtitle="انتخاب یا تغییر تصویر پرسنلی (تنها یک عکس مجاز است)"
+                  />
+                </div>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-1.5">

@@ -13,6 +13,7 @@ import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
+import { AvatarUpload } from '../../components/common/AvatarUpload';
 import { useToast } from '../../context/ToastContext';
 import { validatePassword, PasswordRequirementsList } from '../../utils/passwordValidator';
 
@@ -245,9 +246,15 @@ export const CoachProfilePage = () => {
 
       {/* Profile Overview Card */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs flex flex-col sm:flex-row items-center gap-5">
-        <div className="w-20 h-20 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-3xl shadow-md shrink-0">
-          {profile?.full_name?.charAt(0) || user?.first_name?.charAt(0) || 'م'}
-        </div>
+        <AvatarUpload
+          currentAvatar={user?.avatar || profile?.avatar}
+          displayName={profile?.full_name || user?.full_name || 'مربی'}
+          role="COACH"
+          size="md"
+          label=""
+          subtitle=""
+          className="shrink-0"
+        />
         <div className="space-y-1.5 text-center sm:text-right flex-1">
           <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2.5">
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white">

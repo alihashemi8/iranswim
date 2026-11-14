@@ -15,6 +15,7 @@ from apps.supervisor.models import AuditLog
 
 class InvoiceListView(generics.ListCreateAPIView):
     serializer_class = InvoiceSerializer
+    pagination_class = None
 
     def get_permissions(self):
         if self.request.method in permissions.SAFE_METHODS:
@@ -59,6 +60,7 @@ class InvoiceDetailView(generics.RetrieveAPIView):
 class InstallmentListView(generics.ListAPIView):
     """لیست اقساط با فیلتر وضعیت و سررسیدگذشته برای مدیریت بدهکاران"""
     serializer_class = InstallmentSerializer
+    pagination_class = None
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
@@ -83,6 +85,7 @@ class InstallmentListView(generics.ListAPIView):
 
 class PaymentListView(generics.ListAPIView):
     serializer_class = PaymentSerializer
+    pagination_class = None
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):

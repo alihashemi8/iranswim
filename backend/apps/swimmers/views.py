@@ -153,6 +153,10 @@ class SwimmerCompleteProfileView(APIView):
         serializer.is_valid(raise_exception=True)
         profile = serializer.save()
 
+        if profile.user and profile.avatar and profile.user.avatar != profile.avatar:
+            profile.user.avatar = profile.avatar
+            profile.user.save(update_fields=['avatar'])
+
         # Update document statuses to PENDING if newly uploaded or previously unuploaded
         if profile.birth_certificate_image and profile.birth_certificate_status in [DocumentStatus.UNUPLOADED, DocumentStatus.REVISION_REQUIRED]:
             profile.birth_certificate_status = DocumentStatus.PENDING
