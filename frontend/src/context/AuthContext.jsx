@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../api/client';
+import { getMediaUrl } from '../utils/media';
 
 const AuthContext = createContext(null);
 
@@ -7,7 +8,12 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     try {
       const saved = localStorage.getItem('user');
-      return saved ? JSON.parse(saved) : null;
+      if (!saved) return null;
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.avatar) {
+        parsed.avatar = getMediaUrl(parsed.avatar);
+      }
+      return parsed;
     } catch {
       return null;
     }
@@ -19,6 +25,29 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
     };
     window.addEventListener('auth:unauthorized', handleUnauthorized);
+
+    // Refresh profile in background on page load if access token exists
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      api.get('/auth/me/')
+        .then((res) => {
+          if (res.data) {
+            const freshUser = { ...res.data };
+            if (freshUser.avatar) {
+              freshUser.avatar = getMediaUrl(freshUser.avatar);
+            }
+            setUser((prev) => {
+              const merged = { ...(prev || {}), ...freshUser };
+              localStorage.setItem('user', JSON.stringify(merged));
+              return merged;
+            });
+          }
+        })
+        .catch(() => {
+          // Token expired or network issue; handled by interceptor
+        });
+    }
+
     return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
   }, []);
 
@@ -163,6 +192,9 @@ export const AuthProvider = ({ children }) => {
   const updateUserData = (updatedFields) => {
     setUser((prev) => {
       const next = { ...prev, ...updatedFields };
+      if (updatedFields.avatar !== undefined) {
+        next.avatar = getMediaUrl(updatedFields.avatar);
+      }
       if (updatedFields.first_name || updatedFields.last_name) {
         next.full_name = `${next.first_name || ''} ${next.last_name || ''}`.trim() || next.phone;
       }

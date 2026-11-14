@@ -121,7 +121,7 @@ export const AdminCoachRegisterPaymentPage = () => {
   const currentPayAmount = Number(form.amount) || 0;
   const newRemainingBalance = Math.max(0, remainingBalance - currentPayAmount);
 
-  const formatPrice = (v) => Number(v || 0).toLocaleString('fa-IR');
+  const formatPrice = (v) => Number(v || 0).toLocaleString('en-US');
 
   const copyToClipboard = (text, message = 'کپی شد') => {
     if (!text) return;
@@ -381,7 +381,7 @@ export const AdminCoachRegisterPaymentPage = () => {
             <span>تاریخ دوره:</span>
             <span>
               {currentPayroll?.period_start
-                ? `${new Date(currentPayroll.period_start).toLocaleDateString('fa-IR')} تا ${new Date(currentPayroll.period_end).toLocaleDateString('fa-IR')}`
+                ? `${new Date(currentPayroll.period_start).toLocaleDateString('fa-IR-u-nu-latn')} تا ${new Date(currentPayroll.period_end).toLocaleDateString('fa-IR-u-nu-latn')}`
                 : '—'}
             </span>
           </div>
