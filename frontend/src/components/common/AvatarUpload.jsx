@@ -58,9 +58,10 @@ export const AvatarUpload = ({
       return;
     }
 
-    // Validate type
-    const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-    if (!validTypes.includes(file.type)) {
+    // Validate type (MIME or extension fallback)
+    const validMimes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/pjpeg', 'image/x-png'];
+    const hasValidExt = /\.(jpe?g|png|webp|jfif|gif)$/i.test(file.name || '');
+    if (!validMimes.includes(file.type) && !hasValidExt) {
       toast.error('لطفاً یک فایل تصویری با فرمت JPG، PNG یا WebP انتخاب فرمایید.');
       return;
     }
@@ -71,9 +72,7 @@ export const AvatarUpload = ({
         const formData = new FormData();
         formData.append('avatar', file);
 
-        const res = await api.post('/auth/me/avatar/', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' },
-        });
+        const res = await api.post('/auth/me/avatar/', formData);
 
         const newUrl = res.data.avatar || (res.data.user && res.data.user.avatar);
         setAvatarUrl(newUrl);
@@ -86,8 +85,21 @@ export const AvatarUpload = ({
         }
         toast.success('تصویر پروفایل با موفقیت ثبت و جایگزین گردید.');
       } catch (err) {
-        console.error(err);
-        const detail = err.response?.data?.detail || err.response?.data?.avatar?.[0] || 'خطا در بارگذاری تصویر پروفایل';
+        console.error('Avatar upload error:', err);
+        const data = err.response?.data;
+        let detail = 'خطا در بارگذاری تصویر پروفایل';
+        if (typeof data === 'string') {
+          detail = data;
+        } else if (data?.detail) {
+          detail = typeof data.detail === 'string' ? data.detail : (Array.isArray(data.detail) ? data.detail[0] : JSON.stringify(data.detail));
+        } else if (Array.isArray(data) && data.length > 0) {
+          detail = typeof data[0] === 'string' ? data[0] : JSON.stringify(data[0]);
+        } else if (data?.avatar) {
+          detail = Array.isArray(data.avatar) ? data.avatar[0] : (typeof data.avatar === 'string' ? data.avatar : JSON.stringify(data.avatar));
+        } else if (data && typeof data === 'object') {
+          const firstVal = Object.values(data)[0];
+          detail = Array.isArray(firstVal) ? firstVal[0] : (typeof firstVal === 'string' ? firstVal : JSON.stringify(firstVal));
+        }
         toast.error(typeof detail === 'string' ? detail : 'خطا در ذخیره تصویر پروفایل');
       } finally {
         setLoading(false);
@@ -148,7 +160,7 @@ export const AvatarUpload = ({
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/jpeg,image/png,image/webp"
+        accept="image/jpeg,image/png,image/webp,image/gif,image/jfif,.jpg,.jpeg,.png,.webp,.jfif,.gif"
         multiple={false}
         onChange={handleFileSelect}
         className="hidden"
