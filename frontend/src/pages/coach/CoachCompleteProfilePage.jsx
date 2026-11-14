@@ -10,6 +10,8 @@ import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Button } from '../../components/common/Button';
 import { LoadingState } from '../../components/common/LoadingState';
+import { PersianDatePicker } from '../../components/common/PersianDatePicker';
+import { CustomSelect } from '../../components/common/CustomSelect';
 
 export const CoachCompleteProfilePage = () => {
   const { user, updateUserData } = useAuth();
@@ -55,11 +57,11 @@ export const CoachCompleteProfilePage = () => {
 
   // Degree options matching backend CoachingDegree
   const degreeOptions = [
-    { value: 'GRADE_3', label: 'مربیگری درجه ۳ فدراسیون' },
-    { value: 'GRADE_2', label: 'مربیگری درجه ۲ فدراسیون' },
-    { value: 'GRADE_1', label: 'مربیگری درجه ۱ فدراسیون' },
-    { value: 'NATIONAL', label: 'مربیگری ملی شنا' },
-    { value: 'INTERNATIONAL', label: 'مربیگری بین‌المللی (FINA / World Aquatics)' },
+    { value: 'GRADE_3', label: 'مربیگری درجه ۳ فدراسیون', badge: 'پایه', description: 'آموزش شنا مقدماتی و تکنیک‌های ۴ شنا' },
+    { value: 'GRADE_2', label: 'مربیگری درجه ۲ فدراسیون', badge: 'متوسط', description: 'تیم‌های پایه و دوره‌های نیمه‌پیشرفته' },
+    { value: 'GRADE_1', label: 'مربیگری درجه ۱ فدراسیون', badge: 'پیشرفته', description: 'تیم‌های استانی و مسابقات حرفه‌ای' },
+    { value: 'NATIONAL', label: 'مربیگری ملی شنا', badge: 'ملی', description: 'تیم‌های لیگ برتر و منتخب استان' },
+    { value: 'INTERNATIONAL', label: 'مربیگری بین‌المللی (FINA / World Aquatics)', badge: 'بین‌المللی', description: 'مربیگری دوره‌های جهانی و بین‌المللی' },
   ];
 
   // Fetch coach current profile data
@@ -469,15 +471,16 @@ export const CoachCompleteProfilePage = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  تاریخ تولد <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="date"
+                <PersianDatePicker
+                  label="تاریخ تولد *"
                   value={dateOfBirth}
-                  onChange={(e) => setDateOfBirth(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono"
+                  onChange={(jalaliStr, gDate, gIso) => setDateOfBirth(gIso || '')}
+                  placeholder="انتخاب تاریخ تولد شمسی..."
+                  color="emerald"
+                  size="md"
                   required
+                  minYear={1330}
+                  maxYear={1415}
                 />
               </div>
 
@@ -624,30 +627,27 @@ export const CoachCompleteProfilePage = () => {
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   درجه رسمی مربی‌گری <span className="text-rose-500">*</span>
                 </label>
-                <select
+                <CustomSelect
                   value={coachingDegree}
-                  onChange={(e) => setCoachingDegree(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-medium"
-                  required
-                >
-                  {degreeOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => setCoachingDegree(val)}
+                  options={degreeOptions}
+                  color="emerald"
+                  size="md"
+                  icon={Award}
+                />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  تاریخ اخذ مربی‌گری <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="date"
+                <PersianDatePicker
+                  label="تاریخ اخذ مربی‌گری *"
                   value={coachingCertificateDate}
-                  onChange={(e) => setCoachingCertificateDate(e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono"
+                  onChange={(jalaliStr, gDate, gIso) => setCoachingCertificateDate(gIso || '')}
+                  placeholder="انتخاب تاریخ اخذ گواهی..."
+                  color="emerald"
+                  size="md"
                   required
+                  minYear={1350}
+                  maxYear={1415}
                 />
               </div>
 

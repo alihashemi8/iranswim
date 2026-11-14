@@ -12,6 +12,7 @@ import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
+import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import { useLandingSections } from '../../context/LandingSectionsContext';
 import { SwimmerCrawlIcon, OlympicPoolLaneIcon } from '../../components/common/AquaticIcons';
@@ -118,6 +119,14 @@ export const AdminWebsiteManagerPage = () => {
   const [coachAvatarFile, setCoachAvatarFile] = useState(null);
   const [coachAvatarPreview, setCoachAvatarPreview] = useState(null);
   const [coachSubmitting, setCoachSubmitting] = useState(false);
+
+  const coachDegreeOptions = [
+    { value: 'GRADE_3', label: 'مربیگری درجه ۳ فدراسیون', badge: 'پایه' },
+    { value: 'GRADE_2', label: 'مربیگری درجه ۲ فدراسیون', badge: 'متوسط' },
+    { value: 'GRADE_1', label: 'مربیگری درجه ۱ فدراسیون', badge: 'پیشرفته' },
+    { value: 'NATIONAL', label: 'مربیگری ملی شنا', badge: 'ملی' },
+    { value: 'INTERNATIONAL', label: 'مربیگری بین‌المللی (World Aquatics / FINA)', badge: 'بین‌المللی' },
+  ];
 
   // =========================================================================
   // 3. NEWS STATE
@@ -1704,17 +1713,13 @@ export const AdminWebsiteManagerPage = () => {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">درجه رسمی مربی‌گری</label>
-            <select
+            <CustomSelect
               value={coachForm.coaching_degree}
-              onChange={(e) => setCoachForm({ ...coachForm, coaching_degree: e.target.value })}
-              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border rounded-xl"
-            >
-              <option value="GRADE_3">مربیگری درجه ۳ فدراسیون</option>
-              <option value="GRADE_2">مربیگری درجه ۲ فدراسیون</option>
-              <option value="GRADE_1">مربیگری درجه ۱ فدراسیون</option>
-              <option value="NATIONAL">مربیگری ملی شنا</option>
-              <option value="INTERNATIONAL">مربیگری بین‌المللی (FINA)</option>
-            </select>
+              onChange={(val) => setCoachForm({ ...coachForm, coaching_degree: val })}
+              options={coachDegreeOptions}
+              color="teal"
+              size="sm"
+            />
           </div>
 
           <div>

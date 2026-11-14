@@ -9,6 +9,7 @@ import api from '../../../api/client';
 import { Button } from '../../../components/common/Button';
 import { Badge } from '../../../components/common/Badge';
 import { CustomSelect } from '../../../components/common/CustomSelect';
+import { PersianDatePicker } from '../../../components/common/PersianDatePicker';
 import { LoadingState } from '../../../components/common/LoadingState';
 import { BackButton } from '../../../components/common/BackButton';
 import { useToast } from '../../../context/ToastContext';
@@ -272,27 +273,25 @@ export const AdminCoachCreateContractPage = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  تاریخ شروع قرارداد <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="date"
+                <PersianDatePicker
+                  label="تاریخ شروع قرارداد *"
                   value={form.start_date}
-                  onChange={(e) => handleChange('start_date', e.target.value)}
-                  className="w-full text-sm rounded-xl border border-slate-200 px-3 py-2 focus:ring-2 focus:ring-sky-500 focus:outline-none font-mono"
+                  onChange={(jalaliStr, gDate, gIso) => handleChange('start_date', gIso || '')}
+                  placeholder="انتخاب شروع قرارداد..."
+                  color="sky"
+                  size="md"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  تاریخ پایان قرارداد <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="date"
+                <PersianDatePicker
+                  label="تاریخ پایان قرارداد *"
                   value={form.end_date}
-                  onChange={(e) => handleChange('end_date', e.target.value)}
-                  className="w-full text-sm rounded-xl border border-slate-200 px-3 py-2 focus:ring-2 focus:ring-sky-500 focus:outline-none font-mono"
+                  onChange={(jalaliStr, gDate, gIso) => handleChange('end_date', gIso || '')}
+                  placeholder="انتخاب پایان قرارداد..."
+                  color="sky"
+                  size="md"
                   required
                 />
               </div>

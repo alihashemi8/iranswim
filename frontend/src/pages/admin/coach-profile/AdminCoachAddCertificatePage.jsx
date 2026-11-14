@@ -9,6 +9,7 @@ import api from '../../../api/client';
 import { Button } from '../../../components/common/Button';
 import { Badge } from '../../../components/common/Badge';
 import { LoadingState } from '../../../components/common/LoadingState';
+import { PersianDatePicker } from '../../../components/common/PersianDatePicker';
 import { BackButton } from '../../../components/common/BackButton';
 import { useToast } from '../../../context/ToastContext';
 
@@ -202,26 +203,26 @@ export const AdminCoachAddCertificatePage = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  تاریخ اخذ / صدور
-                </label>
-                <input
-                  type="date"
+                <PersianDatePicker
+                  label="تاریخ اخذ / صدور"
                   value={form.issue_date}
-                  onChange={(e) => handleChange('issue_date', e.target.value)}
-                  className="w-full text-xs sm:text-sm rounded-xl border border-slate-200 px-3 py-2.5 focus:ring-2 focus:ring-sky-500 focus:outline-none font-mono"
+                  onChange={(jalaliStr, gDate, gIso) => handleChange('issue_date', gIso || '')}
+                  placeholder="انتخاب تاریخ صدور..."
+                  color="sky"
+                  size="md"
+                  clearable
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  تاریخ انقضا یا تمدید (اختیاری)
-                </label>
-                <input
-                  type="date"
+                <PersianDatePicker
+                  label="تاریخ انقضا یا تمدید (اختیاری)"
                   value={form.expiration_date}
-                  onChange={(e) => handleChange('expiration_date', e.target.value)}
-                  className="w-full text-xs sm:text-sm rounded-xl border border-slate-200 px-3 py-2.5 focus:ring-2 focus:ring-sky-500 focus:outline-none font-mono"
+                  onChange={(jalaliStr, gDate, gIso) => handleChange('expiration_date', gIso || '')}
+                  placeholder="انتخاب تاریخ انقضا..."
+                  color="sky"
+                  size="md"
+                  clearable
                 />
               </div>
             </div>

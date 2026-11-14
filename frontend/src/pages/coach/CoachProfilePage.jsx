@@ -11,6 +11,8 @@ import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
 import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
+import { CustomSelect } from '../../components/common/CustomSelect';
+import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { useToast } from '../../context/ToastContext';
 import { validatePassword, PasswordRequirementsList } from '../../utils/passwordValidator';
 
@@ -56,6 +58,21 @@ export const CoachProfilePage = () => {
   });
   const [leaveFile, setLeaveFile] = useState(null);
   const [submittingLeave, setSubmittingLeave] = useState(false);
+
+  const degreeOptions = [
+    { value: 'GRADE_3', label: 'مربیگری درجه ۳ فدراسیون', badge: 'پایه', description: 'آموزش شنا مقدماتی و تکنیک‌های ۴ شنا' },
+    { value: 'GRADE_2', label: 'مربیگری درجه ۲ فدراسیون', badge: 'متوسط', description: 'تیم‌های پایه و دوره‌های نیمه‌پیشرفته' },
+    { value: 'GRADE_1', label: 'مربیگری درجه ۱ فدراسیون', badge: 'پیشرفته', description: 'تیم‌های استانی و مسابقات حرفه‌ای' },
+    { value: 'NATIONAL', label: 'مربیگری ملی شنا', badge: 'ملی', description: 'تیم‌های لیگ برتر و منتخب استان' },
+    { value: 'INTERNATIONAL', label: 'مربیگری بین‌المللی (World Aquatics / FINA)', badge: 'بین‌المللی', description: 'مربیگری دوره‌های جهانی و بین‌المللی' },
+  ];
+
+  const leaveTypeOptions = [
+    { value: 'CASUAL', label: 'مرخصی استحقاقی / روزانه', badge: 'استحقاقی' },
+    { value: 'SICK', label: 'مرخصی استعلاجی (پزشکی)', badge: 'پزشکی' },
+    { value: 'HOURLY', label: 'مرخصی ساعتی', badge: 'ساعتی' },
+    { value: 'EMERGENCY', label: 'مرخصی اضطراری', badge: 'اضطراری' },
+  ];
 
   const fetchProfile = async () => {
     try {
@@ -322,17 +339,14 @@ export const CoachProfilePage = () => {
                   <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1 text-xs sm:text-sm">
                     درجه رسمی مربیگری:
                   </label>
-                  <select
+                  <CustomSelect
                     value={coachingDegree}
-                    onChange={(e) => setCoachingDegree(e.target.value)}
-                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-900 dark:text-white text-xs sm:text-sm font-medium"
-                  >
-                    <option value="GRADE_3">درجه ۳ فدراسیون</option>
-                    <option value="GRADE_2">درجه ۲ فدراسیون</option>
-                    <option value="GRADE_1">درجه ۱ فدراسیون</option>
-                    <option value="NATIONAL">ملی شنا</option>
-                    <option value="INTERNATIONAL">بین‌المللی (FINA)</option>
-                  </select>
+                    onChange={(val) => setCoachingDegree(val)}
+                    options={degreeOptions}
+                    color="emerald"
+                    size="md"
+                    icon={Award}
+                  />
                 </div>
 
                 <div>
@@ -707,41 +721,36 @@ export const CoachProfilePage = () => {
             <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1.5 text-sm sm:text-base">
               نوع مرخصی <span className="text-rose-500">*</span>
             </label>
-            <select
+            <CustomSelect
               value={leaveForm.leave_type}
-              onChange={(e) => setLeaveForm({ ...leaveForm, leave_type: e.target.value })}
-              className="w-full text-sm sm:text-base p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-medium"
-            >
-              <option value="CASUAL">مرخصی استحقاقی / روزانه</option>
-              <option value="SICK">مرخصی استعلاجی (پزشکی)</option>
-              <option value="HOURLY">مرخصی ساعتی</option>
-              <option value="EMERGENCY">مرخصی اضطراری</option>
-            </select>
+              onChange={(val) => setLeaveForm({ ...leaveForm, leave_type: val })}
+              options={leaveTypeOptions}
+              color="emerald"
+              size="md"
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1.5 text-sm sm:text-base">
-                از تاریخ <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="date"
+              <PersianDatePicker
+                label="از تاریخ *"
                 value={leaveForm.start_date}
-                onChange={(e) => setLeaveForm({ ...leaveForm, start_date: e.target.value })}
-                className="w-full text-sm sm:text-base p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono font-medium"
+                onChange={(jalaliStr, gDate, gIso) => setLeaveForm({ ...leaveForm, start_date: gIso || '' })}
+                placeholder="انتخاب شروع..."
+                color="emerald"
+                size="md"
                 required
               />
             </div>
 
             <div>
-              <label className="block text-slate-700 dark:text-slate-200 font-bold mb-1.5 text-sm sm:text-base">
-                تا تاریخ <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="date"
+              <PersianDatePicker
+                label="تا تاریخ *"
                 value={leaveForm.end_date}
-                onChange={(e) => setLeaveForm({ ...leaveForm, end_date: e.target.value })}
-                className="w-full text-sm sm:text-base p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono font-medium"
+                onChange={(jalaliStr, gDate, gIso) => setLeaveForm({ ...leaveForm, end_date: gIso || '' })}
+                placeholder="انتخاب پایان..."
+                color="emerald"
+                size="md"
                 required
               />
             </div>

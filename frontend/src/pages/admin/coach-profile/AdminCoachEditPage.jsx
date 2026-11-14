@@ -10,6 +10,7 @@ import api from '../../../api/client';
 import { Button } from '../../../components/common/Button';
 import { Badge } from '../../../components/common/Badge';
 import { CustomSelect } from '../../../components/common/CustomSelect';
+import { PersianDatePicker } from '../../../components/common/PersianDatePicker';
 import { LoadingState } from '../../../components/common/LoadingState';
 import { BackButton } from '../../../components/common/BackButton';
 import { useToast } from '../../../context/ToastContext';
@@ -74,11 +75,11 @@ export const AdminCoachEditPage = () => {
   const [showPassword, setShowPassword] = useState(false);
 
   const degreeOptions = [
-    { value: 'GRADE_3', label: 'مربیگری درجه ۳ فدراسیون' },
-    { value: 'GRADE_2', label: 'مربیگری درجه ۲ فدراسیون' },
-    { value: 'GRADE_1', label: 'مربیگری درجه ۱ فدراسیون' },
-    { value: 'NATIONAL', label: 'مربیگری ملی شنا' },
-    { value: 'INTERNATIONAL', label: 'مربیگری بین‌المللی (FINA / World Aquatics)' },
+    { value: 'GRADE_3', label: 'مربیگری درجه ۳ فدراسیون', badge: 'پایه', description: 'آموزش شنا مقدماتی و تکنیک‌های ۴ شنا' },
+    { value: 'GRADE_2', label: 'مربیگری درجه ۲ فدراسیون', badge: 'متوسط', description: 'تیم‌های پایه و دوره‌های نیمه‌پیشرفته' },
+    { value: 'GRADE_1', label: 'مربیگری درجه ۱ فدراسیون', badge: 'پیشرفته', description: 'تیم‌های استانی و مسابقات حرفه‌ای' },
+    { value: 'NATIONAL', label: 'مربیگری ملی شنا', badge: 'ملی', description: 'تیم‌های لیگ برتر و منتخب استان' },
+    { value: 'INTERNATIONAL', label: 'مربیگری بین‌المللی (FINA / World Aquatics)', badge: 'بین‌المللی', description: 'مربیگری دوره‌های جهانی و بین‌المللی' },
   ];
 
   const statusOptions = [
@@ -568,15 +569,16 @@ export const AdminCoachEditPage = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  تاریخ تولد <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="date"
+                <PersianDatePicker
+                  label="تاریخ تولد *"
                   value={form.date_of_birth}
-                  onChange={(e) => handleChange('date_of_birth', e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono"
+                  onChange={(jalaliStr, gDate, gIso) => handleChange('date_of_birth', gIso || '')}
+                  placeholder="انتخاب تاریخ تولد شمسی..."
+                  color="sky"
+                  size="md"
                   required
+                  minYear={1330}
+                  maxYear={1415}
                 />
               </div>
 
@@ -766,30 +768,27 @@ export const AdminCoachEditPage = () => {
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                   درجه رسمی مربی‌گری <span className="text-rose-500">*</span>
                 </label>
-                <select
+                <CustomSelect
                   value={form.coaching_degree}
-                  onChange={(e) => handleChange('coaching_degree', e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-medium"
-                  required
-                >
-                  {degreeOptions.map((opt) => (
-                    <option key={opt.value} value={opt.value}>
-                      {opt.label}
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => handleChange('coaching_degree', val)}
+                  options={degreeOptions}
+                  color="sky"
+                  size="md"
+                  icon={Award}
+                />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  تاریخ اخذ مربی‌گری <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="date"
+                <PersianDatePicker
+                  label="تاریخ اخذ مربی‌گری *"
                   value={form.coaching_certificate_date}
-                  onChange={(e) => handleChange('coaching_certificate_date', e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono"
+                  onChange={(jalaliStr, gDate, gIso) => handleChange('coaching_certificate_date', gIso || '')}
+                  placeholder="انتخاب تاریخ اخذ گواهی..."
+                  color="sky"
+                  size="md"
                   required
+                  minYear={1350}
+                  maxYear={1415}
                 />
               </div>
 
@@ -885,14 +884,16 @@ export const AdminCoachEditPage = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  تاریخ انقضای کارت نجات‌غریق
-                </label>
-                <input
-                  type="date"
+                <PersianDatePicker
+                  label="تاریخ انقضای کارت نجات‌غریق"
                   value={form.lifeguard_expiration}
-                  onChange={(e) => handleChange('lifeguard_expiration', e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono"
+                  onChange={(jalaliStr, gDate, gIso) => handleChange('lifeguard_expiration', gIso || '')}
+                  placeholder="انتخاب تاریخ انقضا..."
+                  color="sky"
+                  size="md"
+                  minYear={1390}
+                  maxYear={1420}
+                  clearable
                 />
               </div>
 

@@ -7,6 +7,7 @@ import {
 import { Badge } from '../../../components/common/Badge';
 import { Button } from '../../../components/common/Button';
 import { Modal } from '../../../components/common/Modal';
+import { PersianDatePicker } from '../../../components/common/PersianDatePicker';
 import { useToast } from '../../../context/ToastContext';
 import api from '../../../api/client';
 
@@ -281,14 +282,13 @@ export const CoachPerformanceTab = ({ coach, evaluations, onEvaluationsUpdated }
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                تاریخ ارزیابی <span className="text-rose-500">*</span>
-              </label>
-              <input
-                type="date"
+              <PersianDatePicker
+                label="تاریخ ارزیابی *"
                 value={evalForm.evaluation_date}
-                onChange={(e) => setEvalForm({ ...evalForm, evaluation_date: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white font-mono"
+                onChange={(jalaliStr, gDate, gIso) => setEvalForm({ ...evalForm, evaluation_date: gIso || '' })}
+                placeholder="انتخاب تاریخ..."
+                color="sky"
+                size="sm"
                 required
               />
             </div>

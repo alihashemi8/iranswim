@@ -230,6 +230,16 @@ export const CustomSelect = ({
       checkIcon: 'text-emerald-600 dark:text-emerald-400',
       searchFocus: 'focus:ring-emerald-500',
     },
+    teal: {
+      activeRing: 'ring-2 ring-teal-500/25 border-teal-500 dark:border-teal-500',
+      activeTrigger: 'bg-teal-50/50 dark:bg-teal-950/25 border-teal-300 dark:border-teal-700/80 text-teal-950 dark:text-teal-100',
+      activeIcon: 'text-teal-600 dark:text-teal-400',
+      selectedItem: 'bg-teal-50 dark:bg-teal-950/70 text-teal-700 dark:text-teal-300 font-bold border border-teal-200/80 dark:border-teal-800/80',
+      selectedIconBox: 'bg-teal-100 dark:bg-teal-900/60 text-teal-600 dark:text-teal-400',
+      selectedBadge: 'bg-teal-100 dark:bg-teal-900/60 text-teal-700 dark:text-teal-300',
+      checkIcon: 'text-teal-600 dark:text-teal-400',
+      searchFocus: 'focus:ring-teal-500',
+    },
     amber: {
       activeRing: 'ring-2 ring-amber-500/25 border-amber-500 dark:border-amber-500',
       activeTrigger: 'bg-amber-50/50 dark:bg-amber-950/25 border-amber-300 dark:border-amber-700/80 text-amber-950 dark:text-amber-100',
