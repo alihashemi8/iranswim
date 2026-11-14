@@ -114,6 +114,7 @@ class IranSwimTokenObtainPairSerializer(TokenObtainPairSerializer):
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(read_only=True)
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    avatar = serializers.ImageField(required=False, allow_null=True, validators=[validate_avatar_file])
     swimmer_id = serializers.SerializerMethodField()
     coach_id = serializers.SerializerMethodField()
     is_profile_completed = serializers.SerializerMethodField()
@@ -122,10 +123,16 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'phone', 'first_name', 'last_name', 'full_name',
-            'national_id', 'role', 'is_active', 'is_password_changed', 'password',
+            'national_id', 'role', 'avatar', 'is_active', 'is_password_changed', 'password',
             'swimmer_id', 'coach_id', 'is_profile_completed', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if not ret.get('avatar'):
+            ret['avatar'] = get_user_avatar_url(instance, self.context.get('request'))
+        return ret
 
     def validate_phone(self, value):
         val = to_english_digits(value).strip() if value else ''
@@ -153,6 +160,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop('password', None)
+        avatar = validated_data.pop('avatar', None)
         phone = validated_data.get('phone')
         role = validated_data.get('role', User.Role.SWIMMER)
 
@@ -160,6 +168,9 @@ class UserSerializer(serializers.ModelSerializer):
             raise ValidationError({'phone': 'کاربری با این شماره همراه قبلاً در سامانه ثبت شده است.'})
 
         user = User.objects.create_user(**validated_data)
+        if avatar:
+            user.avatar = avatar
+            user.save(update_fields=['avatar'])
         if password:
             user.set_password(to_english_digits(password).strip())
             user.is_password_changed = True
@@ -177,15 +188,19 @@ class UserSerializer(serializers.ModelSerializer):
         # Create Profile
         if role == User.Role.SWIMMER:
             from apps.swimmers.models import SwimmerProfile
-            SwimmerProfile.objects.get_or_create(
+            swimmer_prof, _ = SwimmerProfile.objects.get_or_create(
                 user=user,
                 defaults={
                     'first_name': user.first_name,
                     'last_name': user.last_name,
                     'phone': user.phone,
                     'national_id': user.national_id or '',
+                    'avatar': user.avatar,
                 }
             )
+            if user.avatar and not swimmer_prof.avatar:
+                swimmer_prof.avatar = user.avatar
+                swimmer_prof.save(update_fields=['avatar'])
         elif role == User.Role.COACH:
             from apps.coaches.models import CoachProfile
             CoachProfile.objects.get_or_create(user=user)
@@ -213,6 +228,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         password = validated_data.pop('password', None)
+        has_avatar = 'avatar' in self.initial_data or 'avatar' in validated_data
+        avatar = validated_data.pop('avatar', None)
         old_role = instance.role
         phone = validated_data.get('phone')
         if phone and phone != instance.phone and User.objects.filter(phone=phone).exclude(id=instance.id).exists():
@@ -220,6 +237,14 @@ class UserSerializer(serializers.ModelSerializer):
 
         for attr, value in validated_data.items():
             setattr(instance, attr, value)
+
+        if has_avatar:
+            if not avatar:
+                delete_user_old_avatar(instance)
+                instance.avatar = None
+            else:
+                delete_user_old_avatar(instance)
+                instance.avatar = avatar
 
         if password:
             instance.set_password(to_english_digits(password).strip())
@@ -231,6 +256,10 @@ class UserSerializer(serializers.ModelSerializer):
                 instance.is_superuser = True
 
         instance.save()
+
+        if has_avatar and hasattr(instance, 'swimmer_profile') and instance.swimmer_profile:
+            instance.swimmer_profile.avatar = instance.avatar
+            instance.swimmer_profile.save(update_fields=['avatar'])
 
         # Create Profile if role changed
         if instance.role == User.Role.SWIMMER:
