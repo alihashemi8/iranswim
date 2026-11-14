@@ -8,6 +8,7 @@ import {
 import api from '../../../api/client';
 import { Button } from '../../../components/common/Button';
 import { Badge } from '../../../components/common/Badge';
+import { CustomSelect } from '../../../components/common/CustomSelect';
 import { PersianDatePicker } from '../../../components/common/PersianDatePicker';
 import { LoadingState } from '../../../components/common/LoadingState';
 import { BackButton } from '../../../components/common/BackButton';
@@ -104,6 +105,54 @@ export const AdminCoachRegisterPaymentPage = () => {
   const newRemainingBalance = Math.max(0, remainingBalance - currentPayAmount);
 
   const formatPrice = (v) => Number(v || 0).toLocaleString('fa-IR');
+
+  const payrollOptions = payrolls.map((p) => {
+    const remaining = Number(p.remaining_balance) || 0;
+    const isSettled = remaining <= 0;
+    return {
+      value: String(p.id),
+      label: p.period_label || `دوره مالی #${p.id}`,
+      description: `حقوق مصوب: ${formatPrice(p.net_payable_amount)} تومان • پرداختی تاکنون: ${formatPrice(p.total_paid)} تومان`,
+      badge: isSettled ? 'تسویه کامل' : `مانده: ${formatPrice(remaining)} ت`,
+      badgeClassName: isSettled
+        ? 'bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800'
+        : 'bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border border-rose-300 dark:border-rose-800',
+      icon: Calendar,
+    };
+  });
+
+  const paymentMethodOptions = [
+    {
+      value: 'BANK_TRANSFER',
+      label: 'انتقال بانکی (پایا / ساتنا)',
+      description: 'واریز بین بانکی مستقیم به شماره شبا',
+      icon: CreditCard,
+    },
+    {
+      value: 'CARD_TO_CARD',
+      label: 'کارت به کارت',
+      description: 'انتقال شتابی کارت به کارت بانکی',
+      icon: CreditCard,
+    },
+    {
+      value: 'CHEQUE',
+      label: 'چک بانکی صیادی',
+      description: 'چک معتبر شرکتی یا صیادی بنفش',
+      icon: FileCheck2,
+    },
+    {
+      value: 'CASH',
+      label: 'پرداخت نقدی',
+      description: 'تحویل دستی وجه نقد همراه با امضا رسید',
+      icon: Wallet,
+    },
+    {
+      value: 'POS',
+      label: 'دستگاه کارتخوان (POS)',
+      description: 'تراکنش دستگاه پوز مستقر در محل استخر',
+      icon: Hash,
+    },
+  ];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -266,19 +315,44 @@ export const AdminCoachRegisterPaymentPage = () => {
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   دوره حقوقی و قرارداد مربوطه <span className="text-rose-500">*</span>
                 </label>
-                <select
+                <CustomSelect
                   value={selectedPayrollId}
-                  onChange={(e) => handlePayrollSelect(e.target.value)}
-                  className="w-full text-xs sm:text-sm p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                  required
-                >
-                  <option value="">انتخاب دوره حقوقی...</option>
-                  {payrolls.map((p) => (
-                    <option key={p.id} value={p.id}>
-                      {p.period_label} — خالص: {formatPrice(p.net_payable_amount)} ت (مانده: {formatPrice(p.remaining_balance)} ت)
-                    </option>
-                  ))}
-                </select>
+                  onChange={(val) => handlePayrollSelect(val)}
+                  options={payrollOptions}
+                  placeholder="انتخاب دوره حقوقی مورد نظر..."
+                  icon={Calendar}
+                  color="emerald"
+                  size="md"
+                  menuClassName="w-full"
+                  searchable={payrollOptions.length > 5}
+                />
+
+                {currentPayroll && (
+                  <div className="mt-2.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-xs">
+                    <div className="flex items-center justify-between sm:justify-start sm:gap-2">
+                      <span className="text-slate-500 dark:text-slate-400">حقوق مصوب دوره:</span>
+                      <span className="font-mono font-bold text-slate-900 dark:text-white">
+                        {formatPrice(currentPayroll.net_payable_amount)} ت
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-start sm:gap-2">
+                      <span className="text-slate-500 dark:text-slate-400">پرداخت‌شده تاکنون:</span>
+                      <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">
+                        {formatPrice(currentPayroll.total_paid)} ت
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between sm:justify-start sm:gap-2">
+                      <span className="text-slate-500 dark:text-slate-400">مانده قابل تسویه:</span>
+                      <span
+                        className={`font-mono font-bold ${
+                          remainingBalance > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600'
+                        }`}
+                      >
+                        {remainingBalance > 0 ? `${formatPrice(remainingBalance)} ت` : 'تسویه کامل'}
+                      </span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* 2. File Upload Box (Matching Screenshot) */}
@@ -362,18 +436,16 @@ export const AdminCoachRegisterPaymentPage = () => {
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                     روش پرداخت <span className="text-rose-500">*</span>
                   </label>
-                  <select
+                  <CustomSelect
                     value={form.payment_method}
-                    onChange={(e) => handleChange('payment_method', e.target.value)}
-                    className="w-full text-xs sm:text-sm p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-                    required
-                  >
-                    <option value="BANK_TRANSFER">انتقال بانکی (پایا / ساتنا)</option>
-                    <option value="CARD_TO_CARD">کارت به کارت</option>
-                    <option value="CHEQUE">چک بانکی صیادی</option>
-                    <option value="CASH">نقدی</option>
-                    <option value="POS">دستگاه کارتخوان (POS)</option>
-                  </select>
+                    onChange={(val) => handleChange('payment_method', val)}
+                    options={paymentMethodOptions}
+                    placeholder="انتخاب روش پرداخت..."
+                    icon={CreditCard}
+                    color="emerald"
+                    size="md"
+                    menuClassName="w-full"
+                  />
                 </div>
 
                 <div>

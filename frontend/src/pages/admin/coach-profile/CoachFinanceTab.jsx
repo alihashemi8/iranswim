@@ -8,6 +8,7 @@ import {
 import { Badge } from '../../../components/common/Badge';
 import { Button } from '../../../components/common/Button';
 import { Modal } from '../../../components/common/Modal';
+import { CustomSelect } from '../../../components/common/CustomSelect';
 import { useToast } from '../../../context/ToastContext';
 import api from '../../../api/client';
 
@@ -1017,18 +1018,21 @@ export const CoachFinanceTab = ({
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                 نوع ردیف
               </label>
-              <select
+              <CustomSelect
                 value={adjForm.adjustment_type}
-                onChange={(e) => setAdjForm({ ...adjForm, adjustment_type: e.target.value })}
-                className="w-full text-xs p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
-              >
-                <option value="BONUS">پاداش رضایت و کیفیت آموزش (+)</option>
-                <option value="OVERTIME">اضافه‌کاری و سانس اضافه (+)</option>
-                <option value="DEDUCTION">کسورات انضباطی (-)</option>
-                <option value="TAX_INSURANCE">بیمه و مالیات قانونی (-)</option>
-                <option value="PENALTY">جریمه غیبت غیرموجه (-)</option>
-                <option value="MANUAL">تعدیل دستی مصوب مدیریت</option>
-              </select>
+                onChange={(val) => setAdjForm({ ...adjForm, adjustment_type: val })}
+                options={[
+                  { value: 'BONUS', label: 'پاداش رضایت و کیفیت آموزش (+)', badge: '+ پاداش', badgeClassName: 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300' },
+                  { value: 'OVERTIME', label: 'اضافه‌کاری و سانس اضافه (+)', badge: '+ اضافه کار', badgeClassName: 'bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300' },
+                  { value: 'DEDUCTION', label: 'کسورات انضباطی (-)', badge: '- کسر', badgeClassName: 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300' },
+                  { value: 'TAX_INSURANCE', label: 'بیمه و مالیات قانونی (-)', badge: '- قانونی', badgeClassName: 'bg-amber-100 dark:bg-amber-950 text-amber-700 dark:text-amber-300' },
+                  { value: 'PENALTY', label: 'جریمه غیبت غیرموجه (-)', badge: '- جریمه', badgeClassName: 'bg-rose-100 dark:bg-rose-950 text-rose-700 dark:text-rose-300' },
+                  { value: 'MANUAL', label: 'تعدیل دستی مصوب مدیریت', badge: 'دستی', badgeClassName: 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300' },
+                ]}
+                color="sky"
+                size="sm"
+                menuClassName="w-full"
+              />
             </div>
 
             <div>
