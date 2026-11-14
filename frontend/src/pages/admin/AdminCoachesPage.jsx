@@ -29,8 +29,26 @@ export const AdminCoachesPage = () => {
   const [loading, setLoading] = useState(true);
   const [loadingStats, setLoadingStats] = useState(true);
 
-  // View Mode: 'cards' | 'table'
-  const [viewMode, setViewMode] = useState('cards');
+  // View Mode: 'cards' | 'table' (persisted in localStorage)
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem('admin_coaches_view_mode');
+      if (saved === 'cards' || saved === 'table') {
+        return saved;
+      }
+    } catch (e) {
+      console.error('Error reading viewMode from localStorage:', e);
+    }
+    return 'cards';
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('admin_coaches_view_mode', viewMode);
+    } catch (e) {
+      console.error('Error saving viewMode to localStorage:', e);
+    }
+  }, [viewMode]);
 
   // Responsive mobile detection (mobile forces cards; tablet & desktop allow switching)
   const [isMobile, setIsMobile] = useState(() => {
