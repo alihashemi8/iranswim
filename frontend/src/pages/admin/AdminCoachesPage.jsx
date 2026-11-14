@@ -374,12 +374,6 @@ export const AdminCoachesPage = () => {
             <span>افزودن مربی جدید</span>
           </Button>
 
-          {/* Export to Excel */}
-          <Button variant="outline" onClick={handleExportCsv} className="gap-2 text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 shadow-xs py-2 sm:py-2.5 px-3.5 sm:px-4">
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
-            <span>خروجی اکسل</span>
-          </Button>
-
           {/* View Reports Button */}
           <Button variant="outline" onClick={() => handleOpenReports('payroll')} className="gap-2 text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 shadow-xs py-2 sm:py-2.5 px-3.5 sm:px-4">
             <CreditCard className="w-4 h-4 text-sky-600" />
@@ -547,46 +541,61 @@ export const AdminCoachesPage = () => {
           </div>
         </div>
 
-        {/* Gender Filter Pills & View Switcher */}
-        <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 dark:border-slate-800">
-          <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl">
-            <button
-              type="button"
-              onClick={() => setGenderFilter('')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                genderFilter === ''
-                  ? 'bg-white dark:bg-slate-700 text-sky-700 dark:text-sky-300 shadow-2xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
+        {/* Gender Filter Pills, Excel Export & View Switcher */}
+        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {/* Gender Filter Pills */}
+            <div className="flex items-center gap-1 sm:gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl overflow-x-auto max-w-full">
+              <button
+                type="button"
+                onClick={() => setGenderFilter('')}
+                className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  genderFilter === ''
+                    ? 'bg-white dark:bg-slate-700 text-sky-700 dark:text-sky-300 shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                }`}
+              >
+                همه ({coaches.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setGenderFilter('MALE')}
+                className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  genderFilter === 'MALE'
+                    ? 'bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                }`}
+              >
+                مربیان آقا
+              </button>
+              <button
+                type="button"
+                onClick={() => setGenderFilter('FEMALE')}
+                className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  genderFilter === 'FEMALE'
+                    ? 'bg-white dark:bg-slate-700 text-pink-700 dark:text-pink-300 shadow-2xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                }`}
+              >
+                مربیان خانم
+              </button>
+            </div>
+
+            {/* Export to Excel */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportCsv}
+              className="gap-2 text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:text-emerald-600 dark:hover:text-emerald-400 hover:border-emerald-300 dark:hover:border-emerald-700 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/20 shadow-2xs py-2 px-3 sm:px-3.5 rounded-xl transition-all cursor-pointer shrink-0"
+              title="دریافت خروجی اکسل مربیان"
             >
-              همه ({coaches.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setGenderFilter('MALE')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                genderFilter === 'MALE'
-                  ? 'bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-2xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
-            >
-              مربیان آقا
-            </button>
-            <button
-              type="button"
-              onClick={() => setGenderFilter('FEMALE')}
-              className={`px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                genderFilter === 'FEMALE'
-                  ? 'bg-white dark:bg-slate-700 text-pink-700 dark:text-pink-300 shadow-2xs'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-              }`}
-            >
-              مربیان خانم
-            </button>
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span>خروجی اکسل</span>
+            </Button>
           </div>
 
           {/* View Switcher (HIDDEN on Mobile, VISIBLE on Desktop & Tablet) */}
-          <div className="hidden md:flex items-center gap-2">
+          <div className="hidden md:flex items-center gap-2 shrink-0">
             <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">حالت نمایش:</span>
             <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
               <button
