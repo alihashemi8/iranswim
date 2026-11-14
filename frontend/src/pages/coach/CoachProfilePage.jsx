@@ -555,9 +555,8 @@ export const CoachProfilePage = () => {
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
-                    <div>نوع: <strong className="text-slate-900 dark:text-slate-100 font-bold">{c.contract_type_display}</strong></div>
-                    <div>مدل: <strong className="text-slate-900 dark:text-slate-100 font-bold">{c.employment_type_display}</strong></div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
+                    <div>مدل دستمزد: <strong className="text-slate-900 dark:text-slate-100 font-bold">{c.employment_type_display}</strong></div>
                     <div>شروع: <strong className="font-mono text-slate-900 dark:text-slate-100 font-bold">{new Date(c.start_date).toLocaleDateString('fa-IR-u-nu-latn')}</strong></div>
                     <div>پایان: <strong className="font-mono text-slate-900 dark:text-slate-100 font-bold">{new Date(c.end_date).toLocaleDateString('fa-IR-u-nu-latn')}</strong></div>
                   </div>

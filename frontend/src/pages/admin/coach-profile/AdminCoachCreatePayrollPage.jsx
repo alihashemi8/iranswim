@@ -108,7 +108,7 @@ export const AdminCoachCreatePayrollPage = () => {
       });
 
       toast.success('فیش حقوقی دوره جدید با موفقیت صادر و ثبت شد.');
-      navigate(`/admin/coaches/${id}?tab=PAYROLL`);
+      navigate(`/admin/coaches/${id}?tab=CONTRACTS_FINANCE&subtab=PAYROLL`);
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.detail || 'خطا در صدور فیش حقوقی');
@@ -129,14 +129,14 @@ export const AdminCoachCreatePayrollPage = () => {
     <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6" dir="rtl">
       {/* Header & Breadcrumbs */}
       <div className="flex items-center gap-3 pb-4 border-b border-slate-200">
-        <BackButton to={`/admin/coaches/${id}?tab=PAYROLL`} fallback={`/admin/coaches/${id}`} title="بازگشت به پرونده مربی" />
+        <BackButton to={`/admin/coaches/${id}?tab=CONTRACTS_FINANCE&subtab=PAYROLL`} fallback={`/admin/coaches/${id}`} title="بازگشت به پرونده مربی" />
         <div className="space-y-1 min-w-0 flex-1">
           <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 truncate">
             <Link to="/admin/coaches" className="hover:text-sky-600 transition-colors shrink-0">
               مدیریت مربیان
             </Link>
             <span>/</span>
-            <Link to={`/admin/coaches/${id}?tab=PAYROLL`} className="hover:text-sky-600 transition-colors shrink-0 truncate">
+            <Link to={`/admin/coaches/${id}?tab=CONTRACTS_FINANCE&subtab=PAYROLL`} className="hover:text-sky-600 transition-colors shrink-0 truncate">
               پرونده {coach?.full_name}
             </Link>
             <span>/</span>
@@ -359,7 +359,7 @@ export const AdminCoachCreatePayrollPage = () => {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate(`/admin/coaches/${id}?tab=PAYROLL`)}
+            onClick={() => navigate(`/admin/coaches/${id}?tab=CONTRACTS_FINANCE&subtab=PAYROLL`)}
             disabled={submitting}
           >
             انصراف

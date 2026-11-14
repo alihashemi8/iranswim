@@ -4,7 +4,7 @@ import {
   ArrowRight, ArrowLeft, MapPin, Clock, Calendar,
   Users, Check, CheckCircle2, Award,
   Sparkles, DollarSign, Layers, Search, User, ChevronLeft, AlertCircle,
-  Whistle, CreditCard
+  Whistle, CreditCard, Plus, Minus, Calculator, Coins
 } from 'lucide-react';
 import { SwimCourseSpecsIcon } from '../../components/common/AquaticIcons';
 import api from '../../api/client';
@@ -31,6 +31,7 @@ export const AdminCreateCoursePage = () => {
   const [loadingCoaches, setLoadingCoaches] = useState(true);
   const [coachSearch, setCoachSearch] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [coachConfigs, setCoachConfigs] = useState({});
 
   // Form State
   const [formData, setFormData] = useState({
@@ -71,6 +72,25 @@ export const AdminCreateCoursePage = () => {
     fetchCoaches();
   }, []);
 
+  const getCoachConfig = (coachId) => {
+    if (coachConfigs[coachId]) {
+      return coachConfigs[coachId];
+    }
+    const coachObj = coaches.find((c) => c.id === coachId);
+    const defaultSessions = Number(formData.sessions_count) || 12;
+    let defaultFee = 150000;
+    if (coachObj && coachObj.hourly_rate && Number(coachObj.hourly_rate) > 0) {
+      defaultFee = Math.round(Number(coachObj.hourly_rate));
+    } else if (Number(formData.base_price) > 0 && defaultSessions > 0) {
+      defaultFee = Math.round(Number(formData.base_price) / defaultSessions);
+    }
+    return {
+      sessions_count: defaultSessions,
+      session_price: defaultFee,
+      total_price: defaultSessions * defaultFee,
+    };
+  };
+
   const toggleCoach = (coachId) => {
     setFormData((prev) => {
       const exists = prev.coach_ids.includes(coachId);
@@ -79,6 +99,82 @@ export const AdminCreateCoursePage = () => {
         : [...prev.coach_ids, coachId];
       return { ...prev, coach_ids: next };
     });
+
+    setCoachConfigs((prev) => {
+      if (!prev[coachId]) {
+        const coachObj = coaches.find((c) => c.id === coachId);
+        const defaultSessions = Number(formData.sessions_count) || 12;
+        let defaultFee = 150000;
+        if (coachObj && coachObj.hourly_rate && Number(coachObj.hourly_rate) > 0) {
+          defaultFee = Math.round(Number(coachObj.hourly_rate));
+        } else if (Number(formData.base_price) > 0 && defaultSessions > 0) {
+          defaultFee = Math.round(Number(formData.base_price) / defaultSessions);
+        }
+        return {
+          ...prev,
+          [coachId]: {
+            sessions_count: defaultSessions,
+            session_price: defaultFee,
+            total_price: defaultSessions * defaultFee,
+          },
+        };
+      }
+      return prev;
+    });
+  };
+
+  const updateCoachSessions = (coachId, newSessions) => {
+    const s = Math.max(1, parseInt(newSessions, 10) || 1);
+    setCoachConfigs((prev) => {
+      const current = prev[coachId] || getCoachConfig(coachId);
+      const price = Number(current.session_price) || 0;
+      return {
+        ...prev,
+        [coachId]: {
+          ...current,
+          sessions_count: s,
+          total_price: s * price,
+        },
+      };
+    });
+  };
+
+  const updateCoachSessionPrice = (coachId, rawVal) => {
+    const eng = String(rawVal || '')
+      .replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+      .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+    const cleanDigits = eng.replace(/\D/g, '');
+    const priceNum = cleanDigits === '' ? 0 : parseInt(cleanDigits, 10);
+    setCoachConfigs((prev) => {
+      const current = prev[coachId] || getCoachConfig(coachId);
+      const sessions = Number(current.sessions_count) || (Number(formData.sessions_count) || 12);
+      return {
+        ...prev,
+        [coachId]: {
+          ...current,
+          session_price: cleanDigits === '' ? '' : priceNum,
+          total_price: sessions * priceNum,
+        },
+      };
+    });
+  };
+
+  const applyDefaultSessionsToAllCoaches = () => {
+    const count = Number(formData.sessions_count) || 12;
+    setCoachConfigs((prev) => {
+      const next = { ...prev };
+      formData.coach_ids.forEach((id) => {
+        const cur = next[id] || getCoachConfig(id);
+        const price = Number(cur.session_price) || 0;
+        next[id] = {
+          ...cur,
+          sessions_count: count,
+          total_price: count * price,
+        };
+      });
+      return next;
+    });
+    toast.success(`تعداد جلسات همه مربیان انتخابی با موفقیت به ${count} جلسه تنظیم شد.`);
   };
 
   const toggleDay = (dayName) => {
@@ -238,6 +334,19 @@ export const AdminCreateCoursePage = () => {
         toast.error('لطفاً حداقل یک مربی برای دوره آموزشی انتخاب کنید.');
         return false;
       }
+      for (const coachId of formData.coach_ids) {
+        const cfg = coachConfigs[coachId] || getCoachConfig(coachId);
+        const coachObj = coaches.find((c) => c.id === coachId);
+        const coachName = coachObj ? coachObj.full_name : 'مربی';
+        if (!cfg.sessions_count || Number(cfg.sessions_count) < 1) {
+          toast.error(`تعداد جلسات برای ${coachName} باید حداقل ۱ جلسه باشد.`);
+          return false;
+        }
+        if (cfg.session_price === '' || Number(cfg.session_price) <= 0) {
+          toast.error(`لطفاً مبلغ هر جلسه را برای ${coachName} مشخص نمایید.`);
+          return false;
+        }
+      }
       return true;
     }
 
@@ -266,6 +375,17 @@ export const AdminCreateCoursePage = () => {
 
   const handleNextStep = () => {
     if (validateStep(currentStep)) {
+      if (currentStep === 3 && formData.coach_ids.length > 0) {
+        const firstCoachId = formData.coach_ids[0];
+        const cfg = coachConfigs[firstCoachId] || getCoachConfig(firstCoachId);
+        if (cfg && cfg.total_price > 0) {
+          setFormData((prev) => ({
+            ...prev,
+            base_price: String(cfg.total_price),
+            sessions_count: cfg.sessions_count,
+          }));
+        }
+      }
       setCurrentStep((prev) => Math.min(prev + 1, 4));
     }
   };
@@ -283,6 +403,17 @@ export const AdminCreateCoursePage = () => {
         if (!validateStep(s)) {
           setCurrentStep(s);
           return;
+        }
+      }
+      if (currentStep === 3 && formData.coach_ids.length > 0) {
+        const firstCoachId = formData.coach_ids[0];
+        const cfg = coachConfigs[firstCoachId] || getCoachConfig(firstCoachId);
+        if (cfg && cfg.total_price > 0) {
+          setFormData((prev) => ({
+            ...prev,
+            base_price: String(cfg.total_price),
+            sessions_count: cfg.sessions_count,
+          }));
         }
       }
       setCurrentStep(targetStep);
@@ -827,7 +958,8 @@ export const AdminCreateCoursePage = () => {
 
         {/* Step 3: کادر مربیان دوره آموزشی */}
         {currentStep === 3 && (
-          <div className="p-6 sm:p-8 space-y-5 animate-in fade-in-50 duration-200">
+          <div className="p-4 sm:p-6 md:p-8 space-y-5 animate-in fade-in-50 duration-200">
+            {/* Header */}
             <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-900/60 text-sky-600 dark:text-sky-400 flex items-center justify-center">
@@ -850,7 +982,7 @@ export const AdminCreateCoursePage = () => {
                   : 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/70 border-amber-300 dark:border-amber-800'
               }`}>
                 {formData.coach_ids.length > 0
-                  ? `${formData.coach_ids.length} مربی انتخاب شده (${formData.coach_ids.length} کلاس خودکار)`
+                  ? `${formData.coach_ids.length} مربی انتخاب شده (${formData.coach_ids.length} کلاس اختصاصی)`
                   : 'هیچ مربی انتخاب نشده (الزامی)'}
               </span>
             </div>
@@ -864,16 +996,87 @@ export const AdminCreateCoursePage = () => {
               </div>
             )}
 
-            {/* Coach Search Bar */}
-            <div className="relative max-w-sm">
-              <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={coachSearch}
-                onChange={(e) => setCoachSearch(e.target.value)}
-                placeholder="جستجو در نام مربی یا تخصص..."
-                className="w-full pl-3 pr-10 py-2.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
-              />
+            {/* Controls Bar: Search & Default Sessions Setting */}
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 p-3.5 bg-slate-50/80 dark:bg-slate-800/50 rounded-2xl border border-slate-200/80 dark:border-slate-700/70">
+              {/* Search Bar */}
+              <div className="relative flex-1 max-w-md">
+                <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  value={coachSearch}
+                  onChange={(e) => setCoachSearch(e.target.value)}
+                  placeholder="جستجو در نام مربی یا تخصص..."
+                  className="w-full pl-3 pr-10 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
+                />
+                {coachSearch && (
+                  <button
+                    type="button"
+                    onClick={() => setCoachSearch('')}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {/* Default Course Sessions Config */}
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs shadow-2xs">
+                  <span className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                    <span>تعداد جلسه دوره:</span>
+                  </span>
+                  <div className="flex items-center gap-1 bg-slate-100 dark:bg-slate-800 rounded-lg px-1 py-0.5">
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, sessions_count: Math.max(1, (Number(prev.sessions_count) || 12) - 1) }))}
+                      className="w-6 h-6 rounded flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold transition-colors cursor-pointer"
+                      title="کاهش تعداد جلسات پیش‌فرض"
+                    >
+                      <Minus className="w-3 h-3" />
+                    </button>
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={formData.sessions_count}
+                      onChange={(e) => {
+                        const val = Math.max(1, parseInt(e.target.value, 10) || 1);
+                        setFormData((prev) => ({ ...prev, sessions_count: val }));
+                      }}
+                      className="w-9 text-center font-mono font-bold text-xs bg-transparent text-slate-900 dark:text-white focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setFormData((prev) => ({ ...prev, sessions_count: Math.min(100, (Number(prev.sessions_count) || 12) + 1) }))}
+                      className="w-6 h-6 rounded flex items-center justify-center text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold transition-colors cursor-pointer"
+                      title="افزایش تعداد جلسات پیش‌فرض"
+                    >
+                      <Plus className="w-3 h-3" />
+                    </button>
+                  </div>
+                  <span className="text-[11px] text-slate-400 font-semibold">جلسه</span>
+                </div>
+
+                {formData.coach_ids.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={applyDefaultSessionsToAllCoaches}
+                    title="اعمال این تعداد جلسه روی همه مربیان انتخاب شده"
+                    className="text-[11px] font-semibold px-2.5 py-1.5 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900 transition-colors cursor-pointer"
+                  >
+                    همگام‌سازی مربیان
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Informative Tip */}
+            <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 px-1">
+              <Sparkles className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+              <span>
+                با انتخاب هر مربی، تعداد جلسات دیفالت برابر با تعداد جلسه دوره ({formData.sessions_count} جلسه) تنظیم می‌شود ولی می‌توانید آن را ویرایش کنید. مبلغ دوره از ضرب تعداد جلسات در مبلغ هر جلسه محاسبه می‌گردد.
+              </span>
             </div>
 
             {/* Coaches Grid */}
@@ -898,64 +1101,199 @@ export const AdminCreateCoursePage = () => {
                 مربی متناسب با عبارت جستجو یافت نشد.
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 max-h-[380px] overflow-y-auto p-1">
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3.5 max-h-[520px] overflow-y-auto p-1">
                 {filteredCoaches.map((c) => {
                   const isSelected = formData.coach_ids.includes(c.id);
+                  const config = getCoachConfig(c.id);
+
                   return (
                     <div
                       key={c.id}
-                      onClick={() => toggleCoach(c.id)}
-                      className={`p-3.5 rounded-2xl border transition-all cursor-pointer flex items-center justify-between gap-3 group select-none ${
+                      className={`rounded-2xl border transition-all duration-200 select-none overflow-hidden flex flex-col justify-between ${
                         isSelected
-                          ? 'bg-sky-50/80 dark:bg-sky-950/50 border-sky-400 dark:border-sky-600 shadow-2xs'
-                          : 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-200/90 dark:border-slate-700/70 hover:border-slate-300 dark:hover:border-slate-600'
+                          ? 'bg-sky-50/70 dark:bg-sky-950/40 border-sky-400 dark:border-sky-500 shadow-sm ring-2 ring-sky-500/15 dark:ring-sky-400/20'
+                          : 'bg-white dark:bg-slate-900 border-slate-200/90 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-xs'
                       }`}
                     >
-                      <div className="flex items-center gap-3 min-w-0">
-                        {/* Coach Avatar */}
-                        <div className="relative shrink-0">
-                          {c.avatar ? (
-                            <img
-                              src={c.avatar}
-                              alt={c.full_name}
-                              className="w-11 h-11 rounded-2xl object-cover border border-slate-200 dark:border-slate-700"
-                            />
-                          ) : (
-                            <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shadow-2xs">
-                              {c.full_name ? c.full_name.charAt(0) : 'م'}
-                            </div>
-                          )}
-                          <span className="absolute -bottom-1 -left-1 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
-                        </div>
-
-                        <div className="min-w-0">
-                          <span className="font-bold text-xs text-slate-900 dark:text-white block truncate group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
-                            {c.full_name}
-                          </span>
-                          <span className="text-[11px] text-slate-400 block truncate mt-0.5">
-                            {c.coaching_degree_display || c.coaching_degree || 'مربی رسمی شنا'}
-                          </span>
-                          {isSelected && (
-                            <span className="inline-block text-[10px] text-sky-700 dark:text-sky-300 font-bold bg-sky-100 dark:bg-sky-900/60 px-2 py-0.5 rounded-md mt-1">
-                              کلاس اختصاصی فعال شد
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Checkbox button */}
+                      {/* Coach Card Header (Clickable to toggle selection) */}
                       <div
-                        className={`w-6 h-6 rounded-xl border flex items-center justify-center shrink-0 transition-colors ${
-                          isSelected
-                            ? 'bg-sky-600 border-sky-600 text-white'
-                            : 'border-slate-300 dark:border-slate-600 group-hover:border-slate-400'
-                        }`}
+                        onClick={() => toggleCoach(c.id)}
+                        className="p-3.5 flex items-center justify-between gap-3 cursor-pointer group"
                       >
-                        {isSelected && <Check className="w-4 h-4 stroke-[2.5]" />}
+                        <div className="flex items-center gap-3 min-w-0">
+                          {/* Coach Avatar */}
+                          <div className="relative shrink-0">
+                            {c.avatar ? (
+                              <img
+                                src={c.avatar}
+                                alt={c.full_name}
+                                className="w-11 h-11 rounded-2xl object-cover border border-slate-200 dark:border-slate-700"
+                              />
+                            ) : (
+                              <div className="w-11 h-11 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-sm shadow-2xs">
+                                {c.full_name ? c.full_name.charAt(0) : 'م'}
+                              </div>
+                            )}
+                            <span className="absolute -bottom-1 -left-1 w-3 h-3 bg-emerald-500 border-2 border-white dark:border-slate-900 rounded-full" />
+                          </div>
+
+                          <div className="min-w-0">
+                            <span className="font-bold text-xs text-slate-900 dark:text-white block truncate group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                              {c.full_name}
+                            </span>
+                            <span className="text-[11px] text-slate-400 block truncate mt-0.5">
+                              {c.coaching_degree_display || c.coaching_degree || 'مربی رسمی شنا'}
+                            </span>
+                            {isSelected && (
+                              <span className="inline-block text-[10px] text-sky-700 dark:text-sky-300 font-bold bg-sky-100/90 dark:bg-sky-900/60 px-2 py-0.5 rounded-md mt-1">
+                                کلاس اختصاصی فعال شد
+                              </span>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Checkbox button */}
+                        <div
+                          className={`w-6 h-6 rounded-xl border flex items-center justify-center shrink-0 transition-all ${
+                            isSelected
+                              ? 'bg-sky-600 border-sky-600 text-white shadow-2xs'
+                              : 'border-slate-300 dark:border-slate-600 group-hover:border-slate-400 bg-white dark:bg-slate-800'
+                          }`}
+                        >
+                          {isSelected && <Check className="w-4 h-4 stroke-[2.5]" />}
+                        </div>
                       </div>
+
+                      {/* Coach Expanded Config: Sessions Count + Fee Per Session + Calculated Course Fee */}
+                      {isSelected && (
+                        <div
+                          onClick={(e) => e.stopPropagation()}
+                          className="px-3.5 pb-3.5 pt-2.5 border-t border-sky-200/70 dark:border-sky-800/70 bg-white/70 dark:bg-slate-900/50 space-y-3 animate-in fade-in-50 duration-150"
+                        >
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                            {/* 1. تعداد جلسات (دیفالت برابر با تعداد جلسه دوره، ولی قابل ادیت) */}
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                تعداد جلسات مربی:
+                              </label>
+                              <div className="flex items-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-sky-500">
+                                <button
+                                  type="button"
+                                  onClick={() => updateCoachSessions(c.id, config.sessions_count - 1)}
+                                  disabled={config.sessions_count <= 1}
+                                  className="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-30 disabled:cursor-not-allowed transition-colors font-bold cursor-pointer"
+                                  title="کاهش جلسات مربی"
+                                >
+                                  <Minus className="w-3.5 h-3.5" />
+                                </button>
+                                <input
+                                  type="number"
+                                  min="1"
+                                  max="100"
+                                  value={config.sessions_count}
+                                  onChange={(e) => updateCoachSessions(c.id, e.target.value)}
+                                  className="w-full text-center py-1 text-xs font-mono font-bold text-slate-900 dark:text-white bg-transparent focus:outline-none"
+                                />
+                                <button
+                                  type="button"
+                                  onClick={() => updateCoachSessions(c.id, config.sessions_count + 1)}
+                                  className="w-8 h-8 flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors font-bold cursor-pointer"
+                                  title="افزایش جلسات مربی"
+                                >
+                                  <Plus className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                              <span className="text-[10px] text-slate-400 block mt-0.5 text-center">
+                                {config.sessions_count === Number(formData.sessions_count) ? 'مطابق با پیش‌فرض دوره' : 'جلسات اختصاصی مربی'}
+                              </span>
+                            </div>
+
+                            {/* 2. اینپوت مبلغ هر جلسه */}
+                            <div>
+                              <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                مبلغ هر جلسه (تومان):
+                              </label>
+                              <div className="relative">
+                                <input
+                                  type="text"
+                                  inputMode="numeric"
+                                  placeholder="مثال: ۱۵۰,۰۰۰"
+                                  value={config.session_price !== '' ? Number(config.session_price).toLocaleString('fa-IR') : ''}
+                                  onChange={(e) => updateCoachSessionPrice(c.id, e.target.value)}
+                                  className="w-full pl-12 pr-2.5 py-1.5 text-xs font-mono font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                />
+                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 select-none">
+                                  تومان
+                                </span>
+                              </div>
+                              <span className="text-[10px] text-slate-400 block mt-0.5 truncate">
+                                {config.session_price > 0 ? `${formatPrice(config.session_price)} تومان برای هر جلسه` : 'مبلغ را وارد کنید'}
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* 3. نمایش مبلغ دوره: تعداد جلسه * مبلغ هر جلسه */}
+                          <div className="p-2.5 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-emerald-950/40 border border-emerald-300/80 dark:border-emerald-700/60 rounded-xl flex items-center justify-between gap-2">
+                            <div className="min-w-0">
+                              <span className="text-[11px] font-bold text-emerald-900 dark:text-emerald-200 block">
+                                مبلغ دوره برای این مربی:
+                              </span>
+                              <span className="text-[10px] text-emerald-700/90 dark:text-emerald-400 block truncate font-mono">
+                                {config.sessions_count} جلسه × {formatPrice(config.session_price || 0)} تومان
+                              </span>
+                            </div>
+                            <div className="text-left shrink-0">
+                              <span className="text-xs sm:text-sm font-mono font-black text-emerald-700 dark:text-emerald-300 block">
+                                {formatPrice(config.total_price)} تومان
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
+              </div>
+            )}
+
+            {/* Selected Coaches Summary Footer Banner */}
+            {formData.coach_ids.length > 0 && (
+              <div className="p-3.5 sm:p-4 bg-sky-50/70 dark:bg-sky-950/40 rounded-2xl border border-sky-200/80 dark:border-sky-800/70 flex flex-col sm:flex-row sm:items-center justify-between gap-3 animate-in fade-in duration-200">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-2xs">
+                    <Whistle className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white block">
+                      کادر مربیان اختصاص یافته: {formData.coach_ids.length} مربی ({formData.coach_ids.length} کلاس اختصاصی)
+                    </span>
+                    <div className="flex flex-wrap gap-1.5 mt-1.5">
+                      {selectedCoachObjects.map((c) => {
+                        const cfg = getCoachConfig(c.id);
+                        return (
+                          <span
+                            key={c.id}
+                            className="inline-flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-lg bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800"
+                          >
+                            <span>{c.full_name}:</span>
+                            <span className="font-mono text-sky-600 dark:text-sky-400">{cfg.sessions_count} جلسه</span>
+                            <span className="text-slate-400">|</span>
+                            <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(cfg.total_price)} ت</span>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="text-left sm:text-right shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-sky-200/60 dark:border-sky-800/60">
+                  <span className="text-[10px] text-slate-400 block font-semibold">
+                    شهریه مبنا جهت انتقال به مرحله بعد:
+                  </span>
+                  <span className="text-sm font-mono font-black text-sky-700 dark:text-sky-300">
+                    {formatPrice(getCoachConfig(formData.coach_ids[0]).total_price)} تومان
+                  </span>
+                </div>
               </div>
             )}
           </div>
@@ -1006,6 +1344,11 @@ export const AdminCreateCoursePage = () => {
                 <span className="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 block mt-1 font-bold">
                   معادل: {formatPrice(formData.base_price)} تومان
                 </span>
+                {formData.coach_ids.length > 0 && (
+                  <span className="text-[10px] text-sky-600 dark:text-sky-400 block mt-0.5">
+                    (محاسبه شده بر مبنای کادر مربیان مرحله ۳)
+                  </span>
+                )}
               </div>
 
               <div>
@@ -1150,13 +1493,31 @@ export const AdminCreateCoursePage = () => {
                   </span>
                 </div>
 
-                <div>
-                  <span className="text-slate-400 block text-[11px]">کادر مربیان دوره:</span>
-                  <span className={`font-bold ${selectedCoachObjects.length > 0 ? 'text-sky-600 dark:text-sky-400' : 'text-rose-500'}`}>
-                    {selectedCoachObjects.length > 0
-                      ? `${selectedCoachObjects.length} مربی (${selectedCoachObjects.map(c => c.full_name).join('، ')})`
-                      : 'بدون انتخاب مربی (نامعتبر)'}
-                  </span>
+                <div className="sm:col-span-2 md:col-span-3">
+                  <span className="text-slate-400 block text-[11px] mb-1">کادر مربیان دوره و شهریه کلاس‌ها:</span>
+                  {selectedCoachObjects.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {selectedCoachObjects.map((c) => {
+                        const cfg = getCoachConfig(c.id);
+                        return (
+                          <span
+                            key={c.id}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs font-semibold bg-sky-50 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800"
+                          >
+                            <Whistle className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                            <span>{c.full_name}:</span>
+                            <span className="font-mono text-slate-700 dark:text-slate-300">{cfg.sessions_count} جلسه</span>
+                            <span className="text-slate-400">×</span>
+                            <span className="font-mono text-slate-700 dark:text-slate-300">{formatPrice(cfg.session_price)} ت</span>
+                            <span className="text-slate-400">=</span>
+                            <span className="font-mono font-bold text-emerald-600 dark:text-emerald-400">{formatPrice(cfg.total_price)} تومان</span>
+                          </span>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <span className="font-bold text-rose-500">بدون انتخاب مربی (نامعتبر)</span>
+                  )}
                 </div>
 
                 <div>

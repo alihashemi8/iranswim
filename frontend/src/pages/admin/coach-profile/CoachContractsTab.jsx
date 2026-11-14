@@ -180,9 +180,6 @@ export const CoachContractsTab = ({ coach, contracts, onContractsUpdated }) => {
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  نوع قرارداد: <span className="font-semibold text-slate-700 dark:text-slate-300">{activeContract.contract_type_display}</span>
-                </p>
               </div>
             </div>
 
@@ -264,7 +261,6 @@ export const CoachContractsTab = ({ coach, contracts, onContractsUpdated }) => {
             <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
               <tr>
                 <th className="py-3 px-4 font-bold">شماره قرارداد</th>
-                <th className="py-3 px-4 font-bold">نوع قرارداد</th>
                 <th className="py-3 px-4 font-bold">مدل دستمزد</th>
                 <th className="py-3 px-4 font-bold">تاریخ شروع</th>
                 <th className="py-3 px-4 font-bold">تاریخ پایان</th>
@@ -277,7 +273,7 @@ export const CoachContractsTab = ({ coach, contracts, onContractsUpdated }) => {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
               {contracts.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-6 text-center text-slate-400">
+                  <td colSpan={8} className="py-6 text-center text-slate-400">
                     هیچ قراردادی در پرونده ثبت نشده است.
                   </td>
                 </tr>
@@ -287,7 +283,6 @@ export const CoachContractsTab = ({ coach, contracts, onContractsUpdated }) => {
                     <td className="py-3 px-4 font-mono font-bold text-sky-700 dark:text-sky-400">
                       {c.contract_number}
                     </td>
-                    <td className="py-3 px-4">{c.contract_type_display}</td>
                     <td className="py-3 px-4">{c.employment_type_display}</td>
                     <td className="py-3 px-4 font-mono">{new Date(c.start_date).toLocaleDateString('fa-IR')}</td>
                     <td className="py-3 px-4 font-mono">{new Date(c.end_date).toLocaleDateString('fa-IR')}</td>

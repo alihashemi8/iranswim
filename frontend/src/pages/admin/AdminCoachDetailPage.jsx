@@ -17,8 +17,7 @@ import { useToast } from '../../context/ToastContext';
 
 // Tabs
 import { CoachPersonalTab } from './coach-profile/CoachPersonalTab';
-import { CoachContractsTab } from './coach-profile/CoachContractsTab';
-import { CoachPayrollTab } from './coach-profile/CoachPayrollTab';
+import { CoachContractsAndFinanceTab } from './coach-profile/CoachContractsAndFinanceTab';
 import { CoachWorkAndLeavesTab } from './coach-profile/CoachWorkAndLeavesTab';
 import { CoachScheduleTab } from './coach-profile/CoachScheduleTab';
 import { CoachEvaluationAndRecordsTab } from './coach-profile/CoachEvaluationAndRecordsTab';
@@ -40,11 +39,21 @@ export const AdminCoachDetailPage = () => {
 
   // Active Tab initialized from query parameter if present
   const tabParam = searchParams.get('tab');
-  const [activeTab, setActiveTab] = useState(tabParam || 'INFO');
+  const resolveTab = (t) => {
+    if (t === 'CONTRACTS' || t === 'PAYROLL' || t === 'CONTRACTS_AND_FINANCE') {
+      return 'CONTRACTS_AND_FINANCE';
+    }
+    return t || 'INFO';
+  };
+
+  const [activeTab, setActiveTab] = useState(resolveTab(tabParam));
 
   useEffect(() => {
-    if (tabParam && tabParam !== activeTab) {
-      setActiveTab(tabParam);
+    if (tabParam) {
+      const resolved = resolveTab(tabParam);
+      if (resolved !== activeTab) {
+        setActiveTab(resolved);
+      }
     }
   }, [tabParam]);
 
@@ -172,8 +181,12 @@ export const AdminCoachDetailPage = () => {
 
   const tabs = [
     { id: 'INFO', label: 'مشخصات و مدارک', icon: UserCheck },
-    { id: 'CONTRACTS', label: 'احکام و قراردادها', icon: FileText, count: contracts.length },
-    { id: 'PAYROLL', label: 'حقوق و امور مالی', icon: CreditCard, count: payrolls.length },
+    {
+      id: 'CONTRACTS_AND_FINANCE',
+      label: 'احکام، قراردادها و امور مالی',
+      icon: CreditCard,
+      count: (contracts.length + payrolls.length) || undefined,
+    },
     {
       id: 'WORK_AND_LEAVES',
       label: 'کارکرد و مرخصی‌ها',
@@ -370,18 +383,12 @@ export const AdminCoachDetailPage = () => {
           />
         )}
 
-        {activeTab === 'CONTRACTS' && (
-          <CoachContractsTab
+        {activeTab === 'CONTRACTS_AND_FINANCE' && (
+          <CoachContractsAndFinanceTab
             coach={coach}
             contracts={contracts}
-            onContractsUpdated={fetchCoachData}
-          />
-        )}
-
-        {activeTab === 'PAYROLL' && (
-          <CoachPayrollTab
-            coach={coach}
             payrolls={payrolls}
+            onContractsUpdated={fetchCoachData}
             onPayrollsUpdated={fetchCoachData}
           />
         )}

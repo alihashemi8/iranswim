@@ -149,7 +149,7 @@ export const AdminCoachCreateContractPage = () => {
         toast.success('قرارداد جدید با موفقیت منعقد و ثبت شد.');
       }
 
-      navigate(`/admin/coaches/${id}?tab=CONTRACTS`);
+      navigate(`/admin/coaches/${id}?tab=CONTRACTS_FINANCE&subtab=CONTRACTS`);
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.detail || 'خطا در ثبت قرارداد مربی');
@@ -170,14 +170,14 @@ export const AdminCoachCreateContractPage = () => {
     <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6" dir="rtl">
       {/* Breadcrumb & Navigation */}
       <div className="flex items-center gap-3 pb-4 border-b border-slate-200">
-        <BackButton to={`/admin/coaches/${id}?tab=CONTRACTS`} fallback={`/admin/coaches/${id}`} title="بازگشت به پرونده مربی" />
+        <BackButton to={`/admin/coaches/${id}?tab=CONTRACTS_FINANCE&subtab=CONTRACTS`} fallback={`/admin/coaches/${id}`} title="بازگشت به پرونده مربی" />
         <div className="space-y-1 min-w-0 flex-1">
           <div className="flex items-center gap-2 text-xs sm:text-sm text-slate-500 truncate">
             <Link to="/admin/coaches" className="hover:text-sky-600 transition-colors shrink-0">
               مدیریت مربیان
             </Link>
             <span>/</span>
-            <Link to={`/admin/coaches/${id}?tab=CONTRACTS`} className="hover:text-sky-600 transition-colors shrink-0 truncate">
+            <Link to={`/admin/coaches/${id}?tab=CONTRACTS_FINANCE&subtab=CONTRACTS`} className="hover:text-sky-600 transition-colors shrink-0 truncate">
               پرونده {coach?.full_name}
             </Link>
             <span>/</span>
@@ -239,40 +239,6 @@ export const AdminCoachCreateContractPage = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  نوع قرارداد <span className="text-rose-500">*</span>
-                </label>
-                <CustomSelect
-                  value={form.contract_type}
-                  onChange={(val) => handleChange('contract_type', val)}
-                  options={[
-                    { value: 'STANDARD', label: 'قرارداد استاندارد همکاری' },
-                    { value: 'HOURLY', label: 'قرارداد پاره‌وقت ساعتی' },
-                    { value: 'COMMISSION', label: 'قرارداد درصدی / پروژه‌ای' },
-                    { value: 'TRIAL', label: 'قرارداد دوره آزمایشی' },
-                    { value: 'TEMPORARY', label: 'قرارداد موقت فصلی' },
-                  ]}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  ساعات تعهد هفتگی (ساعت)
-                </label>
-                <div className="relative">
-                  <input
-                    type="number"
-                    min="1"
-                    max="80"
-                    value={form.agreed_weekly_hours}
-                    onChange={(e) => handleChange('agreed_weekly_hours', e.target.value)}
-                    className="w-full text-sm rounded-xl border border-slate-200 px-3 py-2 pr-9 focus:ring-2 focus:ring-sky-500 focus:outline-none"
-                  />
-                  <Clock className="w-4 h-4 text-slate-400 absolute right-3 top-2.5" />
-                </div>
-              </div>
-
-              <div>
                 <PersianDatePicker
                   label="تاریخ شروع قرارداد *"
                   value={form.start_date}
@@ -294,6 +260,23 @@ export const AdminCoachCreateContractPage = () => {
                   size="md"
                   required
                 />
+              </div>
+
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">
+                  ساعات تعهد هفتگی (ساعت)
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="1"
+                    max="80"
+                    value={form.agreed_weekly_hours}
+                    onChange={(e) => handleChange('agreed_weekly_hours', e.target.value)}
+                    className="w-full text-sm rounded-xl border border-slate-200 px-3 py-2 pr-9 focus:ring-2 focus:ring-sky-500 focus:outline-none"
+                  />
+                  <Clock className="w-4 h-4 text-slate-400 absolute right-3 top-2.5" />
+                </div>
               </div>
             </div>
           </div>
@@ -509,16 +492,6 @@ export const AdminCoachCreateContractPage = () => {
               <div className="flex justify-between items-center py-1.5 border-b border-slate-50">
                 <span className="text-slate-500">طرف قرارداد:</span>
                 <span className="font-bold text-slate-900">{coach?.full_name}</span>
-              </div>
-              <div className="flex justify-between items-center py-1.5 border-b border-slate-50">
-                <span className="text-slate-500">نوع همکاری:</span>
-                <span className="font-bold text-slate-900">
-                  {form.contract_type === 'STANDARD' && 'استاندارد'}
-                  {form.contract_type === 'HOURLY' && 'پاره‌وقت ساعتی'}
-                  {form.contract_type === 'COMMISSION' && 'درصدی'}
-                  {form.contract_type === 'TRIAL' && 'آزمایشی'}
-                  {form.contract_type === 'TEMPORARY' && 'موقت'}
-                </span>
               </div>
               <div className="flex justify-between items-center py-1.5 border-b border-slate-50">
                 <span className="text-slate-500">مدل تسویه:</span>
