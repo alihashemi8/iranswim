@@ -181,3 +181,52 @@ def test_login_returns_avatar_url(api_client):
     assert 'user' in res.data
     assert res.data['user'].get('avatar') is not None
     assert 'media/avatars/' in res.data['user']['avatar']
+
+
+@pytest.mark.django_db
+def test_avatar_upload_with_xmp_metadata(api_client):
+    """تصاویر واقعی گوشی‌های هوشمند حاوی متادیتای ادوبی XMP در بخش APP1 بدون خطا آپلود می‌شوند"""
+    user = User.objects.create_user(
+        phone='09129990005',
+        password='TestPassword123!',
+        first_name='هادی',
+        last_name='شمس',
+        role=User.Role.COACH
+    )
+    api_client.force_authenticate(user=user)
+
+    # Create real valid JPEG with XMP metadata inside APP1
+    img = Image.new('RGB', (120, 120), color=(10, 80, 200))
+    xmp_meta = b'http://ns.adobe.com/xap/1.0/\x00<?xpacket begin="" id="W5M0MpCehiHzreSzNTczkc9d"?><x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description/></rdf:RDF></x:xmpmeta><?xpacket end="w"?>'
+    buf = io.BytesIO()
+    img.save(buf, format='JPEG', app=b'\xe1' + len(xmp_meta + b'\x00\x00').to_bytes(2, 'big') + xmp_meta)
+    buf.seek(0)
+
+    upload_file = SimpleUploadedFile("camera_phone_photo.jpg", buf.read(), content_type="image/jpeg")
+    res = api_client.post('/api/auth/me/avatar/', {'avatar': upload_file}, format='multipart')
+    assert res.status_code == 200
+    assert res.data.get('avatar') is not None
+
+    user.refresh_from_db()
+    assert bool(user.avatar) is True
+
+
+@pytest.mark.django_db
+def test_avatar_upload_with_windows_fakepath(api_client):
+    """مرورگرهای ویندوزی که پیشوند fakepath ارسال می‌کنند بدون خطا پردازش می‌شوند"""
+    user = User.objects.create_user(
+        phone='09129990006',
+        password='TestPassword123!',
+        first_name='فرزاد',
+        last_name='صالحی',
+        role=User.Role.SUPERVISOR
+    )
+    api_client.force_authenticate(user=user)
+
+    img = create_test_image('PNG')
+    # Windows browser fakepath
+    upload_file = SimpleUploadedFile(r"C:\fakepath\my_avatar.png", img.read(), content_type="image/png")
+    res = api_client.post('/api/auth/me/avatar/', {'avatar': upload_file}, format='multipart')
+    assert res.status_code == 200
+    assert res.data.get('avatar') is not None
+
