@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Search, X, RotateCcw, Layers, Droplets, ChevronRight, Play, Square,
-  Save, Timer as TimerIcon, Flag, Users, ArrowLeftRight, MoveRight
+  Save, Timer as TimerIcon, Flag, Users, ArrowLeftRight, MoveRight,
+  LayoutGrid, Table, Video, Upload, Trash2, Film
 } from 'lucide-react';
 
 import api from '../../api/client';
@@ -11,6 +12,7 @@ import { CustomSelect } from '../../components/common/CustomSelect';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { useToast } from '../../context/ToastContext';
+import { toShamsiDate } from '../../utils/date';
 import {
   SwimmerCrawlIcon,
   SwimmerButterflyIcon,
@@ -20,6 +22,8 @@ import {
 } from '../../components/common/AquaticIcons';
 
 // ── ثابت‌های فرم ثبت رکورد ─────────────────────────────────────────────
+const VIEW_PREF_KEY = 'iranswim_record_view';
+
 const STROKES = [
   {
     value: 'BREASTSTROKE',
@@ -81,6 +85,11 @@ const formatStopwatch = (ms) => {
 export const CoachRecordPage = () => {
   const navigate = useNavigate();
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const deepLinkHandledRef = useRef(false);
+
+  // ── تب فعال پس از انتخاب شناگر: رکورد زمانی / آپلود فیلم ──
+  const [activeTab, setActiveTab] = useState('record');
 
   // ── داده شناگران و کلاس‌ها ──
   const [swimmers, setSwimmers] = useState([]);
@@ -90,6 +99,23 @@ export const CoachRecordPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCourse, setSelectedCourse] = useState('');
   const [selectedPool, setSelectedPool] = useState('');
+
+  // ── حالت نمایش لیست شناگران: کارت / جدول (با ذخیره انتخاب کاربر) ──
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      return localStorage.getItem(VIEW_PREF_KEY) === 'table' ? 'table' : 'cards';
+    } catch {
+      return 'cards';
+    }
+  });
+  const handleSetViewMode = (mode) => {
+    setViewMode(mode);
+    try {
+      localStorage.setItem(VIEW_PREF_KEY, mode);
+    } catch {
+      /* ignore */
+    }
+  };
 
   // ── ویزارد ثبت رکورد ──
   const [selectedSwimmer, setSelectedSwimmer] = useState(null); // { swimmer_id, full_name, avatar }
@@ -103,6 +129,17 @@ export const CoachRecordPage = () => {
   const [saving, setSaving] = useState(false);
   const intervalRef = useRef(null);
   const startTsRef = useRef(0);
+
+  // ── آپلود فیلم شناگر ──
+  const [videoFile, setVideoFile] = useState(null);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState(null);
+  const [videoTitle, setVideoTitle] = useState('');
+  const [videoDescription, setVideoDescription] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [videos, setVideos] = useState([]);
+  const [videosLoading, setVideosLoading] = useState(false);
+  const fileInputRef = useRef(null);
 
   const clearTimerInterval = useCallback(() => {
     if (intervalRef.current) {
@@ -259,11 +296,14 @@ export const CoachRecordPage = () => {
     setStroke('');
     setDistance(null);
     resetTimer();
+    resetVideoForm();
+    setActiveTab('record');
   };
 
   const handleBackToSwimmers = () => {
     setSelectedSwimmer(null);
     resetTimer();
+    resetVideoForm();
   };
 
   const handleBackStep = () => {
@@ -330,6 +370,353 @@ export const CoachRecordPage = () => {
       setSaving(false);
     }
   };
+
+  // ── دیپ‌لینک: /coach/records?swimmer=<id>&tab=video ──
+  useEffect(() => {
+    if (deepLinkHandledRef.current || loading) return;
+    deepLinkHandledRef.current = true;
+    const qsSwimmer = searchParams.get('swimmer');
+    if (!qsSwimmer) return;
+    const match = swimmers.find((sw) => String(sw.swimmer_id) === String(qsSwimmer));
+    if (match) {
+      setSelectedSwimmer({ swimmer_id: match.swimmer_id, full_name: match.full_name, avatar: match.avatar });
+      if (searchParams.get('tab') === 'video') setActiveTab('video');
+      setSearchParams({}, { replace: true });
+    }
+  }, [loading, swimmers, searchParams, setSearchParams]);
+
+  // ── دریافت ویدئوهای بارگذاری‌شده شناگر ──
+  const loadVideos = useCallback(async () => {
+    if (!selectedSwimmer) return;
+    try {
+      setVideosLoading(true);
+      const res = await api.get('/swimmers/videos/', {
+        params: { swimmer_id: selectedSwimmer.swimmer_id },
+      });
+      setVideos(Array.isArray(res.data) ? res.data : res.data?.results || []);
+    } catch (err) {
+      console.error('Error fetching swimmer videos:', err);
+      toast.error('خطا در دریافت ویدئوهای شناگر');
+    } finally {
+      setVideosLoading(false);
+    }
+  }, [selectedSwimmer, toast]);
+
+  useEffect(() => {
+    if (selectedSwimmer && activeTab === 'video') {
+      loadVideos();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, selectedSwimmer]);
+
+  // آزادسازی حافظه پیش‌نمایش ویدئو
+  useEffect(() => {
+    return () => {
+      if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    };
+  }, [videoPreviewUrl]);
+
+  // ── انتخاب/پاک‌سازی فایل ویدئو ──
+  const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200MB
+
+  const formatFileSize = (bytes) => {
+    if (bytes == null) return '';
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} کیلوبایت`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} مگابایت`;
+  };
+
+  const handleVideoFileSelect = (file) => {
+    if (!file) return;
+    if (!file.type.startsWith('video/')) {
+      toast.error('لطفاً یک فایل ویدئو (mp4، mov، webm و...) انتخاب کنید.');
+      return;
+    }
+    if (file.size > MAX_VIDEO_SIZE) {
+      toast.error('حجم ویدئو نباید بیشتر از ۲۰۰ مگابایت باشد.');
+      return;
+    }
+    setVideoFile(file);
+    setVideoPreviewUrl(URL.createObjectURL(file));
+  };
+
+  const clearVideoFile = () => {
+    if (videoPreviewUrl) URL.revokeObjectURL(videoPreviewUrl);
+    setVideoFile(null);
+    setVideoPreviewUrl(null);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+  };
+
+  const resetVideoForm = () => {
+    clearVideoFile();
+    setVideoTitle('');
+    setVideoDescription('');
+    setVideos([]);
+  };
+
+  // ── بارگذاری ویدئو در پروفایل شناگر ──
+  const handleVideoUpload = async () => {
+    if (!videoFile || !selectedSwimmer || uploading) return;
+    try {
+      setUploading(true);
+      setUploadProgress(0);
+      const formData = new FormData();
+      formData.append('video', videoFile);
+      formData.append('swimmer', selectedSwimmer.swimmer_id);
+      if (videoTitle.trim()) formData.append('title', videoTitle.trim());
+      if (videoDescription.trim()) formData.append('description', videoDescription.trim());
+      await api.post('/swimmers/videos/', formData, {
+        onUploadProgress: (e) => {
+          if (e.total) setUploadProgress(Math.round((e.loaded / e.total) * 100));
+        },
+      });
+      toast.success('ویدئو با موفقیت در پروفایل شناگر بارگذاری شد.');
+      resetVideoForm();
+      await loadVideos();
+    } catch (err) {
+      console.error('Error uploading swim video:', err);
+      toast.error(err.response?.data?.video || err.response?.data?.detail || 'بارگذاری ویدئو ناموفق بود. دوباره تلاش کنید.');
+    } finally {
+      setUploading(false);
+      setUploadProgress(0);
+    }
+  };
+
+  const handleDeleteVideo = async (videoId) => {
+    try {
+      await api.delete(`/swimmers/videos/${videoId}/`);
+      toast.success('ویدئو حذف شد.');
+      setVideos((prev) => prev.filter((v) => v.id !== videoId));
+    } catch (err) {
+      console.error('Error deleting swim video:', err);
+      toast.error(err.response?.data?.detail || 'حذف ویدئو ناموفق بود.');
+    }
+  };
+
+  // ═══════════════════ تب آپلود فیلم شناگر ═══════════════════
+  const renderVideoSection = () => (
+    <div className="space-y-4 sm:space-y-5">
+      {/* فرم بارگذاری */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs p-4 sm:p-6 lg:p-8">
+        <div className="text-center mb-5 sm:mb-7">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white flex items-center justify-center gap-2">
+            <Film className="w-5.5 h-5.5 sm:w-6 sm:h-6 text-sky-600 dark:text-sky-400 shrink-0" />
+            آپلود فیلم شنای شناگر
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5">
+            ویدئوی تمرین یا مسابقه را بارگذاری کنید تا در پروفایل شناگر نمایش داده شود؛ عنوان و توضیحات اختیاری است
+          </p>
+        </div>
+
+        <div className="max-w-2xl mx-auto space-y-4">
+          {/* ناحیه انتخاب/کشیدن و رها کردن فایل */}
+          {videoPreviewUrl ? (
+            <div className="relative rounded-2xl border border-emerald-300/70 dark:border-emerald-700 bg-slate-50 dark:bg-slate-800/50 p-3">
+              <video
+                src={videoPreviewUrl}
+                controls
+                preload="metadata"
+                className="w-full max-h-64 sm:max-h-80 rounded-xl bg-slate-900"
+              />
+              <div className="flex flex-wrap items-center justify-between gap-2 mt-2.5 px-1">
+                <span className="text-xs font-bold text-slate-700 dark:text-slate-200 truncate max-w-[60%]">
+                  {videoFile?.name}
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[11px] font-mono text-slate-500 dark:text-slate-400">
+                    {formatFileSize(videoFile?.size)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={clearVideoFile}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 hover:bg-rose-100 dark:hover:bg-rose-900/50 transition-colors cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    حذف فایل
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full flex flex-col items-center justify-center gap-2.5 p-8 sm:p-10 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-600 bg-slate-50/60 dark:bg-slate-800/40 hover:border-sky-400 dark:hover:border-sky-500 hover:bg-sky-50/50 dark:hover:bg-sky-950/20 transition-all cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+              aria-label="انتخاب فایل ویدئو"
+            >
+              <div className="w-14 h-14 rounded-2xl bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 flex items-center justify-center">
+                <Upload className="w-7 h-7" />
+              </div>
+              <span className="text-sm sm:text-base font-black text-slate-800 dark:text-slate-100">
+                انتخاب ویدئو یا کشیدن و رها کردن فایل
+              </span>
+              <span className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-medium">
+                فرمت‌های mp4، mov، webm · حداکثر ۲۰۰ مگابایت
+              </span>
+            </button>
+          )}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="video/mp4,video/quicktime,video/webm,video/x-msvideo,video/mp2t,video/*"
+            className="hidden"
+            onChange={(e) => handleVideoFileSelect(e.target.files?.[0])}
+          />
+          {/* رها کردن فایل روی کل کارت */}
+          <div
+            className="contents"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              handleVideoFileSelect(e.dataTransfer.files?.[0]);
+            }}
+          />
+
+          {/* عنوان (اختیاری) */}
+          <div>
+            <label className="block text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold mb-1.5">
+              عنوان ویدئو <span className="text-slate-400 font-medium">(اختیاری)</span>
+            </label>
+            <input
+              type="text"
+              placeholder="مثلاً: تحلیل تکنیک کرال سینه - جلسه ۱۲"
+              value={videoTitle}
+              onChange={(e) => setVideoTitle(e.target.value)}
+              maxLength={150}
+              className="w-full min-h-[44px] px-3.5 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/25 focus:border-sky-500 transition-all"
+            />
+          </div>
+
+          {/* توضیحات (اختیاری) */}
+          <div>
+            <label className="block text-xs sm:text-sm text-slate-700 dark:text-slate-300 font-semibold mb-1.5">
+              توضیحات <span className="text-slate-400 font-medium">(اختیاری)</span>
+            </label>
+            <textarea
+              rows="3"
+              placeholder="نکات مربی درباره تکنیک، نقاط قوت و ضعف شناگر..."
+              value={videoDescription}
+              onChange={(e) => setVideoDescription(e.target.value)}
+              className="w-full rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 p-3 text-xs sm:text-sm text-slate-900 dark:text-white placeholder:text-slate-400 leading-relaxed focus:outline-none focus:ring-2 focus:ring-sky-500/25 focus:border-sky-500 transition-all"
+            />
+          </div>
+
+          {/* نوار پیشرفت + دکمه بارگذاری */}
+          {uploading && (
+            <div className="space-y-1.5">
+              <div className="h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-gradient-to-r from-sky-500 to-emerald-500 transition-all duration-200"
+                  style={{ width: `${uploadProgress}%` }}
+                />
+              </div>
+              <div className="text-[11px] font-mono font-bold text-slate-500 dark:text-slate-400 text-center">
+                در حال بارگذاری... {uploadProgress}٪
+              </div>
+            </div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleVideoUpload}
+            disabled={!videoFile || uploading}
+            className="w-full inline-flex items-center justify-center gap-2 min-h-[50px] rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm sm:text-base font-black shadow-xs transition-all active:scale-[0.98] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500"
+            aria-label="بارگذاری ویدئو"
+          >
+            {uploading ? (
+              <>
+                <svg className="animate-spin h-5 w-5" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                </svg>
+                <span>در حال بارگذاری...</span>
+              </>
+            ) : (
+              <>
+                <Upload className="w-5 h-5" />
+                <span>بارگذاری ویدئو در پروفایل</span>
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+
+      {/* ویدئوهای بارگذاری‌شده قبلی */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
+        <div className="p-4 sm:p-5 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2.5">
+          <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Video className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0" />
+            <span>ویدئوهای بارگذاری‌شده</span>
+          </h3>
+          <span className="shrink-0 text-xs sm:text-sm px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold font-mono">
+            {videos.length} ویدئو
+          </span>
+        </div>
+
+        {videosLoading ? (
+          <div className="p-8 text-center text-sm font-bold text-slate-500 dark:text-slate-400">
+            در حال دریافت ویدئوها...
+          </div>
+        ) : videos.length > 0 ? (
+          <div className="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+            {videos.map((v) => (
+              <div
+                key={v.id}
+                className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 overflow-hidden"
+              >
+                <video
+                  src={v.video_url || v.video}
+                  controls
+                  preload="metadata"
+                  className="w-full max-h-56 sm:max-h-64 bg-slate-900"
+                />
+                <div className="p-3.5 space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                        {v.title || 'ویدئوی بدون عنوان'}
+                      </div>
+                      {v.description && (
+                        <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mt-1 line-clamp-3">
+                          {v.description}
+                        </p>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteVideo(v.id)}
+                      className="p-2 rounded-lg text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors cursor-pointer shrink-0"
+                      title="حذف ویدئو"
+                      aria-label="حذف ویدئو"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="font-mono">{toShamsiDate(v.created_at).shortNumeric || v.created_at}</span>
+                    <span className="text-slate-300 dark:text-slate-600">·</span>
+                    <span>بارگذاری توسط: {v.uploaded_by_name || 'مربی'}</span>
+                    {v.file_size != null && (
+                      <>
+                        <span className="text-slate-300 dark:text-slate-600">·</span>
+                        <span className="font-mono">{formatFileSize(v.file_size)}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 px-4 space-y-2">
+            <Video className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+              هنوز ویدئویی برای این شناگر بارگذاری نشده است.
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   // ── نوار پیشرفت ویزارد ──
   const renderStepper = () => (
@@ -560,21 +947,62 @@ export const CoachRecordPage = () => {
             )}
           </div>
 
-          {hasActiveFilter && (
-            <button
-              type="button"
-              onClick={handleResetFilters}
-              className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 transition-colors cursor-pointer shrink-0"
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+            {/* سوییچ حالت نمایش: کارت / جدول */}
+            <div
+              className="inline-flex items-center gap-1 p-1 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700"
+              role="group"
+              aria-label="حالت نمایش لیست شناگران"
             >
-              <RotateCcw className="w-3.5 h-3.5" />
-              پاک کردن فیلترها
-            </button>
-          )}
+              <button
+                type="button"
+                onClick={() => handleSetViewMode('cards')}
+                aria-pressed={viewMode === 'cards'}
+                title="نمایش کارتی"
+                aria-label="نمایش کارتی"
+                className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === 'cards'
+                    ? 'bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-xs'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                }`}
+              >
+                <LayoutGrid className="w-4 h-4" />
+                <span className="hidden sm:inline">کارت</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSetViewMode('table')}
+                aria-pressed={viewMode === 'table'}
+                title="نمایش جدولی"
+                aria-label="نمایش جدولی"
+                className={`inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                  viewMode === 'table'
+                    ? 'bg-white dark:bg-slate-700 text-emerald-700 dark:text-emerald-300 shadow-xs'
+                    : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
+                }`}
+              >
+                <Table className="w-4 h-4" />
+                <span className="hidden sm:inline">جدول</span>
+              </button>
+            </div>
+
+            {hasActiveFilter && (
+              <button
+                type="button"
+                onClick={handleResetFilters}
+                className="inline-flex items-center gap-1 text-xs font-bold text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 transition-colors cursor-pointer shrink-0"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                پاک کردن فیلترها
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
       {/* لیست شناگران */}
       {filteredSwimmers.length > 0 ? (
+        viewMode === 'cards' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
           {filteredSwimmers.map((sw) => (
             <button
@@ -631,6 +1059,110 @@ export const CoachRecordPage = () => {
             </button>
           ))}
         </div>
+        ) : (
+          /* نمای جدولی */
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[680px] text-right text-sm">
+                <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700/60 font-bold text-xs lg:text-sm">
+                  <tr>
+                    <th className="py-3.5 px-3 lg:px-4 whitespace-nowrap">نام شناگر</th>
+                    <th className="py-3.5 px-3 lg:px-4 whitespace-nowrap">دوره‌ها</th>
+                    <th className="py-3.5 px-3 lg:px-4 whitespace-nowrap">استخر</th>
+                    <th className="py-3.5 px-3 lg:px-4 text-center whitespace-nowrap">عملیات</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {filteredSwimmers.map((sw) => {
+                    const pools = Array.from(
+                      new Set(sw.displayEnrollments.map((en) => (en.pool || '').trim()).filter(Boolean))
+                    );
+                    return (
+                      <tr
+                        key={sw.swimmer_id}
+                        className="hover:bg-emerald-50/40 dark:hover:bg-slate-800/40 transition-colors"
+                      >
+                        {/* نام شناگر */}
+                        <td className="py-3.5 px-3 lg:px-4 align-middle">
+                          <div className="flex items-center gap-2.5 lg:gap-3">
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-sm shrink-0 overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800">
+                              {sw.avatar ? (
+                                <img
+                                  src={sw.avatar}
+                                  alt={sw.full_name}
+                                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                  className="w-full h-full object-cover"
+                                />
+                              ) : (
+                                sw.full_name?.charAt(0) || 'ش'
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              <div className="text-sm lg:text-[15px] font-black text-slate-900 dark:text-white whitespace-nowrap">
+                                {sw.full_name}
+                              </div>
+                              {sw.phone && (
+                                <div className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
+                                  {sw.phone}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* دوره‌ها */}
+                        <td className="py-3.5 px-3 lg:px-4 align-middle">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            {sw.displayEnrollments.slice(0, 2).map((en) => (
+                              <span
+                                key={en.id}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border border-slate-200/70 dark:border-slate-700 text-[11px] font-bold max-w-[180px]"
+                                title={en.course_name}
+                              >
+                                <Layers className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                                <span className="truncate">{en.course_name}</span>
+                              </span>
+                            ))}
+                            {sw.displayEnrollments.length > 2 && (
+                              <span className="inline-flex items-center px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border border-slate-200/70 dark:border-slate-700 text-[11px] font-bold whitespace-nowrap">
+                                +{sw.displayEnrollments.length - 2} دوره دیگر
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* استخر */}
+                        <td className="py-3.5 px-3 lg:px-4 align-middle">
+                          {pools.length > 0 ? (
+                            <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
+                              <Droplets className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+                              <span className="truncate max-w-[190px]">{pools.join('، ')}</span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-slate-400 dark:text-slate-500">—</span>
+                          )}
+                        </td>
+
+                        {/* عملیات */}
+                        <td className="py-3.5 px-3 lg:px-4 text-center align-middle">
+                          <button
+                            type="button"
+                            onClick={() => handleSelectSwimmer(sw)}
+                            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+                            title={`ثبت رکورد برای ${sw.full_name}`}
+                          >
+                            <OlympicStopwatchIcon className="w-4 h-4 shrink-0" />
+                            <span>ثبت رکورد</span>
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )
       ) : (
         <EmptyState
           title="شناگری یافت نشد"
@@ -919,7 +1451,7 @@ export const CoachRecordPage = () => {
 
           {/* راهنما */}
           <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 text-center leading-relaxed max-w-md">
-            پس از ثبت، رکورد به بخش «رکوردهای شنا» در پروفایل شناگر منتقل می‌شود و پس از تأیید مدیر آموزشگاه، رسمی خواهد شد.
+            پس از ثبت، رکورد به‌صورت رسمی و تأییدشده به بخش «رکوردهای شنا» در پروفایل شناگر منتقل می‌شود.
           </p>
         </div>
       </div>
@@ -956,12 +1488,51 @@ export const CoachRecordPage = () => {
         renderSwimmerSelect()
       ) : (
         <div className="space-y-4 sm:space-y-5">
-          {renderStepper()}
-          <div key={wizardStep} className="animate-slide-in-right">
-            {wizardStep === 0 && renderStrokeStep()}
-            {wizardStep === 1 && renderDistanceStep()}
-            {wizardStep === 2 && renderTimerStep()}
+          {/* سوییچ بخش‌ها: ثبت رکورد زمانی / آپلود فیلم */}
+          <div className="grid grid-cols-2 gap-1.5 p-1.5 max-w-lg mx-auto bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+            <button
+              type="button"
+              onClick={() => setActiveTab('record')}
+              aria-pressed={activeTab === 'record'}
+              className={`inline-flex items-center justify-center gap-2 px-3 py-2.5 min-h-[46px] rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
+                activeTab === 'record'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/70 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+            >
+              <OlympicStopwatchIcon className="w-4.5 h-4.5 shrink-0" />
+              <span>ثبت رکورد زمانی</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('video')}
+              aria-pressed={activeTab === 'video'}
+              className={`inline-flex items-center justify-center gap-2 px-3 py-2.5 min-h-[46px] rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
+                activeTab === 'video'
+                  ? 'bg-sky-600 text-white shadow-xs'
+                  : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/70 hover:text-slate-700 dark:hover:text-slate-200'
+              }`}
+            >
+              <Video className="w-4.5 h-4.5 shrink-0" />
+              <span>آپلود فیلم شناگر</span>
+            </button>
           </div>
+
+          {activeTab === 'video' ? (
+            <div key="video" className="animate-slide-in-right">
+              {renderVideoSection()}
+            </div>
+          ) : (
+            <>
+              {renderStepper()}
+              <div key={wizardStep} className="animate-slide-in-right">
+                {wizardStep === 0 && renderStrokeStep()}
+                {wizardStep === 1 && renderDistanceStep()}
+                {wizardStep === 2 && renderTimerStep()}
+              </div>
+            </>
+          )}
+
           {/* دکمه بازگشت موبایل */}
           <button
             type="button"

@@ -10,6 +10,7 @@ import { Button } from '../../components/common/Button';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { LoadingState } from '../../components/common/LoadingState';
 import { useToast } from '../../context/ToastContext';
+import { SwimmerAvatar, SwimmerBirthLine } from '../../components/common/SwimmerAvatarInfo';
 
 const WEEKDAYS = [
   { index: 0, name: 'شنبه' },
@@ -205,6 +206,9 @@ export const CoachProgressPage = () => {
             uniqueSwimmersMap[en.swimmer] = {
               swimmer_id: en.swimmer,
               full_name: en.swimmer_name,
+              avatar: en.swimmer_avatar,
+              age: en.swimmer_age,
+              date_of_birth: en.swimmer_date_of_birth,
               enrollments: [],
             };
           }
@@ -600,9 +604,7 @@ export const CoachProgressPage = () => {
                   {/* Card Header: Swimmer Identity & Attendance */}
                   <div className="flex items-center justify-between gap-2.5">
                     <div className="flex items-center gap-2.5 min-w-0">
-                      <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/60 flex items-center justify-center font-bold text-sm shrink-0">
-                        {sw.full_name?.charAt(0) || 'ش'}
-                      </div>
+                      <SwimmerAvatar fullName={sw.full_name} avatar={sw.avatar} />
                       <div className="min-w-0">
                         <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white truncate">
                           {sw.full_name}
@@ -612,6 +614,7 @@ export const CoachProgressPage = () => {
                             {sw.displayEnrollments.length} کلاس فعال
                           </span>
                         )}
+                        <SwimmerBirthLine age={sw.age} dateOfBirth={sw.date_of_birth} />
                       </div>
                     </div>
 
@@ -732,12 +735,13 @@ export const CoachProgressPage = () => {
                       >
                         <td className="py-3.5 px-3 lg:px-4 font-bold text-slate-900 dark:text-white align-middle">
                           <div className="flex items-center gap-2.5 lg:gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200/50 dark:border-emerald-800/50 flex items-center justify-center font-bold text-sm shrink-0">
-                              {sw.full_name?.charAt(0) || 'ش'}
+                            <SwimmerAvatar fullName={sw.full_name} avatar={sw.avatar} size="sm" />
+                            <div className="min-w-0">
+                              <span className="text-sm lg:text-[15px] whitespace-nowrap block">
+                                {sw.full_name}
+                              </span>
+                              <SwimmerBirthLine age={sw.age} dateOfBirth={sw.date_of_birth} />
                             </div>
-                            <span className="text-sm lg:text-[15px] whitespace-nowrap">
-                              {sw.full_name}
-                            </span>
                           </div>
                         </td>
 

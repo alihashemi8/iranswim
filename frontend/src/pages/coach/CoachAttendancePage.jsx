@@ -11,6 +11,7 @@ import { CustomSelect } from '../../components/common/CustomSelect';
 import { LoadingState } from '../../components/common/LoadingState';
 import { useToast } from '../../context/ToastContext';
 import { toShamsiDate } from '../../utils/date';
+import { SwimmerAvatar, SwimmerBirthLine } from '../../components/common/SwimmerAvatarInfo';
 
 const RATING_OPTIONS = [
   {
@@ -511,9 +512,7 @@ export const CoachAttendancePage = () => {
                   className="p-4 sm:p-4.5 flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors"
                 >
                   <div className="flex items-center gap-3.5">
-                    <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center font-bold text-sm text-slate-700 dark:text-slate-300 shrink-0">
-                      {enr.swimmer_name?.charAt(0) || 'ش'}
-                    </div>
+                    <SwimmerAvatar fullName={enr.swimmer_name} avatar={enr.swimmer_avatar} />
                     <div>
                       <Link
                         to={`/coach/progress/${enr.swimmer}`}
@@ -524,6 +523,11 @@ export const CoachAttendancePage = () => {
                       <span className="text-xs text-slate-500 font-mono mt-0.5 block">
                         سهمیه جلسات: {enr.remaining_sessions} باقیمانده از {enr.sessions_purchased}
                       </span>
+                      <SwimmerBirthLine
+                        age={enr.swimmer_age}
+                        dateOfBirth={enr.swimmer_date_of_birth}
+                        className="mt-0.5"
+                      />
                     </div>
                   </div>
 

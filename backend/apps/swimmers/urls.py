@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (
     SwimmerListView, SwimmerDetailView, SwimmerMeView,
     SwimmerCompleteProfileView, SwimmerChildrenView, SwimmerAssignCoachView,
-    SwimmerReviewDocumentsView, SwimmerDocumentDownloadView
+    SwimmerReviewDocumentsView, SwimmerDocumentDownloadView,
+    SwimVideoListCreateView, SwimVideoDeleteView
 )
 
 urlpatterns = [
@@ -10,6 +11,8 @@ urlpatterns = [
     path('me/', SwimmerMeView.as_view(), name='swimmer_me'),
     path('me/complete/', SwimmerCompleteProfileView.as_view(), name='swimmer_complete_profile'),
     path('my-children/', SwimmerChildrenView.as_view(), name='swimmer_children'),
+    path('videos/', SwimVideoListCreateView.as_view(), name='swim_video_list'),
+    path('videos/<int:pk>/', SwimVideoDeleteView.as_view(), name='swim_video_delete'),
     path('<int:pk>/', SwimmerDetailView.as_view(), name='swimmer_detail'),
     path('<int:pk>/documents/<str:document_type>/', SwimmerDocumentDownloadView.as_view(), name='swimmer_document_download'),
     path('<int:pk>/assign-coach/', SwimmerAssignCoachView.as_view(), name='swimmer_assign_coach'),

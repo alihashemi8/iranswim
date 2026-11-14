@@ -1,6 +1,7 @@
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
+from django.core.validators import FileExtensionValidator
 
 
 class DocumentStatus(models.TextChoices):
@@ -86,6 +87,58 @@ class SwimmerProfile(models.Model):
             self.birth_certificate_image and self.national_card_image and
             self.sports_insurance_image
         )
+
+
+class SwimVideo(models.Model):
+    """
+    ویدئوی تحلیل تکنیک شنای شناگر که توسط مربی/مدیر بارگذاری می‌شود.
+    عنوان و توضیحات اختیاری است.
+    """
+
+    class VideoCategory(models.TextChoices):
+        TRAINING = 'TRAINING', _('تمرین')
+        COMPETITION = 'COMPETITION', _('مسابقه')
+        TECHNIQUE_ANALYSIS = 'TECHNIQUE', _('تحلیل تکنیک')
+        OTHER = 'OTHER', _('سایر')
+
+    swimmer = models.ForeignKey(
+        'SwimmerProfile',
+        on_delete=models.CASCADE,
+        related_name='swim_videos',
+        verbose_name=_('شناگر')
+    )
+    video = models.FileField(
+        _('فایل ویدئو'),
+        upload_to='swimmers/videos/',
+        validators=[FileExtensionValidator(['mp4', 'mov', 'webm', 'avi', 'm4v', 'mkv'])]
+    )
+    title = models.CharField(_('عنوان'), max_length=150, blank=True)
+    description = models.TextField(_('توضیحات'), blank=True)
+    category = models.CharField(
+        _('دسته‌بندی'),
+        max_length=20,
+        choices=VideoCategory.choices,
+        default=VideoCategory.TRAINING,
+        db_index=True
+    )
+    file_size = models.PositiveIntegerField(_('حجم فایل (بایت)'), null=True, blank=True)
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='uploaded_swim_videos',
+        verbose_name=_('بارگذاری‌کننده')
+    )
+    created_at = models.DateTimeField(_('تاریخ بارگذاری'), auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('ویدئوی شناگر')
+        verbose_name_plural = _('ویدئوهای شناگران')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.swimmer.full_name} - {self.title or 'ویدئو'}"
 
 
 class SwimmerGuardianRelation(models.Model):

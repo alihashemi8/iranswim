@@ -1,3 +1,4 @@
+from django.utils import timezone
 from rest_framework import serializers
 from .models import (
     SkillLevel, Skill, Course, SwimmerGroup,
@@ -222,6 +223,8 @@ class EnrollmentRequestSerializer(serializers.ModelSerializer):
 class EnrollmentSerializer(serializers.ModelSerializer):
     swimmer_name = serializers.CharField(source='swimmer.full_name', read_only=True)
     swimmer_avatar = serializers.SerializerMethodField()
+    swimmer_date_of_birth = serializers.SerializerMethodField()
+    swimmer_age = serializers.SerializerMethodField()
     swimmer_phone = serializers.CharField(source='swimmer.phone', read_only=True)
     swimmer_national_id = serializers.CharField(source='swimmer.national_id', read_only=True)
     swimmer_level_name = serializers.CharField(source='swimmer.current_level.name', read_only=True)
@@ -246,7 +249,7 @@ class EnrollmentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Enrollment
         fields = [
-            'id', 'swimmer', 'swimmer_name', 'swimmer_avatar', 'swimmer_phone',
+            'id', 'swimmer', 'swimmer_name', 'swimmer_avatar', 'swimmer_date_of_birth', 'swimmer_age', 'swimmer_phone',
             'swimmer_national_id', 'swimmer_level_name', 'swimmer_gender',
             'swimmer_gender_display', 'swimmer_level_id',
             'course', 'course_name', 'course_pool', 'course_days', 'course_time', 'course_gender',
@@ -261,6 +264,18 @@ class EnrollmentSerializer(serializers.ModelSerializer):
         if obj.swimmer and obj.swimmer.avatar:
             request = self.context.get('request')
             return request.build_absolute_uri(obj.swimmer.avatar.url) if request else obj.swimmer.avatar.url
+        return None
+
+    def get_swimmer_date_of_birth(self, obj):
+        if obj.swimmer and obj.swimmer.date_of_birth:
+            return obj.swimmer.date_of_birth.strftime('%Y-%m-%d')
+        return None
+
+    def get_swimmer_age(self, obj):
+        if obj.swimmer and obj.swimmer.date_of_birth:
+            today = timezone.localdate()
+            dob = obj.swimmer.date_of_birth
+            return today.year - dob.year - ((today.month, today.day) < (dob.month, dob.day))
         return None
 
     def get_coach_name(self, obj):

@@ -210,11 +210,12 @@ class SwimmingRecordListView(generics.ListCreateAPIView):
             coach_profile = getattr(user, 'coach_profile', None)
             if not _coach_teaches_swimmer(coach_profile, swimmer):
                 raise PermissionDenied('شما فقط مجاز به ثبت رکورد برای شناگران کلاس خود هستید.')
-        # Auto-verify if created by Admin, else mark PENDING
-        is_admin = user.role == 'ADMIN' or user.is_superuser
-        ver_status = SwimmingRecord.VerificationStatus.VERIFIED if is_admin else SwimmingRecord.VerificationStatus.PENDING
-        verified_by = user if is_admin else None
-        serializer.save(recorded_by=user, verification_status=ver_status, verified_by=verified_by)
+        # All coach/admin-submitted records are saved as VERIFIED immediately (no admin approval step)
+        serializer.save(
+            recorded_by=user,
+            verification_status=SwimmingRecord.VerificationStatus.VERIFIED,
+            verified_by=user
+        )
 
 
 class VerifyRecordView(APIView):

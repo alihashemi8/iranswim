@@ -1,7 +1,53 @@
 from rest_framework import serializers
-from .models import SwimmerProfile, SwimmerGuardianRelation
+from .models import SwimmerProfile, SwimmerGuardianRelation, SwimVideo
 from .validators import validate_document_file
 from apps.education.models import SkillLevel
+
+
+class SwimVideoSerializer(serializers.ModelSerializer):
+    """
+    ویدئوهای تحلیل شنای شناگر (آپلود چندبخشی با فیلد video)
+    """
+    swimmer_name = serializers.CharField(source='swimmer.full_name', read_only=True)
+    uploaded_by_name = serializers.SerializerMethodField()
+    category_display = serializers.CharField(source='get_category_display', read_only=True)
+    video_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = SwimVideo
+        fields = [
+            'id', 'swimmer', 'swimmer_name', 'video', 'video_url',
+            'title', 'description', 'category', 'category_display',
+            'file_size', 'uploaded_by', 'uploaded_by_name', 'created_at'
+        ]
+        read_only_fields = ['id', 'file_size', 'uploaded_by', 'created_at']
+        extra_kwargs = {
+            'video': {'write_only': True, 'required': True, 'allow_null': False},
+        }
+
+    def get_video_url(self, obj):
+        request = self.context.get('request')
+        if not obj.video:
+            return None
+        url = obj.video.url
+        if request is not None:
+            try:
+                return request.build_absolute_uri(url)
+            except Exception:
+                return url
+        return url
+
+    def get_uploaded_by_name(self, obj):
+        if not obj.uploaded_by:
+            return 'مربی'
+        full = obj.uploaded_by.get_full_name().strip()
+        return full or obj.uploaded_by.phone or 'مربی'
+
+    def validate(self, attrs):
+        video_file = attrs.get('video')
+        if video_file is None:
+            raise serializers.ValidationError({'video': 'انتخاب فایل ویدئو الزامی است.'})
+        return attrs
 
 
 class SwimmerProfileSerializer(serializers.ModelSerializer):

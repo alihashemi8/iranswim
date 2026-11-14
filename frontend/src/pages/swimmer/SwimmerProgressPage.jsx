@@ -1,13 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   Award, TrendingUp, CheckCircle2, Clock, AlertCircle, FileText,
-  User, Calendar, Sparkles, ChevronLeft, ArrowUpRight
+  User, Calendar, Sparkles, ChevronLeft, ArrowUpRight, BarChart3, PieChart
 } from 'lucide-react';
 import api from '../../api/client';
 import { useSwimmer } from '../../context/SwimmerContext';
 import { Badge } from '../../components/common/Badge';
 import { LoadingState } from '../../components/common/LoadingState';
-import { ProgressBar } from '../../components/common/Charts';
+import { ProgressBar, SparklineAreaChart, DonutChart, HorizontalBarChart } from '../../components/common/Charts';
 
 export const SwimmerProgressPage = () => {
   const { activeSwimmer, activeSwimmerId } = useSwimmer();
@@ -63,6 +63,47 @@ export const SwimmerProgressPage = () => {
   // Calculate percentage of skills mastered
   const totalSkillsCount = skills.length > 0 ? skills.length : 12;
   const progressPercent = Math.min(100, Math.round((passedAssessments.length / totalSkillsCount) * 100));
+
+  const trendData = useMemo(() => {
+    if (!assessments || assessments.length === 0) return [];
+    const scored = assessments
+      .filter((a) => a.score !== undefined && a.score !== null)
+      .map((a, idx) => ({
+        label: a.assessment_date ? String(a.assessment_date).slice(5) : `آزمون ${idx + 1}`,
+        value: Number(a.score || 0),
+      }));
+
+    if (scored.length === 1) {
+      // Add baseline for smoother single-point display
+      return [
+        { label: 'شروع', value: Math.max(0, scored[0].value - 1) },
+        scored[0],
+      ];
+    }
+    return scored;
+  }, [assessments]);
+
+  const skillDonutData = useMemo(() => {
+    const passed = passedAssessments.length;
+    const inProgress = inProgressAssessments.length;
+    const remaining = Math.max(0, totalSkillsCount - (passed + inProgress));
+
+    return [
+      { label: 'تسلط کامل و قبولی', value: passed, color: '#10b981' },
+      { label: 'در حال تمرین', value: inProgress, color: '#f59e0b' },
+      { label: 'سرفصل‌های باقیمانده', value: remaining, color: '#0284c7' },
+    ].filter((item) => item.value > 0);
+  }, [passedAssessments, inProgressAssessments, totalSkillsCount]);
+
+  const skillsBarData = useMemo(() => {
+    return assessments.map((ass) => ({
+      label: ass.skill_name || 'مهارت فنی',
+      value: Number(ass.score || 7),
+      colorClass: ass.status === 'PASSED'
+        ? 'bg-gradient-to-l from-emerald-500 to-teal-400'
+        : 'bg-gradient-to-l from-sky-500 to-cyan-400',
+    }));
+  }, [assessments]);
 
   return (
     <div className="space-y-6">
@@ -167,7 +208,7 @@ export const SwimmerProgressPage = () => {
 
               <div className="text-right sm:text-left">
                 <span className="text-xs sm:text-sm font-bold text-slate-500 block mb-1">پیشرفت کلی به سمت سطح بعدی</span>
-                <span className="text-3xl sm:text-4xl font-black text-teal-600 dark:text-teal-400 font-mono">٪{progressPercent}</span>
+                <span className="text-3xl sm:text-4xl font-black text-teal-600 dark:text-teal-400 font-mono">{progressPercent}%</span>
               </div>
             </div>
 
@@ -180,7 +221,7 @@ export const SwimmerProgressPage = () => {
               </h4>
               <ul className="list-disc list-inside space-y-1.5 text-slate-600 dark:text-slate-300 leading-relaxed pr-2 font-medium">
                 <li>کسب نمره قبولی (Pass) در تمام مهارت‌های تنفس جانبی و پای کرال سینه</li>
-                <li>تکمیل حداقل ۱۰ جلسه تمرینی در دوره جاری با حضور فعال</li>
+                <li>تکمیل حداقل 10 جلسه تمرینی در دوره جاری با حضور فعال</li>
                 <li>تأییدیه نهایی سرمربی آکادمی و ثبت در سیستم ارزیابی</li>
               </ul>
             </div>
@@ -248,7 +289,7 @@ export const SwimmerProgressPage = () => {
                   <div className="flex items-center gap-2.5">
                     {ass.score && (
                       <span className="text-xs sm:text-sm font-mono font-black px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800">
-                        امتیاز: {ass.score}/۱۰
+                        امتیاز: {ass.score}/10
                       </span>
                     )}
                     <Badge variant={ass.status === 'PASSED' ? 'success' : 'warning'}>
@@ -268,45 +309,89 @@ export const SwimmerProgressPage = () => {
 
       {/* Tab 3: Progress Trends */}
       {activeTab === 'TRENDS' && (
-        <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
-                روند امتیازدهی ارزیابی‌ها بر پایه داده‌های واقعی مربی
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                تغییرات نمرات کسب‌شده در آزمون‌های ادواری
-              </p>
-            </div>
-          </div>
-
+        <div className="space-y-6">
           {assessments.length > 0 ? (
-            <div className="space-y-4 pt-2">
-              {assessments.map((ass) => {
-                const scoreVal = ass.score ? Number(ass.score) : 7;
-                const percent = Math.min(100, Math.round((scoreVal / 10) * 100));
-                return (
-                  <div key={ass.id} className="space-y-1.5">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-bold text-slate-800 dark:text-slate-200">
-                        {ass.skill_name || 'مهارت فنی'} ({ass.assessment_date})
-                      </span>
-                      <span className="font-mono font-bold text-sky-600">
-                        نمره: {scoreVal} از ۱۰
-                      </span>
-                    </div>
-                    <div className="w-full h-3 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-sky-500 to-cyan-500 rounded-full transition-all duration-500"
-                        style={{ width: `${percent}%` }}
-                      />
+            <>
+              {/* Top Analytical Charts Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 border border-sky-200/70 dark:border-sky-900/60">
+                      <TrendingUp className="w-4 h-4" />
+                    </span>
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                        روند صعودی نمرات ارزیابی
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        مسیر تغییرات امتیازهای ثبت‌شده توسط کادر مربیگری
+                      </p>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+
+                  <SparklineAreaChart
+                    data={trendData}
+                    height={160}
+                    color="sky"
+                    valueFormatter={(v) => `${v} از 10`}
+                    labelFormatter={(l) => `تاریخ ${l}`}
+                  />
+                </div>
+
+                <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/70 text-teal-600 dark:text-teal-400 border border-teal-200/70 dark:border-teal-900/60">
+                      <PieChart className="w-4 h-4" />
+                    </span>
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                        سهم تسلط بر مهارت‌های دوره
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        وضعیت سرفصل‌های مصوب فدراسیون تا ارتقا به کلاه بالاتر
+                      </p>
+                    </div>
+                  </div>
+
+                  <DonutChart
+                    data={skillDonutData}
+                    size={160}
+                    donutWidth={22}
+                    centerLabel="پیشرفت کل"
+                    centerValue={`${progressPercent}%`}
+                    valueFormatter={(v) => `${v} مهارت`}
+                  />
+                </div>
+              </div>
+
+              {/* Bottom Breakdown Chart */}
+              <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
+                <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-2">
+                    <span className="p-1.5 rounded-xl bg-violet-50 dark:bg-violet-950/70 text-violet-600 dark:text-violet-400 border border-violet-200/70 dark:border-violet-900/60">
+                      <BarChart3 className="w-4 h-4" />
+                    </span>
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                        ارزیابی تفکیکی تکنیک‌ها و مهارت‌های آب
+                      </h3>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        سطح تسلط شناگر در هر یک از ماده‌ها و تکنیک‌های ثبت‌شده
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="info">{assessments.length} سرفصل سنجیده‌شده</Badge>
+                </div>
+
+                <HorizontalBarChart
+                  data={skillsBarData}
+                  max={10}
+                  valueFormatter={(v) => `${v} از 10`}
+                />
+              </div>
+            </>
           ) : (
-            <div className="p-8 text-center text-sm text-slate-400">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 border border-slate-200 dark:border-slate-800 shadow-xs text-center text-sm text-slate-400">
               داده‌های نموداری پس از ثبت اولین ارزیابی توسط مربی در دسترس خواهد بود.
             </div>
           )}

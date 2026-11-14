@@ -10,6 +10,7 @@ import api from '../../api/client';
 import { LoadingState } from '../../components/common/LoadingState';
 import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
+import { SwimmerAvatar, SwimmerBirthLine } from '../../components/common/SwimmerAvatarInfo';
 
 const ANNOUNCEMENT_TEMPLATES = [
   {
@@ -303,7 +304,13 @@ export const CoachClassDetailPage = () => {
                   data.swimmers.map((sw) => (
                     <tr key={sw.swimmer_id} className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors">
                       <td className="py-3.5 px-4 font-bold text-slate-900 dark:text-white text-sm sm:text-base">
-                        {sw.full_name}
+                        <div className="flex items-center gap-2.5">
+                          <SwimmerAvatar fullName={sw.full_name} avatar={sw.avatar} />
+                          <div className="min-w-0">
+                            <div className="whitespace-nowrap">{sw.full_name}</div>
+                            <SwimmerBirthLine age={sw.age} dateOfBirth={sw.date_of_birth} />
+                          </div>
+                        </div>
                       </td>
                       <td className="py-3.5 px-4">
                         <span className="px-2.5 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-semibold text-xs sm:text-sm">

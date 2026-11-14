@@ -18,13 +18,23 @@ from apps.education.models import SwimmerGroup, Enrollment, Skill, SkillLevel
 from apps.attendance.models import AttendanceRecord
 from apps.assessments.models import SkillAssessment, SwimmingRecord, LevelPromotionProposal
 from apps.content.models import Announcement, Notification
-from apps.swimmers.models import SwimmerProfile
+from apps.swimmers.models import SwimmerProfile, SwimVideo
 
 
 def get_coach_profile(user):
     if hasattr(user, 'coach_profile'):
         return user.coach_profile
     return None
+
+
+def _swimmer_age(date_of_birth):
+    """محاسبه سن شناگر بر اساس تاریخ تولد میلادی"""
+    if not date_of_birth:
+        return None
+    today = timezone.localdate()
+    return today.year - date_of_birth.year - (
+        (today.month, today.day) < (date_of_birth.month, date_of_birth.day)
+    )
 
 
 class CoachListView(generics.ListCreateAPIView):
@@ -442,6 +452,9 @@ class CoachClassDetailView(APIView):
                 'enrollment_id': en.id,
                 'swimmer_id': sw.id,
                 'full_name': sw.full_name,
+                'avatar': request.build_absolute_uri(sw.avatar.url) if sw.avatar else None,
+                'date_of_birth': sw.date_of_birth.strftime('%Y-%m-%d') if sw.date_of_birth else None,
+                'age': _swimmer_age(sw.date_of_birth),
                 'gender': sw.get_gender_display(),
                 'level_name': sw.current_level.name if sw.current_level else 'تعیین‌نشده',
                 'status': en.status,
@@ -756,7 +769,24 @@ class CoachSwimmerDossierView(APIView):
             for r in records
         ]
 
-        # 3. Attendance Summary
+        # 3. Swim Videos
+        videos = SwimVideo.objects.filter(swimmer=swimmer).select_related('uploaded_by')
+        videos_data = [
+            {
+                'id': v.id,
+                'title': v.title,
+                'description': v.description,
+                'category': v.category,
+                'category_display': v.get_category_display(),
+                'video_url': request.build_absolute_uri(v.video.url) if v.video else None,
+                'file_size': v.file_size,
+                'uploaded_by': v.uploaded_by.get_full_name() if v.uploaded_by else 'مربی',
+                'uploaded_at': v.created_at.strftime('%Y-%m-%d'),
+            }
+            for v in videos
+        ]
+
+        # 4. Attendance Summary
         att_records = AttendanceRecord.objects.filter(swimmer=swimmer).select_related('session')
         total_sessions = att_records.count()
         present_count = att_records.filter(status='PRESENT').count()
@@ -764,7 +794,7 @@ class CoachSwimmerDossierView(APIView):
         excused_count = att_records.filter(status='EXCUSED').count()
         late_count = att_records.filter(status='LATE').count()
 
-        # 4. Available Skill Levels for promotion
+        # 5. Available Skill Levels for promotion
         skill_levels = SkillLevel.objects.filter(is_active=True).values('id', 'name', 'order')
 
         swimmer_payload = {
@@ -772,13 +802,15 @@ class CoachSwimmerDossierView(APIView):
             'first_name': swimmer.first_name,
             'last_name': swimmer.last_name,
             'full_name': swimmer.full_name,
+            'avatar': request.build_absolute_uri(swimmer.avatar.url) if swimmer.avatar else None,
             'gender': swimmer.get_gender_display(),
+            'date_of_birth': swimmer.date_of_birth.strftime('%Y-%m-%d') if swimmer.date_of_birth else None,
+            'age': _swimmer_age(swimmer.date_of_birth),
             'current_level_id': swimmer.current_level.id if swimmer.current_level else None,
             'current_level_name': swimmer.current_level.name if swimmer.current_level else 'تعیین‌نشده',
         }
         if is_privileged:
             swimmer_payload.update({
-                'date_of_birth': swimmer.date_of_birth.strftime('%Y-%m-%d') if swimmer.date_of_birth else None,
                 'national_id': swimmer.national_id,
                 'medical_conditions': swimmer.medical_notes or 'بدون مورد خاص',
                 'guardian_phone': swimmer.emergency_contact_phone or swimmer.father_phone or swimmer.mother_phone or swimmer.phone or 'ثبت‌نشده',
@@ -788,6 +820,7 @@ class CoachSwimmerDossierView(APIView):
             'swimmer': swimmer_payload,
             'assessments': assessments_data,
             'records': records_data,
+            'videos': videos_data,
             'attendance_summary': {
                 'total_sessions': total_sessions,
                 'present': present_count,

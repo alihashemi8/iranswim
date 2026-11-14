@@ -4,7 +4,8 @@ import {
   CreditCard, AlertCircle, FileText, CheckCircle2,
   DollarSign, ArrowUpRight, ArrowDownLeft, Plus,
   FileSpreadsheet, Search, RefreshCw, User, Phone,
-  Filter, RotateCcw, Calendar, MapPin, UserCheck, Users, X, Sparkles, Tag, Award
+  Filter, RotateCcw, Calendar, MapPin, UserCheck, Users, X, Sparkles, Tag, Award,
+  PieChart, ChevronDown, ChevronUp
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -16,6 +17,7 @@ import { StatsCard } from '../../components/common/StatsCard';
 import { Pagination } from '../../components/common/Pagination';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { PersianDatePicker, toJalaliString, formatJalaliReadable } from '../../components/common/PersianDatePicker';
+import { DonutChart, BarChart } from '../../components/common/Charts';
 import { useToast } from '../../context/ToastContext';
 import { exportToCsv } from '../../utils/exportCsv';
 
@@ -41,6 +43,7 @@ export const AdminFinancePage = () => {
   const [paymentDateFilter, setPaymentDateFilter] = useState('');
   const [coachFilter, setCoachFilter] = useState('ALL');
   const [birthYearFilter, setBirthYearFilter] = useState('ALL');
+  const [showAnalytics, setShowAnalytics] = useState(true);
 
   const navigate = useNavigate();
 
@@ -601,6 +604,48 @@ export const AdminFinancePage = () => {
     paymentDateFilter,
   ]);
 
+  const financeDonutData = useMemo(() => {
+    const paid = Number(displaySummary.total_paid || 0);
+    const receivables = Number(displaySummary.receivables || 0);
+    const overdueCount = Number(displaySummary.overdue_installments_count || 0);
+    const overdueTotal = filteredInstallments.reduce((sum, inst) => sum + Number(inst.remaining_amount || 0), 0);
+    const regularPending = Math.max(0, receivables - overdueTotal);
+
+    const items = [
+      { label: 'وصول‌شده قطعی', value: paid, color: '#10b981' },
+      { label: 'اقساط در جریان', value: regularPending, color: '#0284c7' },
+      { label: 'مطالبات معوق', value: overdueTotal > 0 ? overdueTotal : (overdueCount > 0 ? 1 : 0), color: '#f43f5e' },
+    ];
+    return items.filter((item) => item.value > 0);
+  }, [displaySummary, filteredInstallments]);
+
+  const paymentMethodBarData = useMemo(() => {
+    const methodTotals = {
+      POS: 0,
+      CARD_TRANSFER: 0,
+      ONLINE_GATEWAY: 0,
+      CASH: 0,
+    };
+    filteredPayments.forEach((p) => {
+      if (p.status === 'SUCCESSFUL' || !p.status) {
+        const m = p.method || 'POS';
+        const amt = Number(p.amount || 0);
+        if (methodTotals[m] !== undefined) {
+          methodTotals[m] += amt;
+        } else {
+          methodTotals.POS += amt;
+        }
+      }
+    });
+
+    return [
+      { label: 'کارت‌خوان پوز', value: methodTotals.POS },
+      { label: 'کارت به کارت', value: methodTotals.CARD_TRANSFER },
+      { label: 'درگاه آنلاین', value: methodTotals.ONLINE_GATEWAY },
+      { label: 'نقدی', value: methodTotals.CASH },
+    ];
+  }, [filteredPayments]);
+
   const handleResetFilters = () => {
     setSearchQuery('');
     setGenderFilter('ALL');
@@ -749,6 +794,53 @@ export const AdminFinancePage = () => {
           />
         </div>
       )}
+
+      {/* Visual Financial Analytics Section */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-xs transition-all space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 border border-sky-200/70 dark:border-sky-900/60">
+              <PieChart className="w-4 h-4" />
+            </span>
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                تحلیل تصویری گردش مالی و وصولی‌ها
+              </h3>
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">
+                نسبت وصولی‌ها به کل تعهدات و تفکیک روش‌های تراکنش مالی آموزشگاه
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowAnalytics((prev) => !prev)}
+            className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors cursor-pointer"
+          >
+            <span>{showAnalytics ? 'مخفی‌سازی نمودارها' : 'نمایش نمودارهای تحلیلی'}</span>
+            {showAnalytics ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </button>
+        </div>
+
+        {showAnalytics && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <DonutChart
+              title="نسبت وصولی قطعی به تعهدات و مطالبات"
+              subtitle="تفکیک تسویه‌شده، اقساط در جریان و معوقات"
+              data={financeDonutData}
+              valueFormatter={(v) => `${(v / 1000000).toLocaleString('en-US', { maximumFractionDigits: 1 })} م.ت`}
+              centerLabel="مجموع فاکتورها"
+              centerValue={`${(displaySummary.total_invoiced / 1000000).toLocaleString('en-US', { maximumFractionDigits: 1 })} م.ت`}
+            />
+            <BarChart
+              title="مبالغ دریافتی به تفکیک روش پرداخت"
+              subtitle="حجم تراکنش‌های موفق کارت‌خوان، کارت‌به‌کارت، آنلاین و نقد"
+              data={paymentMethodBarData}
+              color="emerald"
+              valueFormatter={(v) => `${(v / 1000000).toLocaleString('en-US', { maximumFractionDigits: 1 })} م.ت`}
+            />
+          </div>
+        )}
+      </div>
 
       {/* Row 1: Category Tabs */}
       <div className="flex w-full bg-slate-100 dark:bg-slate-800 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-xs gap-1">

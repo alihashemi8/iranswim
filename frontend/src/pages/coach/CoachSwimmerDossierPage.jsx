@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { useParams, Link } from 'react-router-dom';
 import {
   TrendingUp, Award, Calendar, ChevronRight,
-  PlusCircle, Users, UserCheck, X
+  PlusCircle, Users, UserCheck, X, Video
 } from 'lucide-react';
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
@@ -13,6 +13,7 @@ import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import { toShamsiDate } from '../../utils/date';
+import { SwimmerAvatar } from '../../components/common/SwimmerAvatarInfo';
 
 export const CoachSwimmerDossierPage = () => {
   const { swimmerId } = useParams();
@@ -134,6 +135,7 @@ export const CoachSwimmerDossierPage = () => {
   const swimmer = data.swimmer || {};
   const assessments = data.assessments || [];
   const records = data.records || [];
+  const videos = data.videos || [];
   const attSummary = data.attendance_summary || {};
   const skillLevels = data.skill_levels || [];
 
@@ -173,10 +175,24 @@ export const CoachSwimmerDossierPage = () => {
             </div>
 
             <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white flex flex-wrap items-center gap-2 sm:gap-2.5">
+              <SwimmerAvatar
+                fullName={swimmer.full_name}
+                avatar={swimmer.avatar}
+                size="lg"
+                className="rounded-2xl"
+              />
               <span>{swimmer.full_name}</span>
               <span className="inline-flex items-center text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/80">
                 سطح: {swimmer.current_level_name}
               </span>
+              {(swimmer.age || swimmer.date_of_birth) && (
+                <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold px-2.5 sm:px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                  <Calendar className="w-3.5 h-3.5 shrink-0" />
+                  {swimmer.age ? `${swimmer.age} ساله` : ''}
+                  {swimmer.age && swimmer.date_of_birth ? ' · ' : ''}
+                  {swimmer.date_of_birth ? toShamsiDate(swimmer.date_of_birth).shortNumeric : ''}
+                </span>
+              )}
             </h1>
           </div>
         </div>
@@ -191,6 +207,14 @@ export const CoachSwimmerDossierPage = () => {
             <Award className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-amber-600 dark:text-amber-400 shrink-0" />
             پیشنهاد ارتقای سطح
           </button>
+
+          <Link
+            to={`/coach/records?swimmer=${swimmerId}&tab=video`}
+            className="flex-1 min-w-[165px] sm:flex-initial inline-flex items-center justify-center gap-2 px-3.5 sm:px-4 py-2 min-h-[42px] rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs sm:text-sm shadow-xs transition-all cursor-pointer active:scale-95 whitespace-nowrap"
+          >
+            <Video className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" />
+            آپلود فیلم شنا
+          </Link>
 
           <Link
             to={`/coach/progress/${swimmerId}/assessment`}
@@ -363,6 +387,68 @@ export const CoachSwimmerDossierPage = () => {
           </div>
         </div>
       )}
+
+      {/* 5. Swim Videos */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs">
+        <div className="p-4 sm:p-5 bg-slate-50/70 dark:bg-slate-800/60 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2.5">
+          <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <Video className="w-5 h-5 text-sky-600 dark:text-sky-400 shrink-0" />
+            <span>ویدئوهای شنای شناگر</span>
+          </h2>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="text-xs sm:text-sm px-2.5 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-semibold font-mono">
+              {videos.length} ویدئو
+            </span>
+            <Link
+              to={`/coach/records?swimmer=${swimmerId}&tab=video`}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 border border-sky-200/70 dark:border-sky-800 text-xs font-bold hover:bg-sky-100 dark:hover:bg-sky-900/50 transition-colors cursor-pointer"
+            >
+              <PlusCircle className="w-3.5 h-3.5 shrink-0" />
+              بارگذاری جدید
+            </Link>
+          </div>
+        </div>
+
+        {videos.length > 0 ? (
+          <div className="p-4 sm:p-5 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {videos.map((v) => (
+              <div
+                key={v.id}
+                className="rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 overflow-hidden"
+              >
+                <video
+                  src={v.video_url || v.video}
+                  controls
+                  preload="metadata"
+                  className="w-full max-h-52 sm:max-h-60 bg-slate-900"
+                />
+                <div className="p-3.5 space-y-2">
+                  <div className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                    {v.title || 'ویدئوی بدون عنوان'}
+                  </div>
+                  {v.description && (
+                    <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed line-clamp-3">
+                      {v.description}
+                    </p>
+                  )}
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400 font-medium flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span className="font-mono">{toShamsiDate(v.uploaded_at).shortNumeric || v.uploaded_at}</span>
+                    <span className="text-slate-300 dark:text-slate-600">·</span>
+                    <span>{v.uploaded_by || 'مربی'}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 px-4 space-y-2">
+            <Video className="w-8 h-8 text-slate-300 dark:text-slate-600 mx-auto" />
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+              هنوز ویدئویی برای این شناگر بارگذاری نشده است.
+            </p>
+          </div>
+        )}
+      </div>
 
       {/* Promotion Proposal Modal */}
       {showPromotionModal &&

@@ -2,6 +2,7 @@ import os
 import mimetypes
 from django.conf import settings
 from django.db.models import Count, Q
+from django.utils import timezone
 from django.core.paginator import InvalidPage, EmptyPage
 from django.http import FileResponse, HttpResponse
 from rest_framework import generics, permissions, status
@@ -10,10 +11,14 @@ from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.exceptions import NotFound, PermissionDenied
-from .models import SwimmerProfile, SwimmerGuardianRelation, DocumentStatus
-from .serializers import SwimmerProfileSerializer, CoachSwimmerSerializer, SwimmerGuardianRelationSerializer
+from .models import SwimmerProfile, SwimmerGuardianRelation, DocumentStatus, SwimVideo
+from .serializers import (
+    SwimmerProfileSerializer, CoachSwimmerSerializer, SwimmerGuardianRelationSerializer,
+    SwimVideoSerializer
+)
 from .utils import get_accessible_swimmer_ids
 from apps.accounts.permissions import IsAdminUserRole, IsOwnerSwimmerOrAdmin
+from apps.education.models import Enrollment
 
 
 def get_accessible_swimmer_profile(user, swimmer_id=None):
@@ -769,3 +774,94 @@ class SwimmerDocumentDownloadView(APIView):
         response['Content-Disposition'] = f'inline; filename="{safe_filename}"'
         return response
 
+
+
+def _coach_teaches_swimmer_q(coach):
+    """شرط مربی‌گری شناگر: ثبت‌نام مستقیم یا تخصیص فعال گروه (مطابق منطق assessments)"""
+    today = timezone.localdate()
+    return (
+        Q(enrollments__coach=coach) |
+        (
+            Q(enrollments__group__coach_assignments__coach=coach) &
+            (
+                Q(enrollments__group__coach_assignments__assigned_to__isnull=True) |
+                Q(enrollments__group__coach_assignments__assigned_to__gte=today)
+            )
+        )
+    )
+
+
+class SwimVideoListCreateView(generics.ListCreateAPIView):
+    """
+    ویدئوهای شنای شناگر: GET با ?swimmer_id= و POST چندبخشی (video + swimmer + title/description اختیاری)
+    بارگذاری فقط برای مربی/مدیر؛ مشاهده برای مربیِ همان شناگر، مدیر و خود شناگر/سرپرست
+    """
+    serializer_class = SwimVideoSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = SwimVideo.objects.all().select_related('swimmer', 'uploaded_by')
+        swimmer_id = self.request.query_params.get('swimmer_id')
+        if swimmer_id:
+            qs = qs.filter(swimmer_id=swimmer_id)
+
+        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+            return qs
+        if user.role == 'COACH':
+            coach = getattr(user, 'coach_profile', None)
+            if not coach:
+                return qs.none()
+            allowed_swimmers = SwimmerProfile.objects.filter(_coach_teaches_swimmer_q(coach)).distinct()
+            return qs.filter(swimmer__in=allowed_swimmers)
+        if user.role == 'SWIMMER':
+            ids = get_accessible_swimmer_ids(user, self.request)
+            return qs.filter(swimmer_id__in=ids) if ids else qs.none()
+        return qs.none()
+
+    def perform_create(self, serializer):
+        user = self.request.user
+        swimmer = serializer.validated_data.get('swimmer')
+        is_privileged = user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser
+
+        if user.role == 'COACH':
+            coach = getattr(user, 'coach_profile', None)
+            if not coach or not SwimmerProfile.objects.filter(
+                pk=swimmer.pk
+            ).filter(_coach_teaches_swimmer_q(coach)).exists():
+                raise PermissionDenied('شما فقط مجاز به بارگذاری ویدئو برای شناگران کلاس خود هستید.')
+        elif not is_privileged:
+            raise PermissionDenied('فقط مربی یا مدیر آموزشگاه مجاز به بارگذاری ویدئو است.')
+
+        video_file = serializer.validated_data.get('video')
+        serializer.save(uploaded_by=user, file_size=video_file.size if video_file else None)
+
+
+class SwimVideoDeleteView(APIView):
+    """حذف ویدئو توسط مدیر یا مربیِ همان شناگر (یا بارگذاری‌کننده)"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            video = SwimVideo.objects.select_related('swimmer').get(pk=pk)
+        except SwimVideo.DoesNotExist:
+            return Response({'detail': 'ویدئو یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        user = request.user
+        is_privileged = user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser
+        is_uploader = video.uploaded_by_id == user.id
+
+        if not is_privileged and not is_uploader:
+            if user.role == 'COACH':
+                coach = getattr(user, 'coach_profile', None)
+                if not coach or not SwimmerProfile.objects.filter(
+                    pk=video.swimmer_id
+                ).filter(_coach_teaches_swimmer_q(coach)).exists():
+                    return Response({'detail': 'شما اجازه حذف این ویدئو را ندارید.'}, status=status.HTTP_403_FORBIDDEN)
+            else:
+                return Response({'detail': 'شما اجازه حذف این ویدئو را ندارید.'}, status=status.HTTP_403_FORBIDDEN)
+
+        video.video.delete(save=False)
+        video.delete()
+        return Response({'message': 'ویدئو با موفقیت حذف شد.'})
