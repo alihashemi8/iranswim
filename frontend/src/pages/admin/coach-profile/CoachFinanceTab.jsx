@@ -170,7 +170,7 @@ export const CoachFinanceTab = ({
 
         <div className="flex items-center gap-2 flex-wrap">
           <Button
-            onClick={() => handleOpenUploadReceipt()}
+            onClick={() => navigate(`/admin/coaches/${coach.id}/payments/new`)}
             className="gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs font-bold"
           >
             <Upload className="w-4 h-4" />
@@ -183,15 +183,6 @@ export const CoachFinanceTab = ({
           >
             <Plus className="w-4 h-4" />
             <span>صدور حقوق دوره جدید</span>
-          </Button>
-
-          <Button
-            variant="outline"
-            onClick={() => navigate(`/admin/coaches/${coach.id}/contracts/new`)}
-            className="gap-1.5 text-xs bg-white dark:bg-slate-900 shadow-xs"
-          >
-            <FileText className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
-            <span>انعقاد قرارداد جدید</span>
           </Button>
         </div>
       </div>
@@ -398,7 +389,7 @@ export const CoachFinanceTab = ({
 
               <Button
                 size="sm"
-                onClick={() => handleOpenUploadReceipt()}
+                onClick={() => navigate(`/admin/coaches/${coach.id}/payments/new`)}
                 className="gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
               >
                 <Upload className="w-3.5 h-3.5" />
@@ -506,7 +497,7 @@ export const CoachFinanceTab = ({
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => handleOpenUploadReceipt(p.id)}
+                                onClick={() => navigate(`/admin/coaches/${coach.id}/payrolls/${p.id}/payments/new`)}
                                 className="text-[11px] py-1 px-2 gap-1 text-emerald-700 border-emerald-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
                                 title="آپلود فیش واریز برای این دوره"
                               >
@@ -557,7 +548,7 @@ export const CoachFinanceTab = ({
                 <div className="flex items-center gap-2 flex-wrap">
                   <Button
                     size="sm"
-                    onClick={() => handleOpenUploadReceipt(selectedPayroll.id)}
+                    onClick={() => navigate(`/admin/coaches/${coach.id}/payrolls/${selectedPayroll.id}/payments/new`)}
                     className="gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
                   >
                     <Upload className="w-3.5 h-3.5" />
@@ -645,7 +636,7 @@ export const CoachFinanceTab = ({
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleOpenUploadReceipt(selectedPayroll.id)}
+                    onClick={() => navigate(`/admin/coaches/${coach.id}/payrolls/${selectedPayroll.id}/payments/new`)}
                     className="text-xs py-1 gap-1 text-emerald-600 border-emerald-200"
                   >
                     <Upload className="w-3 h-3" />
@@ -740,7 +731,7 @@ export const CoachFinanceTab = ({
             </div>
 
             <Button
-              onClick={() => handleOpenUploadReceipt()}
+              onClick={() => navigate(`/admin/coaches/${coach.id}/payments/new`)}
               className="gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-bold"
             >
               <Upload className="w-4 h-4" />
@@ -884,14 +875,6 @@ export const CoachFinanceTab = ({
                       <span>دانلود نسخه امضاشده</span>
                     </a>
                   )}
-
-                  <Button
-                    variant="outline"
-                    onClick={() => navigate(`/admin/coaches/${coach.id}/contracts/new?renew_id=${activeContract.id}`)}
-                    className="gap-1.5 text-xs bg-white dark:bg-slate-900 shadow-xs"
-                  >
-                    <span>تمدید قرارداد</span>
-                  </Button>
                 </div>
               </div>
 
@@ -928,13 +911,13 @@ export const CoachFinanceTab = ({
               )}
             </div>
           ) : (
-            <div className="p-6 rounded-2xl border border-dashed border-amber-300 dark:border-amber-900 bg-amber-50/40 dark:bg-amber-950/20 text-center space-y-2">
-              <AlertTriangle className="w-8 h-8 text-amber-500 mx-auto" />
-              <h4 className="font-bold text-slate-800 dark:text-slate-200 text-sm">
-                این مربی در حال حاضر فاقد قرارداد فعال است
+            <div className="p-6 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 text-center space-y-2">
+              <FileText className="w-8 h-8 text-slate-400 mx-auto" />
+              <h4 className="font-bold text-slate-700 dark:text-slate-300 text-sm">
+                این مربی در حال حاضر فاقد قرارداد ثبتی است
               </h4>
               <p className="text-xs text-slate-500 max-w-md mx-auto">
-                برای رسمیت‌بخشی به احکام و نرخ‌های پرداختی، لطفاً با کلیک روی «انعقاد قرارداد جدید» حکم ایشان را ثبت کنید.
+                نرخ‌ها و مدل دستمزد مربی مستقیماً از بخش مشخصات و ویرایش پرونده مربی خوانده شده و در محاسبات فیش‌های دوره‌ای لحاظ می‌شود.
               </p>
             </div>
           )}
