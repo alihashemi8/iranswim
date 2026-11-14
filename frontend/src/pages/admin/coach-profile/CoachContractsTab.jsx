@@ -196,14 +196,7 @@ export const CoachContractsTab = ({ coach, contracts, onContractsUpdated }) => {
             )}
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 text-xs sm:text-sm">
-            <div className="bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
-              <span className="text-slate-400 block mb-1">مدل محاسبه دستمزد:</span>
-              <span className="font-bold text-slate-800 dark:text-slate-200">
-                {activeContract.employment_type_display}
-              </span>
-            </div>
-
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 text-xs sm:text-sm">
             <div className="bg-white/80 dark:bg-slate-900/80 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
               <span className="text-slate-400 block mb-1">نرخ / مبلغ مصوب:</span>
               <span className="font-bold font-mono text-slate-900 dark:text-white text-sm sm:text-base">
@@ -261,7 +254,6 @@ export const CoachContractsTab = ({ coach, contracts, onContractsUpdated }) => {
             <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
               <tr>
                 <th className="py-3 px-4 font-bold">شماره قرارداد</th>
-                <th className="py-3 px-4 font-bold">مدل دستمزد</th>
                 <th className="py-3 px-4 font-bold">تاریخ شروع</th>
                 <th className="py-3 px-4 font-bold">تاریخ پایان</th>
                 <th className="py-3 px-4 font-bold">نرخ / دستمزد مصوب</th>
@@ -273,7 +265,7 @@ export const CoachContractsTab = ({ coach, contracts, onContractsUpdated }) => {
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800 text-slate-700 dark:text-slate-300">
               {contracts.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-6 text-center text-slate-400">
+                  <td colSpan={7} className="py-6 text-center text-slate-400">
                     هیچ قراردادی در پرونده ثبت نشده است.
                   </td>
                 </tr>
@@ -283,7 +275,6 @@ export const CoachContractsTab = ({ coach, contracts, onContractsUpdated }) => {
                     <td className="py-3 px-4 font-mono font-bold text-sky-700 dark:text-sky-400">
                       {c.contract_number}
                     </td>
-                    <td className="py-3 px-4">{c.employment_type_display}</td>
                     <td className="py-3 px-4 font-mono">{new Date(c.start_date).toLocaleDateString('fa-IR')}</td>
                     <td className="py-3 px-4 font-mono">{new Date(c.end_date).toLocaleDateString('fa-IR')}</td>
                     <td className="py-3 px-4 font-mono font-semibold">

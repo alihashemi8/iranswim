@@ -299,10 +299,6 @@ export const AdminCoachDetailPage = () => {
               <span className="font-mono text-xs font-bold bg-sky-50 dark:bg-sky-950/50 text-sky-700 dark:text-sky-300 px-2.5 py-0.5 rounded-lg border border-sky-100 dark:border-sky-900">
                 {coach.personnel_id || 'EMP-1001'}
               </span>
-
-              <span className="text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2 py-0.5 rounded-lg">
-                مدل: {coach.employment_type_display || coach.employment_type}
-              </span>
             </div>
 
             <div className="flex items-center gap-3 sm:gap-4 mt-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 flex-wrap">

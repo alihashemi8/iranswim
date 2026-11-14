@@ -617,7 +617,7 @@ class CoachPaymentCreateView(APIView):
         payment_method = request.data.get('payment_method', CoachPaymentRecord.PaymentMethod.BANK_TRANSFER)
         reference_number = request.data.get('reference_number', '')
         description = request.data.get('description', '')
-        receipt_document = request.FILES.get('receipt_document')
+        receipt_document = request.FILES.get('receipt_document') or request.FILES.get('receipt')
 
         try:
             p_date = datetime.date.fromisoformat(str(payment_date_str))
