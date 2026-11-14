@@ -866,16 +866,12 @@ export const AdminCoachesPage = () => {
 
                   <button
                     type="button"
-                    onClick={() => {
-                      setStatusCoach(coach);
-                      setNewStatus(coach.employment_status || 'ACTIVE');
-                      setStatusReason('');
-                    }}
-                    className="py-2 px-3 bg-slate-50 dark:bg-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950 text-slate-700 dark:text-slate-200 rounded-xl text-xs sm:text-sm font-bold border border-slate-200/60 dark:border-slate-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
-                    title="تغییر وضعیت"
+                    onClick={() => navigate(`/admin/coaches/${coach.id}`)}
+                    className="flex-1 py-2 px-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950 text-slate-700 dark:text-slate-200 rounded-xl text-xs sm:text-sm font-bold border border-slate-200/60 dark:border-slate-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    title="مشاهده پرونده جامع"
                   >
-                    <RotateCcw className="w-4 h-4 text-amber-600" />
-                    <span>وضعیت</span>
+                    <UserCheck className="w-4 h-4 text-sky-600" />
+                    <span>پرونده</span>
                   </button>
 
                   <button
@@ -943,14 +939,8 @@ export const AdminCoachesPage = () => {
                           <span className="font-bold text-slate-900 dark:text-white text-sm sm:text-base group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors block">
                             {c.full_name}
                           </span>
-                          <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 font-mono">
+                          <div className="text-xs text-slate-500 dark:text-slate-400 font-mono">
                             <span>{c.phone}</span>
-                            {c.personnel_id && (
-                              <>
-                                <span>•</span>
-                                <span className="text-sky-700 dark:text-sky-400 font-bold">{c.personnel_id}</span>
-                              </>
-                            )}
                           </div>
                         </div>
                       </td>
@@ -1053,26 +1043,14 @@ export const AdminCoachesPage = () => {
 
                       {/* 6. Operations / Actions */}
                       <td className="py-3.5 px-4 text-center" onClick={(e) => e.stopPropagation()}>
-                        <div className="flex items-center justify-center gap-1.5">
+                        <div className="flex items-center justify-center">
                           <button
                             type="button"
                             onClick={() => navigate(`/admin/coaches/${c.id}`)}
-                            className="px-2.5 py-1 text-xs font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400 bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/50 dark:hover:bg-sky-900/50 rounded-lg border border-sky-200/60 dark:border-sky-800 transition-colors cursor-pointer"
+                            className="px-3 py-1.5 text-xs font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400 bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/50 dark:hover:bg-sky-900/50 rounded-xl border border-sky-200/60 dark:border-sky-800 transition-colors cursor-pointer"
                             title="مشاهده پرونده جامع"
                           >
                             پرونده
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setStatusCoach(c);
-                              setNewStatus(c.employment_status || 'ACTIVE');
-                              setStatusReason('');
-                            }}
-                            className="px-2.5 py-1 text-xs font-bold text-amber-600 hover:text-amber-700 dark:text-amber-400 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/50 dark:hover:bg-amber-900/50 rounded-lg border border-amber-200/60 dark:border-amber-800 transition-colors cursor-pointer"
-                            title="تغییر وضعیت"
-                          >
-                            وضعیت
                           </button>
                         </div>
                       </td>
