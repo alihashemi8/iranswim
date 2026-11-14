@@ -15,7 +15,7 @@ import { useToast } from '../../context/ToastContext';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import api from '../../api/client';
 import { LogoutModal } from '../common/LogoutModal';
-import { CourseLogoIcon } from '../common/AquaticIcons';
+import { CourseLogoIcon, OlympicStopwatchIcon } from '../common/AquaticIcons';
 
 export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const { user, logout } = useAuth();
@@ -174,6 +174,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       groupTitle: 'سنجش و پیشرفت ورزشی',
       items: [
         { to: '/coach/progress', label: 'ارزیابی و مهارت‌ها', icon: TrendingUp },
+        { to: '/coach/records', label: 'ثبت رکورد', icon: OlympicStopwatchIcon },
         { to: '/coach/exams', label: 'آزمون‌ها و سطح‌بندی', icon: Award },
       ],
     },

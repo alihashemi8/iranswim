@@ -18,6 +18,10 @@ api.interceptors.request.use(
     if (activeSwimmerId) {
       config.headers['X-Swimmer-Id'] = activeSwimmerId;
     }
+    // When sending FormData, delete Content-Type so browser sets multipart/form-data with proper boundary
+    if (config.data instanceof FormData && config.headers) {
+      delete config.headers['Content-Type'];
+    }
     return config;
   },
   (error) => Promise.reject(error)

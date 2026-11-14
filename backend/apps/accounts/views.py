@@ -331,6 +331,9 @@ class UserAvatarView(APIView):
             request.FILES.get('file')
         )
 
+        if not avatar_file and request.FILES:
+            avatar_file = next(iter(request.FILES.values()), None)
+
         if not avatar_file:
             if 'avatar' in request.data and not request.data.get('avatar'):
                 return self.delete(request)
@@ -339,7 +342,18 @@ class UserAvatarView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        validate_avatar_file(avatar_file)
+        try:
+            validate_avatar_file(avatar_file)
+        except DRFValidationError as e:
+            detail = e.detail if isinstance(e.detail, (str, list, dict)) else str(e)
+            if isinstance(detail, list) and detail:
+                detail = detail[0]
+            elif isinstance(detail, dict):
+                first_val = next(iter(detail.values()), str(detail))
+                detail = first_val[0] if isinstance(first_val, list) and first_val else str(first_val)
+            return Response({'detail': str(detail)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
         # پاکسازی تصویر قبلی از روی دیسک (تضمین قاعده فقط یکی)
         delete_user_old_avatar(user)

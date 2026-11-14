@@ -1,26 +1,26 @@
 import os
 import re
 import string
-from PIL import Image
+from PIL import Image, ImageFile
 from django.core.exceptions import ValidationError as DjangoValidationError
 from rest_framework.exceptions import ValidationError as DRFValidationError
+
+# Allow loading truncated images if slightly malformed
+ImageFile.LOAD_TRUNCATED_IMAGES = True
 
 # ASCII printable letters, digits, and standard punctuation: !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
 ALLOWED_ASCII_PUNCTUATION = string.punctuation
 ALLOWED_PASSWORD_CHARACTERS = set(string.ascii_letters + string.digits + ALLOWED_ASCII_PUNCTUATION)
 PUNCTUATION_REGEX = re.compile(r'[' + re.escape(ALLOWED_ASCII_PUNCTUATION) + r']')
 
-ALLOWED_AVATAR_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.jfif'}
+ALLOWED_AVATAR_EXTENSIONS = {'.jpg', '.jpeg', '.png', '.webp', '.jfif', '.gif'}
 MAX_AVATAR_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
-DANGEROUS_PAYLOADS = [
-    b'<svg', b'<?xml', b'<html', b'<!doctype', b'<script', b'javascript:', b'onload=', b'onerror='
-]
 
 
 def validate_avatar_file(file_obj):
     """
     اعتبارسنجی فایل تصویر پروفایل کاربر:
-    ۱. بررسی پسوند مجاز (jpg, jpeg, png, webp, jfif)
+    ۱. بررسی پسوند مجاز (jpg, jpeg, png, webp, jfif, gif)
     ۲. بررسی سقف حجم فایل (حداکثر ۵ مگابایت)
     ۳. بررسی امضای باینری تصویر (Magic Numbers)
     ۴. جلوگیری از تزریق اسکریپت یا اسناد وب خطرناک (SVG/HTML)
@@ -29,12 +29,13 @@ def validate_avatar_file(file_obj):
     if not file_obj:
         return file_obj
 
-    filename = getattr(file_obj, 'name', '')
-    if not filename:
+    raw_filename = getattr(file_obj, 'name', '') or ''
+    if not raw_filename:
         return file_obj
 
-    # 1. Path traversal check in original filename
-    if '..' in filename or '/' in filename or '\\' in filename:
+    # 1. Clean path separators (handle Windows paths e.g. C:\fakepath\image.jpg or unix paths)
+    filename = os.path.basename(raw_filename.replace('\\', '/'))
+    if not filename or '..' in filename:
         raise DRFValidationError('نام فایل تصویر نامعتبر است و شامل کاراکترهای غیرمجاز می‌باشد.')
 
     # 2. Extension check
@@ -59,17 +60,19 @@ def validate_avatar_file(file_obj):
     if not header:
         raise DRFValidationError('فایل تصویر ارسالی خالی است.')
 
-    lower_header = header.lower()
-    for dangerous in DANGEROUS_PAYLOADS:
-        if dangerous in lower_header:
-            raise DRFValidationError('بارگذاری فایل‌های حاوی کدهای اسکریپت یا وب (مانند SVG/HTML) به عنوان عکس پروفایل مجاز نیست.')
+    # Check against SVG/HTML/script files disguised as raster images
+    stripped_header = header.lstrip().lower()
+    if stripped_header.startswith((b'<?xml', b'<svg', b'<html', b'<!doctype', b'<!--', b'<script', b'javascript:', b'data:image/svg')):
+        raise DRFValidationError('بارگذاری فایل‌های حاوی کدهای اسکریپت یا وب (مانند SVG/HTML) به عنوان عکس پروفایل مجاز نیست.')
 
     is_valid_signature = False
-    if header.startswith(b'\xff\xd8\xff'):  # JPEG
+    if header.startswith(b'\xff\xd8'):  # Standard JPEG SOI (0xFFD8)
         is_valid_signature = True
     elif header.startswith(b'\x89PNG\r\n\x1a\n'):  # PNG
         is_valid_signature = True
     elif header.startswith(b'RIFF') and b'WEBP' in header[:16]:  # WebP
+        is_valid_signature = True
+    elif header.startswith((b'GIF87a', b'GIF89a')):  # GIF
         is_valid_signature = True
 
     if not is_valid_signature:
@@ -80,7 +83,11 @@ def validate_avatar_file(file_obj):
         file_obj.seek(0)
         with Image.open(file_obj) as img:
             img.verify()
+            if img.format not in ('JPEG', 'PNG', 'WEBP', 'GIF'):
+                raise DRFValidationError('فرمت تصویر پردازش‌شده مجاز نمی‌باشد.')
         file_obj.seek(0)
+    except DRFValidationError:
+        raise
     except Exception:
         raise DRFValidationError('فایل ارسالی یک تصویر سالم و معتبر نیست.')
 

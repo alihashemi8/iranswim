@@ -73,6 +73,7 @@ import { CoachClassesArchivePage } from './pages/coach/CoachClassesArchivePage';
 import { CoachClassDetailPage } from './pages/coach/CoachClassDetailPage';
 import { CoachAttendancePage } from './pages/coach/CoachAttendancePage';
 import { CoachProgressPage } from './pages/coach/CoachProgressPage';
+import { CoachRecordPage } from './pages/coach/CoachRecordPage';
 import { CoachSwimmerDossierPage } from './pages/coach/CoachSwimmerDossierPage';
 import { CoachAssessmentRecordPage } from './pages/coach/CoachAssessmentRecordPage';
 import { CoachSkillsManagerPage } from './pages/coach/CoachSkillsManagerPage';
@@ -270,6 +271,7 @@ export default function App() {
 
                 {/* 4. Progress & Swimmer Dossier */}
                 <Route path="progress" element={<CoachProgressPage />} />
+                <Route path="records" element={<CoachRecordPage />} />
                 <Route path="progress/skills" element={<CoachSkillsManagerPage />} />
                 <Route path="skills" element={<CoachSkillsManagerPage />} />
                 <Route path="progress/:swimmerId" element={<CoachSwimmerDossierPage />} />
