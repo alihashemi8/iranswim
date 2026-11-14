@@ -53,10 +53,6 @@ export const SwimmerProgressPage = () => {
     fetchProgressData();
   }, [activeSwimmerId]);
 
-  if (loading) {
-    return <LoadingState type="dashboard" message="در حال محاسبه زنجیره مهارت‌ها و پیشرفت ورزشی..." />;
-  }
-
   const passedAssessments = assessments.filter((a) => a.status === 'PASSED');
   const inProgressAssessments = assessments.filter((a) => a.status === 'NEEDS_WORK' || a.status === 'PENDING');
 
@@ -82,6 +78,10 @@ export const SwimmerProgressPage = () => {
     }
     return scored;
   }, [assessments]);
+
+  if (loading) {
+    return <LoadingState type="dashboard" message="در حال محاسبه زنجیره مهارت‌ها و پیشرفت ورزشی..." />;
+  }
 
   const skillDonutData = useMemo(() => {
     const passed = passedAssessments.length;

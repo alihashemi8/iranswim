@@ -32,10 +32,6 @@ export const CoachDashboard = () => {
     fetchDashboard();
   }, []);
 
-  if (loading) {
-    return <LoadingState type="dashboard" message="در حال دریافت برنامه کاری و وضعیت امروز..." />;
-  }
-
   const coach = data?.coach || {};
   const today = data?.today || { sessions: [], sessions_count: 0, next_session: null };
   const stats = data?.stats || {};
@@ -68,6 +64,10 @@ export const CoachDashboard = () => {
       { label: 'شاگردان فعال', value: Number(stats?.total_swimmers_count || 12), colorClass: 'bg-sky-500' },
     ];
   }, [today, stats]);
+
+  if (loading) {
+    return <LoadingState type="dashboard" message="در حال دریافت برنامه کاری و وضعیت امروز..." />;
+  }
 
   return (
     <div className="space-y-6 pb-12 coach-panel">

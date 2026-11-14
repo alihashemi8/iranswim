@@ -670,7 +670,19 @@ def test_coach_cannot_see_swimmer_sensitive_information(api_client, privacy_worl
     assert 'swimmer_national_id' not in enr1_detail.data
     assert api_client.get(f"/api/education/enrollments/{w['enr2'].id}/").status_code == 404
 
-    # 6. Finance & user management & requests remain hidden from coaches
+    # 6. /api/coaches/my-swimmers/ returns only assigned swimmers without sensitive fields
+    coach_swimmers_res = api_client.get('/api/coaches/my-swimmers/')
+    assert coach_swimmers_res.status_code == 200
+    coach_swimmers = coach_swimmers_res.data
+    assert len(coach_swimmers) > 0
+    sw_ids = {s['swimmer_id'] for s in coach_swimmers}
+    assert sw1.id in sw_ids
+    assert sw2.id not in sw_ids
+    for s_item in coach_swimmers:
+        for forbidden_key in SENSITIVE_SWIMMER_FIELDS:
+            assert forbidden_key not in s_item, f"Coach my-swimmers leaked '{forbidden_key}'"
+
+    # 7. Finance & user management & requests remain hidden from coaches
     assert _items(api_client.get('/api/finance/invoices/')) == []
     assert _items(api_client.get('/api/finance/installments/')) == []
     assert _items(api_client.get('/api/finance/payments/')) == []

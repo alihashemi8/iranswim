@@ -44,10 +44,6 @@ export const SupervisorDashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
-  if (loading && !data) {
-    return <LoadingState type="dashboard" message="در حال استعلام وضعیت نبض سامانه، دیتابیس و سرویس‌ها..." />;
-  }
-
   const isCritical = data?.system_status === 'CRITICAL';
   const isDegraded = data?.system_status === 'DEGRADED';
   const db = data?.database || { status: 'HEALTHY', latency_ms: 10 };
@@ -85,6 +81,10 @@ export const SupervisorDashboard = () => {
       { label: 'فضای آزاد دیسک', value: Math.round(freeGb * 10) / 10, color: '#10b981' },
     ];
   }, [storage]);
+
+  if (loading && !data) {
+    return <LoadingState type="dashboard" message="در حال استعلام وضعیت نبض سامانه، دیتابیس و سرویس‌ها..." />;
+  }
 
   return (
     <div className="space-y-6">

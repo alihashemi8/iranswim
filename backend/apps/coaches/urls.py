@@ -4,7 +4,7 @@ from .views import (
     CoachClassAnnouncementDeleteView,
     CoachSwimmerDossierView, CoachWorkoutPlanListView, CoachWorkoutPlanDetailView,
     CoachAIAssistantView, CoachMessagesView, CoachReorderView,
-    CoachMeProfileView, CoachCompleteProfileView
+    CoachMySwimmersView, CoachMeProfileView, CoachCompleteProfileView
 )
 from .hr_views import (
     CoachStatisticsView, CoachListHRView, CoachDetailHRView,
@@ -32,6 +32,7 @@ urlpatterns = [
     path('my-classes/<int:pk>/', CoachClassDetailView.as_view(), name='coach_class_detail'),
     path('my-classes/<int:pk>/announcements/', CoachClassDetailView.as_view(), name='coach_class_announcements'),
     path('my-classes/<int:group_id>/announcements/<int:announcement_id>/', CoachClassAnnouncementDeleteView.as_view(), name='coach_class_announcement_delete'),
+    path('my-swimmers/', CoachMySwimmersView.as_view(), name='coach_my_swimmers'),
     path('swimmer-dossier/<int:pk>/', CoachSwimmerDossierView.as_view(), name='coach_swimmer_dossier'),
     path('workouts/', CoachWorkoutPlanListView.as_view(), name='coach_workouts_list'),
     path('workouts/<int:pk>/', CoachWorkoutPlanDetailView.as_view(), name='coach_workout_detail'),

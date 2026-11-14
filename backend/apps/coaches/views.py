@@ -412,6 +412,137 @@ class CoachMyClassesView(APIView):
         return Response(serializer.data)
 
 
+class CoachMySwimmersView(APIView):
+    """
+    فهرست جامع تمام شناگران مرتبط با مربی جاری (در کلاس‌ها و دوره‌های تحت سرپرستی او)
+    با آمار حضور، سطح مهارت و دوره‌های ثبت‌نامی هر شناگر.
+    پارامترهای اختیاری: search، course، level، status
+    """
+    permission_classes = [IsAdminOrSupervisorOrCoach]
+
+    def get(self, request):
+        user = request.user
+        is_privileged = user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser
+        coach = get_coach_profile(user)
+
+        # برای مدیر/ناظر: همه شناگران یا شناگران مربی مشخص‌شده با پارامتر coach_id
+        if is_privileged:
+            coach_id = request.query_params.get('coach_id')
+            if coach_id:
+                coach = CoachProfile.objects.filter(pk=coach_id).first()
+
+        if not coach and not is_privileged:
+            return Response([], status=status.HTTP_200_OK)
+
+        # گروه‌های تحت سرپرستی مربی
+        if coach:
+            coach_group_ids = list(
+                SwimmerGroup.objects.filter(
+                    Q(coach_assignments__coach=coach) | Q(sessions__coach=coach)
+                ).values_list('id', flat=True).distinct()
+            )
+            enroll_base = Enrollment.objects.filter(
+                Q(group_id__in=coach_group_ids) | Q(coach=coach)
+            )
+        else:
+            enroll_base = Enrollment.objects.all()
+
+        enroll_qs = (
+            enroll_base.select_related(
+                'swimmer', 'swimmer__current_level', 'course', 'group'
+            )
+        )
+
+        # فیلترهای اختیاری سمت سرور (اعمال روی سطح ثبت‌نام)
+        qp = request.query_params
+        status_param = qp.get('status')
+        if status_param:
+            enroll_qs = enroll_qs.filter(status=status_param)
+        else:
+            enroll_qs = enroll_qs.exclude(status=Enrollment.Status.CANCELLED)
+        course_param = qp.get('course')
+        if course_param:
+            enroll_qs = enroll_qs.filter(course_id=course_param)
+        level_param = qp.get('level')
+        if level_param:
+            enroll_qs = enroll_qs.filter(swimmer__current_level_id=level_param)
+        search_param = qp.get('search')
+        if search_param:
+            enroll_qs = enroll_qs.filter(
+                Q(swimmer__first_name__icontains=search_param) |
+                Q(swimmer__last_name__icontains=search_param)
+            )
+
+        enrollments = list(enroll_qs.distinct())
+        if not enrollments:
+            return Response([])
+
+        # آمار حضور غیاب در جلسات کلاس‌های تحت سرپرستی مربی
+        swimmer_ids = {en.swimmer_id for en in enrollments}
+        att_stats = {}
+        stat_group_ids = coach_group_ids if coach else None
+        if swimmer_ids and stat_group_ids:
+            stat_rows = AttendanceRecord.objects.filter(
+                swimmer_id__in=swimmer_ids,
+                session__group_id__in=stat_group_ids,
+            ).values('swimmer_id').annotate(
+                total=Count('id'),
+                present=Count('id', filter=Q(status='PRESENT')),
+            )
+            att_stats = {r['swimmer_id']: r for r in stat_rows}
+
+        # گروه‌بندی ثبت‌نام‌ها بر اساس شناگر
+        by_swimmer = {}
+        for en in enrollments:
+            by_swimmer.setdefault(en.swimmer_id, []).append(en)
+
+        swimmers_data = []
+        for sw_id, rows in by_swimmer.items():
+            sw = rows[0].swimmer
+            stats = att_stats.get(sw_id, {})
+            total_recorded = stats.get('total', 0)
+            present_count = stats.get('present', 0)
+            courses = []
+            pools = set()
+            for en in sorted(rows, key=lambda e: e.enrolled_at):
+                group = en.group
+                if group and group.pool_location:
+                    pools.add(group.pool_location)
+                courses.append({
+                    'enrollment_id': en.id,
+                    'course_id': en.course_id,
+                    'course_name': en.course.name,
+                    'group_id': en.group_id,
+                    'group_name': group.name if group else None,
+                    'pool': group.pool_location if group else None,
+                    'status': en.status,
+                    'status_display': en.get_status_display(),
+                    'enrolled_at': en.enrolled_at.strftime('%Y-%m-%d'),
+                })
+            swimmers_data.append({
+                'swimmer_id': sw.id,
+                'full_name': sw.full_name,
+                'avatar': request.build_absolute_uri(sw.avatar.url) if sw.avatar else None,
+                'age': _swimmer_age(sw.date_of_birth),
+                'gender': sw.get_gender_display(),
+                'gender_code': sw.gender,
+                'level_id': sw.current_level_id,
+                'level_name': sw.current_level.name if sw.current_level else 'تعیین‌نشده',
+                'is_active_swimmer': sw.is_active,
+                'total_enrollments': len(rows),
+                'active_enrollments': sum(1 for en in rows if en.status == Enrollment.Status.ACTIVE),
+                'attendance_rate': round((present_count / total_recorded * 100), 1) if total_recorded > 0 else None,
+                'sessions_attended': present_count,
+                'total_recorded_sessions': total_recorded,
+                'pools': sorted(pools),
+                'first_enrolled_at': min(en.enrolled_at for en in rows).strftime('%Y-%m-%d'),
+                'courses': courses,
+            })
+
+        swimmers_data.sort(key=lambda s: s['full_name'])
+        return Response(swimmers_data)
+
+
 class CoachClassDetailView(APIView):
     """
     جزئیات جامع یک کلاس/گروه آموزشی شامل مشخصات، شناگران، جلسات و عملکرد
@@ -453,7 +584,6 @@ class CoachClassDetailView(APIView):
                 'swimmer_id': sw.id,
                 'full_name': sw.full_name,
                 'avatar': request.build_absolute_uri(sw.avatar.url) if sw.avatar else None,
-                'date_of_birth': sw.date_of_birth.strftime('%Y-%m-%d') if sw.date_of_birth else None,
                 'age': _swimmer_age(sw.date_of_birth),
                 'gender': sw.get_gender_display(),
                 'level_name': sw.current_level.name if sw.current_level else 'تعیین‌نشده',
@@ -464,6 +594,7 @@ class CoachClassDetailView(APIView):
             }
             if is_privileged:
                 row['national_id'] = sw.national_id
+                row['date_of_birth'] = sw.date_of_birth.strftime('%Y-%m-%d') if sw.date_of_birth else None
             swimmers_data.append(row)
 
         # Sessions for this group
@@ -804,13 +935,13 @@ class CoachSwimmerDossierView(APIView):
             'full_name': swimmer.full_name,
             'avatar': request.build_absolute_uri(swimmer.avatar.url) if swimmer.avatar else None,
             'gender': swimmer.get_gender_display(),
-            'date_of_birth': swimmer.date_of_birth.strftime('%Y-%m-%d') if swimmer.date_of_birth else None,
             'age': _swimmer_age(swimmer.date_of_birth),
             'current_level_id': swimmer.current_level.id if swimmer.current_level else None,
             'current_level_name': swimmer.current_level.name if swimmer.current_level else 'تعیین‌نشده',
         }
         if is_privileged:
             swimmer_payload.update({
+                'date_of_birth': swimmer.date_of_birth.strftime('%Y-%m-%d') if swimmer.date_of_birth else None,
                 'national_id': swimmer.national_id,
                 'medical_conditions': swimmer.medical_notes or 'بدون مورد خاص',
                 'guardian_phone': swimmer.emergency_contact_phone or swimmer.father_phone or swimmer.mother_phone or swimmer.phone or 'ثبت‌نشده',
