@@ -306,6 +306,9 @@ class CoachProfileSerializer(serializers.ModelSerializer):
     employment_type_display = serializers.CharField(source='get_employment_type_display', read_only=True)
     assigned_groups_count = serializers.SerializerMethodField()
     active_classes_count = serializers.SerializerMethodField()
+    assigned_group_names = serializers.SerializerMethodField()
+    attendance_count = serializers.SerializerMethodField()
+    payroll_summary = serializers.SerializerMethodField()
     active_contract_summary = serializers.SerializerMethodField()
     current_month_payroll_status = serializers.SerializerMethodField()
 
@@ -325,6 +328,7 @@ class CoachProfileSerializer(serializers.ModelSerializer):
             'employment_type', 'employment_type_display',
             'hourly_rate', 'fixed_monthly_salary', 'revenue_percentage', 'percentage_revenue_basis',
             'contractual_weekly_hours', 'assigned_groups_count', 'active_classes_count',
+            'assigned_group_names', 'attendance_count', 'payroll_summary',
             'active_contract_summary', 'current_month_payroll_status', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
@@ -387,6 +391,61 @@ class CoachProfileSerializer(serializers.ModelSerializer):
                 'remaining_balance': str(p.remaining_balance)
             }
         return None
+
+    def get_attendance_count(self, obj):
+        count = obj.sessions.filter(status=ClassSession.Status.COMPLETED).count()
+        if count == 0:
+            from django.db.models import Sum
+            p_sessions = obj.payrolls.aggregate(total=Sum('completed_sessions_count'))['total']
+            if p_sessions:
+                count = p_sessions
+        return count or 0
+
+    def get_assigned_group_names(self, obj):
+        return list(obj.assigned_groups.values_list('group__name', flat=True).distinct())
+
+    def get_payroll_summary(self, obj):
+        today = timezone.now().date()
+        p = obj.payrolls.filter(
+            period_start__lte=today,
+            period_end__gte=today
+        ).order_by('-created_at').first()
+        if not p:
+            p = obj.payrolls.order_by('-period_end', '-created_at').first()
+        
+        if p:
+            total_salary = float(p.net_payable_amount)
+            total_paid = float(p.total_paid)
+            remaining = float(p.remaining_balance)
+            return {
+                'has_payroll': True,
+                'period_label': p.period_label,
+                'total_salary': total_salary,
+                'total_paid': total_paid,
+                'remaining': remaining,
+                'payment_status': p.payment_status,
+                'payment_status_display': p.get_payment_status_display(),
+            }
+        
+        # Fallback based on coach employment configuration
+        total_salary = 0.0
+        if obj.employment_type == CoachProfile.EmploymentType.FIXED and obj.fixed_monthly_salary:
+            total_salary = float(obj.fixed_monthly_salary)
+        elif obj.employment_type == CoachProfile.EmploymentType.HOURLY and obj.hourly_rate:
+            if obj.assigned_groups.exists():
+                total_salary = float(obj.hourly_rate) * (obj.contractual_weekly_hours or 20) * 4
+            else:
+                total_salary = 0.0
+        
+        return {
+            'has_payroll': False,
+            'period_label': 'ماه جاری',
+            'total_salary': total_salary,
+            'total_paid': 0.0,
+            'remaining': total_salary,
+            'payment_status': 'UNPAID',
+            'payment_status_display': 'پرداخت‌نشده' if total_salary > 0 else 'فاقد حقوق',
+        }
 
     def validate_password(self, value):
         if value:
