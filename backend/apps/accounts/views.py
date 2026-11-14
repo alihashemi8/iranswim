@@ -6,16 +6,17 @@ from django.utils import timezone
 from rest_framework import status, generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.exceptions import ValidationError, AuthenticationFailed
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.db.models import Q
 from .models import User, OTPVerification
-from .validators import validate_password_complexity
+from .validators import validate_password_complexity, validate_avatar_file
 from .serializers import (
     IranSwimTokenObtainPairSerializer, UserSerializer, SelfProfileSerializer, RegisterSerializer,
     SendOTPSerializer, VerifyOTPLoginSerializer, RegisterWithOTPSerializer,
-    to_english_digits
+    to_english_digits, get_user_data, get_user_avatar_url, delete_user_old_avatar
 )
 from .permissions import IsAdminUserRole, IsAdminOrSupervisor
 

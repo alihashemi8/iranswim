@@ -370,23 +370,31 @@ class SelfProfileSerializer(serializers.ModelSerializer):
     سریالایزر امن ویرایش پروفایل کاربری توسط خود کاربر (/api/auth/me/):
     فیلدهای سطح دسترسی (نقش، سوپریوزر، کارمند و وضعیت فعال) را غیرقابل ویرایش می‌سازد
     تا از هرگونه ترفیع دسترسی غیرمجاز جلوگیری شود.
+    امکان بارگذاری و تغییر تصویر پروفایل (فقط یکی) برای کلیه کاربران فراهم است.
     """
     full_name = serializers.CharField(read_only=True)
     swimmer_id = serializers.SerializerMethodField()
     coach_id = serializers.SerializerMethodField()
     is_profile_completed = serializers.SerializerMethodField()
+    avatar = serializers.ImageField(required=False, allow_null=True, validators=[validate_avatar_file])
 
     class Meta:
         model = User
         fields = [
             'id', 'phone', 'first_name', 'last_name', 'full_name',
-            'national_id', 'role', 'is_active', 'is_password_changed',
+            'national_id', 'role', 'avatar', 'is_active', 'is_password_changed',
             'swimmer_id', 'coach_id', 'is_profile_completed', 'created_at'
         ]
         read_only_fields = [
             'id', 'phone', 'role', 'is_active', 'is_password_changed',
             'swimmer_id', 'coach_id', 'is_profile_completed', 'created_at'
         ]
+
+    def to_representation(self, instance):
+        ret = super().to_representation(instance)
+        if not ret.get('avatar'):
+            ret['avatar'] = get_user_avatar_url(instance, self.context.get('request'))
+        return ret
 
     def get_swimmer_id(self, obj):
         profile = getattr(obj, 'swimmer_profile', None)
@@ -427,13 +435,24 @@ class SelfProfileSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         # Whitelist safe editable profile fields only
-        safe_fields = {'first_name', 'last_name', 'national_id'}
-        for attr in safe_fields:
+        safe_fields = {'first_name', 'last_name', 'national_id', 'avatar'}
+        for attr in ['first_name', 'last_name', 'national_id']:
             if attr in validated_data:
                 setattr(instance, attr, validated_data[attr])
+
+        has_avatar = 'avatar' in self.initial_data or 'avatar' in validated_data
+        if has_avatar:
+            new_avatar = validated_data.get('avatar')
+            if not new_avatar:
+                delete_user_old_avatar(instance)
+                instance.avatar = None
+            else:
+                delete_user_old_avatar(instance)
+                instance.avatar = new_avatar
+
         instance.save()
 
-        # Synchronize first_name, last_name, and national_id with linked SwimmerProfile if present
+        # Synchronize first_name, last_name, national_id, and avatar with linked SwimmerProfile if present
         if hasattr(instance, 'swimmer_profile') and instance.swimmer_profile:
             profile = instance.swimmer_profile
             profile_changed = False
@@ -445,6 +464,9 @@ class SelfProfileSerializer(serializers.ModelSerializer):
                 profile_changed = True
             if 'national_id' in validated_data and profile.national_id != instance.national_id:
                 profile.national_id = instance.national_id or ''
+                profile_changed = True
+            if has_avatar:
+                profile.avatar = instance.avatar
                 profile_changed = True
             if profile_changed:
                 profile.save()
