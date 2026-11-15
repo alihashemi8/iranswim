@@ -30,7 +30,7 @@ class CoachProfile(models.Model):
 
     class RetrainingStatus(models.TextChoices):
         UNUPLOADED = 'UNUPLOADED', _('بارگذاری‌نشده')
-        PENDING = 'PENDING', _('در انتظار بررسی و تأیید مدیر')
+        PENDING = 'PENDING', _('ثبت‌شده')
         APPROVED = 'APPROVED', _('تأییدشده')
         REJECTED = 'REJECTED', _('رد شده / نیازمند اصلاح')
 

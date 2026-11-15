@@ -298,36 +298,30 @@ export const CoachProfilePage = () => {
         </div>
       )}
 
-      {/* Retraining Status Banner (if profile completed) */}
-      {profile && profile.is_profile_completed && (
+      {/* Retraining Status Banner (only if approved or rejected) */}
+      {profile && profile.is_profile_completed && ['APPROVED', 'REJECTED'].includes(profile.retraining_status) && (
         <div className={`p-4 sm:p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 ${
           profile.retraining_status === 'APPROVED'
             ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800'
-            : profile.retraining_status === 'REJECTED'
-            ? 'bg-rose-50 dark:bg-rose-950/30 border-rose-300 dark:border-rose-800'
-            : 'bg-amber-50 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800'
+            : 'bg-rose-50 dark:bg-rose-950/30 border-rose-300 dark:border-rose-800'
         }`}>
           <div className="flex items-start gap-3">
             <Award className={`w-5 h-5 shrink-0 mt-0.5 ${
-              profile.retraining_status === 'APPROVED' ? 'text-emerald-600' : profile.retraining_status === 'REJECTED' ? 'text-rose-600' : 'text-amber-600'
+              profile.retraining_status === 'APPROVED' ? 'text-emerald-600' : 'text-rose-600'
             }`} />
             <div>
               <div className="flex items-center gap-2 flex-wrap">
                 <h4 className="text-sm font-bold text-slate-900 dark:text-white">
                   وضعیت بازآموزی سال جاری ({profile.retraining_year || 'سال جاری'}):
                 </h4>
-                <Badge variant={
-                  profile.retraining_status === 'APPROVED' ? 'success' : profile.retraining_status === 'REJECTED' ? 'danger' : 'warning'
-                }>
-                  {profile.retraining_status_display || (profile.retraining_status === 'APPROVED' ? 'تأییدشده' : 'در انتظار بررسی')}
+                <Badge variant={profile.retraining_status === 'APPROVED' ? 'success' : 'danger'}>
+                  {profile.retraining_status === 'APPROVED' ? 'تأییدشده' : 'رد شده'}
                 </Badge>
               </div>
               <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
                 {profile.retraining_status === 'APPROVED'
                   ? `گواهی بازآموزی شما تا تاریخ ${profile.retraining_expiry_date_jalali || 'پایان اسفند ماه'} دارای اعتبار رسمی است.`
-                  : profile.retraining_status === 'REJECTED'
-                  ? `دلیل عدم تأیید: ${profile.retraining_rejection_reason || 'مدارک نیازمند اصلاح است.'}`
-                  : 'گواهی بازآموزی شما ثبت شده و در انتظار بررسی و تأیید نهایی مدیریت می‌باشد.'}
+                  : `دلیل عدم تأیید: ${profile.retraining_rejection_reason || 'مدارک نیازمند اصلاح است.'}`}
               </p>
             </div>
           </div>
