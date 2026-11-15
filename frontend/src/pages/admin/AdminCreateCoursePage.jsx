@@ -1478,7 +1478,6 @@ export const AdminCreateCoursePage = () => {
                   </label>
                   <input
                     type="text"
-                    placeholder="مثال: به نام آموزشگاه شنای ایران / علی هاشمی"
                     value={formData.card_holder || ''}
                     onChange={(e) => setFormData({ ...formData, card_holder: e.target.value })}
                     className="w-full px-3.5 py-2.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
