@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, Link, useSearchParams, useLocation } from 'react-router-dom';
 import {
   ArrowRight, User, Phone, Calendar, CreditCard, Award,
   BookOpen, Clock, ShieldAlert, CheckCircle2, AlertCircle,
@@ -17,19 +17,35 @@ import { BackButton } from '../../components/common/BackButton';
 import { SecureImage } from '../../components/common/SecureImage';
 import { getMediaUrl, getAuthenticatedDocUrl } from '../../utils/media';
 import { useToast } from '../../context/ToastContext';
+import { SwimmerRecordsTab } from '../../components/swimmer/SwimmerRecordsTab';
 
 export const AdminSwimmerDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+
+  const getInitialTab = () => {
+    const tabParam = searchParams.get('tab')?.toLowerCase();
+    if (tabParam === 'records' || tabParam === 'assessments') return 'ASSESSMENTS';
+    if (tabParam === 'enrollments' || tabParam === 'classes') return 'ENROLLMENTS';
+    if (tabParam === 'attendance') return 'ATTENDANCE';
+    if (tabParam === 'finance' || tabParam === 'invoices') return 'FINANCE';
+    if (tabParam === 'info') return 'INFO';
+    if (window.location.hash.includes('records') || window.location.hash.includes('assessments')) return 'ASSESSMENTS';
+    return 'INFO';
+  };
 
   const [swimmer, setSwimmer] = useState(null);
   const [enrollments, setEnrollments] = useState([]);
   const [attendance, setAttendance] = useState([]);
   const [invoices, setInvoices] = useState([]);
   const [records, setRecords] = useState([]);
+  const [videos, setVideos] = useState([]);
+  const [skillAssessments, setSkillAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState('INFO'); // INFO, ENROLLMENTS, ATTENDANCE, FINANCE, ASSESSMENTS
+  const [activeTab, setActiveTab] = useState(getInitialTab); // INFO, ENROLLMENTS, ATTENDANCE, FINANCE, ASSESSMENTS
 
   // Document Review States (Step 3)
   const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
@@ -125,12 +141,14 @@ export const AdminSwimmerDetailPage = () => {
       if (!id) return;
       try {
         setLoading(true);
-        const [swimmerRes, enrollRes, attRes, invRes, recRes] = await Promise.allSettled([
+        const [swimmerRes, enrollRes, attRes, invRes, recRes, vidRes, skillRes] = await Promise.allSettled([
           api.get(`/swimmers/${id}/`),
           api.get(`/education/enrollments/?swimmer_id=${id}`),
           api.get(`/attendance/?swimmer_id=${id}`),
           api.get(`/finance/invoices/?swimmer_id=${id}`),
           api.get(`/assessments/records/?swimmer_id=${id}`),
+          api.get(`/swimmers/videos/?swimmer_id=${id}`),
+          api.get(`/assessments/skills/?swimmer_id=${id}`),
         ]);
 
         if (swimmerRes.status === 'fulfilled' && swimmerRes.value?.data) {
@@ -151,6 +169,12 @@ export const AdminSwimmerDetailPage = () => {
         if (recRes.status === 'fulfilled') {
           setRecords(recRes.value.data.results || recRes.value.data || []);
         }
+        if (vidRes.status === 'fulfilled') {
+          setVideos(vidRes.value.data.results || vidRes.value.data || []);
+        }
+        if (skillRes.status === 'fulfilled') {
+          setSkillAssessments(skillRes.value.data.results || skillRes.value.data || []);
+        }
       } catch (err) {
         console.error('Error fetching swimmer details:', err);
         toast.error('خطا در دریافت پرونده شناگر');
@@ -162,18 +186,77 @@ export const AdminSwimmerDetailPage = () => {
     fetchDossier();
   }, [id]);
 
-  // Smooth scroll to documents section if hash is present
-  useEffect(() => {
-    if (!loading && swimmer && window.location.hash.includes('documents')) {
-      setActiveTab('INFO');
-      setTimeout(() => {
-        const el = document.getElementById('documents-section');
-        if (el) {
-          el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-      }, 300);
+  const refreshRecords = async () => {
+    try {
+      const res = await api.get(`/assessments/records/?swimmer_id=${id}`);
+      setRecords(res.data.results || res.data || []);
+    } catch (err) {
+      console.error(err);
     }
-  }, [loading, swimmer]);
+  };
+
+  const refreshVideos = async () => {
+    try {
+      const res = await api.get(`/swimmers/videos/?swimmer_id=${id}`);
+      setVideos(res.data.results || res.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  // Sync activeTab with URL tab search params
+  useEffect(() => {
+    const tabParam = searchParams.get('tab')?.toLowerCase();
+    if (tabParam === 'records' || tabParam === 'assessments') {
+      setActiveTab('ASSESSMENTS');
+    } else if (tabParam === 'enrollments' || tabParam === 'classes') {
+      setActiveTab('ENROLLMENTS');
+    } else if (tabParam === 'attendance') {
+      setActiveTab('ATTENDANCE');
+    } else if (tabParam === 'finance' || tabParam === 'invoices') {
+      setActiveTab('FINANCE');
+    } else if (tabParam === 'info') {
+      setActiveTab('INFO');
+    } else if (window.location.hash.includes('records')) {
+      setActiveTab('ASSESSMENTS');
+    }
+  }, [searchParams, location.hash]);
+
+  // Smooth scroll to records or documents section if requested
+  useEffect(() => {
+    if (!loading && swimmer) {
+      const tabParam = searchParams.get('tab')?.toLowerCase();
+      if (tabParam === 'records' || tabParam === 'assessments' || window.location.hash.includes('records')) {
+        setTimeout(() => {
+          const el = document.getElementById('swimmer-tabs-section');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 200);
+      } else if (window.location.hash.includes('documents')) {
+        setActiveTab('INFO');
+        setTimeout(() => {
+          const el = document.getElementById('documents-section');
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          }
+        }, 200);
+      }
+    }
+  }, [loading, swimmer, searchParams]);
+
+  const handleTabChange = (key) => {
+    setActiveTab(key);
+    setSearchParams((prev) => {
+      const updated = new URLSearchParams(prev);
+      if (key === 'ASSESSMENTS') {
+        updated.set('tab', 'records');
+      } else {
+        updated.set('tab', key.toLowerCase());
+      }
+      return updated;
+    }, { replace: true });
+  };
 
   const formatPrice = (val) => Number(val || 0).toLocaleString('fa-IR');
 
@@ -337,7 +420,7 @@ export const AdminSwimmerDetailPage = () => {
       </div>
 
       {/* Profile Section Tabs */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors space-y-6">
+      <div id="swimmer-tabs-section" className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors space-y-6">
         <div className="flex w-full bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-700 gap-1.5 overflow-x-auto scrollbar-none">
           {[
             { key: 'INFO', label: 'اطلاعات هویتی و پزشکی', icon: User },
@@ -351,7 +434,7 @@ export const AdminSwimmerDetailPage = () => {
               <button
                 key={tab.key}
                 type="button"
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => handleTabChange(tab.key)}
                 className={`flex-1 min-w-[130px] sm:min-w-0 py-2.5 sm:py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-2 whitespace-nowrap ${
                   activeTab === tab.key
                     ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm'
@@ -904,45 +987,16 @@ export const AdminSwimmerDetailPage = () => {
           </div>
         )}
 
-        {/* Tab 5: ASSESSMENTS */}
+        {/* Tab 5: ASSESSMENTS (رکوردهای ثبت‌شده، آمار، فیلم‌ها و نمودار پیشرفت) */}
         {activeTab === 'ASSESSMENTS' && (
-          <div className="space-y-4">
-            {records.length === 0 ? (
-              <div className="text-center py-12 text-slate-400 text-sm">
-                هنوز هیچ رکورد زمانی یا ارزیابی مسابقاتی برای این شناگر ثبت نشده است.
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {records.map((rec) => (
-                  <div
-                    key={rec.id}
-                    className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/70 space-y-3.5 text-xs sm:text-sm"
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <h4 className="font-extrabold text-slate-900 dark:text-white text-base sm:text-lg">
-                          {rec.distance_meters} متر {rec.stroke_display || rec.stroke}
-                        </h4>
-                        <span className="font-mono text-slate-400 text-xs sm:text-sm block mt-0.5" dir="ltr">
-                          {new Date(rec.recorded_at).toLocaleDateString('fa-IR')}
-                        </span>
-                      </div>
-                      <Badge variant={rec.verification_status === 'VERIFIED' ? 'success' : 'warning'} size="md">
-                        {rec.verification_status === 'VERIFIED' ? 'تأیید رسمی' : 'در انتظار بررسی'}
-                      </Badge>
-                    </div>
-
-                    <div className="pt-3 border-t border-slate-200/60 dark:border-slate-700/60 flex justify-between items-center">
-                      <span className="text-slate-500 dark:text-slate-400 font-medium text-xs sm:text-sm">زمان ثبت‌شده:</span>
-                      <span className="font-mono font-black text-sky-600 dark:text-sky-400 text-base sm:text-xl">
-                        {rec.duration_seconds} ثانیه
-                      </span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <SwimmerRecordsTab
+            swimmer={swimmer}
+            records={records}
+            videos={videos}
+            skillAssessments={skillAssessments}
+            onRefreshRecords={refreshRecords}
+            onRefreshVideos={refreshVideos}
+          />
         )}
       </div>
 

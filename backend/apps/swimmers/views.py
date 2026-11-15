@@ -383,6 +383,41 @@ class SwimmerListView(generics.ListCreateAPIView):
             )
             qs = qs.filter(docs_pending_q)
 
+        # 1. Filter by birth_year (Supports Jalali years 1300-1500 and Gregorian > 1900)
+        birth_year = self.request.query_params.get('birth_year')
+        if birth_year and birth_year.strip().isdigit():
+            by = int(birth_year.strip())
+            if 1300 <= by <= 1500:
+                from apps.coaches.date_utils import jalali_to_gregorian, is_jalali_leap
+                import datetime
+                gy1, gm1, gd1 = jalali_to_gregorian(by, 1, 1)
+                leap = is_jalali_leap(by)
+                gy2, gm2, gd2 = jalali_to_gregorian(by, 12, 30 if leap else 29)
+                start_date = datetime.date(gy1, gm1, gd1)
+                end_date = datetime.date(gy2, gm2, gd2)
+                qs = qs.filter(date_of_birth__range=(start_date, end_date))
+            elif by > 1900:
+                qs = qs.filter(date_of_birth__year=by)
+
+        # 2. Filter by gender
+        gender = self.request.query_params.get('gender')
+        if gender and gender in ['MALE', 'FEMALE']:
+            qs = qs.filter(gender=gender)
+
+        # 3. Filter by pool (course pool location)
+        pool = self.request.query_params.get('pool')
+        if pool and pool.strip():
+            qs = qs.filter(enrollments__course__pool_location__icontains=pool.strip()).distinct()
+
+        # 4. Filter by coach
+        coach_id = self.request.query_params.get('coach') or self.request.query_params.get('coach_id')
+        if coach_id and coach_id.strip().isdigit():
+            cid = int(coach_id.strip())
+            qs = qs.filter(
+                Q(enrollments__coach_id=cid) |
+                Q(enrollments__group__coach_assignments__coach_id=cid)
+            ).distinct()
+
         # Filter by search (restrict sensitive identity/contact search strictly to Admin & Supervisor)
         search = self.request.query_params.get('search', '').strip()
         if search:
@@ -928,3 +963,119 @@ class SwimmerMyPlansView(APIView):
 
         serializer = WorkoutPlanSerializer(qs, many=True)
         return Response(serializer.data)
+
+
+class SwimmerFilterOptionsView(APIView):
+    """
+    گزینه‌های فیلتر برای صفحه مدیریت شناگران: استخرها، مربیان، سال‌های تولد شمسی و جنسیت
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        from apps.education.models import Course
+        from apps.coaches.models import CoachProfile
+        from apps.coaches.date_utils import gregorian_to_jalali
+
+        # 1. Distinct pools from Course pool_locations
+        pools_raw = Course.objects.exclude(pool_location='').values_list('pool_location', flat=True).distinct()
+        pools = sorted(list(set([p.strip() for p in pools_raw if p and p.strip()])))
+        if not pools:
+            pools = ['استخر شهید رئیسی']
+
+        # 2. Coaches
+        coaches_qs = CoachProfile.objects.all().select_related('user').order_by('user__last_name', 'user__first_name')
+        coaches = []
+        for c in coaches_qs:
+            c_name = c.full_name
+            if c_name:
+                coaches.append({'id': c.id, 'name': c_name})
+
+        # 3. Available Jalali birth years among swimmers + realistic range
+        birth_years_set = set()
+        dob_list = SwimmerProfile.objects.exclude(date_of_birth__isnull=True).values_list('date_of_birth', flat=True)
+        for dob in dob_list:
+            if dob:
+                jy, _, _ = gregorian_to_jalali(dob.year, dob.month, dob.day)
+                birth_years_set.add(jy)
+        # Include comprehensive birth years for swimming school (1384 to 1403)
+        for y in range(1385, 1403):
+            birth_years_set.add(y)
+        birth_years = sorted(list(birth_years_set), reverse=True)
+
+        # 4. Genders
+        genders = [
+            {'value': 'MALE', 'label': 'پسر / آقایان'},
+            {'value': 'FEMALE', 'label': 'دختر / بانوان'},
+        ]
+
+        return Response({
+            'pools': pools,
+            'coaches': coaches,
+            'birth_years': birth_years,
+            'genders': genders
+        })
+
+
+class DossiersSummaryView(APIView):
+    """
+    آمار تجمیعی پرونده‌ها و مدارک نیازمند تأیید مدیریت (شناگران و مربیان)
+    """
+    permission_classes = [IsAdminUserRole]
+
+    def get(self, request):
+        from apps.coaches.models import CoachProfile
+
+        # Swimmers pending review
+        docs_pending_q = (
+            Q(birth_certificate_status=DocumentStatus.PENDING) |
+            Q(national_card_status=DocumentStatus.PENDING) |
+            Q(sports_insurance_status=DocumentStatus.PENDING) |
+            (
+                Q(is_profile_completed=False) &
+                (
+                    ~Q(birth_certificate_image='') |
+                    ~Q(national_card_image='') |
+                    ~Q(sports_insurance_image='')
+                )
+            )
+        )
+        swimmers_pending = SwimmerProfile.objects.filter(docs_pending_q).count()
+        swimmers_approved = SwimmerProfile.objects.filter(
+            birth_certificate_status=DocumentStatus.APPROVED,
+            national_card_status=DocumentStatus.APPROVED,
+            sports_insurance_status=DocumentStatus.APPROVED
+        ).count()
+        swimmers_revision = SwimmerProfile.objects.filter(
+            Q(birth_certificate_status=DocumentStatus.REVISION_REQUIRED) |
+            Q(national_card_status=DocumentStatus.REVISION_REQUIRED) |
+            Q(sports_insurance_status=DocumentStatus.REVISION_REQUIRED)
+        ).count()
+
+        # Coaches pending review (retraining or certificates)
+        coach_pending_q = (
+            Q(retraining_status=CoachProfile.RetrainingStatus.PENDING) |
+            (
+                Q(retraining_status=CoachProfile.RetrainingStatus.UNUPLOADED) &
+                ~Q(retraining_certificate_file='') &
+                Q(retraining_certificate_file__isnull=False)
+            ) |
+            Q(certificates__is_verified=False)
+        )
+        coaches_pending = CoachProfile.objects.filter(coach_pending_q).distinct().count()
+        coaches_approved = CoachProfile.objects.filter(
+            retraining_status=CoachProfile.RetrainingStatus.APPROVED
+        ).count()
+        coaches_rejected = CoachProfile.objects.filter(
+            retraining_status=CoachProfile.RetrainingStatus.REJECTED
+        ).count()
+
+        return Response({
+            'total_pending': swimmers_pending + coaches_pending,
+            'swimmers_pending': swimmers_pending,
+            'swimmers_approved': swimmers_approved,
+            'swimmers_revision': swimmers_revision,
+            'coaches_pending': coaches_pending,
+            'coaches_approved': coaches_approved,
+            'coaches_rejected': coaches_rejected,
+        })
+

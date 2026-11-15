@@ -6,8 +6,9 @@ import {
   AlertCircle, Eye, LayoutGrid, List, Plus, RefreshCw,
   Award, DollarSign, Sparkles, Layers, ShieldCheck, Phone,
   Trash2, UserPlus, UserCheck, AlertTriangle, UserCog,
-  CheckSquare, Square, Whistle, UserX, Check
+  CheckSquare, Square, Whistle, UserX, Check, Copy, CreditCard
 } from 'lucide-react';
+import { getBankNameFromCard, formatCardNumberWithDashes } from '../../utils/bankCard';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
@@ -1400,14 +1401,44 @@ export const AdminCourseDetailPage = () => {
                   {formatPrice(course.base_price)} تومان
                 </span>
               </div>
-              <div className="flex justify-between py-2">
+              <div className="flex justify-between py-2 border-b border-slate-100 dark:border-slate-800 items-center">
                 <span className="text-slate-500">شرایط پرداخت اقساطی:</span>
                 <span className="font-bold text-slate-800 dark:text-slate-200">
                   {course.installments_count && course.installments_count > 1
-                    ? `تا ${toEnglishDigits(course.installments_count)} قسط`
+                    ? `تا ${toEnglishDigits(course.installments_count)} قسط (تعیین مبلغ توسط شناگر)`
                     : 'پرداخت نقدی یکجا'}
                 </span>
               </div>
+              {course.card_number && (
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between py-2 gap-2">
+                  <span className="text-slate-500 flex items-center gap-1.5">
+                    <CreditCard className="w-4 h-4 text-sky-600" />
+                    <span>شماره کارت واریز شهریه:</span>
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-slate-800 dark:text-slate-100 text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700" dir="ltr">
+                      {formatCardNumberWithDashes(course.card_number)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const clean = String(course.card_number).replace(/\D/g, '');
+                        navigator.clipboard.writeText(clean);
+                        toast.success('شماره کارت با موفقیت در حافظه کپی شد.');
+                      }}
+                      className="p-1.5 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900 border border-sky-200 dark:border-sky-800 transition-colors cursor-pointer"
+                      title="کپی شماره کارت"
+                    >
+                      <Copy className="w-4 h-4" />
+                    </button>
+                    {getBankNameFromCard(course.card_number) && (
+                      <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
+                        {getBankNameFromCard(course.card_number)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

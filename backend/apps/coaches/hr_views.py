@@ -243,6 +243,32 @@ class CoachListHRView(generics.ListCreateAPIView):
         if payroll_status:
             qs = qs.filter(payrolls__payment_status=payroll_status).distinct()
 
+        # 8. Retraining / Dossier Status
+        retraining_status = params.get('retraining_status')
+        if retraining_status:
+            qs = qs.filter(retraining_status=retraining_status)
+
+        has_documents = params.get('has_documents')
+        if has_documents and str(has_documents).lower() in ['true', '1']:
+            qs = qs.filter(
+                Q(~Q(retraining_certificate_file='') & Q(retraining_certificate_file__isnull=False)) |
+                Q(~Q(coaching_certificate_file='') & Q(coaching_certificate_file__isnull=False)) |
+                Q(~Q(resume_file='') & Q(resume_file__isnull=False)) |
+                Q(certificates__isnull=False)
+            ).distinct()
+
+        pending_review = params.get('pending_review')
+        if pending_review and str(pending_review).lower() in ['true', '1']:
+            qs = qs.filter(
+                Q(retraining_status=CoachProfile.RetrainingStatus.PENDING) |
+                (
+                    Q(retraining_status=CoachProfile.RetrainingStatus.UNUPLOADED) &
+                    ~Q(retraining_certificate_file='') &
+                    Q(retraining_certificate_file__isnull=False)
+                ) |
+                Q(certificates__is_verified=False)
+            ).distinct()
+
         # 8. Ordering
         ordering = params.get('ordering', 'display_order')
         if ordering == 'name':

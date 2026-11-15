@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Trophy, Medal, Timer, Calendar, User, TrendingUp,
   Award, Shield, Plus, CheckCircle2, Flame, Sparkles
@@ -17,6 +18,7 @@ export const SwimmerPerformanceModal = ({
   swimmerId,
   onOpenManualScoreForSwimmer,
 }) => {
+  const navigate = useNavigate();
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const toast = useToast();
@@ -94,7 +96,19 @@ export const SwimmerPerformanceModal = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 shrink-0 flex-wrap">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  onClose && onClose();
+                  navigate(`/admin/swimmers/${swimmerId}?tab=records`);
+                }}
+                className="gap-1.5 text-xs font-bold border-amber-300 dark:border-amber-700 hover:bg-amber-50 dark:hover:bg-amber-950/50 text-amber-800 dark:text-amber-200"
+              >
+                <Award className="w-3.5 h-3.5 text-amber-500" />
+                <span>مشاهده پرونده و رکوردها</span>
+              </Button>
               <Button
                 size="sm"
                 onClick={() => {

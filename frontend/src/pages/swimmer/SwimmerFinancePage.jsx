@@ -2,13 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   CreditCard, CheckCircle2, Clock, AlertTriangle, ArrowRightLeft,
-  FileText, ShieldCheck, Download, ExternalLink, HelpCircle
+  FileText, ShieldCheck, Download, ExternalLink, HelpCircle, Copy
 } from 'lucide-react';
 import api from '../../api/client';
 import { useSwimmer } from '../../context/SwimmerContext';
 import { useToast } from '../../context/ToastContext';
 import { Badge } from '../../components/common/Badge';
 import { LoadingState } from '../../components/common/LoadingState';
+import { copyCardToClipboard } from '../../utils/bankCard';
 
 export const SwimmerFinancePage = () => {
   const { activeSwimmer, activeSwimmerId } = useSwimmer();
@@ -157,6 +158,35 @@ export const SwimmerFinancePage = () => {
             )}
           </span>
         </div>
+      </div>
+
+      {/* Card-to-Card Payment Details for Swimmer */}
+      <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 text-white border border-sky-800/60 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-sky-600/80 text-white flex items-center justify-center shrink-0 shadow-xs">
+            <CreditCard className="w-5 h-5 text-emerald-300" />
+          </div>
+          <div>
+            <span className="text-xs font-bold text-sky-200 block">
+              شماره کارت بانکی آموزشگاه (جهت واریز و کارت‌به‌کارت اقساط)
+            </span>
+            <span className="text-sm sm:text-base font-mono font-black tracking-wider text-emerald-300 block mt-0.5" dir="ltr">
+              ۶۰۳۷ - ۹۹۷۵ - ۱۲۳۴ - ۵۶۷۸
+            </span>
+            <span className="text-[11px] text-slate-300 block">
+              بانک ملی ایران · به نام علی هاشمی (مدیریت مدرسه شنا)
+            </span>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => copyCardToClipboard('6037997512345678', 'شماره کارت آموزشگاه', toast)}
+          className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 shrink-0 self-start md:self-auto"
+        >
+          <Copy className="w-3.5 h-3.5" />
+          <span>کپی شماره کارت</span>
+        </button>
       </div>
 
       {/* Installments Schedule */}

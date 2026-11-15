@@ -319,8 +319,19 @@ class EnrollmentRequestReviewView(APIView):
                         quantity=1,
                         total_price=req.course.base_price
                     )
-                    # Generate Installments based on swimmer's selected installments (up to course max)
+                    # Generate Installments based on swimmer's selected installments and custom amounts
                     total_amount = Decimal(str(req.course.base_price))
+
+                    custom_amounts = request.data.get('installment_amounts') or getattr(req, 'installment_amounts', None) or []
+                    valid_custom = False
+                    parsed_amounts = []
+                    if isinstance(custom_amounts, list) and len(custom_amounts) == inst_count and inst_count > 1:
+                        try:
+                            parsed_amounts = [Decimal(str(a)) for a in custom_amounts]
+                            if all(a > 0 for a in parsed_amounts) and sum(parsed_amounts) == total_amount:
+                                valid_custom = True
+                        except Exception:
+                            valid_custom = False
 
                     if inst_count <= 1:
                         Installment.objects.create(
@@ -329,6 +340,27 @@ class EnrollmentRequestReviewView(APIView):
                             amount=total_amount,
                             due_date=req.course.start_date
                         )
+                        enrollment.installment_amounts = [float(total_amount)]
+                        enrollment.save(update_fields=['installment_amounts'])
+                    elif valid_custom:
+                        start_d = req.course.start_date
+                        end_d = req.course.end_date
+                        total_days = max(1, (end_d - start_d).days)
+                        step_days = total_days / (inst_count - 1)
+                        for i, inst_amount in enumerate(parsed_amounts, start=1):
+                            if i == inst_count:
+                                inst_due = end_d
+                            else:
+                                days_offset = int(round((i - 1) * step_days))
+                                inst_due = start_d + datetime.timedelta(days=days_offset)
+                            Installment.objects.create(
+                                invoice=invoice,
+                                installment_number=i,
+                                amount=inst_amount,
+                                due_date=inst_due
+                            )
+                        enrollment.installment_amounts = [float(a) for a in parsed_amounts]
+                        enrollment.save(update_fields=['installment_amounts'])
                     else:
                         base_installment_amount = (total_amount / inst_count).quantize(Decimal('1.00'))
                         start_d = req.course.start_date
@@ -337,6 +369,7 @@ class EnrollmentRequestReviewView(APIView):
                         step_days = total_days / (inst_count - 1)
 
                         allocated_sum = Decimal('0.00')
+                        stored_amounts = []
                         for i in range(1, inst_count + 1):
                             if i == inst_count:
                                 inst_amount = total_amount - allocated_sum
@@ -353,6 +386,9 @@ class EnrollmentRequestReviewView(APIView):
                                 amount=inst_amount,
                                 due_date=inst_due
                             )
+                            stored_amounts.append(float(inst_amount))
+                        enrollment.installment_amounts = stored_amounts
+                        enrollment.save(update_fields=['installment_amounts'])
 
                 req.status = EnrollmentRequest.Status.APPROVED
                 req.reviewed_by = request.user
@@ -365,7 +401,7 @@ class EnrollmentRequestReviewView(APIView):
                     action=AuditLog.Action.ENROLLMENT_CREATE,
                     entity_type='Enrollment',
                     entity_id=str(enrollment.id),
-                    details={'group': group.name, 'swimmer': swimmer.full_name}
+                    details={'group': group.name if group else 'بدون گروه کلاسی', 'swimmer': swimmer.full_name}
                 )
 
                 return Response({
@@ -412,6 +448,17 @@ class EnrollmentListView(generics.ListCreateAPIView):
                 total_price=course.base_price
             )
             total_amount = Decimal(str(course.base_price))
+            custom_amounts = getattr(enrollment, 'installment_amounts', None) or self.request.data.get('installment_amounts') or []
+            valid_custom = False
+            parsed_amounts = []
+            if isinstance(custom_amounts, list) and len(custom_amounts) == inst_count and inst_count > 1:
+                try:
+                    parsed_amounts = [Decimal(str(a)) for a in custom_amounts]
+                    if all(a > 0 for a in parsed_amounts) and sum(parsed_amounts) == total_amount:
+                        valid_custom = True
+                except Exception:
+                    valid_custom = False
+
             if inst_count <= 1:
                 Installment.objects.create(
                     invoice=invoice,
@@ -419,6 +466,29 @@ class EnrollmentListView(generics.ListCreateAPIView):
                     amount=total_amount,
                     due_date=course.start_date or timezone.now().date()
                 )
+                if not getattr(enrollment, 'installment_amounts', None):
+                    enrollment.installment_amounts = [float(total_amount)]
+                    enrollment.save(update_fields=['installment_amounts'])
+            elif valid_custom:
+                start_d = course.start_date or timezone.now().date()
+                end_d = course.end_date or (start_d + datetime.timedelta(days=60))
+                total_days = max(1, (end_d - start_d).days)
+                step_days = total_days / (inst_count - 1)
+                for i, inst_amount in enumerate(parsed_amounts, start=1):
+                    if i == inst_count:
+                        inst_due = end_d
+                    else:
+                        days_offset = int(round((i - 1) * step_days))
+                        inst_due = start_d + datetime.timedelta(days=days_offset)
+                    Installment.objects.create(
+                        invoice=invoice,
+                        installment_number=i,
+                        amount=inst_amount,
+                        due_date=inst_due
+                    )
+                if not getattr(enrollment, 'installment_amounts', None):
+                    enrollment.installment_amounts = [float(a) for a in parsed_amounts]
+                    enrollment.save(update_fields=['installment_amounts'])
             else:
                 base_installment_amount = (total_amount / inst_count).quantize(Decimal('1.00'))
                 start_d = course.start_date or timezone.now().date()
@@ -426,6 +496,7 @@ class EnrollmentListView(generics.ListCreateAPIView):
                 total_days = max(1, (end_d - start_d).days)
                 step_days = total_days / (inst_count - 1)
                 allocated_sum = Decimal('0.00')
+                stored_amounts = []
                 for i in range(1, inst_count + 1):
                     if i == inst_count:
                         inst_amount = total_amount - allocated_sum
@@ -441,6 +512,10 @@ class EnrollmentListView(generics.ListCreateAPIView):
                         amount=inst_amount,
                         due_date=inst_due
                     )
+                    stored_amounts.append(float(inst_amount))
+                if not getattr(enrollment, 'installment_amounts', None):
+                    enrollment.installment_amounts = stored_amounts
+                    enrollment.save(update_fields=['installment_amounts'])
 
     def get_queryset(self):
         user = self.request.user

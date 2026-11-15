@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Trophy, Medal, Award, Users, Calendar, Filter,
   Shield, CheckCircle2, ChevronRight, FileSpreadsheet,
@@ -30,6 +31,7 @@ import { ManualScoreModal } from '../../components/league/ManualScoreModal';
 
 export const AdminLeaguesPage = () => {
   const toast = useToast();
+  const navigate = useNavigate();
 
   // Tab State: 'leaderboard' | 'competitions' | 'scoring' | 'seasons'
   const [activeTab, setActiveTab] = useState('leaderboard');
@@ -195,10 +197,11 @@ export const AdminLeaguesPage = () => {
     });
   };
 
-  // Swimmer Detail Modal trigger
+  // Swimmer Profile Navigation: Navigate directly to Swimmer Profile -> Records Tab
   const handleSelectSwimmer = (swimmerId) => {
-    setSelectedSwimmerId(swimmerId);
-    setSwimmerModalOpen(true);
+    if (swimmerId) {
+      navigate(`/admin/swimmers/${swimmerId}?tab=records`);
+    }
   };
 
   // Toggle Season Status

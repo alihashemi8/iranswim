@@ -4,8 +4,9 @@ import {
   ShieldCheck, ArrowLeft, PhoneCall,
   CheckCircle2, Clock, MapPin, Check,
   Sparkles, Droplet, ArrowDown, Waves, Users2, Award, CreditCard,
-  ArrowUp
+  ArrowUp, Copy, Coins, AlertCircle, RefreshCw
 } from 'lucide-react';
+import { getBankNameFromCard, formatCardNumberWithDashes, copyCardToClipboard } from '../../utils/bankCard';
 import {
   SwimmerCrawlIcon,
   SwimmerButterflyIcon,
@@ -130,7 +131,7 @@ const INITIAL_COACHES = [
     full_name: 'محمد رضایی',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=500&q=80',
     coaching_degree: 'درجه ۱ فدراسیون',
-    bio: 'مربی رسمی فدراسیون شنا با ۱۰ سال سابقه آموزش تیم‌های پایه و استعدادیابی در استخرهای قزوین',
+    bio: 'مربی رسمی فدراسیون شنا با ۱۰ سال سابقه آموزش تیم‌های پایه و استعدادیابی شناگران',
     icon: SwimmerCrawlIcon,
   },
   {
@@ -138,7 +139,7 @@ const INITIAL_COACHES = [
     full_name: 'نیما سعادتی',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=80',
     coaching_degree: 'درجه ۲ فدراسیون',
-    bio: 'مربی تخصصی اصلاح حرکت، استارت و استقامت بدنی شناگران در رده‌های نوجوانان و جوانان قزوین',
+    bio: 'مربی تخصصی اصلاح حرکت، استارت و استقامت بدنی شناگران در رده‌های نوجوانان و جوانان',
     icon: PoolStartingBlockIcon,
   },
   {
@@ -146,7 +147,7 @@ const INITIAL_COACHES = [
     full_name: 'علیرضا مرادی (مربی)',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=500&q=80',
     coaching_degree: 'ملی شنا',
-    bio: 'مربی رسمی فدراسیون شنا با ۱۲ سال سابقه تدریس شنای مبتدی و پیشرفته برای کودکان و بزرگسالان در قزوین',
+    bio: 'مربی رسمی فدراسیون شنا با ۱۲ سال سابقه تدریس شنای مبتدی و پیشرفته برای کودکان و بزرگسالان',
     icon: RescueBuoyRingIcon,
   },
   {
@@ -154,7 +155,7 @@ const INITIAL_COACHES = [
     full_name: 'سارا کاظمی',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=500&q=80',
     coaching_degree: 'درجه ۱ فدراسیون',
-    bio: 'مدرس رسمی فدراسیون و کارشناس تربیت بدنی با سابقه ۱۰ سال برگزاری کلاس‌های آموزش شنای بانوان در قزوین',
+    bio: 'مدرس رسمی فدراسیون و کارشناس تربیت بدنی با سابقه ۱۰ سال برگزاری کلاس‌های آموزش شنای بانوان',
     icon: SynchroSwimIcon,
   },
   {
@@ -380,16 +381,54 @@ export const HomePage = () => {
     selected_installments: 1,
     notes: '',
   });
+  const [installmentAmounts, setInstallmentAmounts] = useState([]);
   const [enrollSubmitting, setEnrollSubmitting] = useState(false);
 
   const handleOpenEnroll = (course) => {
     setEnrollingCourse(course);
+    const initialPrice = Number(course?.base_price || 0);
     setEnrollForm({
       applicant_name: user?.full_name || '',
       applicant_phone: user?.phone || '',
       applicant_national_id: user?.national_id || '',
       selected_installments: 1,
       notes: '',
+    });
+    setInstallmentAmounts([initialPrice]);
+  };
+
+  const handleSelectInstallmentsCount = (count) => {
+    setEnrollForm((prev) => ({ ...prev, selected_installments: count }));
+    const total = Number(enrollingCourse?.base_price || 0);
+    if (count <= 1) {
+      setInstallmentAmounts([total]);
+    } else {
+      const base = Math.floor(total / count);
+      const initial = Array(count).fill(base);
+      initial[count - 1] = total - base * (count - 1);
+      setInstallmentAmounts(initial);
+    }
+  };
+
+  const handleUpdateInstallmentAmount = (index, value) => {
+    const rawDigits = toEnglishDigits(String(value)).replace(/\D/g, '');
+    const num = rawDigits === '' ? 0 : Number(rawDigits);
+    setInstallmentAmounts((prev) => {
+      const next = [...prev];
+      next[index] = num;
+      return next;
+    });
+  };
+
+  const handleAutoBalanceInstallments = () => {
+    if (!enrollingCourse || installmentAmounts.length <= 1) return;
+    const total = Number(enrollingCourse.base_price || 0);
+    const sumOthers = installmentAmounts.slice(0, -1).reduce((acc, curr) => acc + Number(curr || 0), 0);
+    const remainder = Math.max(0, total - sumOthers);
+    setInstallmentAmounts((prev) => {
+      const next = [...prev];
+      next[next.length - 1] = remainder;
+      return next;
     });
   };
 
@@ -400,6 +439,22 @@ export const HomePage = () => {
       toast.error('لطفاً نام و شماره همراه متقاضی را وارد کنید.');
       return;
     }
+
+    const total = Number(enrollingCourse.base_price || 0);
+    if (enrollForm.selected_installments > 1) {
+      const currentSum = installmentAmounts.reduce((a, b) => a + Number(b || 0), 0);
+      if (currentSum !== total) {
+        toast.error(
+          `مجموع مبالغ اقساط (${currentSum.toLocaleString()} تومان) باید دقیقا با مبلغ کل شهریه (${total.toLocaleString()} تومان) برابر باشد. لطفاً از دکمه «تراز خودکار» استفاده کنید.`
+        );
+        return;
+      }
+      if (installmentAmounts.some((amt) => Number(amt || 0) <= 0)) {
+        toast.error('مبلغ هر قسط باید حداقل یک مقدار معتبر (بزرگتر از صفر) باشد.');
+        return;
+      }
+    }
+
     try {
       setEnrollSubmitting(true);
       await api.post('/education/requests/submit/', {
@@ -408,10 +463,12 @@ export const HomePage = () => {
         applicant_phone: enrollForm.applicant_phone.trim(),
         applicant_national_id: enrollForm.applicant_national_id.trim(),
         selected_installments: Number(enrollForm.selected_installments) || 1,
+        installment_amounts:
+          enrollForm.selected_installments > 1 ? installmentAmounts : [total],
         notes: enrollForm.notes,
       });
       toast.success(
-        `درخواست ثبت‌نام شما در دوره ${enrollingCourse.name} با شیوه پرداخت (${enrollForm.selected_installments > 1 ? `${enrollForm.selected_installments} قسط` : 'یکجا'}) با موفقیت ثبت شد.`
+        `درخواست ثبت‌نام شما در دوره ${enrollingCourse.name} با شیوه پرداخت (${enrollForm.selected_installments > 1 ? `${enrollForm.selected_installments} قسط توافقی` : 'یکجا'}) با موفقیت ثبت شد.`
       );
       setEnrollingCourse(null);
     } catch (err) {
@@ -1303,7 +1360,7 @@ export const HomePage = () => {
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
             <div className="space-y-1.5">
-              <Badge variant="success">کادر مربیان قزوین</Badge>
+              <Badge variant="success">کادر مربیان</Badge>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
                 مربیان باسابقه و رسمی مدرسه شنای ایران
               </h2>
@@ -1592,7 +1649,7 @@ export const HomePage = () => {
                   <li>
                     <a href="#coaches" className="hover:text-cyan-300 transition-colors flex items-center gap-1.5 py-0.5 group">
                       <span className="text-cyan-400/60 group-hover:text-cyan-300 text-[10px] transition-colors">‹</span>
-                      <span>کادر مربیان قزوین</span>
+                      <span>کادر مربیان</span>
                     </a>
                   </li>
                 )}
@@ -1904,27 +1961,74 @@ export const HomePage = () => {
         isOpen={Boolean(enrollingCourse)}
         onClose={() => setEnrollingCourse(null)}
         title={enrollingCourse ? `ثبت‌نام در دوره: ${enrollingCourse.name}` : ''}
+        maxWidth="max-w-xl"
       >
         {enrollingCourse && (
-          <form onSubmit={handleEnrollSubmit} className="space-y-4 course-enrollment-modal">
+          <form onSubmit={handleEnrollSubmit} className="space-y-4 course-enrollment-modal text-right" dir="rtl">
             {/* Course Summary Box */}
             <div className="p-4 bg-sky-50/70 dark:bg-sky-950/40 rounded-2xl border border-sky-200/80 dark:border-sky-800 space-y-2 text-xs">
               <div className="flex justify-between items-center">
-                <span className="text-slate-500 dark:text-slate-400">شهریه کل دوره:</span>
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">شهریه کل دوره:</span>
                 <span className="text-sm font-mono font-black text-sky-800 dark:text-sky-200">
-                  {Number(enrollingCourse.base_price || 0).toLocaleString('en-US')} تومان
+                  {Number(enrollingCourse.base_price || 0).toLocaleString('fa-IR')} تومان
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">تعداد جلسات:</span>
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">تعداد جلسات:</span>
                 <span className="font-bold text-slate-800 dark:text-slate-200">{toEnglishDigits(enrollingCourse.sessions_count)} جلسه</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500 dark:text-slate-400">سقف اقساط مجاز دوره:</span>
+                <span className="text-slate-500 dark:text-slate-400 font-semibold">سقف اقساط مجاز دوره:</span>
                 <span className="font-bold text-emerald-700 dark:text-emerald-300">
-                  {enrollingCourse.installments_count > 1 ? `تا ${toEnglishDigits(enrollingCourse.installments_count)} قسط` : 'فقط پرداخت یکجا'}
+                  {enrollingCourse.installments_count > 1 ? `تا ${toEnglishDigits(enrollingCourse.installments_count)} قسط (مبالغ با شناگر)` : 'فقط پرداخت یکجا'}
                 </span>
               </div>
+            </div>
+
+            {/* Bank Card & 1-Click Copy Section (شماره کارت جهت واریز شناگر) */}
+            <div className="p-4 bg-gradient-to-br from-slate-900 via-sky-950 to-slate-900 text-white rounded-2xl border border-sky-600/40 shadow-md space-y-2.5">
+              <div className="flex items-center justify-between text-xs">
+                <span className="flex items-center gap-2 font-bold text-sky-200">
+                  <CreditCard className="w-4 h-4 text-sky-400 shrink-0" />
+                  <span>شماره کارت بانکی جهت واریز شهریه / پیش‌پرداخت</span>
+                </span>
+                {enrollingCourse.card_number && getBankNameFromCard(enrollingCourse.card_number) && (
+                  <span className="px-2.5 py-0.5 rounded-full bg-sky-800/80 text-sky-100 text-[10px] font-bold border border-sky-600/40">
+                    {getBankNameFromCard(enrollingCourse.card_number)}
+                  </span>
+                )}
+              </div>
+
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-black/40 p-3 rounded-xl border border-white/10">
+                <div className="space-y-1">
+                  <span className="font-mono text-base sm:text-lg font-black tracking-widest text-emerald-300 block select-all" dir="ltr">
+                    {enrollingCourse.card_number
+                      ? formatCardNumberWithDashes(enrollingCourse.card_number)
+                      : '۶۰۳۷ - ۹۹۷۵ - ۱۲۳۴ - ۵۶۷۸'}
+                  </span>
+                  {enrollingCourse.card_holder && (
+                    <span className="text-[11px] text-slate-300 block">
+                      به نام: {enrollingCourse.card_holder}
+                    </span>
+                  )}
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const cardToCopy = enrollingCourse.card_number || '6037997512345678';
+                    copyCardToClipboard(cardToCopy, 'شماره کارت دوره', toast);
+                  }}
+                  className="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 shrink-0"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                  <span>کپی شماره کارت</span>
+                </button>
+              </div>
+
+              <p className="text-[11px] text-sky-200/90 leading-relaxed">
+                شناگر گرامی، لطفاً پس از تعیین اقساط و مبالغ دلخواه خود، مبلغ قسط اول (پیش‌پرداخت) را به شماره کارت فوق کارت‌به‌کارت فرمایید.
+              </p>
             </div>
 
             {/* Applicant Details */}
@@ -1959,11 +2063,11 @@ export const HomePage = () => {
               </div>
             </div>
 
-            {/* Installment Selection (User can choose fewer than course max!) */}
+            {/* Installment Selection & Custom Amount Management (نکته دوم: تعیین مبالغ دست شناگر) */}
             <div className="p-4 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200/80 dark:border-emerald-800/70 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-emerald-950 dark:text-emerald-200 flex items-center gap-1.5">
-                  <CreditCard className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  <Coins className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   انتخاب نحوه پرداخت و تعداد اقساط:
                 </span>
                 <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-white dark:bg-slate-900 px-2.5 py-0.5 rounded-lg border border-emerald-300 dark:border-emerald-700">
@@ -1971,42 +2075,112 @@ export const HomePage = () => {
                 </span>
               </div>
 
-              <p className="text-[11px] text-emerald-800/90 dark:text-emerald-300">
-                این دوره امکان تقسیط تا سقف {toEnglishDigits(enrollingCourse.installments_count || 1)} قسط را دارد. شما می‌توانید به دلخواه پرداخت یکجا یا اقساط کمتر را برگزینید:
+              <p className="text-[11px] text-emerald-800/90 dark:text-emerald-300 leading-relaxed">
+                مدیریت امکان پرداخت تا سقف {toEnglishDigits(enrollingCourse.installments_count || 1)} قسط را مجاز کرده است. تعداد اقساط و مبالغ پرداختی دست شماست (تقسیم لزوماً مساوی نیست):
               </p>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+              {/* Installments count chips */}
+              <div className="flex flex-wrap gap-2 pt-1">
                 {Array.from({ length: Math.max(1, enrollingCourse.installments_count || 1) }, (_, i) => i + 1).map((count) => {
                   const isSelected = enrollForm.selected_installments === count;
-                  const instAmount = Math.round(Number(enrollingCourse.base_price || 0) / count);
                   return (
                     <button
                       key={count}
                       type="button"
-                      onClick={() => setEnrollForm({ ...enrollForm, selected_installments: count })}
-                      className={`p-3 rounded-xl border text-right transition-all cursor-pointer flex items-center justify-between ${
+                      onClick={() => handleSelectInstallmentsCount(count)}
+                      className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                         isSelected
-                          ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
-                          : 'bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700 hover:border-emerald-400'
+                          ? 'bg-emerald-600 text-white shadow-xs'
+                          : 'bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 hover:border-emerald-400'
                       }`}
                     >
-                      <div>
-                        <span className="text-xs font-bold block">
-                          {count === 1 ? 'پرداخت یکجا (نقدی)' : `${toEnglishDigits(count)} قسط مساوی`}
-                        </span>
-                        <span className={`text-[10px] block mt-0.5 ${isSelected ? 'text-emerald-100' : 'text-slate-400'}`}>
-                          هر قسط: {Number(instAmount).toLocaleString('en-US')} تومان
-                        </span>
-                      </div>
-                      <div className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
-                        isSelected ? 'border-white bg-white text-emerald-600' : 'border-slate-300 dark:border-slate-600'
-                      }`}>
-                        {isSelected && <Check className="w-3 h-3 stroke-[3]" />}
-                      </div>
+                      {isSelected && <Check className="w-3.5 h-3.5 stroke-[2.5]" />}
+                      <span>{count === 1 ? 'پرداخت یکجا (۱ قسط)' : `${toEnglishDigits(count)} قسط`}</span>
                     </button>
                   );
                 })}
               </div>
+
+              {/* Custom Installment Amounts Inputs (When > 1 installments chosen) */}
+              {enrollForm.selected_installments > 1 && (
+                <div className="pt-2 border-t border-emerald-200/60 dark:border-emerald-800/60 space-y-3 animate-in fade-in duration-150">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-emerald-900 dark:text-emerald-200">
+                      تعیین مبلغ هر قسط به انتخاب شناگر (تومان):
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleAutoBalanceInstallments}
+                      className="text-[11px] text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/70 hover:bg-sky-100 dark:hover:bg-sky-900 border border-sky-200 dark:border-sky-800 px-2.5 py-1 rounded-lg font-bold flex items-center gap-1 transition-colors cursor-pointer"
+                      title="تنظیم خودکار باقیمانده مبلغ شهریه بر روی قسط آخر"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      <span>تراز خودکار باقیمانده روی قسط آخر</span>
+                    </button>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    {installmentAmounts.map((amt, idx) => (
+                      <div key={idx} className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1">
+                        <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300">
+                          {idx === 0 ? 'قسط ۱ (پیش‌پرداخت اولیه) *' : `قسط ${toEnglishDigits(idx + 1)} *`}
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={amt !== '' ? Number(amt || 0).toLocaleString('fa-IR') : ''}
+                            onChange={(e) => handleUpdateInstallmentAmount(idx, e.target.value)}
+                            className="w-full pl-12 pr-2.5 py-1.5 text-xs font-mono font-bold text-slate-900 dark:text-white bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500"
+                            placeholder="مبلغ قسط"
+                          />
+                          <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-slate-400 font-bold select-none">
+                            تومان
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Real-time Installments Sum & Balance Feedback */}
+                  {(() => {
+                    const total = Number(enrollingCourse.base_price || 0);
+                    const currentSum = installmentAmounts.reduce((a, b) => a + Number(b || 0), 0);
+                    const diff = total - currentSum;
+                    const isBalanced = diff === 0;
+
+                    return (
+                      <div className={`p-2.5 rounded-xl text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-2 border ${
+                        isBalanced
+                          ? 'bg-emerald-100/70 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200'
+                          : 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-700 text-amber-900 dark:text-amber-200'
+                      }`}>
+                        <div className="flex items-center gap-1.5">
+                          {isBalanced ? (
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          ) : (
+                            <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                          )}
+                          <span>
+                            {isBalanced
+                              ? `مجموع اقساط (${currentSum.toLocaleString('fa-IR')} تومان) دقیقاً برابر شهریه دوره است.`
+                              : `مجموع: ${currentSum.toLocaleString('fa-IR')} ت | اختلاف با شهریه: ${Math.abs(diff).toLocaleString('fa-IR')} ت (${diff > 0 ? 'کسری' : 'اضافی'})`}
+                          </span>
+                        </div>
+                        {!isBalanced && (
+                          <button
+                            type="button"
+                            onClick={handleAutoBalanceInstallments}
+                            className="text-[11px] underline font-bold cursor-pointer hover:opacity-80 shrink-0"
+                          >
+                            کلیک برای تراز خودکار
+                          </button>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
 
             {/* Optional Notes */}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   UserCheck, ArrowRight, ArrowLeft, Save, User, Phone, Hash, Calendar,
   Briefcase, MapPin, ShieldAlert, Award, CreditCard, Clock, Lock,
@@ -19,7 +19,10 @@ import { validatePassword, PasswordRequirementsList } from '../../../utils/passw
 export const AdminCoachEditPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
+
+  const returnUrl = location.state?.from || `/admin/coaches/${id}`;
 
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
@@ -67,6 +70,7 @@ export const AdminCoachEditPage = () => {
     revenue_percentage: '0',
     percentage_revenue_basis: 'COURSE_GROSS',
     contractual_weekly_hours: 20,
+    display_order: 1,
     internal_notes: '',
   });
 
@@ -155,6 +159,7 @@ export const AdminCoachEditPage = () => {
           revenue_percentage: String(parseFloat(data.revenue_percentage || '0')),
           percentage_revenue_basis: data.percentage_revenue_basis || 'COURSE_GROSS',
           contractual_weekly_hours: data.contractual_weekly_hours || 20,
+          display_order: data.display_order ?? 1,
           internal_notes: data.internal_notes || '',
         });
 
@@ -173,7 +178,7 @@ export const AdminCoachEditPage = () => {
       } catch (err) {
         console.error('Error fetching coach details:', err);
         toast.error('خطا در دریافت اطلاعات مربی');
-        navigate(`/admin/coaches/${id}`);
+        navigate(returnUrl);
       } finally {
         setLoading(false);
       }
@@ -367,6 +372,9 @@ export const AdminCoachEditPage = () => {
       formData.append('revenue_percentage', form.employment_type === 'PERCENTAGE' ? form.revenue_percentage : '0');
       formData.append('percentage_revenue_basis', form.percentage_revenue_basis);
       formData.append('contractual_weekly_hours', Number(form.contractual_weekly_hours || 0));
+      if (form.display_order !== undefined) {
+        formData.append('display_order', Number(form.display_order || 1));
+      }
       formData.append('internal_notes', form.internal_notes.trim());
 
       await api.patch(`/coaches/${id}/`, formData, {
@@ -374,7 +382,7 @@ export const AdminCoachEditPage = () => {
       });
 
       toast.success('مشخصات پرونده مربی با موفقیت به‌روزرسانی شد.');
-      navigate(`/admin/coaches/${id}`);
+      navigate(returnUrl);
     } catch (err) {
       console.error('Error updating coach:', err);
       const data = err.response?.data;
@@ -412,12 +420,12 @@ export const AdminCoachEditPage = () => {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
-          <BackButton fallback={`/admin/coaches/${id}`} title="بازگشت به پرونده مربی" />
+          <BackButton fallback={returnUrl} title="بازگشت" />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-400 font-medium">مدیریت مربیان</span>
               <span className="text-xs text-slate-300 dark:text-slate-700">/</span>
-              <Link to={`/admin/coaches/${id}`} className="text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-sky-600 truncate">
+              <Link to={returnUrl} className="text-xs font-bold text-slate-700 dark:text-slate-200 hover:text-sky-600 truncate">
                 {coach?.full_name || 'پرونده مربی'}
               </Link>
               <span className="text-xs text-slate-300 dark:text-slate-700">/</span>
@@ -433,7 +441,7 @@ export const AdminCoachEditPage = () => {
         <div className="flex items-center gap-2.5">
           <Button
             variant="outline"
-            onClick={() => navigate(`/admin/coaches/${id}`)}
+            onClick={() => navigate(returnUrl)}
             className="text-xs"
           >
             انصراف
@@ -1151,6 +1159,19 @@ export const AdminCoachEditPage = () => {
                 </div>
               </div>
 
+              <div>
+                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  ترتیب نمایش در وب‌سایت
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={form.display_order || 1}
+                  onChange={(e) => handleChange('display_order', Number(e.target.value))}
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono"
+                />
+              </div>
+
               {form.employment_type === 'HOURLY' && (
                 <div>
                   <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
@@ -1250,7 +1271,7 @@ export const AdminCoachEditPage = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate(`/admin/coaches/${id}`)}
+              onClick={() => navigate(returnUrl)}
               className="text-xs sm:text-sm"
             >
               انصراف و بازگشت

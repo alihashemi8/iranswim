@@ -116,7 +116,8 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'description', 'pool_location', 'days_of_week',
             'start_time', 'end_time', 'time_display', 'coaches', 'coach_ids',
-            'start_date', 'end_date', 'base_price', 'sessions_count', 'installments_count', 'status',
+            'start_date', 'end_date', 'base_price', 'sessions_count', 'installments_count',
+            'card_number', 'card_holder', 'status',
             'groups', 'age_range', 'gender', 'gender_display', 'what_you_learn',
             'created_at'
         ]
@@ -191,6 +192,8 @@ class EnrollmentRequestSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     course_max_installments = serializers.IntegerField(source='course.installments_count', read_only=True)
     course_base_price = serializers.DecimalField(source='course.base_price', max_digits=12, decimal_places=2, read_only=True)
+    course_card_number = serializers.CharField(source='course.card_number', read_only=True)
+    course_card_holder = serializers.CharField(source='course.card_holder', read_only=True)
 
     class Meta:
         model = EnrollmentRequest
@@ -198,10 +201,11 @@ class EnrollmentRequestSerializer(serializers.ModelSerializer):
             'id', 'swimmer', 'applicant_name', 'applicant_phone',
             'applicant_national_id', 'course', 'course_name', 'group',
             'group_name', 'coach', 'coach_name', 'status', 'status_display',
-            'selected_installments', 'course_max_installments', 'course_base_price',
+            'selected_installments', 'installment_amounts',
+            'course_max_installments', 'course_base_price', 'course_card_number', 'course_card_holder',
             'notes', 'rejection_reason', 'created_at', 'reviewed_at'
         ]
-        read_only_fields = ['id', 'status', 'rejection_reason', 'created_at', 'reviewed_at', 'course_max_installments', 'course_base_price']
+        read_only_fields = ['id', 'status', 'rejection_reason', 'created_at', 'reviewed_at', 'course_max_installments', 'course_base_price', 'course_card_number', 'course_card_holder']
 
     def get_coach_name(self, obj):
         return _safe_coach_name(obj.coach)
@@ -209,6 +213,8 @@ class EnrollmentRequestSerializer(serializers.ModelSerializer):
     def validate(self, attrs):
         course = attrs.get('course')
         selected_inst = attrs.get('selected_installments', 1)
+        installment_amounts = attrs.get('installment_amounts', [])
+
         if selected_inst is not None and selected_inst < 1:
             raise serializers.ValidationError({'selected_installments': 'تعداد اقساط باید حداقل ۱ قسط باشد.'})
         if course and selected_inst:
@@ -217,6 +223,26 @@ class EnrollmentRequestSerializer(serializers.ModelSerializer):
                 raise serializers.ValidationError({
                     'selected_installments': f'تعداد اقساط انتخابی ({selected_inst}) نمی‌تواند از سقف مجاز دوره ({max_inst} قسط) بیشتر باشد.'
                 })
+
+        if installment_amounts:
+            if not isinstance(installment_amounts, list):
+                raise serializers.ValidationError({'installment_amounts': 'مبالغ اقساط باید به صورت لیست ارائه شود.'})
+            if len(installment_amounts) != selected_inst:
+                raise serializers.ValidationError({
+                    'installment_amounts': f'تعداد مبالغ وارد شده ({len(installment_amounts)}) با تعداد اقساط انتخابی ({selected_inst}) مطابقت ندارد.'
+                })
+            try:
+                from decimal import Decimal
+                amounts_dec = [Decimal(str(a)) for a in installment_amounts]
+                if any(a <= 0 for a in amounts_dec):
+                    raise serializers.ValidationError({'installment_amounts': 'مبلغ هر قسط باید بزرگتر از صفر باشد.'})
+                if course and sum(amounts_dec) != course.base_price:
+                    raise serializers.ValidationError({
+                        'installment_amounts': f'مجموع مبالغ اقساط ({sum(amounts_dec):,} تومان) باید دقیقا با مبلغ شهریه دوره ({course.base_price:,} تومان) برابر باشد.'
+                    })
+            except (ValueError, TypeError):
+                raise serializers.ValidationError({'installment_amounts': 'فرمت مبالغ اقساط نامعتبر است.'})
+
         return super().validate(attrs)
 
 
@@ -256,7 +282,7 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             'group', 'group_name', 'coach', 'coach_name', 'coach_avatar',
             'course_coaches', 'status', 'status_display',
             'sessions_purchased', 'sessions_attended', 'remaining_sessions',
-            'selected_installments', 'enrolled_at', 'notes'
+            'selected_installments', 'installment_amounts', 'enrolled_at', 'notes'
         ]
         read_only_fields = ['id', 'enrolled_at', 'sessions_attended', 'remaining_sessions']
 

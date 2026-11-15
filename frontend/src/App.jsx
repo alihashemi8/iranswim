@@ -26,6 +26,7 @@ import { SupervisorProfilePage } from './pages/supervisor/SupervisorProfilePage'
 
 // Admin Pages
 import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminDossiersPage } from './pages/admin/AdminDossiersPage';
 import { AdminSwimmersPage } from './pages/admin/AdminSwimmersPage';
 import { AdminSwimmerDetailPage } from './pages/admin/AdminSwimmerDetailPage';
 import { AdminDirectEnrollPage } from './pages/admin/AdminDirectEnrollPage';
@@ -193,6 +194,7 @@ export default function App() {
 
                 {/* 2. Educational Management */}
                 <Route path="swimmers" element={<AdminSwimmersPage />} />
+                <Route path="dossiers" element={<AdminDossiersPage />} />
                 <Route path="swimmers/:id" element={<AdminSwimmerDetailPage />} />
                 <Route path="swimmers/:id/enroll" element={<AdminDirectEnrollPage />} />
                 <Route path="swimmers/enroll" element={<AdminDirectEnrollPage />} />

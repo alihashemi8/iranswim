@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Award, ShieldCheck, MapPin, CheckCircle2, User } from 'lucide-react';
+import { Award, ShieldCheck, CheckCircle2, User } from 'lucide-react';
 
 /**
  * Redesigned Swimming Coach Profile Card
@@ -190,18 +190,13 @@ export const CoachProfileCard = ({
                   <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#0d9488] shrink-0" />
                   {getCertificationText()}
                 </span>
-                <span className="w-1.5 h-1.5 rounded-full bg-[#0d9488]/40 shrink-0 inline-block" />
-                <span className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-                  <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-500 shrink-0" />
-                  قزوین
-                </span>
               </div>
             </div>
 
             {/* 4. Readable Persian Biography (Normalized height) */}
             <div className="h-14 sm:h-16 flex items-center justify-center px-1 overflow-hidden my-auto">
               <p className="text-xs sm:text-sm text-[#215450] leading-relaxed line-clamp-3 font-semibold text-center">
-                {coach.bio || 'مدرس باسابقه دوره‌های تخصصی شنای پایه و قهرمانی با سابقه درخشان در آموزش شناگران استان قزوین'}
+                {coach.bio || 'مدرس باسابقه دوره‌های تخصصی شنای پایه و قهرمانی با سابقه درخشان در آموزش شناگران'}
               </p>
             </div>
 

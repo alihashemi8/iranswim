@@ -7,7 +7,8 @@ import {
   ClipboardCheck, Award, Trophy, Bell,
   UserCheck, X, LogOut, ChevronLeft, ChevronRight,
   TrendingUp, MessageSquareQuote, FileText, Settings,
-  Globe, Server, Radio, GitBranch, Database, Sliders, Whistle
+  Globe, Server, Radio, GitBranch, Database, Sliders, Whistle,
+  FolderCheck
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -27,14 +28,23 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
 
   // Badge notification counts for admin
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
+  const [pendingDossiersCount, setPendingDossiersCount] = useState(0);
 
   useEffect(() => {
     if (user?.role === 'ADMIN') {
       const fetchBadges = async () => {
         try {
-          const reqRes = await api.get('/education/requests/?status=PENDING');
-          const reqs = reqRes.data.results || reqRes.data;
-          setPendingRequestsCount(reqs.length || 0);
+          const [reqRes, dosRes] = await Promise.allSettled([
+            api.get('/education/requests/?status=PENDING'),
+            api.get('/swimmers/dossiers-summary/')
+          ]);
+          if (reqRes.status === 'fulfilled') {
+            const reqs = reqRes.value.data.results || reqRes.value.data;
+            setPendingRequestsCount(reqs.length || 0);
+          }
+          if (dosRes.status === 'fulfilled' && dosRes.value.data) {
+            setPendingDossiersCount(dosRes.value.data.total_pending || 0);
+          }
         } catch {
           // Non-critical badge fetch
         }
@@ -105,10 +115,15 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       items: [
         {
           to: '/admin/swimmers',
-          label: 'شناگران و پرونده‌ها',
+          label: 'شناگران',
           icon: Users,
-          badge: pendingRequestsCount > 0 ? pendingRequestsCount : null,
-          badgeColor: 'bg-sky-500 text-white',
+        },
+        {
+          to: '/admin/dossiers',
+          label: 'پرونده‌ها و مدارک',
+          icon: FolderCheck,
+          badge: pendingDossiersCount > 0 ? pendingDossiersCount : null,
+          badgeColor: 'bg-amber-500 text-white',
         },
         { to: '/admin/coaches', label: 'کادر مربیان', icon: Whistle },
         { to: '/admin/courses', label: 'کلاس‌ها و دوره‌ها', icon: CourseLogoIcon },

@@ -84,6 +84,20 @@ class Course(models.Model):
         default=1,
         help_text=_('حداکثر تعداد اقساط مجاز برای این دوره (مثلاً ۴ قسط؛ شناگر می‌تواند کمتر هم انتخاب کند)')
     )
+    card_number = models.CharField(
+        _('شماره کارت بانکی واریز شهریه'),
+        max_length=20,
+        blank=True,
+        default='',
+        help_text=_('شماره ۱۶ رقمی کارت بانکی جهت واریز شهریه یا پیش‌پرداخت توسط شناگران')
+    )
+    card_holder = models.CharField(
+        _('نام صاحب حساب / کارت'),
+        max_length=150,
+        blank=True,
+        default='',
+        help_text=_('نام صاحب حساب یا کارت بانکی آموزشگاه/مجموعه')
+    )
     age_range = models.CharField(_('رده سنی'), max_length=120, blank=True, default='')
     gender = models.CharField(
         _('جنسیت مجاز'),
@@ -351,6 +365,12 @@ class EnrollmentRequest(models.Model):
         default=1,
         help_text=_('تعداد اقساطی که متقاضی هنگام ثبت‌نام انتخاب کرده است (حداکثر تا سقف مجاز دوره)')
     )
+    installment_amounts = models.JSONField(
+        _('مبالغ اقساط انتخابی متقاضی'),
+        default=list,
+        blank=True,
+        help_text=_('لیست مبالغ تعیین‌شده برای هر قسط توسط شناگر (تومان)')
+    )
     notes = models.TextField(_('توضیحات متقاضی'), blank=True)
     rejection_reason = models.TextField(_('دلیل رد درخواست'), blank=True)
     reviewed_by = models.ForeignKey(
@@ -420,6 +440,12 @@ class Enrollment(models.Model):
         _('تعداد اقساط توافق‌شده'),
         default=1,
         help_text=_('تعداد اقساط مورد توافق برای پرداخت شهریه این ثبت‌نام')
+    )
+    installment_amounts = models.JSONField(
+        _('مبالغ اقساط توافق‌شده'),
+        default=list,
+        blank=True,
+        help_text=_('لیست مبالغ هر قسط بر اساس توافق یا انتخاب شناگر (تومان)')
     )
     enrolled_at = models.DateTimeField(_('تاریخ ثبت‌نام'), auto_now_add=True)
     notes = models.TextField(_('یادداشت مدیر'), blank=True)

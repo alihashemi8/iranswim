@@ -253,6 +253,10 @@ export const AdminEnrollmentsPage = () => {
         action,
         rejection_reason: rejectionReason,
         selected_installments: Number(reviewInstallments) || 1,
+        installment_amounts:
+          Number(reviewInstallments) === Number(selectedReq.selected_installments)
+            ? selectedReq.installment_amounts
+            : undefined,
       });
       setSelectedReq(null);
       setRejectionReason('');
@@ -1171,10 +1175,25 @@ export const AdminEnrollmentsPage = () => {
               <div className="flex justify-between items-center pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
                 <span className="text-slate-400 font-medium">اقساط انتخابی شناگر:</span>
                 <span className="font-mono font-bold text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-lg border border-emerald-200/80 dark:border-emerald-800">
-                  {selectedReq.selected_installments > 1 ? `${selectedReq.selected_installments} قسط` : 'یکجا (نقدی)'}
+                  {selectedReq.selected_installments > 1 ? `${selectedReq.selected_installments} قسط (مبالغ با شناگر)` : 'یکجا (نقدی)'}
                   {selectedReq.course_max_installments > 1 && ` (از سقف مجاز ${selectedReq.course_max_installments} قسط)`}
                 </span>
               </div>
+              {selectedReq.installment_amounts && selectedReq.installment_amounts.length > 0 && (
+                <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60 space-y-1">
+                  <span className="text-slate-400 block text-[11px] font-medium">مبالغ اقساط تعیین‌شده توسط متقاضی:</span>
+                  <div className="flex flex-wrap gap-1.5">
+                    {selectedReq.installment_amounts.map((amt, idx) => (
+                      <span
+                        key={idx}
+                        className="px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-[11px] font-mono font-bold"
+                      >
+                        قسط {idx + 1}: {Number(amt).toLocaleString('fa-IR')} ت
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Installments selection before approving */}
@@ -1184,7 +1203,7 @@ export const AdminEnrollmentsPage = () => {
                   تعداد اقساط فاکتور نهایی:
                 </label>
                 <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300">
-                  {reviewInstallments > 1 ? `${reviewInstallments} قسط مساوی` : 'پرداخت یکجا (۱ قسط)'}
+                  {reviewInstallments > 1 ? `${reviewInstallments} قسط` : 'پرداخت یکجا (۱ قسط)'}
                 </span>
               </div>
               <div className="flex flex-wrap gap-1.5 pt-0.5">

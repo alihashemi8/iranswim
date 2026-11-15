@@ -70,13 +70,17 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
     group_name = serializers.SerializerMethodField()
     class_name = serializers.SerializerMethodField()
     available_classes = serializers.SerializerMethodField()
+    pool_location = serializers.SerializerMethodField()
+    birth_year_jalali = serializers.SerializerMethodField()
+    date_of_birth_jalali = serializers.SerializerMethodField()
 
     class Meta:
         model = SwimmerProfile
         fields = [
             'id', 'user', 'first_name', 'last_name', 'full_name',
             'gender', 'gender_display', 'phone', 'national_id',
-            'date_of_birth', 'father_name', 'father_phone', 'father_job',
+            'date_of_birth', 'birth_year_jalali', 'date_of_birth_jalali',
+            'father_name', 'father_phone', 'father_job',
             'mother_phone', 'mother_job',
             'emergency_contact_name', 'emergency_contact_phone',
             'address', 'latitude', 'longitude', 'school_name',
@@ -88,7 +92,7 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
             'current_level', 'level_name', 'medical_notes', 'is_active',
             'current_enrollment', 'coach_name', 'coach_avatar', 'coach_id',
             'group_id', 'group_name', 'class_name', 'available_classes',
-            'course_name', 'course_id', 'course_coaches',
+            'course_name', 'course_id', 'course_coaches', 'pool_location',
             'created_at', 'updated_at'
         ]
         read_only_fields = [
@@ -285,6 +289,24 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
         classes.sort(key=lambda x: (0 if x['is_current_course'] else 1, x['course_name'], x['name']))
 
         return classes
+
+    def get_pool_location(self, obj):
+        enr = self.get_current_enrollment(obj)
+        return enr.get('pool_location', '') if enr else ''
+
+    def get_birth_year_jalali(self, obj):
+        if not obj.date_of_birth:
+            return None
+        from apps.coaches.date_utils import gregorian_to_jalali
+        jy, _, _ = gregorian_to_jalali(obj.date_of_birth.year, obj.date_of_birth.month, obj.date_of_birth.day)
+        return jy
+
+    def get_date_of_birth_jalali(self, obj):
+        if not obj.date_of_birth:
+            return None
+        from apps.coaches.date_utils import gregorian_to_jalali
+        jy, jm, jd = gregorian_to_jalali(obj.date_of_birth.year, obj.date_of_birth.month, obj.date_of_birth.day)
+        return f"{jy}/{jm:02d}/{jd:02d}"
 
 
 class CoachSwimmerSerializer(serializers.ModelSerializer):

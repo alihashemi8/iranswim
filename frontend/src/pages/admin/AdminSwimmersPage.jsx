@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import {
-  Users, UserPlus, Search, Filter, Eye, BookOpen,
-  CreditCard, Calendar, Award, Phone, CheckCircle2,
-  XCircle, FileSpreadsheet, PlusCircle, Activity, GraduationCap, MapPin,
-  AlertTriangle, ArrowLeft, ArrowDown, Loader2, Check, UserX, ShieldCheck, Clock
+  Users, UserPlus, Search, Filter, Phone, CheckCircle2,
+  XCircle, FileSpreadsheet, PlusCircle, Award, MapPin,
+  Calendar, ArrowLeft, ArrowDown, Loader2, Check, UserX,
+  ShieldCheck, Clock, Whistle, X, RotateCcw, SlidersHorizontal,
+  FolderCheck, Sparkles
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -23,19 +24,46 @@ export const AdminSwimmersPage = () => {
   const [swimmers, setSwimmers] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
-  const [countsSummary, setCountsSummary] = useState({ total: 0, active: 0, inactive: 0, docs_pending: 0 });
+  const [countsSummary, setCountsSummary] = useState({ total: 0, active: 0, inactive: 0 });
   const [levels, setLevels] = useState([]);
   const [groups, setGroups] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [activeSearch, setActiveSearch] = useState('');
   const [selectedLevel, setSelectedLevel] = useState('');
-  const [statusFilter, setStatusFilter] = useState('ALL'); // ALL, ACTIVE, INACTIVE, DOCS_PENDING
+  const [statusFilter, setStatusFilter] = useState('ALL'); // ALL, ACTIVE, INACTIVE
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
   const toast = useToast();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // 4 Core Filters Requested by User:
+  // 1. سال تولد (Birth Year)
+  // 2. استخر (Pool)
+  // 3. جنسیت (Gender)
+  // 4. مربی (Coach)
+  const [birthYearFilter, setBirthYearFilter] = useState('');
+  const [poolFilter, setPoolFilter] = useState('');
+  const [genderFilter, setGenderFilter] = useState('');
+  const [coachFilter, setCoachFilter] = useState('');
+
+  // Mobile filters collapsible state
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
+
+  // Filter options loaded from backend
+  const [filterOptions, setFilterOptions] = useState({
+    pools: [],
+    coaches: [],
+    birth_years: [],
+    genders: [
+      { value: 'MALE', label: 'پسر / آقایان' },
+      { value: 'FEMALE', label: 'دختر / بانوان' },
+    ],
+  });
+
+  // Pending documents summary counter (to show shortcut badge to Dossiers page)
+  const [pendingDocsCount, setPendingDocsCount] = useState(0);
 
   // Create Swimmer Modal
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -44,6 +72,7 @@ export const AdminSwimmersPage = () => {
     last_name: '',
     phone: '',
     national_id: '',
+    gender: 'MALE',
     date_of_birth: '',
     emergency_contact_name: '',
     emergency_contact_phone: '',
@@ -56,16 +85,29 @@ export const AdminSwimmersPage = () => {
   const [pendingClassChange, setPendingClassChange] = useState(null);
   const [confirmingClassChange, setConfirmingClassChange] = useState(false);
 
-  // Load levels and groups metadata once on mount
+  // Load levels, groups, and filter metadata
   useEffect(() => {
     const fetchMetadata = async () => {
       try {
-        const [levelsRes, groupsRes] = await Promise.all([
+        const [levelsRes, groupsRes, filterRes, dossiersRes] = await Promise.allSettled([
           api.get('/education/levels/'),
           api.get('/education/groups/'),
+          api.get('/swimmers/filter-options/'),
+          api.get('/swimmers/dossiers-summary/'),
         ]);
-        setLevels(levelsRes.data.results || levelsRes.data || []);
-        setGroups(groupsRes.data.results || groupsRes.data || []);
+
+        if (levelsRes.status === 'fulfilled') {
+          setLevels(levelsRes.value.data.results || levelsRes.value.data || []);
+        }
+        if (groupsRes.status === 'fulfilled') {
+          setGroups(groupsRes.value.data.results || groupsRes.value.data || []);
+        }
+        if (filterRes.status === 'fulfilled' && filterRes.value.data) {
+          setFilterOptions(filterRes.value.data);
+        }
+        if (dossiersRes.status === 'fulfilled' && dossiersRes.value.data) {
+          setPendingDocsCount(dossiersRes.value.data.swimmers_pending || 0);
+        }
       } catch (err) {
         console.error('Error fetching metadata:', err);
       }
@@ -73,7 +115,7 @@ export const AdminSwimmersPage = () => {
     fetchMetadata();
   }, []);
 
-  // Fetch swimmers with server-side pagination (10 items per page request)
+  // Fetch swimmers with server-side pagination & all 4 advanced filters
   const fetchSwimmers = useCallback(async (pageToFetch = currentPage) => {
     try {
       setLoading(true);
@@ -84,6 +126,10 @@ export const AdminSwimmersPage = () => {
       if (activeSearch.trim()) params.search = activeSearch.trim();
       if (selectedLevel) params.level = selectedLevel;
       if (statusFilter && statusFilter !== 'ALL') params.status = statusFilter;
+      if (birthYearFilter) params.birth_year = birthYearFilter;
+      if (poolFilter) params.pool = poolFilter;
+      if (genderFilter) params.gender = genderFilter;
+      if (coachFilter) params.coach = coachFilter;
 
       const swimmersRes = await api.get('/swimmers/', { params });
       const data = swimmersRes.data;
@@ -106,45 +152,99 @@ export const AdminSwimmersPage = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentPage, activeSearch, selectedLevel, statusFilter, pageSize, toast]);
+  }, [
+    currentPage,
+    activeSearch,
+    selectedLevel,
+    statusFilter,
+    birthYearFilter,
+    poolFilter,
+    genderFilter,
+    coachFilter,
+    pageSize,
+    toast,
+  ]);
 
   useEffect(() => {
     fetchSwimmers(currentPage);
-  }, [currentPage, activeSearch, selectedLevel, statusFilter, fetchSwimmers]);
+  }, [
+    currentPage,
+    activeSearch,
+    selectedLevel,
+    statusFilter,
+    birthYearFilter,
+    poolFilter,
+    genderFilter,
+    coachFilter,
+    fetchSwimmers,
+  ]);
 
   // Handle Quick Action deep link
   useEffect(() => {
     if (searchParams.get('action') === 'new') {
       setIsAddModalOpen(true);
-      setSearchParams((prev) => {
-        const next = new URLSearchParams(prev);
-        next.delete('action');
-        return next;
-      }, { replace: true });
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          next.delete('action');
+          return next;
+        },
+        { replace: true }
+      );
     }
   }, [searchParams, setSearchParams]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    }
+    if (currentPage !== 1) setCurrentPage(1);
     setActiveSearch(search);
   };
 
-  const handleLevelChange = (val) => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    }
-    setSelectedLevel(val);
-  };
-
   const handleStatusFilterChange = (val) => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    }
+    if (currentPage !== 1) setCurrentPage(1);
     setStatusFilter(val);
   };
+
+  const handleBirthYearChange = (val) => {
+    if (currentPage !== 1) setCurrentPage(1);
+    setBirthYearFilter(val);
+  };
+
+  const handlePoolChange = (val) => {
+    if (currentPage !== 1) setCurrentPage(1);
+    setPoolFilter(val);
+  };
+
+  const handleGenderChange = (val) => {
+    if (currentPage !== 1) setCurrentPage(1);
+    setGenderFilter(val);
+  };
+
+  const handleCoachChange = (val) => {
+    if (currentPage !== 1) setCurrentPage(1);
+    setCoachFilter(val);
+  };
+
+  // Clear all filters
+  const handleClearAllFilters = () => {
+    setBirthYearFilter('');
+    setPoolFilter('');
+    setGenderFilter('');
+    setCoachFilter('');
+    setSelectedLevel('');
+    setSearch('');
+    setActiveSearch('');
+    setStatusFilter('ALL');
+    setCurrentPage(1);
+  };
+
+  const activeAdvancedFilterCount = [
+    birthYearFilter,
+    poolFilter,
+    genderFilter,
+    coachFilter,
+    selectedLevel,
+  ].filter(Boolean).length;
 
   // Open Full Swimmer Dossier
   const handleOpenDossier = (swimmer) => {
@@ -157,7 +257,7 @@ export const AdminSwimmersPage = () => {
   const handleCreateSwimmer = async (e) => {
     e.preventDefault();
     if (!createForm.first_name || !createForm.last_name || !createForm.phone) {
-      toast.error('لطفاً نام، نام خانوادگی و شماره تلفن را وارد کنید.');
+      toast.error('لطفاً نام، نام خانوادگی و شماره همراه را وارد کنید.');
       return;
     }
     try {
@@ -173,6 +273,7 @@ export const AdminSwimmersPage = () => {
         last_name: '',
         phone: '',
         national_id: '',
+        gender: 'MALE',
         date_of_birth: '',
         emergency_contact_name: '',
         emergency_contact_phone: '',
@@ -216,26 +317,29 @@ export const AdminSwimmersPage = () => {
   const handleRequestChangeClass = (swimmer, selectedClass) => {
     const isCurrentlyInClass =
       (selectedClass === null && !swimmer.coach_id && !swimmer.group_id) ||
-      (selectedClass && (
-        (selectedClass.group_id && swimmer.group_id && selectedClass.group_id === swimmer.group_id) ||
-        (selectedClass.coach_id && swimmer.coach_id && selectedClass.coach_id === swimmer.coach_id && (!selectedClass.group_id || selectedClass.group_id === swimmer.group_id))
-      ));
+      (selectedClass &&
+        ((selectedClass.group_id && swimmer.group_id && selectedClass.group_id === swimmer.group_id) ||
+          (selectedClass.coach_id &&
+            swimmer.coach_id &&
+            selectedClass.coach_id === swimmer.coach_id &&
+            (!selectedClass.group_id || selectedClass.group_id === swimmer.group_id))));
 
     if (isCurrentlyInClass) {
       toast.info('شناگر در حال حاضر در این کلاس حضور دارد.');
       return;
     }
 
-    const currentClass = (swimmer.coach_id || swimmer.group_id || swimmer.class_name)
-      ? {
-          id: swimmer.group_id || swimmer.coach_id,
-          group_id: swimmer.group_id,
-          coach_id: swimmer.coach_id,
-          name: swimmer.class_name || (swimmer.coach_name ? `کلاس ${swimmer.coach_name}` : 'کلاس فعلی'),
-          coach_name: swimmer.coach_name,
-          avatar: swimmer.coach_avatar,
-        }
-      : null;
+    const currentClass =
+      swimmer.coach_id || swimmer.group_id || swimmer.class_name
+        ? {
+            id: swimmer.group_id || swimmer.coach_id,
+            group_id: swimmer.group_id,
+            coach_id: swimmer.coach_id,
+            name: swimmer.class_name || (swimmer.coach_name ? `کلاس ${swimmer.coach_name}` : 'کلاس فعلی'),
+            coach_name: swimmer.coach_name,
+            avatar: swimmer.coach_avatar,
+          }
+        : null;
 
     setPendingClassChange({
       swimmer,
@@ -257,12 +361,10 @@ export const AdminSwimmersPage = () => {
       };
 
       const res = await api.post(`/swimmers/${swimmer.id}/assign-coach/`, payload);
-      setSwimmers((prev) =>
-        prev.map((s) => (s.id === swimmer.id ? res.data : s))
-      );
+      setSwimmers((prev) => prev.map((s) => (s.id === swimmer.id ? res.data : s)));
 
       const targetName = newClass
-        ? (newClass.name || (newClass.coach_name ? `کلاس ${newClass.coach_name}` : 'کلاس انتخاب‌شده'))
+        ? newClass.name || (newClass.coach_name ? `کلاس ${newClass.coach_name}` : 'کلاس انتخاب‌شده')
         : 'بدون کلاس';
 
       toast.success(
@@ -279,39 +381,87 @@ export const AdminSwimmersPage = () => {
     }
   };
 
-  // Export to CSV
+  // Export to Excel / CSV with all active filters accurately applied
   const handleExportCsv = async () => {
     try {
-      toast.info('در حال دریافت اطلاعات جهت خروجی...');
+      toast.info('در حال دریافت اطلاعات و ایجاد فایل اکسل...');
       const params = { all: 'true' };
       if (activeSearch.trim()) params.search = activeSearch.trim();
       if (selectedLevel) params.level = selectedLevel;
       if (statusFilter && statusFilter !== 'ALL') params.status = statusFilter;
+      if (birthYearFilter) params.birth_year = birthYearFilter;
+      if (poolFilter) params.pool = poolFilter;
+      if (genderFilter) params.gender = genderFilter;
+      if (coachFilter) params.coach = coachFilter;
 
       const res = await api.get('/swimmers/', { params });
       const allSwimmers = res.data.results || res.data || [];
-      const rows = allSwimmers.map((s) => ({
-        name: s.full_name,
-        phone: s.phone,
-        level: s.level_name || 'بدون سطح',
-        status: s.is_active ? 'فعال' : 'غیرفعال',
-        date: new Date(s.created_at).toLocaleDateString('fa-IR'),
-      }));
-      exportToCsv('IranSwim_Swimmers_List', rows, {
-        name: 'نام و نام خانوادگی',
-        phone: 'شماره همراه',
-        level: 'سطح مهارت',
-        status: 'وضعیت',
-        date: 'تاریخ ثبت',
+
+      if (!allSwimmers.length) {
+        toast.warning('با فیلترهای انتخابی فعلی، شناگری برای خروجی اکسل یافت نشد.');
+        return;
+      }
+
+      const rows = allSwimmers.map((s) => {
+        let genderLabel = 'تعیین‌نشده';
+        if (s.gender === 'MALE') genderLabel = 'پسر / آقایان';
+        else if (s.gender === 'FEMALE') genderLabel = 'دختر / بانوان';
+
+        return {
+          name: s.full_name || '',
+          gender: genderLabel,
+          birth_year: s.birth_year_jalali || '',
+          dob: s.date_of_birth_jalali || (s.date_of_birth ? new Date(s.date_of_birth).toLocaleDateString('fa-IR') : ''),
+          phone: s.phone || '',
+          national_id: s.national_id || '',
+          guardian_name: s.emergency_contact_name || s.father_name || '',
+          guardian_phone: s.emergency_contact_phone || s.father_phone || '',
+          pool: s.pool_location || 'استخر شهید رئیسی',
+          coach: s.coach_name || 'بدون مربی',
+          class_name: s.class_name || s.course_name || 'بدون کلاس',
+          level: s.level_name || 'بدون سطح',
+          status: s.is_active ? 'فعال' : 'غیرفعال / بایگانی',
+          created_at: new Date(s.created_at).toLocaleDateString('fa-IR'),
+        };
       });
-      toast.success('فایل خروجی با موفقیت دانلود شد.');
+
+      // Construct dynamic filename describing applied filters
+      const filterTags = [];
+      if (birthYearFilter) filterTags.push(`متولدین_${birthYearFilter}`);
+      if (poolFilter) filterTags.push(poolFilter.replace(/\s+/g, '_'));
+      if (genderFilter) filterTags.push(genderFilter === 'MALE' ? 'پسران' : 'دختران');
+      if (coachFilter) {
+        const cObj = filterOptions.coaches.find((c) => String(c.id) === String(coachFilter));
+        if (cObj) filterTags.push(`مربی_${cObj.name.replace(/\s+/g, '_')}`);
+      }
+
+      const suffix = filterTags.length ? `_${filterTags.join('_')}` : '';
+      const dateStr = new Date().toLocaleDateString('fa-IR').replace(/\//g, '-');
+      const filename = `بانک_اطلاعات_شناگران${suffix}_${dateStr}`;
+
+      exportToCsv(filename, rows, {
+        name: 'نام و نام خانوادگی',
+        gender: 'جنسیت',
+        birth_year: 'سال تولد (شمسی)',
+        dob: 'تاریخ تولد کامل',
+        phone: 'شماره همراه شناگر',
+        national_id: 'کد ملی',
+        guardian_name: 'نام ولی / مخاطب اضطراری',
+        guardian_phone: 'شماره تماس ولی',
+        pool: 'استخر محل تمرین',
+        coach: 'مربی',
+        class_name: 'کلاس / دوره',
+        level: 'سطح مهارت',
+        status: 'وضعیت کاربری',
+        created_at: 'تاریخ ثبت‌نام',
+      });
+
+      toast.success(`فایل اکسل با ${rows.length} شناگر با موفقیت دانلود گردید.`);
     } catch (err) {
       console.error(err);
       toast.error('خطا در دریافت خروجی اکسل شناگران');
     }
   };
-
-  const formatPrice = (v) => Number(v || 0).toLocaleString('fa-IR');
 
   return (
     <div className="space-y-6">
@@ -319,18 +469,33 @@ export const AdminSwimmersPage = () => {
       <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Users className="w-5 h-5 text-sky-600" />
-            مرکز مدیریت شناگران و پرونده‌های آموزشی
+            <Users className="w-6 h-6 text-sky-600" />
+            بانک اطلاعات و مدیریت شناگران
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            دسترسی به پرونده کامل سلامت و رشد، ثبت‌نام در گروه‌ها، سوابق کلاسی و امور مالی هر شناگر
+            مشاهده، ثبت‌نام، تخصیص کلاس و فیلتر پیشرفته بر اساس سال تولد، استخر، جنسیت و مربی
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
+          {/* Link to Dossiers Page */}
+          <Link
+            to="/admin/dossiers"
+            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800 transition-colors whitespace-nowrap shadow-2xs"
+          >
+            <FolderCheck className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
+            <span>بررسی پرونده‌ها و مدارک</span>
+            {pendingDocsCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded-full bg-amber-500 text-white font-mono text-[10px]">
+                {pendingDocsCount}
+              </span>
+            )}
+          </Link>
+
           <Button variant="outline" onClick={handleExportCsv} className="gap-1.5 text-xs whitespace-nowrap">
             <FileSpreadsheet className="w-4 h-4 text-emerald-600 shrink-0" />
             <span className="whitespace-nowrap">خروجی اکسل / CSV</span>
           </Button>
+
           <Button onClick={() => setIsAddModalOpen(true)} className="gap-1.5 text-xs whitespace-nowrap">
             <UserPlus className="w-4 h-4 shrink-0" />
             <span className="whitespace-nowrap">ثبت شناگر جدید</span>
@@ -338,31 +503,32 @@ export const AdminSwimmersPage = () => {
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 transition-colors relative z-20">
-        <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="جستجو با نام، نام خانوادگی، شماره تماس یا کد ملی..."
-              className="w-full pl-3 pr-10 py-2.5 text-xs bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-colors"
-            />
-          </div>
-          <Button type="submit" variant="secondary" className="text-xs shrink-0 px-4 whitespace-nowrap h-10">
-            جستجو
-          </Button>
-        </form>
+      {/* Advanced Filter and Search Section */}
+      <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4 transition-colors">
+        {/* Top Row: Search input and Status filter tabs */}
+        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+          <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center gap-2">
+            <div className="relative flex-1">
+              <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="جستجو با نام، شماره تماس یا کد ملی..."
+                className="w-full pl-3 pr-10 py-2.5 text-xs bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-colors"
+              />
+            </div>
+            <Button type="submit" variant="secondary" className="text-xs shrink-0 px-4 whitespace-nowrap h-10">
+              جستجو
+            </Button>
+          </form>
 
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-none shrink-0 w-full md:w-auto">
-          {/* Status Tab buttons */}
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700/80 text-xs shrink-0 w-full sm:w-auto overflow-x-auto scrollbar-none">
+          {/* Status Tabs (همه، فعال، بایگانی) */}
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700/80 text-xs shrink-0 overflow-x-auto scrollbar-none">
             <button
               type="button"
               onClick={() => handleStatusFilterChange('ALL')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap text-xs shrink-0 ${
+              className={`px-3.5 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap text-xs shrink-0 ${
                 statusFilter === 'ALL'
                   ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -372,20 +538,8 @@ export const AdminSwimmersPage = () => {
             </button>
             <button
               type="button"
-              onClick={() => handleStatusFilterChange('DOCS_PENDING')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors inline-flex items-center gap-1.5 whitespace-nowrap text-xs shrink-0 ${
-                statusFilter === 'DOCS_PENDING'
-                  ? 'bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-300 shadow-2xs font-bold'
-                  : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-              }`}
-            >
-              <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-              <span className="whitespace-nowrap">بررسی مدارک ({countsSummary.docs_pending || 0})</span>
-            </button>
-            <button
-              type="button"
               onClick={() => handleStatusFilterChange('ACTIVE')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap text-xs shrink-0 ${
+              className={`px-3.5 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap text-xs shrink-0 ${
                 statusFilter === 'ACTIVE'
                   ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-2xs font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -396,7 +550,7 @@ export const AdminSwimmersPage = () => {
             <button
               type="button"
               onClick={() => handleStatusFilterChange('INACTIVE')}
-              className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap text-xs shrink-0 ${
+              className={`px-3.5 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap text-xs shrink-0 ${
                 statusFilter === 'INACTIVE'
                   ? 'bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-300 shadow-2xs font-bold'
                   : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
@@ -405,6 +559,179 @@ export const AdminSwimmersPage = () => {
               بایگانی ({countsSummary.inactive || 0})
             </button>
           </div>
+
+          {/* Mobile Filter Toggle Button */}
+          <div className="sm:hidden">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowMobileFilters(!showMobileFilters)}
+              className="w-full flex items-center justify-between text-xs py-2"
+            >
+              <span className="flex items-center gap-1.5">
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                <span>فیلترهای پیشرفته (سال تولد، استخر، جنسیت، مربی)</span>
+              </span>
+              {activeAdvancedFilterCount > 0 && (
+                <span className="w-5 h-5 rounded-full bg-sky-600 text-white flex items-center justify-center text-[10px]">
+                  {activeAdvancedFilterCount}
+                </span>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* 4 Core Filters Grid (Desktop/Tablet always visible; Mobile toggleable) */}
+        <div className={`pt-3 border-t border-slate-100 dark:border-slate-800 ${showMobileFilters ? 'block' : 'hidden sm:block'}`}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            {/* Filter 1: سال تولد (Birth Year) */}
+            <div>
+              <CustomSelect
+                label="۱. سال تولد"
+                icon={Calendar}
+                size="sm"
+                value={birthYearFilter}
+                onChange={handleBirthYearChange}
+                placeholder="همه سال‌های تولد"
+                clearable
+                searchable
+                menuClassName="w-full"
+                options={[
+                  { value: '', label: 'همه سال‌های تولد' },
+                  ...filterOptions.birth_years.map((y) => ({
+                    value: String(y),
+                    label: `متولد سال ${y}`,
+                    icon: Calendar,
+                  })),
+                ]}
+              />
+            </div>
+
+            {/* Filter 2: استخر (Pool) */}
+            <div>
+              <CustomSelect
+                label="۲. استخر و محل تمرین"
+                icon={MapPin}
+                size="sm"
+                value={poolFilter}
+                onChange={handlePoolChange}
+                placeholder="همه استخرها"
+                clearable
+                searchable
+                menuClassName="w-full"
+                options={[
+                  { value: '', label: 'همه استخرها' },
+                  ...filterOptions.pools.map((p) => ({
+                    value: p,
+                    label: p,
+                    icon: MapPin,
+                  })),
+                ]}
+              />
+            </div>
+
+            {/* Filter 3: جنسیت (Gender) */}
+            <div>
+              <CustomSelect
+                label="۳. جنسیت"
+                icon={Users}
+                size="sm"
+                value={genderFilter}
+                onChange={handleGenderChange}
+                placeholder="همه جنسیت‌ها"
+                clearable
+                menuClassName="w-full"
+                options={[
+                  { value: '', label: 'همه جنسیت‌ها' },
+                  ...filterOptions.genders.map((g) => ({
+                    value: g.value,
+                    label: g.label,
+                    icon: Users,
+                  })),
+                ]}
+              />
+            </div>
+
+            {/* Filter 4: مربی (Coach) */}
+            <div>
+              <CustomSelect
+                label="۴. مربی"
+                icon={Whistle}
+                size="sm"
+                value={coachFilter}
+                onChange={handleCoachChange}
+                placeholder="همه مربیان"
+                clearable
+                searchable
+                menuClassName="w-full"
+                options={[
+                  { value: '', label: 'همه مربیان' },
+                  ...filterOptions.coaches.map((c) => ({
+                    value: String(c.id),
+                    label: `کلاس مربی ${c.name}`,
+                    icon: Whistle,
+                  })),
+                ]}
+              />
+            </div>
+          </div>
+
+          {/* Active Filter Badges & Reset Button */}
+          {activeAdvancedFilterCount > 0 && (
+            <div className="flex items-center justify-between flex-wrap gap-2 pt-3 mt-3 border-t border-dashed border-slate-200 dark:border-slate-800">
+              <div className="flex items-center gap-1.5 flex-wrap text-xs">
+                <span className="text-slate-400 text-[11px] font-medium">فیلترهای اعمال‌شده:</span>
+
+                {birthYearFilter && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 text-xs">
+                    <span>سال: {birthYearFilter}</span>
+                    <button type="button" onClick={() => handleBirthYearChange('')} className="hover:text-sky-900 cursor-pointer">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                )}
+
+                {poolFilter && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs">
+                    <span>استخر: {poolFilter}</span>
+                    <button type="button" onClick={() => handlePoolChange('')} className="hover:text-emerald-900 cursor-pointer">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                )}
+
+                {genderFilter && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 text-xs">
+                    <span>{genderFilter === 'MALE' ? 'پسران' : 'دختران'}</span>
+                    <button type="button" onClick={() => handleGenderChange('')} className="hover:text-indigo-900 cursor-pointer">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                )}
+
+                {coachFilter && (
+                  <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 text-xs">
+                    <span>
+                      مربی:{' '}
+                      {filterOptions.coaches.find((c) => String(c.id) === String(coachFilter))?.name || coachFilter}
+                    </span>
+                    <button type="button" onClick={() => handleCoachChange('')} className="hover:text-teal-900 cursor-pointer">
+                      <X className="w-3 h-3" />
+                    </button>
+                  </span>
+                )}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleClearAllFilters}
+                className="inline-flex items-center gap-1 text-xs text-rose-600 dark:text-rose-400 hover:text-rose-700 font-medium cursor-pointer"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>حذف تمام فیلترها</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -413,42 +740,51 @@ export const AdminSwimmersPage = () => {
         <LoadingState type="table" rows={6} message="در حال بارگذاری لیست شناگران..." />
       ) : swimmers.length === 0 ? (
         <EmptyState
-          title="شناگری یافت نشد"
-          description="با تغییر فیلترهای جستجو یا ثبت شناگر جدید، پرونده‌ها در این بخش نمایش داده می‌شوند."
+          title="شناگری با این مشخصات یافت نشد"
+          description="با تغییر یا حذف فیلترهای جستجو (سال تولد، استخر، جنسیت و مربی)، پرونده‌ها در این بخش نمایش داده می‌شوند."
+          actionText={activeAdvancedFilterCount > 0 ? 'پاک کردن فیلترها' : undefined}
+          onAction={activeAdvancedFilterCount > 0 ? handleClearAllFilters : undefined}
         />
       ) : (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors">
+          {/* Active Results Summary & Quick Excel Button */}
+          <div className="flex items-center justify-between gap-3 pb-4 mb-4 border-b border-slate-100 dark:border-slate-800 flex-wrap">
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              نمایش <strong className="text-slate-800 dark:text-slate-200 font-mono">{swimmers.length}</strong> شناگر
+              در این صفحه از مجموع <strong className="text-slate-800 dark:text-slate-200 font-mono">{totalCount}</strong> شناگر
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleExportCsv}
+              className="text-xs gap-1.5 text-emerald-700 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>خروجی اکسل این لیست ({totalCount} شناگر)</span>
+            </Button>
+          </div>
+
           {/* Desktop Table View */}
-          <div className="hidden md:block overflow-x-auto">
-            <table className="w-full text-sm text-right min-w-[650px]">
+          <div className="hidden lg:block overflow-x-auto">
+            <table className="w-full text-sm text-right min-w-[850px]">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                 <tr>
                   <th className="px-4 py-3.5 rounded-r-xl whitespace-nowrap">شناگر</th>
+                  <th className="px-4 py-3.5 text-center whitespace-nowrap">جنسیت</th>
+                  <th className="px-4 py-3.5 text-center whitespace-nowrap">سال تولد</th>
                   <th className="px-4 py-3.5 whitespace-nowrap">شماره تماس</th>
-                  <th className="px-4 py-3.5 whitespace-nowrap">کلاس</th>
-                  <th className="px-4 py-3.5 whitespace-nowrap">وضعیت کاربری</th>
-                  <th className="px-4 py-3.5 whitespace-nowrap">وضعیت مدارک</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap">استخر و دوره</th>
+                  <th className="px-4 py-3.5 whitespace-nowrap">کلاس و مربی</th>
+                  <th className="px-4 py-3.5 text-center whitespace-nowrap">وضعیت</th>
                   <th className="px-4 py-3.5 whitespace-nowrap">تاریخ ثبت</th>
-                  <th className="px-4 py-3.5 text-center rounded-l-xl whitespace-nowrap">عملیات پرونده</th>
+                  <th className="px-4 py-3.5 text-center rounded-l-xl whitespace-nowrap">عملیات</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
                 {swimmers.map((swimmer) => {
-                  const isDocsApproved =
-                    swimmer.birth_certificate_status === 'APPROVED' &&
-                    swimmer.national_card_status === 'APPROVED' &&
-                    swimmer.sports_insurance_status === 'APPROVED';
-
-                  const isDocsRejected =
-                    swimmer.birth_certificate_status === 'REVISION_REQUIRED' ||
-                    swimmer.national_card_status === 'REVISION_REQUIRED' ||
-                    swimmer.sports_insurance_status === 'REVISION_REQUIRED';
-
-                  const hasAnyDocUploaded =
-                    Boolean(swimmer.birth_certificate_image || swimmer.national_card_image || swimmer.sports_insurance_image);
-
                   return (
                     <tr key={swimmer.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                      {/* Swimmer Name and Avatar */}
                       <td className="px-4 py-3.5 cursor-pointer whitespace-nowrap" onClick={() => handleOpenDossier(swimmer)}>
                         <div className="flex items-center gap-3 group">
                           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-xs shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden">
@@ -464,19 +800,57 @@ export const AdminSwimmersPage = () => {
                             </span>
                             {swimmer.emergency_contact_name && (
                               <span className="text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap block mt-0.5">
-                                ولی/رابط: {swimmer.emergency_contact_name}
+                                ولی: {swimmer.emergency_contact_name}
                               </span>
                             )}
                           </div>
                         </div>
                       </td>
+
+                      {/* Gender */}
+                      <td className="px-4 py-3.5 text-center whitespace-nowrap">
+                        {swimmer.gender === 'FEMALE' ? (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 rounded-md border border-rose-200 dark:border-rose-800">
+                            دختر / بانوان
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-200 dark:border-sky-800">
+                            پسر / آقایان
+                          </span>
+                        )}
+                      </td>
+
+                      {/* Birth Year */}
+                      <td className="px-4 py-3.5 text-center whitespace-nowrap">
+                        {swimmer.birth_year_jalali ? (
+                          <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+                            {swimmer.birth_year_jalali}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400 text-xs">-</span>
+                        )}
+                      </td>
+
+                      {/* Phone */}
                       <td className="px-4 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-300 whitespace-nowrap">
                         {swimmer.phone}
                       </td>
+
+                      {/* Pool Location */}
+                      <td className="px-4 py-3.5 whitespace-nowrap">
+                        <div className="flex items-center gap-1.5 text-xs text-slate-700 dark:text-slate-300">
+                          <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span className="truncate max-w-[150px] font-medium">
+                            {swimmer.pool_location || 'استخر شهید رئیسی'}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* Class and Coach Dropdown */}
                       <td className="px-4 py-3.5 whitespace-nowrap">
                         <ClassSelectorDropdown
                           currentClass={
-                            (swimmer.coach_id || swimmer.group_id || swimmer.class_name)
+                            swimmer.coach_id || swimmer.group_id || swimmer.class_name
                               ? {
                                   id: swimmer.group_id ? `g_${swimmer.group_id}` : `c_${swimmer.coach_id}`,
                                   group_id: swimmer.group_id,
@@ -493,46 +867,30 @@ export const AdminSwimmersPage = () => {
                           size="sm"
                         />
                       </td>
-                      <td className="px-4 py-3.5 whitespace-nowrap">
+
+                      {/* Status */}
+                      <td className="px-4 py-3.5 text-center whitespace-nowrap">
                         <Badge variant={swimmer.is_active ? 'success' : 'neutral'} className="whitespace-nowrap">
                           {swimmer.is_active ? 'فعال' : 'غیرفعال'}
                         </Badge>
                       </td>
-                      <td className="px-4 py-3.5 whitespace-nowrap">
-                        {isDocsApproved ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 whitespace-nowrap">
-                            <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                            <span className="whitespace-nowrap">تأییدشده</span>
-                          </span>
-                        ) : isDocsRejected ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-200 dark:border-rose-800 whitespace-nowrap">
-                            <XCircle className="w-3.5 h-3.5 shrink-0" />
-                            <span className="whitespace-nowrap">رد شده / نقص</span>
-                          </span>
-                        ) : hasAnyDocUploaded ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-1 rounded-lg border border-amber-200 dark:border-amber-800 whitespace-nowrap">
-                            <Clock className="w-3.5 h-3.5 shrink-0" />
-                            <span className="whitespace-nowrap">در انتظار بررسی</span>
-                          </span>
-                        ) : (
-                          <span className="text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
-                            ارسال‌نشده
-                          </span>
-                        )}
-                      </td>
+
+                      {/* Registration Date */}
                       <td className="px-4 py-3.5 text-xs font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap">
                         {new Date(swimmer.created_at).toLocaleDateString('fa-IR')}
                       </td>
+
+                      {/* Actions */}
                       <td className="px-4 py-3.5 whitespace-nowrap">
                         <div className="flex items-center justify-center gap-2 whitespace-nowrap">
                           <button
                             type="button"
                             onClick={() => handleOpenDossier(swimmer)}
                             className="px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 font-semibold text-xs border border-sky-200/80 dark:border-sky-800 transition-colors inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0 shadow-2xs"
-                            title="مشاهده پرونده جامع و بررسی مدارک"
+                            title="مشاهده پرونده کامل"
                           >
                             <ShieldCheck className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400 shrink-0" />
-                            <span className="whitespace-nowrap">پرونده و مدارک</span>
+                            <span>پرونده</span>
                           </button>
                           <button
                             type="button"
@@ -541,7 +899,7 @@ export const AdminSwimmersPage = () => {
                             title="ثبت‌نام مستقیم در کلاس"
                           >
                             <PlusCircle className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                            <span className="whitespace-nowrap">ثبت‌نام</span>
+                            <span>ثبت‌نام</span>
                           </button>
                         </div>
                       </td>
@@ -552,22 +910,9 @@ export const AdminSwimmersPage = () => {
             </table>
           </div>
 
-          {/* Mobile Cards View */}
-          <div className="md:hidden space-y-3">
+          {/* Tablet & Mobile Cards View */}
+          <div className="lg:hidden space-y-3">
             {swimmers.map((swimmer) => {
-              const isDocsApproved =
-                swimmer.birth_certificate_status === 'APPROVED' &&
-                swimmer.national_card_status === 'APPROVED' &&
-                swimmer.sports_insurance_status === 'APPROVED';
-
-              const isDocsRejected =
-                swimmer.birth_certificate_status === 'REVISION_REQUIRED' ||
-                swimmer.national_card_status === 'REVISION_REQUIRED' ||
-                swimmer.sports_insurance_status === 'REVISION_REQUIRED';
-
-              const hasAnyDocUploaded =
-                Boolean(swimmer.birth_certificate_image || swimmer.national_card_image || swimmer.sports_insurance_image);
-
               return (
                 <div
                   key={swimmer.id}
@@ -589,52 +934,56 @@ export const AdminSwimmersPage = () => {
                         </span>
                         {swimmer.emergency_contact_name && (
                           <span className="text-[11px] text-slate-400 dark:text-slate-500 block mt-0.5">
-                            ولی/رابط: {swimmer.emergency_contact_name}
+                            ولی: {swimmer.emergency_contact_name}
                           </span>
                         )}
                       </div>
                     </div>
-                    <Badge variant={swimmer.is_active ? 'success' : 'neutral'} className="whitespace-nowrap">
-                      {swimmer.is_active ? 'فعال' : 'غیرفعال'}
-                    </Badge>
+                    <div className="flex items-center gap-1.5">
+                      <Badge variant={swimmer.is_active ? 'success' : 'neutral'} className="whitespace-nowrap">
+                        {swimmer.is_active ? 'فعال' : 'غیرفعال'}
+                      </Badge>
+                    </div>
                   </div>
 
-                  {/* Middle Info Grid: Phone, Course, and Document Status (Skill level removed!) */}
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
+                  {/* 4 Core Data Badges: سال تولد، استخر، جنسیت، مربی */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-200/50 dark:border-slate-700/50 text-slate-600 dark:text-slate-300">
                     <div>
-                      <span className="text-slate-400 dark:text-slate-500 block text-[10px]">تماس</span>
-                      <a href={`tel:${swimmer.phone}`} className="font-mono text-sky-600 dark:text-sky-400 underline decoration-sky-300 whitespace-nowrap">
+                      <span className="text-slate-400 dark:text-slate-500 block text-[10px]">سال تولد:</span>
+                      <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                        {swimmer.birth_year_jalali || '-'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 dark:text-slate-500 block text-[10px]">جنسیت:</span>
+                      <span className="font-semibold text-slate-800 dark:text-slate-200">
+                        {swimmer.gender === 'FEMALE' ? 'دختر' : 'پسر'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 dark:text-slate-500 block text-[10px]">استخر:</span>
+                      <span className="font-medium text-slate-800 dark:text-slate-200 truncate block">
+                        {swimmer.pool_location || 'شهید رئیسی'}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-slate-400 dark:text-slate-500 block text-[10px]">مربی:</span>
+                      <span className="font-medium text-slate-800 dark:text-slate-200 truncate block">
+                        {swimmer.coach_name || 'بدون مربی'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Contact & Class Row */}
+                  <div className="flex items-center justify-between pt-1 border-t border-slate-200/50 dark:border-slate-700/50">
+                    <div>
+                      <span className="text-slate-400 dark:text-slate-500 text-[10px]">شماره تماس: </span>
+                      <a href={`tel:${swimmer.phone}`} className="font-mono text-sky-600 dark:text-sky-400 underline decoration-sky-300">
                         {swimmer.phone}
                       </a>
                     </div>
-                    <div>
-                      <span className="text-slate-400 dark:text-slate-500 block text-[10px]">دوره / کلاس</span>
-                      <span className="font-semibold text-slate-700 dark:text-slate-200 truncate block">
-                        {swimmer.class_name || swimmer.course_name || 'بدون کلاس'}
-                      </span>
-                    </div>
-                    <div className="col-span-2 flex items-center justify-between pt-1">
-                      <span className="text-slate-400 dark:text-slate-500 text-[10px]">وضعیت مدارک:</span>
-                      {isDocsApproved ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800 whitespace-nowrap">
-                          <CheckCircle2 className="w-3 h-3 shrink-0" />
-                          <span className="whitespace-nowrap">تأییدشده</span>
-                        </span>
-                      ) : isDocsRejected ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-0.5 rounded-lg border border-rose-200 dark:border-rose-800 whitespace-nowrap">
-                          <XCircle className="w-3 h-3 shrink-0" />
-                          <span className="whitespace-nowrap">رد شده / نقص</span>
-                        </span>
-                      ) : hasAnyDocUploaded ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-2.5 py-0.5 rounded-lg border border-amber-200 dark:border-amber-800 whitespace-nowrap">
-                          <Clock className="w-3 h-3 shrink-0" />
-                          <span className="whitespace-nowrap">در انتظار بررسی</span>
-                        </span>
-                      ) : (
-                        <span className="text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap">
-                          ارسال‌نشده
-                        </span>
-                      )}
+                    <div className="text-slate-400 text-[10px] font-mono">
+                      ثبت: {new Date(swimmer.created_at).toLocaleDateString('fa-IR')}
                     </div>
                   </div>
 
@@ -643,7 +992,7 @@ export const AdminSwimmersPage = () => {
                     <div className="w-full sm:w-auto">
                       <ClassSelectorDropdown
                         currentClass={
-                          (swimmer.coach_id || swimmer.group_id || swimmer.class_name)
+                          swimmer.coach_id || swimmer.group_id || swimmer.class_name
                             ? {
                                 id: swimmer.group_id ? `g_${swimmer.group_id}` : `c_${swimmer.coach_id}`,
                                 group_id: swimmer.group_id,
@@ -668,7 +1017,7 @@ export const AdminSwimmersPage = () => {
                         className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 font-semibold border border-sky-200/80 dark:border-sky-800 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap shadow-2xs"
                       >
                         <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-                        <span className="whitespace-nowrap">پرونده و مدارک</span>
+                        <span className="whitespace-nowrap">پرونده</span>
                       </button>
                       <button
                         type="button"
@@ -699,7 +1048,7 @@ export const AdminSwimmersPage = () => {
         </div>
       )}
 
-      {/* 1. Modal: Create Swimmer */}
+      {/* Modal 1: Create Swimmer */}
       <Modal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -733,7 +1082,20 @@ export const AdminSwimmersPage = () => {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                جنسیت
+              </label>
+              <select
+                value={createForm.gender}
+                onChange={(e) => setCreateForm({ ...createForm, gender: e.target.value })}
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+              >
+                <option value="MALE">پسر / آقایان</option>
+                <option value="FEMALE">دختر / بانوان</option>
+              </select>
+            </div>
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
                 شماره همراه *
@@ -847,170 +1209,64 @@ export const AdminSwimmersPage = () => {
         </form>
       </Modal>
 
-      {/* 2. Modal: Confirm Swimmer Class Change */}
-      <Modal
-        isOpen={!!pendingClassChange}
-        onClose={() => !confirmingClassChange && setPendingClassChange(null)}
-        title={
-          pendingClassChange?.newClass === null
-            ? 'تأیید حذف شناگر از کلاس'
-            : pendingClassChange?.currentClass
-            ? 'تأیید تغییر کلاس شناگر'
-            : 'تأیید انتساب شناگر به کلاس'
-        }
-        maxWidth="max-w-lg"
-      >
-        {pendingClassChange && (
+      {/* Modal 2: Confirm Swimmer Class Change */}
+      {pendingClassChange && (
+        <Modal
+          isOpen={Boolean(pendingClassChange)}
+          onClose={() => setPendingClassChange(null)}
+          title="تغییر و تخصیص کلاس شناگر"
+          maxWidth="max-w-md"
+        >
           <div className="space-y-4">
-            {pendingClassChange.newClass === null ? (
-              // Case: Unassign / Remove from class
-              <div className="flex items-start gap-3 p-3.5 bg-rose-50 dark:bg-rose-950/40 border border-rose-200/80 dark:border-rose-800/60 rounded-2xl">
-                <div className="w-10 h-10 rounded-xl bg-rose-100 dark:bg-rose-900/60 flex items-center justify-center shrink-0 text-rose-600 dark:text-rose-400">
-                  <UserX className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100">
-                    آیا از حذف این شناگر از کلاس مطمئن هستید؟
-                  </h4>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                    با تأیید، شناگر از لیست این کلاس و برنامه کلاسی خارج خواهد شد و وضعیت آن به «بدون کلاس» تغییر می‌یابد.
-                  </p>
-                </div>
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              آیا از انتقال و تغییر کلاس شناگر «
+              <strong className="text-slate-900 dark:text-white font-bold">
+                {pendingClassChange.swimmer.full_name}
+              </strong>
+              » به کلاس زیر اطمینان دارید؟
+            </p>
+
+            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
+              <div className="flex justify-between items-center text-slate-500 dark:text-slate-400">
+                <span>کلاس قبلی:</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-200">
+                  {pendingClassChange.currentClass?.name || 'بدون کلاس'}
+                </span>
               </div>
-            ) : (
-              // Case: Add or Change class
-              <div className="flex items-start gap-3 p-3.5 bg-sky-50 dark:bg-sky-950/40 border border-sky-200/80 dark:border-sky-800/60 rounded-2xl">
-                <div className="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-900/60 flex items-center justify-center shrink-0 text-sky-600 dark:text-sky-400">
-                  <AlertTriangle className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-sm text-slate-800 dark:text-slate-100">
-                    {pendingClassChange.currentClass
-                      ? 'آیا از انتقال این شناگر به کلاس جدید مطمئن هستید؟'
-                      : 'آیا از افزودن این شناگر به کلاس مطمئن هستید؟'}
-                  </h4>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 leading-relaxed">
-                    با تأیید شما، این شناگر در کلاس انتخاب‌شده ثبت خواهد شد و امور آموزشی و حضور و غیاب دوره همگام‌سازی می‌گردد.
-                  </p>
-                </div>
+              <div className="flex justify-between items-center text-sky-600 dark:text-sky-400 pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                <span className="font-bold">کلاس جدید:</span>
+                <span className="font-bold text-slate-900 dark:text-white">
+                  {pendingClassChange.newClass
+                    ? pendingClassChange.newClass.name ||
+                      (pendingClassChange.newClass.coach_name
+                        ? `کلاس ${pendingClassChange.newClass.coach_name}`
+                        : 'کلاس انتخابی')
+                    : 'حذف تخصیص کلاس (بدون کلاس)'}
+                </span>
               </div>
-            )}
-
-            <div className="bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80 rounded-2xl p-4 space-y-3 overflow-hidden">
-              {/* Swimmer Info */}
-              <div className="flex items-center justify-between pb-2.5 border-b border-slate-200/60 dark:border-slate-700/60">
-                <span className="text-xs text-slate-400">شناگر:</span>
-                <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center text-[10px] font-bold overflow-hidden shrink-0">
-                    {pendingClassChange.swimmer.avatar ? (
-                      <img src={pendingClassChange.swimmer.avatar} alt="" className="w-full h-full object-cover" />
-                    ) : (
-                      pendingClassChange.swimmer.first_name ? pendingClassChange.swimmer.first_name.charAt(0) : 'S'
-                    )}
-                  </div>
-                  <span className="font-bold text-xs text-slate-800 dark:text-slate-100">
-                    {pendingClassChange.swimmer.full_name}
-                  </span>
-                </div>
-              </div>
-
-              {/* Class Transition */}
-              {pendingClassChange.newClass === null ? (
-                // Case: Removal
-                <div className="space-y-2 pt-1">
-                  <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
-                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium shrink-0">کلاس فعلی:</span>
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">
-                      {pendingClassChange.currentClass?.name || 'بدون کلاس'}
-                    </span>
-                  </div>
-                  <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/80 flex items-center justify-between gap-2 text-rose-700 dark:text-rose-300">
-                    <span className="text-xs font-semibold shrink-0">وضعیت جدید:</span>
-                    <span className="text-xs font-bold flex items-center gap-1.5">
-                      <UserX className="w-3.5 h-3.5 text-rose-600" />
-                      بدون کلاس (لغو انتساب)
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                // Case: Add / Transfer
-                <div className="space-y-2 pt-1">
-                  {/* Current Class */}
-                  <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 flex items-center justify-between gap-2">
-                    <span className="text-xs text-slate-500 dark:text-slate-400 font-medium shrink-0">کلاس فعلی:</span>
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-300 text-left truncate">
-                      {pendingClassChange.currentClass?.name || 'بدون کلاس'}
-                    </span>
-                  </div>
-
-                  {/* Down Transition Arrow */}
-                  <div className="flex items-center justify-center -my-1">
-                    <div className="w-7 h-7 rounded-full bg-sky-100 dark:bg-sky-900/60 border border-sky-200 dark:border-sky-800 flex items-center justify-center text-sky-600 dark:text-sky-300 shadow-2xs">
-                      <ArrowDown className="w-3.5 h-3.5" />
-                    </div>
-                  </div>
-
-                  {/* New Class Target */}
-                  <div className="p-3 rounded-xl bg-sky-50 dark:bg-sky-950/50 border border-sky-200/90 dark:border-sky-800/90 flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="text-xs font-bold text-sky-700 dark:text-sky-300">کلاس جدید:</span>
-                    </div>
-                    <div className="text-left min-w-0">
-                      <span className="text-xs font-bold text-sky-900 dark:text-sky-100 block truncate">
-                        {pendingClassChange.newClass.name || `کلاس ${pendingClassChange.newClass.coach_name}`}
-                      </span>
-                      {pendingClassChange.newClass.course_name && (
-                        <span className="text-[10px] text-sky-600 dark:text-sky-400 block mt-0.5 truncate">
-                          دوره: {pendingClassChange.newClass.course_name}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
 
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
               <Button
-                type="button"
                 variant="outline"
-                disabled={confirmingClassChange}
+                size="sm"
                 onClick={() => setPendingClassChange(null)}
-                className="text-xs"
+                disabled={confirmingClassChange}
               >
                 انصراف
               </Button>
               <Button
-                type="button"
-                disabled={confirmingClassChange}
+                size="sm"
                 onClick={handleConfirmClassChange}
-                className={`text-xs gap-1.5 ${
-                  pendingClassChange.newClass === null
-                    ? 'bg-rose-600 hover:bg-rose-700 text-white'
-                    : ''
-                }`}
+                disabled={confirmingClassChange}
+                className="bg-sky-600 hover:bg-sky-700 text-white gap-1.5"
               >
-                {confirmingClassChange ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>در حال ثبت...</span>
-                  </>
-                ) : pendingClassChange.newClass === null ? (
-                  <>
-                    <UserX className="w-3.5 h-3.5" />
-                    <span>تأیید و حذف از کلاس</span>
-                  </>
-                ) : (
-                  <>
-                    <Check className="w-3.5 h-3.5" />
-                    <span>تأیید و ثبت در کلاس</span>
-                  </>
-                )}
+                {confirmingClassChange ? 'در حال ثبت...' : 'تأیید و اعمال تغییر'}
               </Button>
             </div>
           </div>
-        )}
-      </Modal>
+        </Modal>
+      )}
     </div>
   );
 };

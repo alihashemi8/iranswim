@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Globe, Waves, Users2, Newspaper, BookOpen, Plus, Edit, Trash2,
   MapPin, Eye, EyeOff, ArrowUpDown, Save, Check, CheckCircle2, Clock,
@@ -19,6 +20,16 @@ import { SwimmerCrawlIcon, OlympicPoolLaneIcon } from '../../components/common/A
 import { getMediaUrl } from '../../utils/media';
 
 export const AdminWebsiteManagerPage = () => {
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') || 'sections';
+  const [activeTab, setActiveTabState] = useState(initialTab);
+
+  const setActiveTab = (tab) => {
+    setActiveTabState(tab);
+    setSearchParams({ tab });
+  };
+
   const toast = useToast();
   const {
     sections: landingSections,
@@ -27,7 +38,6 @@ export const AdminWebsiteManagerPage = () => {
     setAllSections,
     reloadSections,
   } = useLandingSections();
-  const [activeTab, setActiveTab] = useState('sections'); // 'sections' | 'pools' | 'coaches' | 'news' | 'courses'
   const [togglingKey, setTogglingKey] = useState(null);
   const [bulkUpdating, setBulkUpdating] = useState(false);
 
@@ -105,29 +115,6 @@ export const AdminWebsiteManagerPage = () => {
   const [coachGenderTab, setCoachGenderTab] = useState('MALE'); // 'MALE' | 'FEMALE'
   const [coachOrderList, setCoachOrderList] = useState([]);
   const [coachSavingOrder, setCoachSavingOrder] = useState(false);
-  const [coachModalOpen, setCoachModalOpen] = useState(false);
-  const [editingCoach, setEditingCoach] = useState(null);
-  const [coachForm, setCoachForm] = useState({
-    first_name: '',
-    last_name: '',
-    phone: '',
-    gender: 'MALE',
-    display_order: 1,
-    coaching_degree: 'GRADE_3',
-    bio: '',
-    employment_status: 'ACTIVE',
-  });
-  const [coachAvatarFile, setCoachAvatarFile] = useState(null);
-  const [coachAvatarPreview, setCoachAvatarPreview] = useState(null);
-  const [coachSubmitting, setCoachSubmitting] = useState(false);
-
-  const coachDegreeOptions = [
-    { value: 'GRADE_3', label: 'مربیگری درجه ۳ فدراسیون' },
-    { value: 'GRADE_2', label: 'مربیگری درجه ۲ فدراسیون' },
-    { value: 'GRADE_1', label: 'مربیگری درجه ۱ فدراسیون' },
-    { value: 'NATIONAL', label: 'مربیگری ملی شنا' },
-    { value: 'INTERNATIONAL', label: 'مربیگری بین‌المللی (World Aquatics / FINA)' },
-  ];
 
   // =========================================================================
   // 3. NEWS STATE
@@ -413,48 +400,7 @@ export const AdminWebsiteManagerPage = () => {
   };
 
   const handleOpenEditCoach = (coach) => {
-    setEditingCoach(coach);
-    setCoachForm({
-      first_name: coach.first_name || '',
-      last_name: coach.last_name || '',
-      phone: coach.phone || '',
-      gender: coach.gender || (isFemaleCoach(coach) ? 'FEMALE' : 'MALE'),
-      display_order: coach.display_order ?? 1,
-      coaching_degree: coach.coaching_degree || 'GRADE_3',
-      bio: coach.bio || '',
-      employment_status: coach.employment_status || 'ACTIVE',
-    });
-    setCoachAvatarFile(null);
-    setCoachAvatarPreview(coach.avatar || null);
-    setCoachModalOpen(true);
-  };
-
-  const handleCoachSubmit = async (e) => {
-    e.preventDefault();
-    if (!editingCoach) return;
-    try {
-      setCoachSubmitting(true);
-      const formData = new FormData();
-      Object.entries(coachForm).forEach(([k, v]) => {
-        formData.append(k, v);
-      });
-      if (coachAvatarFile) {
-        formData.append('avatar', coachAvatarFile);
-      }
-
-      await api.patch(`/coaches/${editingCoach.id}/`, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
-
-      toast.success(`اطلاعات مربی "${coachForm.first_name} ${coachForm.last_name}" به‌روزرسانی شد.`);
-      setCoachModalOpen(false);
-      fetchAllData();
-    } catch (err) {
-      console.error(err);
-      toast.error('خطا در به‌روزرسانی مربی');
-    } finally {
-      setCoachSubmitting(false);
-    }
+    navigate(`/admin/coaches/${coach.id}/edit`, { state: { from: '/admin/website?tab=coaches' } });
   };
 
   // =========================================================================
@@ -768,40 +714,33 @@ export const AdminWebsiteManagerPage = () => {
     const isToggling = togglingKey === sectionKey;
     return (
       <div
-        className={`p-4 sm:p-5 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors ${
+        className={`p-4 rounded-2xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 transition-colors ${
           isEnabled
             ? 'bg-emerald-50/90 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-800/40 text-emerald-950 dark:text-emerald-100'
             : 'bg-amber-50/90 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800/40 text-amber-950 dark:text-amber-100'
         }`}
       >
-        <div className="flex items-center gap-3.5">
+        <div className="flex items-center gap-3">
           <div
-            className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 shadow-2xs ${
+            className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-2xs ${
               isEnabled
                 ? 'bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300'
                 : 'bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300'
             }`}
           >
-            {isEnabled ? <Eye className="w-6 h-6" /> : <EyeOff className="w-6 h-6" />}
+            {isEnabled ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
           </div>
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="font-black text-base sm:text-lg">وضعیت بخش «{sectionTitle}» در صفحه لندینگ:</span>
-              <span
-                className={`text-xs sm:text-sm px-3.5 py-1 rounded-full font-black ${
-                  isEnabled
-                    ? 'bg-emerald-200/80 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200'
-                    : 'bg-amber-200/80 text-amber-900 dark:bg-amber-900 dark:text-amber-200'
-                }`}
-              >
-                {isEnabled ? '● در حال نمایش در صفحه اصلی' : '○ غیرفعال (مخفی از دید کاربران)'}
-              </span>
-            </div>
-            <p className="text-xs sm:text-sm opacity-90 mt-1 font-semibold leading-relaxed">
-              {isEnabled
-                ? 'این بخش هم‌اکنون در صفحه اصلی وبسایت به تمام بازدیدکنندگان نمایش داده می‌شود.'
-                : 'این بخش موقتاً خاموش شده و در صفحه اصلی برای بازدیدکنندگان پنهان است.'}
-            </p>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="font-bold text-sm sm:text-base">وضعیت نمایش در سایت:</span>
+            <span
+              className={`text-xs px-3 py-1 rounded-full font-black ${
+                isEnabled
+                  ? 'bg-emerald-200/80 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200'
+                  : 'bg-amber-200/80 text-amber-900 dark:bg-amber-900 dark:text-amber-200'
+              }`}
+            >
+              {isEnabled ? 'در حال نمایش' : 'غیرفعال'}
+            </span>
           </div>
         </div>
 
@@ -809,7 +748,7 @@ export const AdminWebsiteManagerPage = () => {
           type="button"
           onClick={() => handleToggleSection(sectionKey)}
           disabled={isToggling}
-          className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-2 shrink-0 cursor-pointer ${
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer ${
             isEnabled
               ? 'bg-rose-100 hover:bg-rose-200 text-rose-800 dark:bg-rose-950 dark:text-rose-200 border border-rose-300/60'
               : 'bg-emerald-600 hover:bg-emerald-700 text-white shadow-xs'
@@ -822,13 +761,13 @@ export const AdminWebsiteManagerPage = () => {
             </>
           ) : isEnabled ? (
             <>
-              <EyeOff className="w-4.5 h-4.5" />
-              <span>غیرفعال کردن (مخفی در لندینگ)</span>
+              <EyeOff className="w-4 h-4" />
+              <span>مخفی کردن</span>
             </>
           ) : (
             <>
-              <Eye className="w-4.5 h-4.5" />
-              <span>فعال کردن (نمایش در لندینگ)</span>
+              <Eye className="w-4 h-4" />
+              <span>نمایش در سایت</span>
             </>
           )}
         </button>
@@ -839,24 +778,18 @@ export const AdminWebsiteManagerPage = () => {
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-cyan-900 via-sky-900 to-teal-900 text-white p-6 sm:p-8 rounded-3xl shadow-lg border border-cyan-800/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="space-y-2.5">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white/10 rounded-full text-xs sm:text-sm font-black text-cyan-200 border border-white/15">
-            <Globe className="w-4 h-4 text-cyan-400" />
-            <span>سامانه یکپارچه مدیریت محتوای وبسایت و صفحه لندینگ</span>
-          </div>
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight">
-            مدیریت وبسایت، استخرها، مربیان و اخبار
+      <div className="bg-gradient-to-r from-cyan-900 via-sky-900 to-teal-900 text-white p-5 sm:p-6 rounded-2xl shadow-md border border-cyan-800/50 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black tracking-tight flex items-center gap-2.5">
+            <Globe className="w-6 h-6 text-cyan-400" />
+            <span>مدیریت محتوای وبسایت</span>
           </h1>
-          <p className="text-sm sm:text-base text-cyan-100/95 max-w-2xl font-medium leading-relaxed">
-            مدیریت زنده بخش‌های صفحه اصلی با همان استانداردهای گرافیکی: کارت استخرها و تصاویر تکمیلی، ترتیب کادر مربیان (آقا و خانم)، ارسال اخبار به همراه پوستر و تصاویر شرح خبر.
-          </p>
         </div>
 
         <Button
           onClick={() => fetchAllData(false)}
           variant="outline"
-          className="bg-white/10 text-white hover:bg-white/20 border-white/20 text-xs sm:text-sm font-bold shrink-0 gap-2 py-2.5 px-4"
+          className="bg-white/10 text-white hover:bg-white/20 border-white/20 text-xs sm:text-sm font-bold shrink-0 gap-2 py-2 px-3.5"
         >
           <RefreshCw className="w-4 h-4" />
           <span>به‌روزرسانی داده‌ها</span>
@@ -875,9 +808,7 @@ export const AdminWebsiteManagerPage = () => {
           }`}
         >
           <LayoutTemplate className="w-4 h-4 text-cyan-600 shrink-0" />
-          <span>
-            بخش‌های لندینگ ({landingSections.filter((s) => s.is_enabled).length} از {landingSections.length}<span className="hidden 2xl:inline"> فعال</span>)
-          </span>
+          <span>بخش‌های لندینگ</span>
         </button>
 
         <button
@@ -890,7 +821,7 @@ export const AdminWebsiteManagerPage = () => {
           }`}
         >
           <Waves className="w-4 h-4 text-cyan-600 shrink-0" />
-          <span>استخرها و مجموعه‌های آبی ({pools.length})</span>
+          <span>استخرها ({pools.length})</span>
         </button>
 
         <button
@@ -916,7 +847,7 @@ export const AdminWebsiteManagerPage = () => {
           }`}
         >
           <Users2 className="w-4 h-4 text-teal-600 shrink-0" />
-          <span>کادر مربیان و چینش ({coaches.length})</span>
+          <span>کادر مربیان ({coaches.length})</span>
         </button>
 
         <button
@@ -929,7 +860,7 @@ export const AdminWebsiteManagerPage = () => {
           }`}
         >
           <Newspaper className="w-4 h-4 text-amber-600 shrink-0" />
-          <span>اخبار و رویدادها ({news.length})</span>
+          <span>اخبار ({news.length})</span>
         </button>
 
         <button
@@ -942,7 +873,7 @@ export const AdminWebsiteManagerPage = () => {
           }`}
         >
           <BookOpen className="w-4 h-4 text-sky-600 shrink-0" />
-          <span>دوره‌های لندینگ ({courses.length})</span>
+          <span>دوره‌ها ({courses.length})</span>
         </button>
       </div>
 
@@ -956,74 +887,69 @@ export const AdminWebsiteManagerPage = () => {
           {activeTab === 'sections' && (
             <div className="space-y-6">
               {/* Header Box */}
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
-                <div className="space-y-1.5">
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-                    <LayoutTemplate className="w-6 h-6 text-cyan-600 shrink-0" />
-                    <span>مدیریت و فعال/غیرفعال‌سازی بخش‌های صفحه اصلی (Landing)</span>
-                  </h2>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium max-w-3xl">
-                    هر بخشی از صفحه لندینگ را که تمایل ندارید به عموم کاربران نمایش داده شود، با کلیک روی کلید سوئیچ خاموش کنید. بخش غیرفعال بلافاصله از صفحه اصلی و منوی ناوبری بالایی حذف می‌شود.
-                  </p>
-                </div>
+              <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+                  <LayoutTemplate className="w-5 h-5 text-cyan-600 shrink-0" />
+                  <span>بخش‌های صفحه اصلی</span>
+                </h2>
 
-                <div className="flex flex-wrap items-center gap-3">
+                <div className="flex flex-wrap items-center gap-2.5">
                   <Button
                     onClick={() => handleSetAllSections(true)}
                     disabled={bulkUpdating}
                     variant="outline"
-                    className="gap-2 text-xs sm:text-sm font-black py-2.5 px-4 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer shadow-xs"
+                    className="gap-2 text-xs sm:text-sm font-black py-2 px-3.5 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 cursor-pointer shadow-xs"
                   >
-                    <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600" />
-                    <span>فعال‌سازی همه بخش‌ها</span>
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                    <span>فعال‌سازی همه</span>
                   </Button>
 
                   <a
                     href="/"
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-black bg-cyan-50 dark:bg-cyan-950/40 text-cyan-800 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 hover:bg-cyan-100 transition-colors cursor-pointer shadow-xs"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold bg-cyan-50 dark:bg-cyan-950/40 text-cyan-800 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800 hover:bg-cyan-100 transition-colors cursor-pointer shadow-xs"
                   >
-                    <span>مشاهده زنده لندینگ</span>
+                    <span>مشاهده لندینگ</span>
                     <ExternalLink className="w-4 h-4" />
                   </a>
                 </div>
               </div>
 
               {/* Statistics Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4.5">
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/70 dark:border-slate-800 flex items-center gap-4 shadow-2xs">
-                  <div className="w-13 h-13 rounded-2xl bg-cyan-50 dark:bg-cyan-950/50 text-cyan-600 flex items-center justify-center border border-cyan-200/60 shrink-0">
-                    <LayoutTemplate className="w-6 h-6" />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-white dark:bg-slate-900 p-4.5 rounded-2xl border border-slate-200/70 dark:border-slate-800 flex items-center gap-3.5 shadow-2xs">
+                  <div className="w-11 h-11 rounded-xl bg-cyan-50 dark:bg-cyan-950/50 text-cyan-600 flex items-center justify-center border border-cyan-200/60 shrink-0">
+                    <LayoutTemplate className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-bold">کل بخش‌های صفحه اصلی</div>
-                    <div className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1">
-                      {landingSections.length} بخش ساختاری
+                    <div className="text-xs text-slate-600 dark:text-slate-400 font-bold">کل بخش‌ها</div>
+                    <div className="text-lg sm:text-xl font-black text-slate-900 dark:text-white mt-0.5">
+                      {landingSections.length}
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-emerald-200/70 dark:border-emerald-900/40 flex items-center gap-4 shadow-2xs">
-                  <div className="w-13 h-13 rounded-2xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center border border-emerald-200/60 shrink-0">
-                    <Eye className="w-6 h-6" />
+                <div className="bg-white dark:bg-slate-900 p-4.5 rounded-2xl border border-emerald-200/70 dark:border-emerald-900/40 flex items-center gap-3.5 shadow-2xs">
+                  <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-600 flex items-center justify-center border border-emerald-200/60 shrink-0">
+                    <Eye className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-bold">بخش‌های فعال و در حال نمایش</div>
-                    <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 mt-1">
-                      {landingSections.filter((s) => s.is_enabled).length} بخش نمایان
+                    <div className="text-xs text-slate-600 dark:text-slate-400 font-bold">بخش‌های فعال</div>
+                    <div className="text-lg sm:text-xl font-black text-emerald-600 dark:text-emerald-400 mt-0.5">
+                      {landingSections.filter((s) => s.is_enabled).length}
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-amber-200/70 dark:border-amber-900/40 flex items-center gap-4 shadow-2xs">
-                  <div className="w-13 h-13 rounded-2xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 flex items-center justify-center border border-amber-200/60 shrink-0">
-                    <EyeOff className="w-6 h-6" />
+                <div className="bg-white dark:bg-slate-900 p-4.5 rounded-2xl border border-amber-200/70 dark:border-amber-900/40 flex items-center gap-3.5 shadow-2xs">
+                  <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/50 text-amber-600 flex items-center justify-center border border-amber-200/60 shrink-0">
+                    <EyeOff className="w-5 h-5" />
                   </div>
                   <div>
-                    <div className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-bold">بخش‌های غیرفعال (مخفی در لندینگ)</div>
-                    <div className="text-xl sm:text-2xl font-black text-amber-600 dark:text-amber-400 mt-1">
-                      {landingSections.filter((s) => !s.is_enabled).length} بخش مخفی‌شده
+                    <div className="text-xs text-slate-600 dark:text-slate-400 font-bold">بخش‌های غیرفعال</div>
+                    <div className="text-lg sm:text-xl font-black text-amber-600 dark:text-amber-400 mt-0.5">
+                      {landingSections.filter((s) => !s.is_enabled).length}
                     </div>
                   </div>
                 </div>
@@ -1123,10 +1049,10 @@ export const AdminWebsiteManagerPage = () => {
                             )}
                             <span className="text-xs sm:text-sm font-black">
                               {isToggling
-                                ? 'در حال ثبت تغییر وضعیت...'
+                                ? 'در حال ثبت...'
                                 : sec.is_enabled
-                                ? 'وضعیت در لندینگ: روشن (در حال نمایش)'
-                                : 'وضعیت در لندینگ: خاموش (مخفی از دید کاربران)'}
+                                ? 'روشن (در حال نمایش)'
+                                : 'خاموش (مخفی)'}
                             </span>
                           </div>
 
@@ -1137,7 +1063,7 @@ export const AdminWebsiteManagerPage = () => {
                                 : 'bg-emerald-600 text-white hover:bg-emerald-700'
                             }`}
                           >
-                            {sec.is_enabled ? 'کلیک جهت غیرفعال‌سازی' : 'کلیک جهت فعال‌سازی'}
+                            {sec.is_enabled ? 'غیرفعال‌سازی' : 'فعال‌سازی'}
                           </span>
                         </button>
 
@@ -1149,11 +1075,11 @@ export const AdminWebsiteManagerPage = () => {
                               onClick={() => setActiveTab(meta.actionTab)}
                               className="text-cyan-700 dark:text-cyan-400 hover:underline font-black inline-flex items-center gap-1.5 cursor-pointer"
                             >
-                              <span>مدیریت و ویرایش محتوای این بخش</span>
+                              <span>مدیریت محتوا</span>
                               <ArrowLeft className="w-4 h-4" />
                             </button>
                           ) : (
-                            <span className="text-slate-500 text-xs font-bold">بخش ساختاری لندینگ</span>
+                            <span className="text-slate-500 text-xs font-bold">بخش ساختاری</span>
                           )}
 
                           <a
@@ -1162,7 +1088,7 @@ export const AdminWebsiteManagerPage = () => {
                             rel="noreferrer"
                             className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white font-bold inline-flex items-center gap-1.5 text-xs sm:text-sm transition-colors"
                           >
-                            <span>پیش‌نمایش بخش در سایت</span>
+                            <span>پیش‌نمایش</span>
                             <ExternalLink className="w-3.5 h-3.5" />
                           </a>
                         </div>
@@ -1181,19 +1107,14 @@ export const AdminWebsiteManagerPage = () => {
             <div className="space-y-6">
               {renderSectionStatusBanner('pools', 'استخرهای طرف قرارداد در قزوین')}
 
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-                    <Waves className="w-6 h-6 text-cyan-600 shrink-0" />
-                    <span>مدیریت استخرهای صفحه لندینگ</span>
-                  </h2>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium leading-relaxed">
-                    در کارت اولیه: عکس پوستر، اسم استخر و لوکیشن نمایش داده می‌شود. در جزئیات بیشتر: عکس‌های تکمیلی، ابعاد و توضیحات کامل استخر قرار می‌گیرد.
-                  </p>
-                </div>
-                <Button onClick={handleOpenCreatePool} className="gap-2 text-xs sm:text-sm font-black py-2.5 px-4 shadow-xs shrink-0">
-                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span>افزودن استخر جدید</span>
+              <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+                  <Waves className="w-5 h-5 text-cyan-600 shrink-0" />
+                  <span>استخرها</span>
+                </h2>
+                <Button onClick={handleOpenCreatePool} className="gap-2 text-xs sm:text-sm font-black py-2 px-3.5 shadow-xs shrink-0">
+                  <Plus className="w-4 h-4" />
+                  <span>افزودن استخر</span>
                 </Button>
               </div>
 
@@ -1223,7 +1144,7 @@ export const AdminWebsiteManagerPage = () => {
                             />
                             <div className="absolute top-3 right-3 flex items-center gap-2">
                               <span className="px-3 py-1 bg-white/95 dark:bg-slate-900/90 text-cyan-900 dark:text-cyan-300 text-xs font-black rounded-lg border border-cyan-200 dark:border-slate-700 shadow-xs">
-                                اولویت {pool.display_order}
+                                ترتیب: {pool.display_order}
                               </span>
                               {pool.is_active ? (
                                 <span className="px-2.5 py-1 bg-emerald-500/90 text-white text-xs font-black rounded-md">
@@ -1239,7 +1160,7 @@ export const AdminWebsiteManagerPage = () => {
                               <div className="absolute bottom-3 left-3">
                                 <span className="px-2.5 py-1 bg-slate-900/80 backdrop-blur-md text-white text-xs font-black rounded-lg border border-white/20 flex items-center gap-1.5">
                                   <ImageIcon className="w-3.5 h-3.5 text-cyan-400" />
-                                  <span>{pool.gallery_images.length} عکس بیشتر</span>
+                                  <span>{pool.gallery_images.length} تصویر</span>
                                 </span>
                               </div>
                             )}
@@ -1278,7 +1199,7 @@ export const AdminWebsiteManagerPage = () => {
                             className="flex-1 text-xs sm:text-sm font-bold gap-1.5 py-2"
                           >
                             <Eye className="w-4 h-4" />
-                            <span>پیش‌نمایش جزئیات</span>
+                            <span>پیش‌نمایش</span>
                           </Button>
                           <Button
                             size="sm"
@@ -1312,29 +1233,23 @@ export const AdminWebsiteManagerPage = () => {
             <div className="space-y-6">
               {renderSectionStatusBanner('facilities', 'شناگران برتر و قهرمانان مجموعه')}
 
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-                    <Trophy className="w-6 h-6 text-amber-500 shrink-0" />
-                    <span>مدیریت شناگران برتر و استعدادهای درخشان</span>
-                  </h2>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium leading-relaxed">
-                    عکس، ماده تخصصی، رده سنی و رکوردهای شناگران برتر را مدیریت کنید. این بخش به صورت اسلایدر کاورفلو ۳ بعدی در صفحه اصلی نمایش داده می‌شود.
-                  </p>
-                </div>
+              <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+                  <Trophy className="w-5 h-5 text-amber-500 shrink-0" />
+                  <span>شناگران برتر</span>
+                </h2>
                 <Button
                   onClick={handleOpenCreateTopSwimmer}
-                  className="gap-2 text-xs sm:text-sm font-black py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white shadow-xs shrink-0 cursor-pointer"
+                  className="gap-2 text-xs sm:text-sm font-black py-2 px-3.5 bg-amber-500 hover:bg-amber-600 text-white shadow-xs shrink-0 cursor-pointer"
                 >
-                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span>افزودن شناگر برتر جدید</span>
+                  <Plus className="w-4 h-4" />
+                  <span>افزودن شناگر</span>
                 </Button>
               </div>
 
               {topSwimmers.length === 0 ? (
                 <EmptyState
-                  title="هنوز شناگری ثبت نشده است"
-                  message="با کلیک روی دکمه افزودن شناگر برتر جدید، اولین قهرمان مجموعه را به اسلایدر صفحه اصلی اضافه نمایید."
+                  title="شناگری ثبت نشده است"
                 />
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -1494,24 +1409,19 @@ export const AdminWebsiteManagerPage = () => {
             <div className="space-y-6">
               {renderSectionStatusBanner('coaches', 'کادر مربیان رسمی فدراسیون')}
 
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-5">
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-                    <Users2 className="w-6 h-6 text-teal-600 shrink-0" />
-                    <span>کادر مربیان و چینش ترتیب نمایش در لندینگ</span>
-                  </h2>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium leading-relaxed">
-                    ترتیب نمایش مربیان در صفحه اصلی را مشخص کنید. مربیان به تفکیک دو تب مربیان مرد و مربیان زن دسته‌بندی می‌شوند.
-                  </p>
-                </div>
+              <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+                  <Users2 className="w-5 h-5 text-teal-600 shrink-0" />
+                  <span>کادر مربیان و چینش</span>
+                </h2>
 
                 <Button
                   onClick={handleSaveCoachOrders}
                   disabled={coachSavingOrder}
-                  className="gap-2 text-xs sm:text-sm font-black py-2.5 px-5 bg-teal-600 hover:bg-teal-700 shadow-xs shrink-0"
+                  className="gap-2 text-xs sm:text-sm font-black py-2 px-4 bg-teal-600 hover:bg-teal-700 shadow-xs shrink-0"
                 >
-                  <Save className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span>{coachSavingOrder ? 'در حال ذخیره...' : 'ذخیره ترتیب چینش مربیان'}</span>
+                  <Save className="w-4 h-4" />
+                  <span>{coachSavingOrder ? 'در حال ذخیره...' : 'ذخیره ترتیب چینش'}</span>
                 </Button>
               </div>
 
@@ -1520,14 +1430,14 @@ export const AdminWebsiteManagerPage = () => {
                 <button
                   type="button"
                   onClick={() => setCoachGenderTab('MALE')}
-                  className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                     coachGenderTab === 'MALE'
                       ? 'bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-xs'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                   }`}
                 >
-                  <span>مربیان مرد (آقایان)</span>
-                  <span className="mr-1.5 px-2.5 py-0.5 rounded-full text-xs font-black bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300">
+                  <span>مربیان مرد</span>
+                  <span className="mr-1.5 px-2 py-0.5 rounded-full text-xs font-black bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300">
                     {coachOrderList.filter(isMaleCoach).length}
                   </span>
                 </button>
@@ -1535,14 +1445,14 @@ export const AdminWebsiteManagerPage = () => {
                 <button
                   type="button"
                   onClick={() => setCoachGenderTab('FEMALE')}
-                  className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
                     coachGenderTab === 'FEMALE'
                       ? 'bg-white dark:bg-slate-700 text-pink-700 dark:text-pink-300 shadow-xs'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                   }`}
                 >
-                  <span>مربیان زن (بانوان)</span>
-                  <span className="mr-1.5 px-2.5 py-0.5 rounded-full text-xs font-black bg-pink-100 dark:bg-pink-950 text-pink-800 dark:text-pink-300">
+                  <span>مربیان زن</span>
+                  <span className="mr-1.5 px-2 py-0.5 rounded-full text-xs font-black bg-pink-100 dark:bg-pink-950 text-pink-800 dark:text-pink-300">
                     {coachOrderList.filter(isFemaleCoach).length}
                   </span>
                 </button>
@@ -1642,19 +1552,14 @@ export const AdminWebsiteManagerPage = () => {
             <div className="space-y-6">
               {renderSectionStatusBanner('news', 'اخبار، رویدادها و اطلاعیه‌ها')}
 
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-                    <Newspaper className="w-6 h-6 text-amber-600 shrink-0" />
-                    <span>مدیریت اخبار، پوستر و تصاویر شرح خبر</span>
-                  </h2>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium leading-relaxed">
-                    امکان بارگذاری عکس پوستر خبر، عکس‌های مرتبط با شرح خبر در مدال، و متن کامل اطلاعیه با قالب‌بندی مرتب.
-                  </p>
-                </div>
-                <Button onClick={handleOpenCreateNews} className="gap-2 text-xs sm:text-sm font-black py-2.5 px-4 shadow-xs shrink-0">
-                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span>انتشار خبر جدید</span>
+              <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+                  <Newspaper className="w-5 h-5 text-amber-600 shrink-0" />
+                  <span>اخبار و اطلاعیه‌ها</span>
+                </h2>
+                <Button onClick={handleOpenCreateNews} className="gap-2 text-xs sm:text-sm font-black py-2 px-3.5 shadow-xs shrink-0">
+                  <Plus className="w-4 h-4" />
+                  <span>ثبت خبر</span>
                 </Button>
               </div>
 
@@ -1691,7 +1596,7 @@ export const AdminWebsiteManagerPage = () => {
                               <div className="absolute bottom-3 left-3">
                                 <span className="px-2.5 py-1 bg-slate-900/80 backdrop-blur-md text-white text-xs font-black rounded-lg border border-white/20 flex items-center gap-1.5">
                                   <ImageIcon className="w-3.5 h-3.5 text-cyan-400" />
-                                  <span>{item.detail_images.length} تصویر شرح</span>
+                                  <span>{item.detail_images.length} تصویر</span>
                                 </span>
                               </div>
                             )}
@@ -1719,7 +1624,7 @@ export const AdminWebsiteManagerPage = () => {
                             className="flex-1 text-xs sm:text-sm font-bold gap-1.5 py-2"
                           >
                             <Eye className="w-4 h-4" />
-                            <span>مشاهده متن و تصاویر</span>
+                            <span>مشاهده</span>
                           </Button>
                           <Button
                             size="sm"
@@ -1753,22 +1658,17 @@ export const AdminWebsiteManagerPage = () => {
             <div className="space-y-6">
               {renderSectionStatusBanner('courses', 'دوره‌ها و کلاس‌های آموزشی شنا')}
 
-              <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-5">
-                <div>
-                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-                    <BookOpen className="w-6 h-6 text-sky-600 shrink-0" />
-                    <span>دوره‌های فعال در صفحه لندینگ</span>
-                  </h2>
-                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium leading-relaxed">
-                    این دوره‌ها مستقیماً در گردونه کلاس‌های صفحه اصلی سایت همراه با ظرفیت باقی‌مانده و سرفصل‌ها به نمایش درمی‌آیند.
-                  </p>
-                </div>
+              <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+                  <BookOpen className="w-5 h-5 text-sky-600 shrink-0" />
+                  <span>دوره‌ها</span>
+                </h2>
                 <Button
                   onClick={() => window.location.href = '/admin/courses'}
-                  className="gap-2 text-xs sm:text-sm font-black py-2.5 px-4 bg-sky-600 hover:bg-sky-700 shadow-xs shrink-0"
+                  className="gap-2 text-xs sm:text-sm font-black py-2 px-3.5 bg-sky-600 hover:bg-sky-700 shadow-xs shrink-0"
                 >
-                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
-                  <span>مدیریت کامل دوره‌ها</span>
+                  <Plus className="w-4 h-4" />
+                  <span>مدیریت دوره‌ها</span>
                 </Button>
               </div>
 
@@ -1815,14 +1715,14 @@ export const AdminWebsiteManagerPage = () => {
       <Modal
         isOpen={poolModalOpen}
         onClose={() => setPoolModalOpen(false)}
-        title={editingPool ? `ویرایش استخر: ${editingPool.name}` : 'افزودن استخر جدید به سایت'}
+        title={editingPool ? `ویرایش استخر: ${editingPool.name}` : 'افزودن استخر'}
         maxWidth="max-w-2xl"
       >
         <form onSubmit={handlePoolSubmit} className="space-y-4">
           {/* Pool Name */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              نام استخر * (مثال: استخر ۵۰ متری المپیک قزوین)
+              نام استخر *
             </label>
             <input
               type="text"
@@ -1836,14 +1736,14 @@ export const AdminWebsiteManagerPage = () => {
           {/* Location */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              لوکیشن و آدرس استخر * (در کارت اولیه نمایش داده می‌شود)
+              آدرس استخر *
             </label>
             <input
               type="text"
               required
               value={poolForm.location}
               onChange={(e) => setPoolForm({ ...poolForm, location: e.target.value })}
-              placeholder="مثال: قزوین، شهرک کوثر، مجتمع ورزشی المپیک"
+              placeholder="آدرس استخر..."
               className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
             />
           </div>
@@ -1851,7 +1751,7 @@ export const AdminWebsiteManagerPage = () => {
           {/* Poster Photo Upload */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              عکس پوستر استخر (کارت اولیه)
+              تصویر پوستر
             </label>
             <div className="flex items-center gap-4">
               {poolPosterPreview && (
@@ -1878,7 +1778,7 @@ export const AdminWebsiteManagerPage = () => {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                ابعاد کاسه استخر
+                ابعاد استخر
               </label>
               <input
                 type="text"
@@ -1917,14 +1817,14 @@ export const AdminWebsiteManagerPage = () => {
           {/* Description */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              توضیحات و مشخصات استخر * (نمایش در جزئیات بیشتر)
+              توضیحات استخر *
             </label>
             <textarea
               rows={3}
               required
               value={poolForm.description}
               onChange={(e) => setPoolForm({ ...poolForm, description: e.target.value })}
-              placeholder="توضیحات سیستم تصفیه آب، دمای آب، کیفیت محیط و ویژگی‌های استخر..."
+              placeholder="توضیحات استخر..."
               className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
             />
           </div>
@@ -1932,13 +1832,13 @@ export const AdminWebsiteManagerPage = () => {
           {/* Facilities */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              امکانات رفاهی استخر (با کاما جدا کنید)
+              امکانات رفاهی (با کاما جدا کنید)
             </label>
             <input
               type="text"
               value={poolForm.facilities}
               onChange={(e) => setPoolForm({ ...poolForm, facilities: e.target.value })}
-              placeholder="سونا خشک، سونای بخار، جکوزی، حوضچه آب سرد، پارکینگ، بوفه"
+              placeholder="سونا، جکوزی، بوفه..."
               className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl"
             />
           </div>
@@ -1946,7 +1846,7 @@ export const AdminWebsiteManagerPage = () => {
           {/* Gallery / More Photos Upload */}
           <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-              عکس‌های بیشتر مربوط به استخر (نمایش در جزئیات)
+              تصاویر تکمیلی
             </label>
             <input
               type="file"
@@ -1967,7 +1867,7 @@ export const AdminWebsiteManagerPage = () => {
             {/* Existing Gallery Images */}
             {editingPool?.gallery_images && editingPool.gallery_images.length > 0 && (
               <div className="pt-2">
-                <span className="text-[11px] text-slate-500">تصاویر ذخیره‌شده قبلی:</span>
+                <span className="text-[11px] text-slate-500">تصاویر ثبت‌شده:</span>
                 <div className="flex flex-wrap gap-2 pt-1.5">
                   {editingPool.gallery_images.map((img) => (
                     <div key={img.id} className="relative w-16 h-16 rounded-lg overflow-hidden border">
@@ -1999,124 +1899,12 @@ export const AdminWebsiteManagerPage = () => {
       </Modal>
 
       {/* =========================================================================
-          MODAL: EDIT COACH
-          ========================================================================= */}
-      <Modal
-        isOpen={coachModalOpen}
-        onClose={() => setCoachModalOpen(false)}
-        title={`ویرایش مربی: ${editingCoach?.full_name}`}
-        maxWidth="max-w-lg"
-      >
-        <form onSubmit={handleCoachSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">نام</label>
-              <input
-                type="text"
-                required
-                value={coachForm.first_name}
-                onChange={(e) => setCoachForm({ ...coachForm, first_name: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border rounded-xl"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">نام خانوادگی</label>
-              <input
-                type="text"
-                required
-                value={coachForm.last_name}
-                onChange={(e) => setCoachForm({ ...coachForm, last_name: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border rounded-xl"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">جنسیت مربی</label>
-              <select
-                value={coachForm.gender}
-                onChange={(e) => setCoachForm({ ...coachForm, gender: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border rounded-xl"
-              >
-                <option value="MALE">مربی مرد (آقا)</option>
-                <option value="FEMALE">مربی زن (خانم)</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">ترتیب نمایش</label>
-              <input
-                type="number"
-                min="1"
-                value={coachForm.display_order}
-                onChange={(e) => setCoachForm({ ...coachForm, display_order: Number(e.target.value) })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border rounded-xl"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">عکس پرسنلی / آواتار</label>
-            <div className="flex items-center gap-4">
-              {coachAvatarPreview && (
-                <div className="w-14 h-14 rounded-full overflow-hidden bg-slate-100 border shrink-0">
-                  <img src={coachAvatarPreview} alt="آواتار مربی" className="w-full h-full object-cover" />
-                </div>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (file) {
-                    setCoachAvatarFile(file);
-                    setCoachAvatarPreview(URL.createObjectURL(file));
-                  }
-                }}
-                className="text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">درجه رسمی مربی‌گری</label>
-            <CustomSelect
-              value={coachForm.coaching_degree}
-              onChange={(val) => setCoachForm({ ...coachForm, coaching_degree: val })}
-              options={coachDegreeOptions}
-              color="teal"
-              size="sm"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">رزومه و بیوگرافی</label>
-            <textarea
-              rows={3}
-              value={coachForm.bio}
-              onChange={(e) => setCoachForm({ ...coachForm, bio: e.target.value })}
-              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border rounded-xl"
-            />
-          </div>
-
-          <div className="flex justify-end gap-2 pt-3 border-t">
-            <Button type="button" variant="outline" onClick={() => setCoachModalOpen(false)}>
-              انصراف
-            </Button>
-            <Button type="submit" disabled={coachSubmitting}>
-              {coachSubmitting ? 'در حال ثبت...' : 'ذخیره مشخصات'}
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* =========================================================================
-          MODAL: ADD / EDIT NEWS (با عکس پوستر و عکس‌های شرح خبر)
+          MODAL: ADD / EDIT NEWS
           ========================================================================= */}
       <Modal
         isOpen={newsModalOpen}
         onClose={() => setNewsModalOpen(false)}
-        title={editingNews ? `ویرایش خبر: ${editingNews.title}` : 'ارسال خبر و اطلاعیه جدید'}
+        title={editingNews ? `ویرایش خبر: ${editingNews.title}` : 'ارسال خبر'}
         maxWidth="max-w-2xl"
       >
         <form onSubmit={handleNewsSubmit} className="space-y-4">
@@ -2136,7 +1924,7 @@ export const AdminWebsiteManagerPage = () => {
           {/* Poster Image */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              عکس پوستر خبر (نمایش در کارت خبر)
+              تصویر پوستر
             </label>
             <div className="flex items-center gap-4">
               {newsPosterPreview && (
@@ -2193,7 +1981,7 @@ export const AdminWebsiteManagerPage = () => {
 
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              خلاصه خبر (نمایش در کارت)
+              خلاصه خبر
             </label>
             <textarea
               rows={2}
@@ -2213,15 +2001,15 @@ export const AdminWebsiteManagerPage = () => {
               required
               value={newsForm.body}
               onChange={(e) => setNewsForm({ ...newsForm, body: e.target.value })}
-              placeholder="متن کامل گزارش و خبر..."
+              placeholder="متن کامل خبر..."
               className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border rounded-xl"
             />
           </div>
 
-          {/* Description Images (عکس‌های مربوط به شرح اخبار) */}
+          {/* Description Images */}
           <div className="space-y-2 pt-2 border-t">
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300">
-              عکس‌های مربوط به شرح خبر (گالری تکمیلی در مشاهده خبر)
+              تصاویر تکمیلی
             </label>
             <input
               type="file"
@@ -2235,14 +2023,14 @@ export const AdminWebsiteManagerPage = () => {
             />
             {newsDetailFiles.length > 0 && (
               <p className="text-[11px] text-amber-600 font-bold">
-                {newsDetailFiles.length} عکس برای شرح خبر انتخاب شد.
+                {newsDetailFiles.length} تصویر انتخاب شد.
               </p>
             )}
 
             {/* Existing detail images */}
             {editingNews?.detail_images && editingNews.detail_images.length > 0 && (
               <div className="pt-2">
-                <span className="text-[11px] text-slate-500">تصاویر شرح خبر قبلی:</span>
+                <span className="text-[11px] text-slate-500">تصاویر ثبت‌شده:</span>
                 <div className="flex flex-wrap gap-2 pt-1.5">
                   {editingNews.detail_images.map((img) => (
                     <div key={img.id} className="relative w-16 h-16 rounded-lg overflow-hidden border">
@@ -2319,7 +2107,7 @@ export const AdminWebsiteManagerPage = () => {
             {/* Gallery of more photos */}
             {previewPool.gallery_images && previewPool.gallery_images.length > 0 && (
               <div className="space-y-2.5 pt-3 border-t">
-                <span className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-200">عکس‌های بیشتر مربوط به استخر:</span>
+                <span className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-200">تصاویر تکمیلی:</span>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {previewPool.gallery_images.map((img) => (
                     <div key={img.id} className="rounded-xl overflow-hidden aspect-video bg-slate-100 border">
@@ -2332,7 +2120,7 @@ export const AdminWebsiteManagerPage = () => {
 
             <div className="flex justify-end pt-3 border-t">
               <Button variant="outline" onClick={() => setPreviewPool(null)}>
-                بستن پنجره
+                بستن
               </Button>
             </div>
           </div>
@@ -2385,7 +2173,7 @@ export const AdminWebsiteManagerPage = () => {
             {/* Gallery of description images */}
             {previewNews.detail_images && previewNews.detail_images.length > 0 && (
               <div className="space-y-2.5 pt-3 border-t">
-                <span className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-200">عکس‌های مربوط به شرح خبر:</span>
+                <span className="text-xs sm:text-sm font-black text-slate-800 dark:text-slate-200">تصاویر تکمیلی:</span>
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                   {previewNews.detail_images.map((img) => (
                     <div key={img.id} className="rounded-xl overflow-hidden aspect-video bg-slate-100 border">
@@ -2398,7 +2186,7 @@ export const AdminWebsiteManagerPage = () => {
 
             <div className="flex justify-end pt-3 border-t">
               <Button variant="outline" onClick={() => setPreviewNews(null)}>
-                بستن پنجره
+                بستن
               </Button>
             </div>
           </div>
@@ -2411,14 +2199,14 @@ export const AdminWebsiteManagerPage = () => {
       <Modal
         isOpen={topSwimmerModalOpen}
         onClose={() => setTopSwimmerModalOpen(false)}
-        title={editingTopSwimmer ? `ویرایش شناگر: ${editingTopSwimmer.name}` : 'افزودن شناگر برتر جدید به سایت'}
+        title={editingTopSwimmer ? `ویرایش شناگر: ${editingTopSwimmer.name}` : 'افزودن شناگر برتر'}
         maxWidth="max-w-xl"
       >
         <form onSubmit={handleTopSwimmerSubmit} className="space-y-4 text-right">
           {/* Photo upload */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-              عکس پرتره شناگر (در کنار استخر یا با مدال)
+              تصویر شناگر
             </label>
             <div className="flex items-center gap-4">
               {topSwimmerImagePreview ? (
@@ -2458,7 +2246,6 @@ export const AdminWebsiteManagerPage = () => {
                 <p className="font-bold text-slate-700 dark:text-slate-300">
                   فرمت‌های مجاز: JPG, PNG, WEBP
                 </p>
-                <p>برای بهترین جلوه بصری در اسلایدر کاورفلو، از تصاویر عمودی با پس‌زمینه استخر استفاده نمایید.</p>
               </div>
             </div>
           </div>
@@ -2466,7 +2253,7 @@ export const AdminWebsiteManagerPage = () => {
           {/* Full Name */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              نام و نام خانوادگی شناگر * (مثال: محمد پارسا صفایی)
+              نام و نام خانوادگی *
             </label>
             <input
               type="text"
@@ -2481,7 +2268,7 @@ export const AdminWebsiteManagerPage = () => {
           {/* Role / Specialty */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              رشته تخصصی / ماده شنا * (مثال: پروانه، استقامت سینه، مختلط)
+              رشته تخصصی *
             </label>
             <input
               type="text"
@@ -2493,7 +2280,7 @@ export const AdminWebsiteManagerPage = () => {
             />
             {/* Quick Suggestion Pills */}
             <div className="flex flex-wrap gap-1.5 mt-2">
-              {['پروانه', 'استقامت سینه', 'کرال سینه', 'کرال پشت', 'قورباغه', 'قورباغه رو', 'مختلط'].map((chip) => (
+              {['پروانه', 'استقامت سینه', 'کرال سینه', 'کرال پشت', 'قورباغه', 'مختلط'].map((chip) => (
                 <button
                   key={chip}
                   type="button"
@@ -2509,7 +2296,7 @@ export const AdminWebsiteManagerPage = () => {
           {/* Age Group */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              رده سنی (مثال: ۱۵ تا ۱۷ سال، ۱۸ سال به بالا)
+              رده سنی
             </label>
             <input
               type="text"
@@ -2536,7 +2323,7 @@ export const AdminWebsiteManagerPage = () => {
           {/* Record / Title / Description */}
           <div>
             <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-              افتخارات، رکورد یا عنوان قهرمانی (مثال: رکورددار ۱۰۰ متر پروانه، قهرمان کشور)
+              افتخارات و رکوردها
             </label>
             <input
               type="text"
@@ -2551,7 +2338,7 @@ export const AdminWebsiteManagerPage = () => {
           <div className="grid grid-cols-2 gap-4 pt-1">
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
-                ترتیب نمایش در اسلایدر
+                ترتیب نمایش
               </label>
               <input
                 type="number"
@@ -2571,7 +2358,7 @@ export const AdminWebsiteManagerPage = () => {
                 className="w-4 h-4 text-amber-600 rounded border-slate-300 cursor-pointer"
               />
               <label htmlFor="top_swimmer_active" className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 cursor-pointer">
-                نمایش در اسلایدر صفحه اصلی
+                نمایش در سایت
               </label>
             </div>
           </div>
