@@ -4,7 +4,7 @@ import {
   ArrowRight, ArrowLeft, MapPin, Clock, Calendar,
   Users, Check, CheckCircle2, Award,
   Sparkles, DollarSign, Layers, Search, User, ChevronLeft, AlertCircle,
-  Whistle, CreditCard, Plus, Minus, Calculator, Coins
+  Whistle, CreditCard, Plus, Minus, Calculator, Coins, Copy, Building2
 } from 'lucide-react';
 import { SwimCourseSpecsIcon } from '../../components/common/AquaticIcons';
 import api from '../../api/client';
@@ -14,6 +14,7 @@ import { CustomSelect } from '../../components/common/CustomSelect';
 import { BackButton } from '../../components/common/BackButton';
 import { PersianDatePicker, toJalaliString, formatJalaliReadable } from '../../components/common/PersianDatePicker';
 import { useToast } from '../../context/ToastContext';
+import { getBankNameFromCard, formatCardNumberWithDashes, copyCardToClipboard } from '../../utils/bankCard';
 
 const STEPS = [
   { id: 1, title: 'مشخصات عمومی و سرفصل‌ها', subtitle: 'عنوان، جنسیت، رده سنی و توضیحات', icon: SwimCourseSpecsIcon },
@@ -49,6 +50,8 @@ export const AdminCreateCoursePage = () => {
     base_price: '1500000',
     sessions_count: 12,
     installments_count: 1,
+    card_number: '',
+    card_holder: '',
     status: 'ACTIVE',
     what_you_learn: '',
     description: '',
@@ -439,6 +442,8 @@ export const AdminCreateCoursePage = () => {
         base_price: Number(formData.base_price),
         sessions_count: Number(formData.sessions_count),
         installments_count: Number(formData.installments_count || 1),
+        card_number: (formData.card_number || '').replace(/\D/g, ''),
+        card_holder: (formData.card_holder || '').trim(),
       };
       delete postPayload.age_min;
       delete postPayload.age_max;
@@ -1318,7 +1323,7 @@ export const AdminCreateCoursePage = () => {
               </div>
 
               <span className="text-xs font-mono font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/70 border border-emerald-200 dark:border-emerald-800 px-3.5 py-1.5 rounded-xl self-start sm:self-auto">
-                {Number(formData.installments_count) > 1 ? `سقف تا ${formData.installments_count} قسط مجاز` : 'فقط پرداخت یکجا'}
+                {Number(formData.installments_count) > 1 ? `سقف تا ${formData.installments_count} قسط مجاز (مبالغ با شناگر)` : 'فقط پرداخت یکجا'}
               </span>
             </div>
 
@@ -1411,6 +1416,80 @@ export const AdminCreateCoursePage = () => {
               </div>
             </div>
 
+            {/* Bank Card & Account Information */}
+            <div className="p-4 sm:p-5 bg-sky-50/60 dark:bg-sky-950/30 rounded-2xl border border-sky-200/70 dark:border-sky-800/60 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2.5 border-b border-sky-100 dark:border-sky-900/60">
+                <div className="flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                    اطلاعات شماره کارت جهت پرداخت شهریه شناگران
+                  </span>
+                </div>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                  شناگر هنگام ثبت‌نام می‌تواند این شماره کارت را با یک کلیک کپی کرده و واریز نماید.
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                      شماره کارت ۱۶ رقمی دوره
+                    </label>
+                    {formData.card_number && getBankNameFromCard(formData.card_number) && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-sky-100 dark:bg-sky-900/70 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-700">
+                        {getBankNameFromCard(formData.card_number)}
+                      </span>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <input
+                      type="text"
+                      dir="ltr"
+                      maxLength={23}
+                      placeholder="---- ---- ---- ----"
+                      value={formatCardNumberWithDashes(formData.card_number)}
+                      onChange={(e) => {
+                        const cleanDigits = e.target.value.replace(/\D/g, '').slice(0, 16);
+                        setFormData({ ...formData, card_number: cleanDigits });
+                      }}
+                      className="w-full px-3.5 py-2.5 text-xs font-mono font-bold tracking-widest text-left bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
+                    />
+                    {formData.card_number && formData.card_number.length === 16 && (
+                      <button
+                        type="button"
+                        onClick={() => copyCardToClipboard(formData.card_number, 'شماره کارت دوره', toast)}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                        title="کپی شماره کارت"
+                      >
+                        <Copy className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] text-slate-400 mt-1">
+                    <span>فرمت استاندارد شتاب ۱۶ رقمی</span>
+                    <span className="font-mono">{(formData.card_number || '').length} / ۱۶ رقم</span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+                    نام صاحب حساب / آموزشگاه (اختیاری)
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="مثال: به نام آموزشگاه شنای ایران / علی هاشمی"
+                    value={formData.card_holder || ''}
+                    onChange={(e) => setFormData({ ...formData, card_holder: e.target.value })}
+                    className="w-full px-3.5 py-2.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
+                  />
+                  <span className="text-[10px] text-slate-400 block mt-1">
+                    جهت اطمینان شناگر هنگام انتقال وجه کارت‌به‌کارت
+                  </span>
+                </div>
+              </div>
+            </div>
+
             {/* Installments calculation preview banner */}
             <div className="p-4 bg-emerald-50/70 dark:bg-emerald-950/40 rounded-2xl border border-emerald-200/70 dark:border-emerald-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
               <div className="flex items-center gap-2.5">
@@ -1418,23 +1497,28 @@ export const AdminCreateCoursePage = () => {
                 <div>
                   <span className="font-bold text-emerald-900 dark:text-emerald-200 block">
                     {Number(formData.installments_count) > 1
-                      ? `سقف تقسیط مجاز: تا ${formData.installments_count} قسط مساوی`
+                      ? `سقف تقسیط مجاز: تا ${formData.installments_count} قسط (تعیین مبالغ اقساط با شناگر)`
                       : 'شیوه پرداخت: فقط یکجا (بدون تقسیط)'}
                   </span>
                   <p className="text-[11px] text-emerald-700/90 dark:text-emerald-400 mt-0.5">
                     {Number(formData.installments_count) > 1
-                      ? `شناگر در زمان ثبت‌نام می‌تواند کل شهریه را یکجا یا در هر تعداد قسط دلخواه از ۱ تا ${formData.installments_count} قسط پرداخت کند.`
+                      ? `شناگر در زمان ثبت‌نام می‌تواند تعداد اقساط (از ۱ تا ${formData.installments_count} قسط) و مبلغ هر قسط را به دلخواه خود مشخص کند، مشروط بر آنکه مجموع مبالغ اقساط برابر با کل شهریه دوره باشد.`
                       : 'شناگر شهریه را به صورت یکجا همزمان با شروع دوره پرداخت خواهد کرد.'}
                   </p>
                 </div>
               </div>
               <div className="text-left sm:text-right shrink-0">
                 <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block font-semibold">
-                  {Number(formData.installments_count) > 1 ? `مبلغ هر قسط در سقف ${formData.installments_count} قسط:` : 'مبلغ کل:'}
+                  شهریه کل دوره:
                 </span>
                 <span className="text-sm font-mono font-black text-emerald-800 dark:text-emerald-200">
-                  {formatPrice(Math.round(Number(formData.base_price || 0) / (Number(formData.installments_count) || 1)))} تومان
+                  {formatPrice(formData.base_price)} تومان
                 </span>
+                {Number(formData.installments_count) > 1 && (
+                  <span className="text-[10px] text-emerald-600 dark:text-emerald-400 block mt-0.5">
+                    (حداکثر سقف مجاز: {formData.installments_count} قسط)
+                  </span>
+                )}
               </div>
             </div>
 
@@ -1524,10 +1608,31 @@ export const AdminCreateCoursePage = () => {
                   <span className="text-slate-400 block text-[11px]">سقف تقسیط مجاز دوره:</span>
                   <span className="font-bold text-emerald-600 dark:text-emerald-400">
                     {Number(formData.installments_count) > 1
-                      ? `تا ${formData.installments_count} قسط (شناگر می‌تواند ۱ تا ${formData.installments_count} قسط انتخاب کند)`
+                      ? `تا ${formData.installments_count} قسط (تعیین مبالغ با شناگر)`
                       : 'فقط پرداخت یکجا (بدون قسط)'}
                   </span>
                 </div>
+
+                {formData.card_number && (
+                  <div className="sm:col-span-2">
+                    <span className="text-slate-400 block text-[11px]">شماره کارت واریز دوره:</span>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="font-mono font-bold text-sky-700 dark:text-sky-300 dir-ltr text-xs">
+                        {formatCardNumberWithDashes(formData.card_number)}
+                      </span>
+                      {getBankNameFromCard(formData.card_number) && (
+                        <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
+                          {getBankNameFromCard(formData.card_number)}
+                        </span>
+                      )}
+                      {formData.card_holder && (
+                        <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                          (به نام: {formData.card_holder})
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
