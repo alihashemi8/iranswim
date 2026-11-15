@@ -89,20 +89,22 @@ export const SparklineAreaChart = ({
   return (
     <div className="relative w-full space-y-2">
       {(title || subtitle) && (
-        <div className="flex items-center justify-between">
-          <div>
-            {title && <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{title}</span>}
-            {subtitle && <p className="text-[11px] text-slate-400 dark:text-slate-500">{subtitle}</p>}
+        <div className="h-7 min-h-[28px] flex items-center justify-between gap-2 overflow-hidden">
+          <div className="min-w-0 flex items-center gap-2 truncate">
+            {title && <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{title}</span>}
+            {subtitle && <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate">{subtitle}</p>}
           </div>
-          {hoveredPoint ? (
-            <span className="text-xs font-mono font-bold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-200 dark:border-sky-800">
-              {labelFormatter(hoveredPoint.label)}: {valueFormatter(hoveredPoint.value)}
-            </span>
-          ) : (
-            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
-              اوک: {valueFormatter(maxVal)}
-            </span>
-          )}
+          <div className="shrink-0 h-6 flex items-center">
+            {hoveredPoint ? (
+              <span className="text-xs font-mono font-bold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-200 dark:border-sky-800 transition-all truncate max-w-full">
+                {labelFormatter(hoveredPoint.label)}: {valueFormatter(hoveredPoint.value)}
+              </span>
+            ) : (
+              <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
+                اوج: {valueFormatter(maxVal)}
+              </span>
+            )}
+          </div>
         </div>
       )}
 
@@ -232,21 +234,37 @@ export const BarChart = ({
     teal: 'bg-teal-500 hover:bg-teal-600 dark:bg-teal-600 dark:hover:bg-teal-500',
   };
 
+  const badgeColors = {
+    sky: 'text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 border-sky-200 dark:border-sky-800',
+    emerald: 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border-emerald-200 dark:border-emerald-800',
+    indigo: 'text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/60 border-indigo-200 dark:border-indigo-800',
+    amber: 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border-amber-200 dark:border-amber-800',
+    rose: 'text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border-rose-200 dark:border-rose-800',
+    teal: 'text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border-teal-200 dark:border-teal-800',
+  };
+
+  const activeBadgeClass = badgeColors[color] || badgeColors.sky;
+
   return (
     <div className="space-y-3 w-full">
-      {(title || subtitle || activeItem) && (
-        <div className="flex items-center justify-between">
-          <div>
-            {title && <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{title}</span>}
-            {subtitle && <p className="text-[11px] text-slate-400 dark:text-slate-500">{subtitle}</p>}
-          </div>
-          {activeItem && (
-            <span className="text-xs font-mono font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded-md border border-sky-200 dark:border-sky-800">
+      {/* Fixed height header bar: prevents layout shifts / page jumping when hovering */}
+      <div className="h-7 min-h-[28px] flex items-center justify-between gap-2 overflow-hidden">
+        <div className="min-w-0 flex items-center gap-2 truncate">
+          {title && <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate">{title}</span>}
+          {subtitle && <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate">{subtitle}</p>}
+        </div>
+        <div className="shrink-0 h-6 flex items-center">
+          {activeItem ? (
+            <span className={`text-xs font-mono font-bold px-2 py-0.5 rounded-md border transition-all truncate max-w-full ${activeBadgeClass}`}>
               {activeItem.label}: {valueFormatter(activeItem.value)}
+            </span>
+          ) : (
+            <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
+              اوج: {valueFormatter(maxValue)}
             </span>
           )}
         </div>
-      )}
+      </div>
 
       <div className={`${height} flex items-end gap-2 sm:gap-3 p-3.5 bg-slate-50/80 dark:bg-slate-800/40 rounded-2xl border border-slate-200/70 dark:border-slate-800`}>
         {data.map((item, idx) => {
@@ -266,8 +284,10 @@ export const BarChart = ({
               <div className="w-full max-w-[44px] bg-slate-200/60 dark:bg-slate-700/60 rounded-t-xl overflow-hidden flex flex-col justify-end h-full">
                 <div
                   style={{ height: `${heightPercent}%` }}
-                  className={`w-full rounded-t-xl transition-all duration-500 ${
-                    isSelected ? 'bg-sky-600 dark:bg-sky-400 shadow-sm' : item.colorClass || colors[color] || colors.sky
+                  className={`w-full rounded-t-xl transition-all duration-300 ${
+                    isSelected
+                      ? `${item.colorClass || 'bg-sky-600 dark:bg-sky-400'} brightness-110 shadow-sm`
+                      : item.colorClass || colors[color] || colors.sky
                   }`}
                 />
               </div>
