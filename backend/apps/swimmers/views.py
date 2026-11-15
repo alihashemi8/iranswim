@@ -19,6 +19,8 @@ from .serializers import (
 from .utils import get_accessible_swimmer_ids
 from apps.accounts.permissions import IsAdminUserRole, IsOwnerSwimmerOrAdmin
 from apps.education.models import Enrollment
+from apps.coaches.models import WorkoutPlan
+from apps.coaches.serializers import WorkoutPlanSerializer
 
 
 def get_accessible_swimmer_profile(user, swimmer_id=None):
@@ -865,3 +867,41 @@ class SwimVideoDeleteView(APIView):
         video.video.delete(save=False)
         video.delete()
         return Response({'message': 'ویدئو با موفقیت حذف شد.'})
+
+
+class SwimmerMyPlansView(APIView):
+    """
+    فهرست برنامه‌های تمرینی و غذایی اختصاص‌یافته به شناگر جاری یا کلاس‌های فعال وی
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        swimmer_id = request.query_params.get('swimmer_id')
+        swimmer = get_accessible_swimmer_profile(user, swimmer_id)
+        if not swimmer:
+            swimmer = getattr(user, 'swimmer_profile', None)
+        if not swimmer:
+            child = SwimmerGuardianRelation.objects.filter(guardian=user, is_verified=True).first()
+            if child:
+                swimmer = child.swimmer
+
+        if not swimmer:
+            return Response([])
+
+        group_ids = Enrollment.objects.filter(
+            swimmer=swimmer,
+            status=Enrollment.Status.ACTIVE
+        ).values_list('group_id', flat=True)
+
+        qs = WorkoutPlan.objects.filter(
+            Q(swimmer=swimmer) | Q(group_id__in=group_ids),
+            is_template=False
+        ).select_related('coach', 'group', 'target_level', 'swimmer').order_by('-created_at')
+
+        plan_type = request.query_params.get('plan_type')
+        if plan_type in ['TRAINING', 'DIET']:
+            qs = qs.filter(plan_type=plan_type)
+
+        serializer = WorkoutPlanSerializer(qs, many=True)
+        return Response(serializer.data)

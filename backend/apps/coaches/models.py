@@ -777,20 +777,50 @@ class CoachAttendanceCorrectionAudit(models.Model):
 
 
 class WorkoutPlan(models.Model):
+    class PlanType(models.TextChoices):
+        TRAINING = 'TRAINING', _('برنامه تمرینی')
+        DIET = 'DIET', _('برنامه غذایی')
+
+    class TargetType(models.TextChoices):
+        GROUP = 'GROUP', _('کلاسی')
+        INDIVIDUAL = 'INDIVIDUAL', _('فردی')
+        GENERAL = 'GENERAL', _('عمومی')
+
     coach = models.ForeignKey(
         CoachProfile,
         on_delete=models.CASCADE,
         related_name='workout_plans',
         verbose_name=_('مربی طراح')
     )
-    title = models.CharField(_('عنوان برنامه تمرینی'), max_length=150)
+    plan_type = models.CharField(
+        _('نوع برنامه'),
+        max_length=20,
+        choices=PlanType.choices,
+        default=PlanType.TRAINING,
+        db_index=True
+    )
+    target_type = models.CharField(
+        _('دامنه هدف برنامه'),
+        max_length=20,
+        choices=TargetType.choices,
+        default=TargetType.GENERAL
+    )
+    title = models.CharField(_('عنوان برنامه'), max_length=150)
     group = models.ForeignKey(
         'education.SwimmerGroup',
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
         related_name='workout_plans',
-        verbose_name=_('گروه هدف (اختیاری)')
+        verbose_name=_('گروه / کلاس هدف')
+    )
+    swimmer = models.ForeignKey(
+        'swimmers.SwimmerProfile',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='assigned_plans',
+        verbose_name=_('شناگر هدف (در صورت برنامه فردی)')
     )
     session = models.ForeignKey(
         'scheduling.ClassSession',
@@ -808,20 +838,39 @@ class WorkoutPlan(models.Model):
         related_name='workout_plans',
         verbose_name=_('سطح مهارت هدف')
     )
-    duration_minutes = models.PositiveIntegerField(_('مدت زمان تمرین (دقیقه)'), default=60)
-    focus_skills = models.CharField(_('تمرکز آموزشی اصلی'), max_length=255, blank=True)
+
+    # فیلدهای تمرینی (Training Plan)
+    duration_minutes = models.PositiveIntegerField(_('مدت زمان تمرین (دقیقه)'), default=60, null=True, blank=True)
+    focus_skills = models.CharField(_('تمرکز آموزشی اصلی یا ماده شنا'), max_length=255, blank=True)
     warmup_section = models.TextField(_('بخش گرم‌کردن و تمرینات کششی'), blank=True)
-    main_section = models.TextField(_('بخش تمرینات اصلی و ست‌های شنا'))
+    main_section = models.TextField(_('بخش تمرینات اصلی و ست‌های شنا'), blank=True)
     cooldown_section = models.TextField(_('بخش سردکردن و ریکاوری'), blank=True)
-    notes = models.TextField(_('توضیحات و نکات تکنیکی برای مربی'), blank=True)
+    equipment = models.CharField(_('تجهیزات تمرینی مورد نیاز'), max_length=255, blank=True)
+
+    # فیلدهای برنامه غذایی (Diet / Nutrition Plan)
+    daily_calories = models.PositiveIntegerField(_('کالری هدف روزانه'), null=True, blank=True)
+    diet_goal = models.CharField(_('هدف فیزیولوژیک رژیم'), max_length=150, blank=True)
+    breakfast = models.TextField(_('صبحانه'), blank=True)
+    morning_snack = models.TextField(_('میان‌وعده صبح'), blank=True)
+    lunch = models.TextField(_('ناهار'), blank=True)
+    afternoon_snack = models.TextField(_('عصرانه / قبل از تمرین'), blank=True)
+    dinner = models.TextField(_('شام'), blank=True)
+    post_workout_snack = models.TextField(_('ریکاوری بعد از تمرین'), blank=True)
+    hydration_guidelines = models.TextField(_('توصیه‌های مصرف آب و مایعات'), blank=True)
+    supplements = models.TextField(_('مکمل‌ها و ویتامین‌ها'), blank=True)
+    dietary_guidelines = models.TextField(_('پرهیزها و نکات تغذیه‌ای'), blank=True)
+
+    # عمومی
+    notes = models.TextField(_('توضیحات و نکات تکنیکی / تکمیلی'), blank=True)
     is_template = models.BooleanField(_('آیا به عنوان الگو ذخیره شود؟'), default=False)
+    sent_at = models.DateTimeField(_('زمان ارسال به شناگر یا کلاس'), null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        verbose_name = _('برنامه تمرین')
-        verbose_name_plural = _('برنامه‌های تمرین')
+        verbose_name = _('برنامه (تمرینی / غذایی)')
+        verbose_name_plural = _('برنامه‌ها (تمرینی و غذایی)')
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.title} ({self.coach.full_name})"
+        return f"[{self.get_plan_type_display()}] {self.title} ({self.coach.full_name})"

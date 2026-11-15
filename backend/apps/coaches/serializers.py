@@ -668,16 +668,25 @@ class WorkoutPlanSerializer(serializers.ModelSerializer):
     coach_name = serializers.CharField(source='coach.full_name', read_only=True)
     group_name = serializers.CharField(source='group.name', read_only=True)
     target_level_name = serializers.CharField(source='target_level.name', read_only=True)
+    plan_type_display = serializers.CharField(source='get_plan_type_display', read_only=True)
+    target_type_display = serializers.CharField(source='get_target_type_display', read_only=True)
+    swimmer_name = serializers.CharField(source='swimmer.full_name', read_only=True)
 
     class Meta:
         model = WorkoutPlan
         fields = [
-            'id', 'coach', 'coach_name', 'title', 'group', 'group_name',
-            'session', 'target_level', 'target_level_name', 'duration_minutes',
-            'focus_skills', 'warmup_section', 'main_section', 'cooldown_section',
-            'notes', 'is_template', 'created_at', 'updated_at'
+            'id', 'coach', 'coach_name', 'plan_type', 'plan_type_display',
+            'target_type', 'target_type_display', 'title',
+            'group', 'group_name', 'swimmer', 'swimmer_name',
+            'session', 'target_level', 'target_level_name',
+            'duration_minutes', 'focus_skills', 'warmup_section', 'main_section',
+            'cooldown_section', 'equipment',
+            'daily_calories', 'diet_goal', 'breakfast', 'morning_snack', 'lunch',
+            'afternoon_snack', 'dinner', 'post_workout_snack', 'hydration_guidelines',
+            'supplements', 'dietary_guidelines',
+            'notes', 'is_template', 'sent_at', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'coach', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'coach', 'sent_at', 'created_at', 'updated_at']
 
 
 class GroupScheduleSerializer(serializers.ModelSerializer):

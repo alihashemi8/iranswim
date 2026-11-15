@@ -3,6 +3,7 @@ from .views import (
     CoachDashboardOverviewView, CoachMyClassesView, CoachClassDetailView,
     CoachClassAnnouncementDeleteView,
     CoachSwimmerDossierView, CoachWorkoutPlanListView, CoachWorkoutPlanDetailView,
+    CoachWorkoutPlanSendView,
     CoachAIAssistantView, CoachMessagesView, CoachReorderView,
     CoachMySwimmersView, CoachMeProfileView, CoachCompleteProfileView
 )
@@ -36,6 +37,7 @@ urlpatterns = [
     path('swimmer-dossier/<int:pk>/', CoachSwimmerDossierView.as_view(), name='coach_swimmer_dossier'),
     path('workouts/', CoachWorkoutPlanListView.as_view(), name='coach_workouts_list'),
     path('workouts/<int:pk>/', CoachWorkoutPlanDetailView.as_view(), name='coach_workout_detail'),
+    path('workouts/<int:pk>/send/', CoachWorkoutPlanSendView.as_view(), name='coach_workout_send'),
     path('ai/assist/', CoachAIAssistantView.as_view(), name='coach_ai_assist'),
     path('messages/', CoachMessagesView.as_view(), name='coach_messages'),
 

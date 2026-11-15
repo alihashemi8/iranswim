@@ -1,4 +1,5 @@
 import datetime
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db.models import Q, Count, Avg
 from rest_framework import generics, permissions, status
@@ -966,7 +967,7 @@ class CoachSwimmerDossierView(APIView):
 
 class CoachWorkoutPlanListView(generics.ListCreateAPIView):
     """
-    مشاهده و ایجاد برنامه‌های تمرینی مربی
+    مشاهده و ایجاد برنامه‌های تمرینی و غذایی مربی (کلاسی و فردی)
     """
     serializer_class = WorkoutPlanSerializer
     permission_classes = [IsAdminOrCoach]
@@ -980,17 +981,51 @@ class CoachWorkoutPlanListView(generics.ListCreateAPIView):
         if not coach:
             return WorkoutPlan.objects.none()
 
-        qs = WorkoutPlan.objects.filter(coach=coach).select_related('group', 'target_level')
+        qs = WorkoutPlan.objects.filter(coach=coach).select_related('group', 'target_level', 'swimmer')
+
+        # فیلتر نوع برنامه: تمرینی یا غذایی
+        plan_type = self.request.query_params.get('plan_type')
+        if plan_type in ['TRAINING', 'DIET']:
+            qs = qs.filter(plan_type=plan_type)
+
+        # فیلتر دامنه هدف: کلاسی یا فردی
+        target_type = self.request.query_params.get('target_type')
+        if target_type in ['GROUP', 'INDIVIDUAL', 'GENERAL']:
+            qs = qs.filter(target_type=target_type)
+
+        # فیلتر گروه یا شناگر مشخص
+        group_id = self.request.query_params.get('group') or self.request.query_params.get('group_id')
+        if group_id:
+            qs = qs.filter(group_id=group_id)
+
+        swimmer_id = self.request.query_params.get('swimmer') or self.request.query_params.get('swimmer_id')
+        if swimmer_id:
+            qs = qs.filter(swimmer_id=swimmer_id)
+
         template_param = self.request.query_params.get('template')
         if template_param == 'true':
             qs = qs.filter(is_template=True)
+        elif template_param == 'false':
+            qs = qs.filter(is_template=False)
+
         return qs
 
     def perform_create(self, serializer):
         coach = get_coach_profile(self.request.user)
         if not coach and (self.request.user.role == 'ADMIN' or self.request.user.is_superuser):
             coach = CoachProfile.objects.first()
-        serializer.save(coach=coach)
+
+        group = serializer.validated_data.get('group')
+        swimmer = serializer.validated_data.get('swimmer')
+        target_type = serializer.validated_data.get('target_type') or WorkoutPlan.TargetType.GENERAL
+
+        if target_type == WorkoutPlan.TargetType.GENERAL:
+            if swimmer:
+                target_type = WorkoutPlan.TargetType.INDIVIDUAL
+            elif group:
+                target_type = WorkoutPlan.TargetType.GROUP
+
+        serializer.save(coach=coach, target_type=target_type)
 
 
 class CoachWorkoutPlanDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -1001,8 +1036,103 @@ class CoachWorkoutPlanDetailView(generics.RetrieveUpdateDestroyAPIView):
         user = self.request.user
         coach = get_coach_profile(user)
         if not coach and (user.role == 'ADMIN' or user.is_superuser):
-            return WorkoutPlan.objects.all()
-        return WorkoutPlan.objects.filter(coach=coach)
+            return WorkoutPlan.objects.all().select_related('group', 'target_level', 'swimmer')
+        return WorkoutPlan.objects.filter(coach=coach).select_related('group', 'target_level', 'swimmer')
+
+    def perform_update(self, serializer):
+        group = serializer.validated_data.get('group', getattr(serializer.instance, 'group', None))
+        swimmer = serializer.validated_data.get('swimmer', getattr(serializer.instance, 'swimmer', None))
+        target_type = serializer.validated_data.get('target_type') or getattr(serializer.instance, 'target_type', WorkoutPlan.TargetType.GENERAL)
+
+        if target_type == WorkoutPlan.TargetType.GENERAL:
+            if swimmer:
+                target_type = WorkoutPlan.TargetType.INDIVIDUAL
+            elif group:
+                target_type = WorkoutPlan.TargetType.GROUP
+
+        serializer.save(target_type=target_type)
+
+
+class CoachWorkoutPlanSendView(APIView):
+    """
+    ارسال رسمی برنامه (تمرینی یا غذایی) به شناگر اختصاصی یا کلیه اعضای کلاس
+    همراه با ایجاد اعلان درون‌برنامه‌ای و ثبت تاریخ ارسال.
+    """
+    permission_classes = [IsAdminOrCoach]
+
+    def post(self, request, pk):
+        user = request.user
+        coach = get_coach_profile(user)
+        if not coach and (user.role == 'ADMIN' or user.is_superuser):
+            coach = CoachProfile.objects.first()
+
+        plan = get_object_or_404(WorkoutPlan, pk=pk)
+        if coach and plan.coach != coach and not (user.role == 'ADMIN' or user.is_superuser):
+            return Response(
+                {'detail': 'شما دسترسی ارسال این برنامه را ندارید.'},
+                status=status.HTTP_403_FORBIDDEN
+            )
+
+        now_time = timezone.now()
+        plan.sent_at = now_time
+        plan.save(update_fields=['sent_at'])
+
+        plan_type_fa = 'غذایی' if plan.plan_type == WorkoutPlan.PlanType.DIET else 'تمرینی'
+        coach_name = coach.full_name if coach else 'مربی آکادمی'
+
+        notified_users_count = 0
+
+        # ارسال فردی به شناگر
+        if plan.swimmer:
+            swimmer_user = getattr(plan.swimmer, 'user', None)
+            if swimmer_user:
+                Notification.objects.create(
+                    recipient=swimmer_user,
+                    category=Notification.Category.ANNOUNCEMENT,
+                    title=f"برنامه {plan_type_fa} جدید: {plan.title}",
+                    message=f"مربی شما ({coach_name}) یک برنامه {plan_type_fa} جدید با عنوان «{plan.title}» برای شما تدوین و ارسال کرد. می‌توانید نسخه پی‌دی‌اف یا ورد را از بخش برنامه‌ها دریافت نمایید.",
+                    link='/swimmer/schedule'
+                )
+                notified_users_count += 1
+
+        # ارسال کلاسی به اعضای کلاس
+        elif plan.group:
+            Announcement.objects.create(
+                title=f"برنامه {plan_type_fa} جدید کلاس {plan.group.name}: {plan.title}",
+                message=f"مربی محترم ({coach_name})، برنامه {plan_type_fa} جدیدی با عنوان «{plan.title}» برای اعضای کلاس {plan.group.name} طراحی و ارسال نمود.",
+                audience=Announcement.Audience.GROUP,
+                target_group=plan.group,
+                created_by=user
+            )
+
+            enrollments = Enrollment.objects.filter(
+                group=plan.group,
+                status=Enrollment.Status.ACTIVE
+            ).select_related('swimmer__user')
+
+            notifications_to_create = []
+            for en in enrollments:
+                sw_user = getattr(en.swimmer, 'user', None)
+                if sw_user:
+                    notifications_to_create.append(
+                        Notification(
+                            recipient=sw_user,
+                            category=Notification.Category.ANNOUNCEMENT,
+                            title=f"برنامه {plan_type_fa} کلاسی: {plan.title}",
+                            message=f"مربی کلاس ({coach_name})، برنامه {plan_type_fa} جدیدی برای کلاس {plan.group.name} تدوین کرد.",
+                            link='/swimmer/schedule'
+                        )
+                    )
+            if notifications_to_create:
+                Notification.objects.bulk_create(notifications_to_create)
+                notified_users_count += len(notifications_to_create)
+
+        return Response({
+            'message': f"برنامه {plan_type_fa} «{plan.title}» با موفقیت برای مخاطبان هدف ارسال شد.",
+            'sent_at': now_time.isoformat(),
+            'notified_count': notified_users_count,
+            'plan_id': plan.id
+        }, status=status.HTTP_200_OK)
 
 
 class CoachAIAssistantView(APIView):

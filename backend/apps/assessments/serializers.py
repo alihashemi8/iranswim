@@ -4,9 +4,12 @@ from .models import SkillAssessment, SwimmingRecord, LevelPromotionProposal
 
 class SkillAssessmentSerializer(serializers.ModelSerializer):
     swimmer_name = serializers.CharField(source='swimmer.full_name', read_only=True)
-    skill_name = serializers.CharField(source='skill.name', read_only=True)
+    skill_name = serializers.SerializerMethodField()
     level_name = serializers.SerializerMethodField()
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    assessed_by_name = serializers.SerializerMethodField()
+    notes = serializers.CharField(source='feedback', read_only=True)
+    assessment_date = serializers.DateField(source='assessed_at', read_only=True)
     custom_skill_name = serializers.CharField(write_only=True, required=False, allow_blank=True)
     custom_criteria_description = serializers.CharField(write_only=True, required=False, allow_blank=True)
 
@@ -14,18 +17,35 @@ class SkillAssessmentSerializer(serializers.ModelSerializer):
         model = SkillAssessment
         fields = [
             'id', 'swimmer', 'swimmer_name', 'skill', 'skill_name',
-            'custom_skill_name', 'custom_criteria_description', 'level_name', 'assessed_by', 'assessed_at',
-            'score', 'status', 'status_display', 'feedback', 'created_at'
+            'custom_skill_name', 'custom_criteria_description', 'level_name',
+            'assessed_by', 'assessed_by_name', 'assessed_at', 'assessment_date',
+            'score', 'status', 'status_display', 'feedback', 'notes', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
         extra_kwargs = {
             'skill': {'required': False, 'allow_null': True}
         }
 
+    def get_skill_name(self, obj):
+        if obj.skill:
+            return obj.skill.name
+        return 'ارزیابی مهارتی'
+
     def get_level_name(self, obj):
         if obj.skill and obj.skill.level:
             return obj.skill.level.name
         return 'ارزیابی مربی'
+
+    def get_assessed_by_name(self, obj):
+        if not obj.assessed_by:
+            return 'مربی آکادمی'
+        full_name = obj.assessed_by.get_full_name().strip() if obj.assessed_by.get_full_name() else ''
+        if full_name:
+            return full_name
+        coach_profile = getattr(obj.assessed_by, 'coach_profile', None)
+        if coach_profile and coach_profile.full_name:
+            return coach_profile.full_name
+        return obj.assessed_by.phone or 'مربی آکادمی'
 
     def validate(self, attrs):
         skill = attrs.get('skill')

@@ -3,7 +3,7 @@ from .views import (
     SwimmerListView, SwimmerDetailView, SwimmerMeView,
     SwimmerCompleteProfileView, SwimmerChildrenView, SwimmerAssignCoachView,
     SwimmerReviewDocumentsView, SwimmerDocumentDownloadView,
-    SwimVideoListCreateView, SwimVideoDeleteView
+    SwimVideoListCreateView, SwimVideoDeleteView, SwimmerMyPlansView
 )
 
 urlpatterns = [
@@ -11,6 +11,7 @@ urlpatterns = [
     path('me/', SwimmerMeView.as_view(), name='swimmer_me'),
     path('me/complete/', SwimmerCompleteProfileView.as_view(), name='swimmer_complete_profile'),
     path('my-children/', SwimmerChildrenView.as_view(), name='swimmer_children'),
+    path('my-plans/', SwimmerMyPlansView.as_view(), name='swimmer_my_plans'),
     path('videos/', SwimVideoListCreateView.as_view(), name='swim_video_list'),
     path('videos/<int:pk>/', SwimVideoDeleteView.as_view(), name='swim_video_delete'),
     path('<int:pk>/', SwimmerDetailView.as_view(), name='swimmer_detail'),

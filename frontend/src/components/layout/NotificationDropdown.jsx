@@ -408,26 +408,26 @@ export const NotificationDropdown = () => {
             </div>
 
             {/* Panel Footer */}
-            <div className="p-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-center shrink-0">
-              <button
-                type="button"
-                onClick={() => {
-                  setIsOpen(false);
-                  if (user?.role === 'ADMIN' || user?.is_superuser) {
-                    navigate('/admin/announcements');
-                  } else if (user?.role === 'COACH') {
-                    navigate('/coach/messages');
-                  } else if (user?.role === 'SWIMMER') {
-                    navigate('/swimmer/announcements');
-                  } else {
-                    navigate('/supervisor');
-                  }
-                }}
-                className="w-full py-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/50 rounded-xl transition-colors cursor-pointer"
-              >
-                مشاهده همه پیام‌ها و اطلاعیه‌ها ←
-              </button>
-            </div>
+            {user?.role !== 'COACH' && (
+              <div className="p-2 border-t border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 text-center shrink-0">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsOpen(false);
+                    if (user?.role === 'ADMIN' || user?.is_superuser) {
+                      navigate('/admin/announcements');
+                    } else if (user?.role === 'SWIMMER') {
+                      navigate('/swimmer/announcements');
+                    } else {
+                      navigate('/supervisor');
+                    }
+                  }}
+                  className="w-full py-1.5 text-xs font-semibold text-sky-600 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/50 rounded-xl transition-colors cursor-pointer"
+                >
+                  مشاهده همه پیام‌ها و اطلاعیه‌ها ←
+                </button>
+              </div>
+            )}
           </div>
         </>
       )}

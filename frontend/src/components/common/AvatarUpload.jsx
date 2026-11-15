@@ -284,7 +284,7 @@ export const AvatarUpload = ({
             className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/70 border border-sky-200/80 dark:border-sky-800 cursor-pointer transition-colors"
           >
             <Crop className="w-3.5 h-3.5" />
-            <span>{avatarUrl ? 'تغییر و کراپ عکس' : 'انتخاب و کادربندی عکس'}</span>
+            <span>{avatarUrl ? 'تغییر و کراپ عکس' : 'انتخاب عکس'}</span>
           </button>
 
           {canDelete && avatarUrl && (

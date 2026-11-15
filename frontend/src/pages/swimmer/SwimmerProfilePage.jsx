@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import {
   User, Calendar, CreditCard, Home, Phone, Upload, CheckCircle2,
   AlertCircle, ShieldCheck, FileText, Image as ImageIcon, School,
   Sparkles, ArrowLeft, ArrowRight, Trash2, Eye, EyeOff, MapPin,
   KeyRound, Shield, Smartphone, Briefcase, Lock, LogOut, AlertTriangle,
-  BadgeCheck
+  BadgeCheck, Award, Clock, ChevronLeft
 } from 'lucide-react';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Button } from '../../components/common/Button';
+import { Badge } from '../../components/common/Badge';
 import { LoadingState } from '../../components/common/LoadingState';
 import { MapLocationPicker } from '../../components/common/MapLocationPicker';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { LogoutModal } from '../../components/common/LogoutModal';
 import { validatePassword, PasswordRequirementsList } from '../../utils/passwordValidator';
 import { getMediaUrl } from '../../utils/media';
+import { toShamsiDate } from '../../utils/date';
 
 export const SwimmerProfilePage = () => {
   const { user, updateUserData, logout } = useAuth();
@@ -24,9 +26,9 @@ export const SwimmerProfilePage = () => {
   const toast = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Active Main Tab: 'INFO' (3-step registration/editing) | 'SECURITY' (password & login)
+  // Active Main Tab: 'INFO' | 'ASSESSMENTS' | 'SECURITY'
   const tabParam = searchParams.get('tab')?.toUpperCase();
-  const initialTab = tabParam === 'SECURITY' ? 'SECURITY' : 'INFO';
+  const initialTab = tabParam === 'SECURITY' ? 'SECURITY' : tabParam === 'ASSESSMENTS' ? 'ASSESSMENTS' : 'INFO';
   const [activeMainTab, setActiveMainTab] = useState(initialTab);
 
   const handleTabChange = (tab) => {
@@ -36,7 +38,7 @@ export const SwimmerProfilePage = () => {
   };
 
   useEffect(() => {
-    if (tabParam === 'SECURITY' || tabParam === 'INFO') {
+    if (tabParam === 'SECURITY' || tabParam === 'INFO' || tabParam === 'ASSESSMENTS') {
       setActiveMainTab(tabParam);
     }
   }, [tabParam]);
@@ -46,6 +48,10 @@ export const SwimmerProfilePage = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // Coach Assessments State
+  const [assessments, setAssessments] = useState([]);
+  const [profileLevelName, setProfileLevelName] = useState('');
 
   // Current Step inside INFO tab: 1, 2, or 3
   const [currentStep, setCurrentStep] = useState(1);
@@ -101,36 +107,47 @@ export const SwimmerProfilePage = () => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        const res = await api.get('/swimmers/me/');
-        const data = res.data;
+        const [res, assRes] = await Promise.allSettled([
+          api.get('/swimmers/me/'),
+          api.get('/assessments/skills/'),
+        ]);
 
-        setFirstName(data.first_name || user?.first_name || '');
-        setLastName(data.last_name || user?.last_name || '');
-        setNationalId(data.national_id || user?.national_id || '');
-        setDateOfBirth(data.date_of_birth || '');
-        setFatherName(data.father_name || '');
-        setGender(data.gender || 'MALE');
-        setSchoolName(data.school_name || '');
+        if (res.status === 'fulfilled') {
+          const data = res.value.data;
+          setFirstName(data.first_name || user?.first_name || '');
+          setLastName(data.last_name || user?.last_name || '');
+          setNationalId(data.national_id || user?.national_id || '');
+          setDateOfBirth(data.date_of_birth || '');
+          setFatherName(data.father_name || '');
+          setGender(data.gender || 'MALE');
+          setSchoolName(data.school_name || '');
 
-        setFatherPhone(data.father_phone || '');
-        setFatherJob(data.father_job || '');
-        setMotherPhone(data.mother_phone || '');
-        setMotherJob(data.mother_job || '');
-        setAddress(data.address || '');
-        setLatitude(data.latitude || 35.6892);
-        setLongitude(data.longitude || 51.3890);
+          setFatherPhone(data.father_phone || '');
+          setFatherJob(data.father_job || '');
+          setMotherPhone(data.mother_phone || '');
+          setMotherJob(data.mother_job || '');
+          setAddress(data.address || '');
+          setLatitude(data.latitude || 35.6892);
+          setLongitude(data.longitude || 51.3890);
 
-        if (data.avatar) setAvatarPreview(getMediaUrl(data.avatar));
-        if (data.birth_certificate_image) setBirthCertPreview(data.birth_certificate_image);
-        if (data.national_card_image) setNationalCardPreview(data.national_card_image);
-        if (data.sports_insurance_image) setSportsInsurancePreview(data.sports_insurance_image);
+          if (data.avatar) setAvatarPreview(getMediaUrl(data.avatar));
+          if (data.birth_certificate_image) setBirthCertPreview(data.birth_certificate_image);
+          if (data.national_card_image) setNationalCardPreview(data.national_card_image);
+          if (data.sports_insurance_image) setSportsInsurancePreview(data.sports_insurance_image);
 
-        setBirthCertStatus(data.birth_certificate_status || '');
-        setNationalCardStatus(data.national_card_status || '');
-        setSportsInsuranceStatus(data.sports_insurance_status || '');
-        setDocumentsRejectionReason(data.documents_rejection_reason || '');
+          setBirthCertStatus(data.birth_certificate_status || '');
+          setNationalCardStatus(data.national_card_status || '');
+          setSportsInsuranceStatus(data.sports_insurance_status || '');
+          setDocumentsRejectionReason(data.documents_rejection_reason || '');
 
-        setIsCompletedBefore(Boolean(data.is_profile_completed));
+          setIsCompletedBefore(Boolean(data.is_profile_completed));
+          setProfileLevelName(data.level_name || '');
+        }
+
+        if (assRes.status === 'fulfilled') {
+          const d = assRes.value.data;
+          setAssessments(Array.isArray(d) ? d : d.results || []);
+        }
       } catch (err) {
         console.error(err);
         toast.error('خطا در دریافت اطلاعات پرونده شناگر');
@@ -430,23 +447,35 @@ export const SwimmerProfilePage = () => {
       </div>
 
       {/* Main Tabs Header */}
-      <div className="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/60">
+      <div className="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 overflow-x-auto">
         <button
           type="button"
           onClick={() => handleTabChange('INFO')}
-          className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
             activeMainTab === 'INFO'
               ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <FileText className="w-4.5 h-4.5" />
-          <span>اطلاعات و مدارک شناگر (۳ مرحله‌ای)</span>
+          <span>مشخصات و مدارک (۳ مرحله‌ای)</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => handleTabChange('ASSESSMENTS')}
+          className={`flex-1 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
+            activeMainTab === 'ASSESSMENTS'
+              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <Award className="w-4.5 h-4.5" />
+          <span>ارزیابی‌ها و کارنامه مربی ({assessments.length})</span>
         </button>
         <button
           type="button"
           onClick={() => handleTabChange('SECURITY')}
-          className={`flex-1 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
             activeMainTab === 'SECURITY'
               ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'

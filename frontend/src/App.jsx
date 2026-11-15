@@ -81,8 +81,6 @@ import { CoachSkillsManagerPage } from './pages/coach/CoachSkillsManagerPage';
 import { CoachAssessmentsPage } from './pages/coach/CoachAssessmentsPage';
 import { CoachExamsPage } from './pages/coach/CoachExamsPage';
 import { CoachWorkoutsPage } from './pages/coach/CoachWorkoutsPage';
-import { CoachMessagesPage } from './pages/coach/CoachMessagesPage';
-import { CoachCreateAnnouncementPage } from './pages/coach/CoachCreateAnnouncementPage';
 import { CoachProfilePage } from './pages/coach/CoachProfilePage';
 import { CoachCompleteProfilePage } from './pages/coach/CoachCompleteProfilePage';
 
@@ -291,10 +289,9 @@ export default function App() {
                 {/* Redirect legacy AI assistant */}
                 <Route path="ai-assistant" element={<Navigate to="/coach" replace />} />
 
-                {/* 7. Messages & Communications */}
-                <Route path="messages" element={<CoachMessagesPage />} />
-                <Route path="messages/new" element={<CoachCreateAnnouncementPage />} />
-                <Route path="messages/create" element={<Navigate to="/coach/messages/new" replace />} />
+                {/* Redirect removed Messages & Announcements */}
+                <Route path="messages" element={<Navigate to="/coach" replace />} />
+                <Route path="messages/*" element={<Navigate to="/coach" replace />} />
 
                 {/* 9. Profile & Settings */}
                 <Route path="profile" element={<CoachProfilePage />} />

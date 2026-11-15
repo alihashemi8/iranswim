@@ -151,6 +151,67 @@ def test_coach_workout_plans(coach_user, sample_setup):
     results = list_res.data.get('results', list_res.data)
     assert len(results) == 1
 
+    # تست برنامه غذایی کلاسی و فردی
+    diet_payload_group = {
+        'plan_type': 'DIET',
+        'target_type': 'GROUP',
+        'group': sample_setup['group'].id,
+        'title': 'برنامه غذایی دوره مسابقات استانی',
+        'daily_calories': 2600,
+        'diet_goal': 'تأمین گلیکوژن و هایدریشن',
+        'breakfast': 'جو دوسر + موز + عسل + شیر کم‌چرب',
+        'morning_snack': 'سیب + بادام درختی',
+        'lunch': 'سینه مرغ گریل + برنج قهوه‌ای + سالاد فصل',
+        'afternoon_snack': 'خرما + نان تست کره بادام‌زمینی قبل از تمرین',
+        'dinner': 'ماهی قزل‌آلا + سیب‌زمینی تنوری + بروکلی',
+        'post_workout_snack': 'شیک پروتئین وی و آب نارگیل',
+        'hydration_guidelines': 'حداقل ۳ لیتر آب در روز و ۵۰۰ میلی‌لیتر الکترولیت حین تمرین',
+        'supplements': 'مولتی ویتامین و امگا ۳',
+        'notes': 'پرهیز از غذاهای پرچرب و فست‌فود ۲۴ ساعت قبل از مسابقه',
+    }
+    diet_res = client.post('/api/coaches/workouts/', diet_payload_group, format='json')
+    assert diet_res.status_code == 201
+    assert diet_res.data['plan_type'] == 'DIET'
+    assert diet_res.data['target_type'] == 'GROUP'
+    diet_id = diet_res.data['id']
+
+    # تست برنامه تمرینی فردی برای یک شناگر خاص
+    workout_individual_payload = {
+        'plan_type': 'TRAINING',
+        'target_type': 'INDIVIDUAL',
+        'swimmer': sample_setup['swimmer'].id,
+        'title': 'تمرین اختصاصی بهبود استارت دلفین',
+        'duration_minutes': 60,
+        'focus_skills': 'انعطاف مچ پا و استریم‌لاین زیر آب',
+        'warmup_section': '۲۰۰ متر شنای آزاد با فین',
+        'main_section': '۱۰ ست ۲۵ متر دلفین زیر آب با حداکثر توان',
+        'cooldown_section': '۱۰۰ متر قورباغه ریکاوری',
+    }
+    indiv_res = client.post('/api/coaches/workouts/', workout_individual_payload, format='json')
+    assert indiv_res.status_code == 201
+    assert indiv_res.data['swimmer'] == sample_setup['swimmer'].id
+    indiv_id = indiv_res.data['id']
+
+    # تست فیلتر بر اساس نوع برنامه
+    diet_filter_res = client.get('/api/coaches/workouts/?plan_type=DIET')
+    assert diet_filter_res.status_code == 200
+    diet_results = diet_filter_res.data.get('results', diet_filter_res.data)
+    assert len(diet_results) == 1
+    assert diet_results[0]['id'] == diet_id
+
+    # تست ارسال برنامه به شناگر
+    send_res = client.post(f'/api/coaches/workouts/{indiv_id}/send/')
+    assert send_res.status_code == 200
+    assert 'ارسال شد' in send_res.data['message']
+
+    # تست دریافت برنامه توسط شناگر از اندپوینت my-plans
+    swimmer_client = APIClient()
+    swimmer_client.force_authenticate(user=sample_setup['swimmer'].user)
+    my_plans_res = swimmer_client.get('/api/swimmers/my-plans/')
+    assert my_plans_res.status_code == 200
+    my_plans = my_plans_res.data if isinstance(my_plans_res.data, list) else my_plans_res.data.get('results', [])
+    assert len(my_plans) >= 1
+
 
 
 @pytest.mark.django_db

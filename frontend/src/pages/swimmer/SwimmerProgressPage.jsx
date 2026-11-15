@@ -8,6 +8,7 @@ import { useSwimmer } from '../../context/SwimmerContext';
 import { Badge } from '../../components/common/Badge';
 import { LoadingState } from '../../components/common/LoadingState';
 import { ProgressBar, SparklineAreaChart, DonutChart, HorizontalBarChart } from '../../components/common/Charts';
+import { toShamsiDate } from '../../utils/date';
 
 export const SwimmerProgressPage = () => {
   const { activeSwimmer, activeSwimmerId } = useSwimmer();
@@ -64,15 +65,19 @@ export const SwimmerProgressPage = () => {
     if (!assessments || assessments.length === 0) return [];
     const scored = assessments
       .filter((a) => a.score !== undefined && a.score !== null)
-      .map((a, idx) => ({
-        label: a.assessment_date ? String(a.assessment_date).slice(5) : `آزمون ${idx + 1}`,
-        value: Number(a.score || 0),
-      }));
+      .map((a, idx) => {
+        const rawDate = a.assessed_at || a.assessment_date;
+        const shamsi = rawDate ? toShamsiDate(rawDate)?.shortNumeric : null;
+        return {
+          label: shamsi ? String(shamsi).slice(5) : `آزمون ${idx + 1}`,
+          value: Number(a.score || 0),
+        };
+      });
 
     if (scored.length === 1) {
       // Add baseline for smoother single-point display
       return [
-        { label: 'شروع', value: Math.max(0, scored[0].value - 1) },
+        { label: 'شروع', value: Math.max(0, scored[0].value - 5) },
         scored[0],
       ];
     }
@@ -98,7 +103,7 @@ export const SwimmerProgressPage = () => {
   const skillsBarData = useMemo(() => {
     return assessments.map((ass) => ({
       label: ass.skill_name || 'مهارت فنی',
-      value: Number(ass.score || 7),
+      value: Number(ass.score || 70),
       colorClass: ass.status === 'PASSED'
         ? 'bg-gradient-to-l from-emerald-500 to-teal-400'
         : 'bg-gradient-to-l from-sky-500 to-cyan-400',
@@ -282,14 +287,14 @@ export const SwimmerProgressPage = () => {
                         {ass.skill_name || 'سرفصل مهارت'}
                       </h4>
                       <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                        مربی ارزیاب: {ass.assessed_by_name || 'مربی رسمی'} · تاریخ: {ass.assessment_date}
+                        مربی ارزیاب: {ass.assessed_by_name || 'کادر فنی آکادمی'} · تاریخ: {(ass.assessed_at || ass.assessment_date) ? toShamsiDate(ass.assessed_at || ass.assessment_date)?.shortNumeric : '—'}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2.5">
-                    {ass.score && (
+                    {ass.score !== undefined && ass.score !== null && (
                       <span className="text-xs sm:text-sm font-mono font-black px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800">
-                        امتیاز: {ass.score}/10
+                        امتیاز: {Math.round(ass.score)} / ۱۰۰
                       </span>
                     )}
                     <Badge variant={ass.status === 'PASSED' ? 'success' : 'warning'}>
@@ -333,7 +338,7 @@ export const SwimmerProgressPage = () => {
                     data={trendData}
                     height={160}
                     color="sky"
-                    valueFormatter={(v) => `${v} از 10`}
+                    valueFormatter={(v) => `${v} از ۱۰۰`}
                     labelFormatter={(l) => `تاریخ ${l}`}
                   />
                 </div>
@@ -368,7 +373,7 @@ export const SwimmerProgressPage = () => {
               <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
                 <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-2">
-                    <span className="p-1.5 rounded-xl bg-violet-50 dark:bg-violet-950/70 text-violet-600 dark:text-violet-400 border border-violet-200/70 dark:border-violet-900/60">
+                    <span className="p-1.5 rounded-xl bg-violet-50 dark:violet-950/70 text-violet-600 dark:text-violet-400 border border-violet-200/70 dark:border-violet-900/60">
                       <BarChart3 className="w-4 h-4" />
                     </span>
                     <div>
@@ -385,8 +390,8 @@ export const SwimmerProgressPage = () => {
 
                 <HorizontalBarChart
                   data={skillsBarData}
-                  max={10}
-                  valueFormatter={(v) => `${v} از 10`}
+                  max={100}
+                  valueFormatter={(v) => `${v} از ۱۰۰`}
                 />
               </div>
             </>
@@ -401,9 +406,9 @@ export const SwimmerProgressPage = () => {
       {/* Tab 4: Coach Feedback */}
       {activeTab === 'FEEDBACK' && (
         <div className="space-y-4">
-          {assessments.filter((a) => a.notes).length > 0 ? (
+          {assessments.filter((a) => (a.feedback || a.notes)?.trim()).length > 0 ? (
             assessments
-              .filter((a) => a.notes)
+              .filter((a) => (a.feedback || a.notes)?.trim())
               .map((ass) => (
                 <div
                   key={ass.id}
@@ -419,16 +424,23 @@ export const SwimmerProgressPage = () => {
                           مربی: {ass.assessed_by_name || 'کادر فنی آکادمی'}
                         </span>
                         <span className="text-xs text-slate-500">
-                          بابت مهارت: {ass.skill_name} · تاریخ: {ass.assessment_date}
+                          بابت مهارت: {ass.skill_name} · تاریخ: {(ass.assessed_at || ass.assessment_date) ? toShamsiDate(ass.assessed_at || ass.assessment_date)?.shortNumeric : '—'}
                         </span>
                       </div>
                     </div>
-                    <Badge variant={ass.status === 'PASSED' ? 'success' : 'warning'}>
-                      {ass.status_display}
-                    </Badge>
+                    <div className="flex items-center gap-2">
+                      {ass.score !== undefined && ass.score !== null && (
+                        <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                          نمره: {Math.round(ass.score)} / ۱۰۰
+                        </span>
+                      )}
+                      <Badge variant={ass.status === 'PASSED' ? 'success' : 'warning'}>
+                        {ass.status_display || (ass.status === 'PASSED' ? 'قبول' : 'در حال تمرین')}
+                      </Badge>
+                    </div>
                   </div>
                   <p className="text-sm sm:text-base text-slate-700 dark:text-slate-300 leading-relaxed bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-100 dark:border-slate-800 font-normal">
-                    «{ass.notes}»
+                    «{ass.feedback || ass.notes}»
                   </p>
                 </div>
               ))

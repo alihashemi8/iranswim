@@ -7,7 +7,7 @@ import {
   ClipboardCheck, Award, Trophy, Bell,
   UserCheck, X, LogOut, ChevronLeft, ChevronRight,
   TrendingUp, MessageSquareQuote, FileText, Settings,
-  MessageSquare, Globe, Server, Radio, GitBranch, Database, Sliders, Whistle
+  Globe, Server, Radio, GitBranch, Database, Sliders, Whistle
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -183,13 +183,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     {
       groupTitle: 'آموزش و تمرین',
       items: [
-        { to: '/coach/workouts', label: 'برنامه‌های تمرین', icon: Calendar },
-      ],
-    },
-    {
-      groupTitle: 'ارتباطات',
-      items: [
-        { to: '/coach/messages', label: 'پیام‌ها و اطلاعیه‌ها', icon: MessageSquare },
+        { to: '/coach/workouts', label: 'برنامه', icon: Calendar },
       ],
     },
   ];

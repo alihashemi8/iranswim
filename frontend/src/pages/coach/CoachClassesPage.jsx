@@ -72,7 +72,7 @@ export const CoachClassesPage = () => {
             className="w-full sm:w-auto justify-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-sm sm:text-base font-bold shadow-xs transition-all active:scale-95"
           >
             <Calendar className="w-4.5 h-4.5" />
-            برنامه تمرینات
+            برنامه (تمرینی و غذایی)
           </Link>
         </div>
       </div>

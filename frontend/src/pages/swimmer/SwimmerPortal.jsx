@@ -274,9 +274,9 @@ export const SwimmerPortal = () => {
                   <span>سطح: {item.level_name}</span>
                   <span className="font-mono">{item.assessed_at ? new Date(item.assessed_at).toLocaleDateString('fa-IR') : 'در انتظار آزمون'}</span>
                 </div>
-                {item.notes && (
+                {(item.feedback || item.notes) && (
                   <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-700/60 font-medium leading-relaxed">
-                    نظر مربی: {item.notes}
+                    نظر مربی: {item.feedback || item.notes}
                   </p>
                 )}
               </div>

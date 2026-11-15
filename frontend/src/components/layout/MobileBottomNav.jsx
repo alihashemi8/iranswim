@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Calendar, CreditCard, TrendingUp,
-  UserCheck, BookOpen, ClipboardCheck, MessageSquare
+  UserCheck, BookOpen, ClipboardCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { CourseLogoIcon } from '../common/AquaticIcons';
@@ -203,16 +203,16 @@ export const MobileBottomNav = () => {
   if (user.role === 'COACH' && currentPath.startsWith('/coach')) {
     const isHome = currentPath === '/coach';
     const isClasses = currentPath.startsWith('/coach/classes');
+    const isSwimmers = currentPath.startsWith('/coach/swimmers');
     const isAttendance = currentPath.startsWith('/coach/attendance');
     const isProgress = currentPath.startsWith('/coach/progress') || currentPath.startsWith('/coach/exams');
-    const isMessages = currentPath.startsWith('/coach/messages');
 
     const coachNavItems = [
       { to: '/coach', label: 'خانه', icon: LayoutDashboard, active: isHome, end: true },
       { to: '/coach/classes', label: 'کلاس‌ها', icon: BookOpen, active: isClasses },
+      { to: '/coach/swimmers', label: 'شناگران', icon: Users, active: isSwimmers },
       { to: '/coach/attendance', label: 'حضور', icon: ClipboardCheck, active: isAttendance },
       { to: '/coach/progress', label: 'پیشرفت', icon: TrendingUp, active: isProgress },
-      { to: '/coach/messages', label: 'پیام‌ها', icon: MessageSquare, active: isMessages },
     ];
 
     return (

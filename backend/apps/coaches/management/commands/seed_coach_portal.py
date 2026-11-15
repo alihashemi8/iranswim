@@ -606,6 +606,8 @@ class Command(BaseCommand):
                 coach=coach_profile,
                 title=w_title,
                 defaults={
+                    'plan_type': WorkoutPlan.PlanType.TRAINING,
+                    'target_type': WorkoutPlan.TargetType.GROUP if grp else WorkoutPlan.TargetType.GENERAL,
                     'group': grp,
                     'target_level': lvl,
                     'duration_minutes': dur,
@@ -618,7 +620,78 @@ class Command(BaseCommand):
                 }
             )
 
-        self.stdout.write(self.style.SUCCESS(f'✓ {len(workouts_data)} طرح تمرینی تخصصی مربی ذخیره شد.'))
+        # برنامه‌های غذایی (Diet Plans) کلاسی و فردی
+        swimmer_sample = active_swimmers[0] if active_swimmers else None
+        swimmer_sample_2 = active_swimmers[1] if len(active_swimmers) > 1 else None
+
+        diet_plans = [
+            {
+                'title': 'رژیم غذایی و بارگیری کربوهیدرات کلاس شناگران پیشرفته',
+                'plan_type': WorkoutPlan.PlanType.DIET,
+                'target_type': WorkoutPlan.TargetType.GROUP,
+                'group': group1,
+                'daily_calories': 2800,
+                'diet_goal': 'تأمین ذخایر گلیکوژن و هایدریشن پیش از مسابقات رسمی',
+                'breakfast': 'جو دوسر پرک پخته با شیر کم‌چرب + ۲ عدد تخم‌مرغ آب‌پز + عسل طبیعی و گردو',
+                'morning_snack': 'یک عدد موز متوسط + یک مشت بادام خام درختی',
+                'lunch': '۲۰۰ گرم سینه مرغ گریل‌شده + یک بشقاب برنج قهوه‌ای یا ماکارونی سبوس‌دار + سالاد کلم بروکلی با لیموترش و روغن زیتون',
+                'afternoon_snack': 'نان تست جو با کره بادام‌زمینی و ۳ عدد خرما (یک ساعت پیش از شروع سانس تمرین استخر)',
+                'dinner': 'فیله ماهی قزل‌آلا یا ماهی سالمون بخارپز + سیب‌زمینی تنوری + سوپ سبزیجات رقیق',
+                'post_workout_snack': 'شیک پروتئین وی با آب نارگیل یا شیر کاکائو کم‌چرب جهت ریکاوری سریع گلیکوژن ظرف ۳۰ دقیقه پس از خروج از آب',
+                'hydration_guidelines': 'مصرف حداقل ۲.۵ الی ۳ لیتر آب در طول روز؛ به همراه ۵۰۰ سی‌سی محلول ایزوتونیک ورزشی در فواصل تمرین شدید',
+                'supplements': 'قرص جوشان ویتامین C، مکمل امگا ۳، کپسول مولتی ویتامین مینرال پس از صبحانه',
+                'dietary_guidelines': 'پرهیز کامل از فست‌فود، نوشابه‌های گازدار و غذاهای نفاخ ۲۴ ساعت پیش از جلسات سنگین تمرینی',
+                'notes': 'این برنامه برای کل شناگران رده سنی نوجوانان کلاس پیشرفته تنظیم گردیده است.',
+                'sent_at': now,
+            },
+            {
+                'title': f'برنامه تغذیه اختصاصی و اصلاح وزن برای {swimmer_sample.full_name if swimmer_sample else "شناگر"}',
+                'plan_type': WorkoutPlan.PlanType.DIET,
+                'target_type': WorkoutPlan.TargetType.INDIVIDUAL,
+                'swimmer': swimmer_sample,
+                'daily_calories': 2300,
+                'diet_goal': 'افزایش چگالی عضلانی، کاهش درصد چربی و ارتقای رکورد ۱۰۰ متر آزاد',
+                'breakfast': 'املت ۳ سفیده و ۱ زرده با گوجه‌فرنگی + نان سنگک کنجدی + چای سبز با خرما',
+                'morning_snack': 'یک فنجان ماست یونانی پرپروتئین با بلوبری یا توت‌فرنگی',
+                'lunch': '۱۸۰ گرم فیله بوقلمون کباب‌شده + کینوا پخته با سبزیجات بخارپز',
+                'afternoon_snack': 'یک عدد سیب سبز + ۱۰ عدد پسته خام + ۲ عدد بیسکویت سبوس‌دار',
+                'dinner': 'سالاد سزار ویژه ورزشکاران با تخم‌بلدرچین و روغن زیتون فرابکر',
+                'post_workout_snack': 'یک لیوان آب انار طبیعی یا آب هویج با پودر پروتئین ایزوله',
+                'hydration_guidelines': 'نوشیدن آب در بازه‌های منظم ۲۰ دقیقه‌ای حین تمرین در استخر',
+                'supplements': 'منیزیم جهت پیشگیری از گرفتگی عضلات پا در آب (کرامپ شبانه)',
+                'dietary_guidelines': 'قطع کامل شکر مصنوعی و نمک مازاد جهت تنظیم فشار اسمزی',
+                'notes': 'لطفاً گزارش وضعیت هفتگی و تغییرات وزنی را شنبه‌ها به مربی اعلام فرمایید.',
+                'sent_at': now,
+            }
+        ]
+
+        for dp in diet_plans:
+            WorkoutPlan.objects.update_or_create(
+                coach=coach_profile,
+                title=dp['title'],
+                defaults=dp
+            )
+
+        if swimmer_sample_2:
+            WorkoutPlan.objects.update_or_create(
+                coach=coach_profile,
+                title=f'تمرین اختصاصی تقویت استقامت قلبی‌عروقی و ریتم دست برای {swimmer_sample_2.full_name}',
+                defaults={
+                    'plan_type': WorkoutPlan.PlanType.TRAINING,
+                    'target_type': WorkoutPlan.TargetType.INDIVIDUAL,
+                    'swimmer': swimmer_sample_2,
+                    'duration_minutes': 75,
+                    'focus_skills': 'تمرکز ویژه بر زاویه بازو در فاز کشش دست کرال سینه و چرخش ۳ ضربدری',
+                    'warmup_section': '۴۰۰ متر شنای آزاد سبک با فین کوتاه + ۱۰۰ متر دریل دست تک',
+                    'main_section': '۱۰ ست ۵۰ متر کرال سینه با شدت ۸۵٪ توان با زمان استراحت ۱۵ ثانیه + ۶ ست ۲۵ متر استارت سرعتی با سنجش ضربان قلب',
+                    'cooldown_section': '۲۰۰ متر شنای قورباغه آرام و رهاسازی عضلات شانه و لت',
+                    'equipment': 'فین کوتاه آموزشی، کفی دستی، تخته شنای ارگونومیک',
+                    'notes': 'به چرخش کامل سر و عدم بالا آوردن سر حین نفس‌گیری دقت اکید شود.',
+                    'sent_at': now,
+                }
+            )
+
+        self.stdout.write(self.style.SUCCESS(f'✓ {len(workouts_data)} طرح تمرینی و برنامه‌های غذایی مربی ذخیره شد.'))
 
         # -------------------------------------------------------------
         # 7. ارزیابی مهارتی و رکوردهای زمانی شناگران

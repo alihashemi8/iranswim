@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   Calendar, Users, ClipboardCheck, Award, TrendingUp,
   Clock, MapPin, AlertCircle, CheckCircle2, ArrowLeft,
-  ChevronLeft, Bell, BookOpen, MessageSquare, PlusCircle,
+  ChevronLeft, Bell, BookOpen, PlusCircle,
   PieChart, BarChart3
 } from 'lucide-react';
 import api from '../../api/client';
@@ -468,15 +468,15 @@ export const CoachDashboard = () => {
         </Link>
 
         <Link
-          to="/coach/messages"
+          to="/coach/swimmers"
           className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-cyan-300 dark:hover:border-cyan-700 transition-all flex items-center gap-4 group"
         >
           <div className="p-3 rounded-2xl bg-cyan-50 dark:bg-cyan-950/60 text-cyan-600 group-hover:scale-105 transition-transform">
-            <MessageSquare className="w-6 h-6" />
+            <Users className="w-6 h-6" />
           </div>
           <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white">پیام‌ها و اولیا</h3>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">ارسال اطلاعیه کلاسی و پیگیری</p>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">شناگران من</h3>
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">مشاهده فهرست و پرونده شناگران</p>
           </div>
         </Link>
       </div>
