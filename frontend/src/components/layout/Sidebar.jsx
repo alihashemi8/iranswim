@@ -472,7 +472,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                 title={link.label}
                 aria-label={link.label}
                 className={({ isActive }) =>
-                  `relative flex items-center rounded-xl text-sm xl:text-[15px] font-bold transition-all group ${
+                  `relative flex items-center rounded-xl text-sm xl:text-base font-bold transition-all group ${
                     isActive
                       ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-black border-r-3 border-blue-600 shadow-2xs'
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
@@ -566,7 +566,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       <button
         type="button"
         onClick={handleLogoutClick}
-        className={`w-full flex items-center justify-center rounded-xl text-sm xl:text-[15px] font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-900 transition-colors shadow-2xs cursor-pointer group relative ${
+        className={`w-full flex items-center justify-center rounded-xl text-sm xl:text-base font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-900 transition-colors shadow-2xs cursor-pointer group relative ${
           isMobile
             ? 'gap-2 px-3.5 py-3'
             : collapsed

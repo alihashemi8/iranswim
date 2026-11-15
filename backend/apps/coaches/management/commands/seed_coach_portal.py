@@ -335,9 +335,9 @@ class Command(BaseCommand):
         g1_swimmers = [active_swimmers[0], active_swimmers[3], active_swimmers[5], active_swimmers[7]]
         for sw in g1_swimmers:
             en, _ = Enrollment.objects.get_or_create(
-                swimmer=sw, group=group1,
+                swimmer=sw, course=group1.course,
                 defaults={
-                    'course': group1.course,
+                    'group': group1,
                     'coach': coach_profile,
                     'status': 'ACTIVE',
                     'sessions_purchased': 12,
@@ -346,6 +346,7 @@ class Command(BaseCommand):
                     'enrolled_at': now - datetime.timedelta(days=30),
                 }
             )
+            en.group = group1
             en.status = 'ACTIVE'
             en.coach = coach_profile
             en.save()
@@ -354,9 +355,9 @@ class Command(BaseCommand):
         g2_swimmers = [active_swimmers[2], active_swimmers[6], active_swimmers[9]]
         for sw in g2_swimmers:
             en, _ = Enrollment.objects.get_or_create(
-                swimmer=sw, group=group2,
+                swimmer=sw, course=group2.course,
                 defaults={
-                    'course': group2.course,
+                    'group': group2,
                     'coach': coach_profile,
                     'status': 'ACTIVE',
                     'sessions_purchased': 16,
@@ -365,6 +366,7 @@ class Command(BaseCommand):
                     'enrolled_at': now - datetime.timedelta(days=40),
                 }
             )
+            en.group = group2
             en.status = 'ACTIVE'
             en.coach = coach_profile
             en.save()
