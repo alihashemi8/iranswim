@@ -948,6 +948,99 @@ export const AdminCoachEditPage = () => {
                   className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white"
                 />
               </div>
+
+              {/* بازآموزی سال جاری */}
+              <div className="sm:col-span-2 p-4 rounded-xl border border-emerald-300 dark:border-emerald-700/80 bg-emerald-50/40 dark:bg-emerald-950/20 space-y-3">
+                <div className="flex items-center justify-between pb-2 border-b border-emerald-200 dark:border-emerald-800">
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                    <FileCheck className="w-4 h-4 text-emerald-600" />
+                    <span>گواهی بازآموزی سال جاری</span>
+                  </h4>
+                  <span className="text-[11px] text-slate-500 font-mono">
+                    اعتبار تا پایان اسفند {form.retraining_year || 1405}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      آپلود یا جایگزینی فایل بازآموزی
+                    </label>
+                    <label className="cursor-pointer flex items-center justify-between p-2.5 rounded-xl border border-dashed border-emerald-400 dark:border-emerald-600 bg-white dark:bg-slate-900 hover:bg-emerald-50/50 transition-colors">
+                      <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 truncate">
+                        <Upload className="w-4 h-4 shrink-0 text-emerald-600" />
+                        <span className="truncate text-xs font-semibold">
+                          {retrainingCertificateFile ? retrainingCertificateFile.name : retrainingCertificateFilePreview ? 'فایل موجود است (تغییر؟)' : 'انتخاب فایل گواهی بازآموزی...'}
+                        </span>
+                      </div>
+                      <input
+                        type="file"
+                        accept=".pdf,image/*"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) setRetrainingCertificateFile(file);
+                        }}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      وضعیت تأیید بازآموزی
+                    </label>
+                    <CustomSelect
+                      value={form.retraining_status}
+                      onChange={(val) => handleChange('retraining_status', val)}
+                      options={retrainingStatusOptions}
+                      color="emerald"
+                      size="md"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      سال بازآموزی
+                    </label>
+                    <input
+                      type="number"
+                      value={form.retraining_year}
+                      onChange={(e) => handleChange('retraining_year', e.target.value)}
+                      placeholder="1405"
+                      className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono text-xs"
+                    />
+                  </div>
+
+                  <div>
+                    <PersianDatePicker
+                      label="تاریخ انقضای گواهی بازآموزی"
+                      value={form.retraining_expiry_date}
+                      onChange={(jalaliStr, gDate, gIso) => handleChange('retraining_expiry_date', gIso || '')}
+                      placeholder="انتخاب تاریخ انقضا..."
+                      color="emerald"
+                      size="md"
+                      minYear={1390}
+                      maxYear={1420}
+                      clearable
+                    />
+                  </div>
+
+                  {form.retraining_status === 'REJECTED' && (
+                    <div className="sm:col-span-2">
+                      <label className="block text-xs font-bold text-rose-700 dark:text-rose-300 mb-1">
+                        دلیل عدم تأیید گواهی بازآموزی
+                      </label>
+                      <input
+                        type="text"
+                        value={form.retraining_rejection_reason}
+                        onChange={(e) => handleChange('retraining_rejection_reason', e.target.value)}
+                        placeholder="علت رد گواهی جهت نمایش به مربی..."
+                        className="w-full p-2.5 rounded-xl border border-rose-300 dark:border-rose-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xs"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         )}
