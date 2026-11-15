@@ -718,7 +718,7 @@ export const CoachWorkoutsPage = () => {
                 )}
 
                 {previewPlan.main_section && (
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-r-4 border-blue-600 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border-r-4 border-r-blue-600 border border-slate-200/80 dark:border-slate-700/80 space-y-2">
                     <strong className="text-blue-700 dark:text-blue-300 block font-black text-sm sm:text-base">
                       ۲. بخش تمرینات اصلی و ست‌های شنا (Main Set):
                     </strong>
