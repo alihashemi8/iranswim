@@ -52,6 +52,10 @@ export const AdminCoachEditPage = () => {
     lifeguard_expiration: '',
     previous_experience: '',
     additional_skills: '',
+    retraining_year: '',
+    retraining_status: 'UNUPLOADED',
+    retraining_expiry_date: '',
+    retraining_rejection_reason: '',
 
     // Step 4: Bank & Employment
     card_number: '',
@@ -70,9 +74,18 @@ export const AdminCoachEditPage = () => {
   const [avatarPreview, setAvatarPreview] = useState(null);
   const [coachingCertificateFile, setCoachingCertificateFile] = useState(null);
   const [coachingCertificateFilePreview, setCoachingCertificateFilePreview] = useState(null);
+  const [retrainingCertificateFile, setRetrainingCertificateFile] = useState(null);
+  const [retrainingCertificateFilePreview, setRetrainingCertificateFilePreview] = useState(null);
   const [resumeFile, setResumeFile] = useState(null);
   const [resumeFileName, setResumeFileName] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+
+  const retrainingStatusOptions = [
+    { value: 'UNUPLOADED', label: 'بارگذاری‌نشده' },
+    { value: 'PENDING', label: 'در انتظار بررسی و تأیید' },
+    { value: 'APPROVED', label: 'تأییدشده' },
+    { value: 'REJECTED', label: 'رد شده / نیازمند اصلاح' },
+  ];
 
   const degreeOptions = [
     { value: 'GRADE_3', label: 'مربیگری درجه ۳ فدراسیون', description: 'آموزش شنا مقدماتی و تکنیک‌های ۴ شنا' },
@@ -129,6 +142,10 @@ export const AdminCoachEditPage = () => {
           lifeguard_expiration: data.lifeguard_expiration || '',
           previous_experience: data.previous_experience || '',
           additional_skills: data.additional_skills || '',
+          retraining_year: data.retraining_year || '',
+          retraining_status: data.retraining_status || 'UNUPLOADED',
+          retraining_expiry_date: data.retraining_expiry_date || '',
+          retraining_rejection_reason: data.retraining_rejection_reason || '',
           card_number: data.card_number || '',
           shaba_number: data.shaba_number || '',
           employment_status: data.employment_status || 'ACTIVE',
@@ -146,6 +163,9 @@ export const AdminCoachEditPage = () => {
         }
         if (data.coaching_certificate_file) {
           setCoachingCertificateFilePreview(data.coaching_certificate_file);
+        }
+        if (data.retraining_certificate_file_url || data.retraining_certificate_file) {
+          setRetrainingCertificateFilePreview(data.retraining_certificate_file_url || data.retraining_certificate_file);
         }
         if (data.resume_file) {
           setResumeFileName(data.resume_file.split('/').pop() || 'فایل رزومه');
@@ -328,6 +348,12 @@ export const AdminCoachEditPage = () => {
       if (form.lifeguard_expiration) formData.append('lifeguard_expiration', form.lifeguard_expiration);
       formData.append('previous_experience', form.previous_experience.trim());
       formData.append('additional_skills', form.additional_skills.trim());
+
+      if (retrainingCertificateFile) formData.append('retraining_certificate_file', retrainingCertificateFile);
+      if (form.retraining_year) formData.append('retraining_year', Number(form.retraining_year));
+      if (form.retraining_status) formData.append('retraining_status', form.retraining_status);
+      if (form.retraining_expiry_date) formData.append('retraining_expiry_date', form.retraining_expiry_date);
+      if (form.retraining_rejection_reason) formData.append('retraining_rejection_reason', form.retraining_rejection_reason.trim());
 
       const cleanCard = form.card_number.replace(/\D/g, '');
       const cleanShaba = form.shaba_number.replace(/\s+/g, '').toUpperCase();
