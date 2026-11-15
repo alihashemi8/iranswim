@@ -5,7 +5,8 @@ from .views import (
     AnnouncementListView, AnnouncementDetailView,
     NotificationListView, NotificationMarkReadView, NotificationMarkAllReadView,
     SupportTicketListView, SupportTicketDetailView,
-    LandingSectionListView, LandingSectionDetailView, LandingSectionToggleView
+    LandingSectionListView, LandingSectionDetailView, LandingSectionToggleView,
+    TopSwimmerListView, TopSwimmerDetailView, TopSwimmerReorderView
 )
 
 urlpatterns = [
@@ -13,6 +14,11 @@ urlpatterns = [
     path('landing-sections/', LandingSectionListView.as_view(), name='landing_section_list'),
     path('landing-sections/<str:key>/', LandingSectionDetailView.as_view(), name='landing_section_detail'),
     path('landing-sections/<str:key>/toggle/', LandingSectionToggleView.as_view(), name='landing_section_toggle'),
+
+    # Top Swimmers (شناگران برتر)
+    path('top-swimmers/', TopSwimmerListView.as_view(), name='top_swimmer_list'),
+    path('top-swimmers/<int:pk>/', TopSwimmerDetailView.as_view(), name='top_swimmer_detail'),
+    path('top-swimmers/reorder/', TopSwimmerReorderView.as_view(), name='top_swimmer_reorder'),
 
     # News & Articles
     path('news/', NewsPostListView.as_view(), name='news_list'),

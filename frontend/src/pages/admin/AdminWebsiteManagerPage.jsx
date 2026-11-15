@@ -4,7 +4,7 @@ import {
   MapPin, Eye, EyeOff, ArrowUpDown, Save, Check, CheckCircle2, Clock,
   Upload, Image as ImageIcon, X, Sparkles, Phone, PhoneCall, Award, Shield,
   ArrowUp, ArrowDown, ArrowLeft, RefreshCw, LayoutTemplate, ExternalLink, Building2,
-  ToggleLeft, ToggleRight
+  ToggleLeft, ToggleRight, Trophy
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -16,6 +16,7 @@ import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
 import { useLandingSections } from '../../context/LandingSectionsContext';
 import { SwimmerCrawlIcon, OlympicPoolLaneIcon } from '../../components/common/AquaticIcons';
+import { getMediaUrl } from '../../utils/media';
 
 export const AdminWebsiteManagerPage = () => {
   const toast = useToast();
@@ -153,15 +154,34 @@ export const AdminWebsiteManagerPage = () => {
   // =========================================================================
   const [courses, setCourses] = useState([]);
 
+  // =========================================================================
+  // 5. TOP SWIMMERS STATE (شناگران برتر)
+  // =========================================================================
+  const [topSwimmers, setTopSwimmers] = useState([]);
+  const [topSwimmerModalOpen, setTopSwimmerModalOpen] = useState(false);
+  const [editingTopSwimmer, setEditingTopSwimmer] = useState(null);
+  const [topSwimmerForm, setTopSwimmerForm] = useState({
+    name: '',
+    role: '',
+    age: '',
+    description: '',
+    display_order: 1,
+    is_active: true,
+  });
+  const [topSwimmerImageFile, setTopSwimmerImageFile] = useState(null);
+  const [topSwimmerImagePreview, setTopSwimmerImagePreview] = useState(null);
+  const [topSwimmerSubmitting, setTopSwimmerSubmitting] = useState(false);
+
   // Fetch all website data
   const fetchAllData = async () => {
     try {
       setLoading(true);
-      const [poolsRes, coachesRes, newsRes, coursesRes] = await Promise.allSettled([
+      const [poolsRes, coachesRes, newsRes, coursesRes, topSwimmersRes] = await Promise.allSettled([
         api.get('/content/pools/'),
         api.get('/coaches/'),
         api.get('/content/news/'),
         api.get('/education/courses/'),
+        api.get('/content/top-swimmers/'),
       ]);
 
       if (poolsRes.status === 'fulfilled' && poolsRes.value?.data) {
@@ -181,6 +201,11 @@ export const AdminWebsiteManagerPage = () => {
       if (coursesRes.status === 'fulfilled' && coursesRes.value?.data) {
         const crList = coursesRes.value.data.results || coursesRes.value.data;
         setCourses(crList);
+      }
+      if (topSwimmersRes.status === 'fulfilled' && topSwimmersRes.value?.data) {
+        const tsList = topSwimmersRes.value.data.results || topSwimmersRes.value.data;
+        const sorted = [...tsList].sort((a, b) => (a.display_order ?? 999) - (b.display_order ?? 999));
+        setTopSwimmers(sorted);
       }
       reloadSections();
     } catch (err) {
@@ -524,6 +549,107 @@ export const AdminWebsiteManagerPage = () => {
     }
   };
 
+  // =========================================================================
+  // TOP SWIMMERS HANDLERS (مدیریت شناگران برتر)
+  // =========================================================================
+  const handleOpenCreateTopSwimmer = () => {
+    setEditingTopSwimmer(null);
+    setTopSwimmerForm({
+      name: '',
+      role: '',
+      age: '',
+      description: '',
+      display_order: topSwimmers.length + 1,
+      is_active: true,
+    });
+    setTopSwimmerImageFile(null);
+    setTopSwimmerImagePreview(null);
+    setTopSwimmerModalOpen(true);
+  };
+
+  const handleOpenEditTopSwimmer = (swimmer) => {
+    setEditingTopSwimmer(swimmer);
+    setTopSwimmerForm({
+      name: swimmer.name || '',
+      role: swimmer.role || '',
+      age: swimmer.age || '',
+      description: swimmer.description || '',
+      display_order: swimmer.display_order ?? 1,
+      is_active: Boolean(swimmer.is_active),
+    });
+    setTopSwimmerImageFile(null);
+    const rawPreview = swimmer.image_url || swimmer.image;
+    setTopSwimmerImagePreview(getMediaUrl(rawPreview) || rawPreview || null);
+    setTopSwimmerModalOpen(true);
+  };
+
+  const handleTopSwimmerSubmit = async (e) => {
+    e.preventDefault();
+    if (!topSwimmerForm.name.trim()) {
+      toast.error('نام و نام خانوادگی شناگر الزامی است.');
+      return;
+    }
+    if (!topSwimmerForm.role.trim()) {
+      toast.error('رشته یا ماده تخصصی شناگر الزامی است.');
+      return;
+    }
+
+    try {
+      setTopSwimmerSubmitting(true);
+      const formData = new FormData();
+      Object.entries(topSwimmerForm).forEach(([k, v]) => {
+        formData.append(k, v);
+      });
+      if (topSwimmerImageFile) {
+        formData.append('image', topSwimmerImageFile);
+      }
+
+      if (editingTopSwimmer) {
+        await api.patch(`/content/top-swimmers/${editingTopSwimmer.id}/`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        toast.success(`اطلاعات شناگر برتر «${topSwimmerForm.name}» به‌روزرسانی شد.`);
+      } else {
+        await api.post('/content/top-swimmers/', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        toast.success(`شناگر برتر جدید «${topSwimmerForm.name}» با موفقیت افزوده شد.`);
+      }
+
+      setTopSwimmerModalOpen(false);
+      fetchAllData();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.detail || 'خطا در ذخیره‌سازی اطلاعات شناگر');
+    } finally {
+      setTopSwimmerSubmitting(false);
+    }
+  };
+
+  const handleDeleteTopSwimmer = async (id, name) => {
+    if (!window.confirm(`آیا از حذف شناگر برتر «${name}» اطمینان دارید؟`)) return;
+    try {
+      await api.delete(`/content/top-swimmers/${id}/`);
+      toast.success(`شناگر «${name}» با موفقیت حذف شد.`);
+      fetchAllData();
+    } catch {
+      toast.error('خطا در حذف شناگر برتر');
+    }
+  };
+
+  const handleToggleTopSwimmerActive = async (swimmer) => {
+    try {
+      const newStatus = !swimmer.is_active;
+      await api.patch(`/content/top-swimmers/${swimmer.id}/`, { is_active: newStatus });
+      toast.success(
+        `وضعیت نمایش «${swimmer.name}» به ${newStatus ? 'نمایش در سایت' : 'مخفی'} تغییر یافت.`
+      );
+      fetchAllData();
+    } catch {
+      toast.error('خطا در تغییر وضعیت شناگر');
+    }
+  };
+
   // Helper labels
   const categoryLabels = {
     GENERAL: 'عمومی و اطلاعیه‌ها',
@@ -562,11 +688,11 @@ export const AdminWebsiteManagerPage = () => {
       previewAnchor: '#pools',
     },
     facilities: {
-      icon: Building2,
-      colorClass: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 dark:text-emerald-400 border-emerald-200 dark:border-emerald-800',
-      badge: 'بخش ۵ • امکانات و بهداشت',
-      actionTab: null,
-      previewAnchor: '#facilities',
+      icon: Trophy,
+      colorClass: 'text-amber-600 bg-amber-50 dark:bg-amber-950/40 dark:text-amber-400 border-amber-200 dark:border-amber-800',
+      badge: 'بخش ۵ • شناگران برتر',
+      actionTab: 'top_swimmers',
+      previewAnchor: '#top-swimmers',
     },
     coaches: {
       icon: Users2,
@@ -719,6 +845,19 @@ export const AdminWebsiteManagerPage = () => {
         >
           <Waves className="w-4 h-4 text-cyan-600 shrink-0" />
           <span>استخرها و مجموعه‌های آبی ({pools.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('top_swimmers')}
+          className={`flex-1 min-w-max md:min-w-0 justify-center px-2 sm:px-3 lg:px-3.5 py-2 sm:py-2.5 rounded-xl text-xs lg:text-[13px] 2xl:text-sm font-bold transition-all flex items-center gap-1.5 sm:gap-2 whitespace-nowrap cursor-pointer ${
+            activeTab === 'top_swimmers'
+              ? 'bg-white dark:bg-slate-800 text-amber-700 dark:text-amber-400 shadow-sm'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-800/50'
+          }`}
+        >
+          <Trophy className="w-4 h-4 text-amber-500 shrink-0" />
+          <span>شناگران برتر ({topSwimmers.length})</span>
         </button>
 
         <button
@@ -1113,6 +1252,176 @@ export const AdminWebsiteManagerPage = () => {
                           </Button>
                         </div>
                       </article>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* =========================================================================
+              TAB: TOP SWIMMERS (شناگران برتر و استعدادهای درخشان)
+              ========================================================================= */}
+          {activeTab === 'top_swimmers' && (
+            <div className="space-y-6">
+              {renderSectionStatusBanner('facilities', 'شناگران برتر و قهرمانان مجموعه')}
+
+              <div className="bg-white dark:bg-slate-900 p-6 sm:p-7 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-5">
+                <div>
+                  <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+                    <Trophy className="w-6 h-6 text-amber-500 shrink-0" />
+                    <span>مدیریت شناگران برتر و استعدادهای درخشان</span>
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 mt-1 font-medium leading-relaxed">
+                    عکس، ماده تخصصی، رده سنی و رکوردهای شناگران برتر را مدیریت کنید. این بخش به صورت اسلایدر کاورفلو ۳ بعدی در صفحه اصلی نمایش داده می‌شود.
+                  </p>
+                </div>
+                <Button
+                  onClick={handleOpenCreateTopSwimmer}
+                  className="gap-2 text-xs sm:text-sm font-black py-2.5 px-4 bg-amber-500 hover:bg-amber-600 text-white shadow-xs shrink-0 cursor-pointer"
+                >
+                  <Plus className="w-4 h-4 sm:w-5 sm:h-5" />
+                  <span>افزودن شناگر برتر جدید</span>
+                </Button>
+              </div>
+
+              {topSwimmers.length === 0 ? (
+                <EmptyState
+                  title="هنوز شناگری ثبت نشده است"
+                  message="با کلیک روی دکمه افزودن شناگر برتر جدید، اولین قهرمان مجموعه را به اسلایدر صفحه اصلی اضافه نمایید."
+                />
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {topSwimmers.map((swimmer) => {
+                    const rawImage = swimmer.image_url || swimmer.image;
+                    const imageSrc = getMediaUrl(rawImage) || rawImage;
+                    return (
+                      <div
+                        key={swimmer.id}
+                        className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs hover:shadow-md transition-all flex flex-col justify-between group"
+                      >
+                        <div className="space-y-4">
+                          {/* Card Photo Container */}
+                          <div className="relative h-64 w-full bg-slate-950 overflow-hidden">
+                            {imageSrc ? (
+                              <img
+                                src={imageSrc}
+                                alt={swimmer.name}
+                                onError={(e) => {
+                                  e.currentTarget.onerror = null;
+                                  const fallbackName = swimmer.name?.includes('صفایی')
+                                    ? 'safaei'
+                                    : swimmer.name?.includes('راموز')
+                                    ? 'ramooz'
+                                    : swimmer.name?.includes('بگیان')
+                                    ? 'begian'
+                                    : swimmer.name?.includes('ترابی')
+                                    ? 'torabi'
+                                    : swimmer.name?.includes('توروه')
+                                    ? 'toureh'
+                                    : swimmer.name?.includes('جعفری')
+                                    ? 'jafari'
+                                    : swimmer.name?.includes('یعقوبی')
+                                    ? 'yaghoubi'
+                                    : 'safaei';
+                                  e.currentTarget.src = `/images/top-swimmers/${fallbackName}.jpg`;
+                                }}
+                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 bg-slate-800 gap-2">
+                                <Trophy className="w-12 h-12 text-slate-600" />
+                                <span className="text-xs font-bold">بدون تصویر</span>
+                              </div>
+                            )}
+
+                            {/* Gradient overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-950/30 to-transparent" />
+
+                            {/* Badges on photo */}
+                            <div className="absolute top-3 inset-x-3 flex items-center justify-between gap-2">
+                              <span className="px-2.5 py-1 text-[11px] font-black rounded-lg bg-black/60 backdrop-blur-md text-amber-300 border border-amber-400/30">
+                                ترتیب: #{swimmer.display_order}
+                              </span>
+
+                              <button
+                                type="button"
+                                onClick={() => handleToggleTopSwimmerActive(swimmer)}
+                                className={`px-3 py-1 text-[11px] font-black rounded-lg backdrop-blur-md flex items-center gap-1.5 transition-colors cursor-pointer border ${
+                                  swimmer.is_active
+                                    ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
+                                    : 'bg-rose-950/80 text-rose-300 border-rose-500/40'
+                                }`}
+                              >
+                                {swimmer.is_active ? (
+                                  <>
+                                    <Eye className="w-3.5 h-3.5" />
+                                    <span>نمایش در سایت</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <EyeOff className="w-3.5 h-3.5" />
+                                    <span>مخفی</span>
+                                  </>
+                                )}
+                              </button>
+                            </div>
+
+                            {/* Swimmer Name and Role on Photo Bottom */}
+                            <div className="absolute bottom-3 inset-x-3 text-white text-right">
+                              <h3
+                                className="text-lg font-black leading-tight drop-shadow-sm !text-white"
+                                style={{ color: '#ffffff' }}
+                              >
+                                {swimmer.name}
+                              </h3>
+                              <div className="flex items-center justify-between text-xs font-bold text-sky-300 mt-1">
+                                <span>{swimmer.role}</span>
+                                <span className="text-slate-300 text-[11px] bg-white/15 px-2 py-0.5 rounded-full">
+                                  {swimmer.age}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Description Body */}
+                          <div className="px-5 pb-1">
+                            <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium leading-relaxed bg-slate-50 dark:bg-slate-800/60 p-3 rounded-2xl border border-slate-100 dark:border-slate-800">
+                              {swimmer.description || '—'}
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Action Bar */}
+                        <div className="p-4 pt-3 mt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleToggleTopSwimmerActive(swimmer)}
+                            className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 cursor-pointer"
+                          >
+                            {swimmer.is_active ? 'مخفی کردن' : 'فعال کردن'}
+                          </button>
+
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditTopSwimmer(swimmer)}
+                              className="p-2 text-slate-600 hover:text-cyan-600 hover:bg-cyan-50 dark:hover:bg-cyan-950/40 rounded-xl transition-colors cursor-pointer"
+                              title="ویرایش شناگر"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteTopSwimmer(swimmer.id, swimmer.name)}
+                              className="p-2 text-slate-600 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl transition-colors cursor-pointer"
+                              title="حذف شناگر"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
@@ -2036,6 +2345,207 @@ export const AdminWebsiteManagerPage = () => {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* =========================================================================
+          MODAL: ADD / EDIT TOP SWIMMER
+          ========================================================================= */}
+      <Modal
+        isOpen={topSwimmerModalOpen}
+        onClose={() => setTopSwimmerModalOpen(false)}
+        title={editingTopSwimmer ? `ویرایش شناگر: ${editingTopSwimmer.name}` : 'افزودن شناگر برتر جدید به سایت'}
+        maxWidth="max-w-xl"
+      >
+        <form onSubmit={handleTopSwimmerSubmit} className="space-y-4 text-right">
+          {/* Photo upload */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
+              عکس پرتره شناگر (در کنار استخر یا با مدال)
+            </label>
+            <div className="flex items-center gap-4">
+              {topSwimmerImagePreview ? (
+                <div className="relative w-24 h-32 rounded-2xl overflow-hidden bg-slate-900 border shrink-0">
+                  <img src={topSwimmerImagePreview} alt="پیش‌نمایش" className="w-full h-full object-cover" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTopSwimmerImageFile(null);
+                      setTopSwimmerImagePreview(null);
+                    }}
+                    className="absolute top-1 right-1 p-1 bg-black/60 hover:bg-rose-600 text-white rounded-full transition-colors cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ) : (
+                <label className="w-24 h-32 rounded-2xl border-2 border-dashed border-slate-300 dark:border-slate-700 hover:border-amber-500 flex flex-col items-center justify-center gap-1 cursor-pointer bg-slate-50 dark:bg-slate-800/50 shrink-0 transition-colors">
+                  <Upload className="w-5 h-5 text-slate-400" />
+                  <span className="text-[10px] text-slate-500 font-bold">انتخاب عکس</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        setTopSwimmerImageFile(file);
+                        setTopSwimmerImagePreview(URL.createObjectURL(file));
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              )}
+
+              <div className="space-y-1 text-xs text-slate-500 leading-relaxed font-medium">
+                <p className="font-bold text-slate-700 dark:text-slate-300">
+                  فرمت‌های مجاز: JPG, PNG, WEBP
+                </p>
+                <p>برای بهترین جلوه بصری در اسلایدر کاورفلو، از تصاویر عمودی با پس‌زمینه استخر استفاده نمایید.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Full Name */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              نام و نام خانوادگی شناگر * (مثال: محمد پارسا صفایی)
+            </label>
+            <input
+              type="text"
+              required
+              value={topSwimmerForm.name}
+              onChange={(e) => setTopSwimmerForm({ ...topSwimmerForm, name: e.target.value })}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-amber-500 outline-none"
+              placeholder="نام و نام خانوادگی"
+            />
+          </div>
+
+          {/* Role / Specialty */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              رشته تخصصی / ماده شنا * (مثال: پروانه، استقامت سینه، مختلط)
+            </label>
+            <input
+              type="text"
+              required
+              value={topSwimmerForm.role}
+              onChange={(e) => setTopSwimmerForm({ ...topSwimmerForm, role: e.target.value })}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-amber-500 outline-none"
+              placeholder="رشته یا استایل شنا"
+            />
+            {/* Quick Suggestion Pills */}
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {['پروانه', 'استقامت سینه', 'کرال سینه', 'کرال پشت', 'قورباغه', 'قورباغه رو', 'مختلط'].map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => setTopSwimmerForm({ ...topSwimmerForm, role: chip })}
+                  className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 cursor-pointer"
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Age Group */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              رده سنی (مثال: ۱۵ تا ۱۷ سال، ۱۸ سال به بالا)
+            </label>
+            <input
+              type="text"
+              value={topSwimmerForm.age}
+              onChange={(e) => setTopSwimmerForm({ ...topSwimmerForm, age: e.target.value })}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-amber-500 outline-none"
+              placeholder="رده سنی شناگر"
+            />
+            {/* Quick Suggestion Pills */}
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {['۱۵ تا ۱۷ سال', '۱۸ سال به بالا', '۱۳ تا ۱۴ سال', '۱۰ تا ۱۲ سال', 'نونهالان'].map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => setTopSwimmerForm({ ...topSwimmerForm, age: chip })}
+                  className="text-[11px] font-bold px-2.5 py-0.5 rounded-lg bg-sky-50 dark:bg-sky-950/40 text-sky-800 dark:text-sky-300 border border-sky-200 dark:border-sky-800 hover:bg-sky-100 cursor-pointer"
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Record / Title / Description */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              افتخارات، رکورد یا عنوان قهرمانی (مثال: رکورددار ۱۰۰ متر پروانه، قهرمان کشور)
+            </label>
+            <input
+              type="text"
+              value={topSwimmerForm.description}
+              onChange={(e) => setTopSwimmerForm({ ...topSwimmerForm, description: e.target.value })}
+              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm font-semibold focus:ring-2 focus:ring-amber-500 outline-none"
+              placeholder="عنوان افتخار یا رکورد"
+            />
+          </div>
+
+          {/* Order & Active */}
+          <div className="grid grid-cols-2 gap-4 pt-1">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                ترتیب نمایش در اسلایدر
+              </label>
+              <input
+                type="number"
+                min="1"
+                value={topSwimmerForm.display_order}
+                onChange={(e) => setTopSwimmerForm({ ...topSwimmerForm, display_order: Number(e.target.value) })}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white text-xs sm:text-sm font-semibold outline-none"
+              />
+            </div>
+
+            <div className="flex items-center gap-2.5 pt-6">
+              <input
+                type="checkbox"
+                id="top_swimmer_active"
+                checked={topSwimmerForm.is_active}
+                onChange={(e) => setTopSwimmerForm({ ...topSwimmerForm, is_active: e.target.checked })}
+                className="w-4 h-4 text-amber-600 rounded border-slate-300 cursor-pointer"
+              />
+              <label htmlFor="top_swimmer_active" className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 cursor-pointer">
+                نمایش در اسلایدر صفحه اصلی
+              </label>
+            </div>
+          </div>
+
+          {/* Form Submit Buttons */}
+          <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setTopSwimmerModalOpen(false)}
+              disabled={topSwimmerSubmitting}
+            >
+              انصراف
+            </Button>
+            <Button
+              type="submit"
+              disabled={topSwimmerSubmitting}
+              className="bg-amber-600 hover:bg-amber-700 text-white font-black"
+            >
+              {topSwimmerSubmitting ? (
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <span>در حال ذخیره...</span>
+                </div>
+              ) : editingTopSwimmer ? (
+                'به‌روزرسانی شناگر'
+              ) : (
+                'ثبت شناگر برتر'
+              )}
+            </Button>
+          </div>
+        </form>
       </Modal>
     </div>
   );

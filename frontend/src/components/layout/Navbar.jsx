@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   LogIn, Menu, X,
   Users2, Award, Building2, Newspaper, PhoneCall, ChevronLeft, BookOpen,
-  Sun, Moon, Waves
+  Sun, Moon, Waves, Trophy
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -88,7 +88,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
     { label: 'اصول و مزایا', href: '/#about', icon: Award, sectionKey: 'about' },
     { label: 'دوره‌ها و کلاس‌ها', href: '/#courses', icon: BookOpen, sectionKey: 'courses' },
     { label: 'استخرهای قزوین', href: '/#pools', icon: Waves, sectionKey: 'pools' },
-    { label: 'امکانات استخر', href: '/#facilities', icon: Building2, sectionKey: 'facilities' },
+    { label: 'شناگران برتر', href: '/#top-swimmers', icon: Trophy, sectionKey: 'top_swimmers' },
     { label: 'کادر مربیان', href: '/#coaches', icon: Users2, sectionKey: 'coaches' },
     { label: 'اخبار و رویدادها', href: '/#news', icon: Newspaper, sectionKey: 'news' },
   ];

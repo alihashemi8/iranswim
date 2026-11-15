@@ -35,6 +35,7 @@ import { AquaticWaveDivider } from '../../components/landing/AquaticWaveDivider'
 import { FloatingLandingWaterIcons } from '../../components/landing/FloatingLandingWaterIcons';
 import { CoachProfileCard } from '../../components/common/CoachProfileCard';
 import { useLandingSections } from '../../context/LandingSectionsContext';
+import TopSwimmersSection from '../../components/landing/TopSwimmersSection';
 import './HomePage.css';
 
 export const toEnglishDigits = (val) => {
@@ -543,47 +544,6 @@ export const HomePage = () => {
     setActiveBenefitDot(closestIndex);
   };
 
-  // Facilities smooth scroll tracking for mobile
-  const facilitiesTrackRef = useRef(null);
-  const [activeFacilityDot, setActiveFacilityDot] = useState(0);
-
-  const handleFacilityScroll = () => {
-    const track = facilitiesTrackRef.current;
-    if (!track) return;
-    const cards = Array.from(track.children);
-    if (!cards || cards.length === 0) return;
-
-    const trackRect = track.getBoundingClientRect();
-    const trackCenter = trackRect.left + trackRect.width / 2;
-    let closestIndex = 0;
-    let minDiff = Infinity;
-
-    cards.forEach((card, idx) => {
-      const cardRect = card.getBoundingClientRect();
-      const cardCenter = cardRect.left + cardRect.width / 2;
-      const diff = Math.abs(trackCenter - cardCenter);
-      if (diff < minDiff) {
-        minDiff = diff;
-        closestIndex = idx;
-      }
-    });
-
-    setActiveFacilityDot(closestIndex);
-  };
-
-  const scrollToFacility = (index) => {
-    const track = facilitiesTrackRef.current;
-    if (!track) return;
-    const cards = Array.from(track.children);
-    const card = cards[index];
-    if (!card) return;
-
-    const trackRect = track.getBoundingClientRect();
-    const cardRect = card.getBoundingClientRect();
-    const delta = (cardRect.left + cardRect.width / 2) - (trackRect.left + trackRect.width / 2);
-    track.scrollBy({ left: delta, behavior: 'smooth' });
-    setActiveFacilityDot(index);
-  };
 
 
 
@@ -1316,159 +1276,22 @@ export const HomePage = () => {
         </div>
         </section>
 
-        {/* Organic Wave Transition: Pools to Facilities */}
+        {/* Organic Wave Transition: Pools to Facilities / Top Swimmers */}
         <AquaticWaveDivider topColor="#bfe9f0" bottomColor="#c2ecf1" flip={true} />
       </>
     )}
 
       {/* =========================================================================
-          SECTION 4: ACADEMY FACILITIES & INFRASTRUCTURE
+          SECTION 4: TOP SWIMMERS (شناگران برتر و استعدادهای درخشان)
           ========================================================================= */}
-      {isSectionEnabled('facilities') && (
+      {(isSectionEnabled('top_swimmers') || isSectionEnabled('facilities')) && (
         <>
-          <section id="facilities" className="relative w-full py-12 sm:py-16 lg:py-20 min-w-0">
-        <FloatingLandingWaterIcons section="facilities" />
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
-          <div className="text-center max-w-2xl mx-auto space-y-2.5">
-            <Badge variant="info">محیط استخر و بهداشت آب</Badge>
-            <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-              امکانات و شرایط بهداشتی استخرها در قزوین
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-              برگزاری کلاس‌ها در استخرهای تمیز و استاندارد شهر قزوین با آب گرم، تصفیه بهداشتی و وسایل کمک‌آموزشی
-            </p>
-            {/* Swipe hint on mobile & tablet */}
-            <div className="flex lg:hidden items-center justify-center gap-1.5 text-[11px] sm:text-xs text-slate-600 pt-1 font-medium">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-600 animate-pulse" />
-              <span>برای مشاهده سایر امکانات به صورت افقی بکشید</span>
-            </div>
-          </div>
+          <TopSwimmersSection />
 
-          <div
-            ref={facilitiesTrackRef}
-            onScroll={handleFacilityScroll}
-            className="landing-facilities-track landing-scroll-track flex overflow-x-auto pt-4 pb-4 px-3 sm:pt-4 sm:pb-5 sm:px-5 gap-5 snap-x snap-mandatory lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:pt-4 lg:pb-5 lg:px-5 items-stretch"
-          >
-            {/* Feature 1 */}
-            <div className="bg-white/95 p-6 rounded-3xl border-2 border-teal-200/80 shadow-[0_8px_24px_rgba(13,148,136,0.08)] hover:shadow-lg hover:border-teal-400 transition-all flex flex-col justify-between w-[82vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-center sm:snap-start lg:w-auto lg:max-w-none lg:shrink">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center border border-teal-200 shadow-xs">
-                    <OzonePurificationIcon className="w-6 h-6" />
-                  </div>
-                  <span className="px-2.5 py-1 text-[10px] font-bold text-teal-800 bg-teal-50 rounded-lg border border-teal-200">
-                    کنترل بهداشت
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  <h4 className="font-bold text-base text-slate-900">آب زلال و تصفیه مداوم</h4>
-                  <p className="text-xs text-slate-600 leading-relaxed text-justify font-medium">
-                    تنظیم دمای آب متناسب با فصل و نظارت پیوسته بر زلالی آب استخر جهت راحتی نوآموزان و پیشگیری از سوزش چشم.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 pt-3 border-t border-teal-100 text-[11px] font-bold text-teal-700 flex items-center justify-between">
-                <span>رعایت بهداشت و سلامت شناگران</span>
-                <Check className="w-3.5 h-3.5 text-teal-600" />
-              </div>
-            </div>
-
-            {/* Feature 2 */}
-            <div className="bg-white/95 p-6 rounded-3xl border-2 border-amber-200/80 shadow-[0_8px_24px_rgba(217,119,6,0.08)] hover:shadow-lg hover:border-amber-400 transition-all flex flex-col justify-between w-[82vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-center sm:snap-start lg:w-auto lg:max-w-none lg:shrink">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-700 flex items-center justify-center border border-amber-200 shadow-xs">
-                    <OlympicPoolLaneIcon className="w-6 h-6" />
-                  </div>
-                  <span className="px-2.5 py-1 text-[10px] font-bold text-amber-800 bg-amber-50 rounded-lg border border-amber-200">
-                    تجهیزات کامل
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  <h4 className="font-bold text-base text-slate-900">وسایل کمک‌آموزشی استاندارد</h4>
-                  <p className="text-xs text-slate-600 leading-relaxed text-justify font-medium">
-                    استفاده از تخته شنا، نودل فومی، فین و جلیقه‌های استاندارد برای یادگیری ایمن‌تر و سریع‌تر دست و پا زدن.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 pt-3 border-t border-amber-100 text-[11px] font-bold text-amber-700 flex items-center justify-between">
-                <span>تسهیل یادگیری نوآموزان</span>
-                <Check className="w-3.5 h-3.5 text-amber-600" />
-              </div>
-            </div>
-
-            {/* Feature 3 */}
-            <div className="bg-white/95 p-6 rounded-3xl border-2 border-orange-200/80 shadow-[0_8px_24px_rgba(234,88,12,0.08)] hover:shadow-lg hover:border-orange-400 transition-all flex flex-col justify-between w-[82vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-center sm:snap-start lg:w-auto lg:max-w-none lg:shrink">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-orange-50 text-orange-700 flex items-center justify-center border border-orange-200 shadow-xs">
-                    <SaunaThermalSpaIcon className="w-6 h-6" />
-                  </div>
-                  <span className="px-2.5 py-1 text-[10px] font-bold text-orange-800 bg-orange-50 rounded-lg border border-orange-200">
-                    امکانات رفاهی
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  <h4 className="font-bold text-base text-slate-900">سونا، جکوزی و دوش تمیز</h4>
-                  <p className="text-xs text-slate-600 leading-relaxed text-justify font-medium">
-                    رختکن‌های تمیز، آب گرم مناسب و دسترسی به جکوزی جهت رفع خستگی و ریکاوری بعد از تمرین.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 pt-3 border-t border-orange-100 text-[11px] font-bold text-orange-700 flex items-center justify-between">
-                <span>ریکاوری و آرامش پس از کلاس</span>
-                <Check className="w-3.5 h-3.5 text-orange-600" />
-              </div>
-            </div>
-
-            {/* Feature 4 */}
-            <div className="bg-white/95 p-6 rounded-3xl border-2 border-indigo-200/80 shadow-[0_8px_24px_rgba(79,70,229,0.08)] hover:shadow-lg hover:border-indigo-400 transition-all flex flex-col justify-between w-[82vw] sm:w-[280px] md:w-[300px] max-w-[320px] shrink-0 snap-center sm:snap-start lg:w-auto lg:max-w-none lg:shrink">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center border border-indigo-200 shadow-xs">
-                    <Clock className="w-6 h-6" />
-                  </div>
-                  <span className="px-2.5 py-1 text-[10px] font-bold text-indigo-800 bg-indigo-50 rounded-lg border border-indigo-200">
-                    سانس‌های مجزا
-                  </span>
-                </div>
-                <div className="space-y-1.5">
-                  <h4 className="font-bold text-base text-slate-900">تایم‌های تفکیک‌شده و منظم</h4>
-                  <p className="text-xs text-slate-600 leading-relaxed text-justify font-medium">
-                    برنامه‌ریزی دقیق سانس‌های ویژه بانوان، آقایان و نونهالان در ساعت‌های عصر و روزهای تعطیل برای رفاه خانواده‌ها.
-                  </p>
-                </div>
-              </div>
-              <div className="mt-4 pt-3 border-t border-indigo-100 text-[11px] font-bold text-indigo-700 flex items-center justify-between">
-                <span>تایم‌بندی منعطف با برنامه شما</span>
-                <Check className="w-3.5 h-3.5 text-indigo-600" />
-              </div>
-            </div>
-          </div>
-
-          {/* Dots Indicator for Mobile & Tablet (Interactive) */}
-          <div className="flex lg:hidden items-center justify-center gap-2 pt-3" aria-hidden="true">
-            {[0, 1, 2, 3].map((idx) => (
-              <button
-                key={idx}
-                type="button"
-                onClick={() => scrollToFacility(idx)}
-                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                  activeFacilityDot === idx
-                    ? 'w-7 bg-teal-500 shadow-sm shadow-teal-500/50'
-                    : 'w-2 bg-teal-900/40 hover:bg-teal-900/60'
-                }`}
-                aria-label={`رفتن به امکان ${idx + 1}`}
-              />
-            ))}
-          </div>
-        </div>
-        </section>
-
-        {/* Organic Wave Transition: Facilities to Coaches */}
-        <AquaticWaveDivider topColor="#c9efe5" bottomColor="#cef0e6" flip={true} />
-      </>
-    )}
+          {/* Organic Wave Transition: Facilities / Top Swimmers to Coaches */}
+          <AquaticWaveDivider topColor="#c9efe5" bottomColor="#cef0e6" flip={true} />
+        </>
+      )}
 
       {/* =========================================================================
           SECTION 5: CERTIFIED FEDERATION COACHES
@@ -1757,11 +1580,11 @@ export const HomePage = () => {
                     </a>
                   </li>
                 )}
-                {isSectionEnabled('facilities') && (
+                {(isSectionEnabled('top_swimmers') || isSectionEnabled('facilities')) && (
                   <li>
-                    <a href="#facilities" className="hover:text-cyan-300 transition-colors flex items-center gap-1.5 py-0.5 group">
+                    <a href="#top-swimmers" className="hover:text-cyan-300 transition-colors flex items-center gap-1.5 py-0.5 group">
                       <span className="text-cyan-400/60 group-hover:text-cyan-300 text-[10px] transition-colors">‹</span>
-                      <span>امکانات و شرایط</span>
+                      <span>شناگران برتر</span>
                     </a>
                   </li>
                 )}

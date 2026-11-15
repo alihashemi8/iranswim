@@ -274,3 +274,25 @@ class LandingSection(models.Model):
         return f"{self.title} ({self.key}) - {status_txt}"
 
 
+class TopSwimmer(models.Model):
+    """شناگران برتر و استعدادهای درخشان آموزشگاه جهت نمایش در اسلایدر کاورفلو صفحه اصلی"""
+    name = models.CharField(_('نام و نام خانوادگی'), max_length=150)
+    role = models.CharField(_('ماده تخصصی / استایل شنا'), max_length=100)
+    age = models.CharField(_('رده سنی'), max_length=100)
+    description = models.CharField(_('عنوان قهرمانی یا افتخار'), max_length=255)
+    image = models.ImageField(_('عکس شناگر'), upload_to='swimmers/top/', null=True, blank=True)
+    display_order = models.PositiveIntegerField(_('ترتیب نمایش'), default=0, db_index=True)
+    is_active = models.BooleanField(_('نمایش در سایت'), default=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _('شناگر برتر')
+        verbose_name_plural = _('شناگران برتر')
+        ordering = ['display_order', 'id']
+
+    def __str__(self):
+        return f"{self.name} - {self.role} ({self.age})"
+
+
+

@@ -36,9 +36,9 @@ export const DEFAULT_LANDING_SECTIONS = [
   },
   {
     key: 'facilities',
-    title: 'امکانات و شرایط بهداشتی استخرها',
-    subtitle: 'محیط استخر و بهداشت آب',
-    description: 'کارت‌های تصفیه مداوم، وسایل کمک‌آموزشی استاندارد، سونا و جکوزی و سانس‌های تفکیک‌شده.',
+    title: 'شناگران برتر و قهرمانان مجموعه',
+    subtitle: 'معرفی قهرمانان و استعدادهای برتر مجموعه',
+    description: 'اسلایدر کاورفلو ۳ بعدی شناگران برتر، رکوردها، رده‌های سنی و افتخارات ورزشی.',
     display_order: 5,
     is_enabled: true,
   },
@@ -104,6 +104,10 @@ export const LandingSectionsProvider = ({ children }) => {
 
   const isSectionEnabled = useCallback(
     (key) => {
+      if (key === 'top_swimmers' || key === 'facilities') {
+        const found = sections.find((s) => s.key === 'top_swimmers' || s.key === 'facilities');
+        return found ? Boolean(found.is_enabled) : true;
+      }
       const found = sections.find((s) => s.key === key);
       return found ? Boolean(found.is_enabled) : true;
     },
@@ -111,17 +115,22 @@ export const LandingSectionsProvider = ({ children }) => {
   );
 
   const toggleSection = async (key) => {
+    const targetKey =
+      key === 'top_swimmers' && !sections.some((s) => s.key === 'top_swimmers')
+        ? 'facilities'
+        : key;
+
     // Optimistic local update
     const previousSections = [...sections];
     setSections((prev) =>
-      prev.map((s) => (s.key === key ? { ...s, is_enabled: !s.is_enabled } : s))
+      prev.map((s) => (s.key === targetKey || (key === 'top_swimmers' && s.key === 'facilities') ? { ...s, is_enabled: !s.is_enabled } : s))
     );
 
     try {
-      const res = await api.post(`/content/landing-sections/${key}/toggle/`);
+      const res = await api.post(`/content/landing-sections/${targetKey}/toggle/`);
       if (res.data) {
         setSections((prev) =>
-          prev.map((s) => (s.key === key ? res.data : s))
+          prev.map((s) => (s.key === targetKey || (key === 'top_swimmers' && s.key === 'facilities') ? res.data : s))
         );
       }
       window.dispatchEvent(new CustomEvent('landing_sections_updated'));

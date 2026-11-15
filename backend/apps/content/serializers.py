@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from .models import (
     NewsPost, NewsImage, SwimmingPool, PoolImage,
-    Announcement, Notification, SupportTicket, LandingSection
+    Announcement, Notification, SupportTicket, LandingSection,
+    TopSwimmer
 )
 
 
@@ -198,6 +199,28 @@ class LandingSectionSerializer(serializers.ModelSerializer):
             'is_enabled', 'display_order', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class TopSwimmerSerializer(serializers.ModelSerializer):
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = TopSwimmer
+        fields = [
+            'id', 'name', 'role', 'age', 'description',
+            'image', 'image_url', 'display_order', 'is_active',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_image_url(self, obj):
+        if obj.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
 
 
 

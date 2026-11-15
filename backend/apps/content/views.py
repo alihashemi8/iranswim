@@ -9,13 +9,14 @@ from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
 from .models import (
     NewsPost, NewsImage, SwimmingPool, PoolImage,
-    Announcement, Notification, SupportTicket, LandingSection
+    Announcement, Notification, SupportTicket, LandingSection,
+    TopSwimmer
 )
 from .serializers import (
     NewsPostSerializer, NewsImageSerializer,
     SwimmingPoolSerializer, PoolImageSerializer,
     AnnouncementSerializer, NotificationSerializer, SupportTicketSerializer,
-    LandingSectionSerializer
+    LandingSectionSerializer, TopSwimmerSerializer
 )
 from apps.accounts.permissions import IsAdminUserRole
 
@@ -498,9 +499,9 @@ DEFAULT_LANDING_SECTIONS = [
     },
     {
         'key': 'facilities',
-        'title': 'امکانات و شرایط بهداشتی استخرها',
-        'subtitle': 'محیط استخر و بهداشت آب',
-        'description': 'کارت‌های تصفیه مداوم، وسایل کمک‌آموزشی استاندارد، سونا و جکوزی و سانس‌های تفکیک‌شده.',
+        'title': 'شناگران برتر و قهرمانان مجموعه',
+        'subtitle': 'معرفی قهرمانان و استعدادهای برتر مجموعه',
+        'description': 'اسلایدر کاورفلو ۳ بعدی شناگران برتر، رکوردها، رده‌های سنی و افتخارات ورزشی.',
         'display_order': 5,
         'is_enabled': True,
     },
@@ -548,6 +549,13 @@ def _ensure_initial_landing_sections():
     if to_create:
         LandingSection.objects.bulk_create(to_create)
 
+    # به‌روزرسانی عنوان بخش facilities به شناگران برتر در صورت وجود عنوان قدیمی
+    LandingSection.objects.filter(key='facilities', title='امکانات و شرایط بهداشتی استخرها').update(
+        title='شناگران برتر و قهرمانان مجموعه',
+        subtitle='معرفی قهرمانان و استعدادهای برتر مجموعه',
+        description='اسلایدر کاورفلو ۳ بعدی شناگران برتر، رکوردها، رده‌های سنی و افتخارات ورزشی.'
+    )
+
 
 class LandingSectionListView(generics.ListCreateAPIView):
     """لیست بخش‌های لندینگ جهت استعلام وضعیت نمایش یا ویرایش بخش‌ها"""
@@ -573,7 +581,11 @@ class LandingSectionListView(generics.ListCreateAPIView):
         for item in sections_data:
             key = item.get('key')
             if key and 'is_enabled' in item:
-                section = LandingSection.objects.filter(key=key).first()
+                section = LandingSection.objects.filter(
+                    Q(key=key) |
+                    (Q(key='facilities') if key == 'top_swimmers' else Q()) |
+                    (Q(key='top_swimmers') if key == 'facilities' else Q())
+                ).first()
                 if section:
                     section.is_enabled = bool(item['is_enabled'])
                     section.save(update_fields=['is_enabled', 'updated_at'])
@@ -594,6 +606,18 @@ class LandingSectionDetailView(generics.RetrieveUpdateAPIView):
             return [permissions.AllowAny()]
         return [IsAdminUserRole()]
 
+    def get_object(self):
+        key = self.kwargs.get(self.lookup_field)
+        section = LandingSection.objects.filter(
+            Q(key=key) |
+            (Q(key='facilities') if key == 'top_swimmers' else Q()) |
+            (Q(key='top_swimmers') if key == 'facilities' else Q())
+        ).first()
+        if not section:
+            from rest_framework.exceptions import NotFound
+            raise NotFound('بخش مورد نظر یافت نشد.')
+        return section
+
 
 class LandingSectionToggleView(APIView):
     """سوئیچ سریع وضعیت فعال/غیرفعال بخش لندینگ توسط مدیر"""
@@ -601,7 +625,11 @@ class LandingSectionToggleView(APIView):
 
     def post(self, request, key):
         _ensure_initial_landing_sections()
-        section = LandingSection.objects.filter(key=key).first()
+        section = LandingSection.objects.filter(
+            Q(key=key) |
+            (Q(key='facilities') if key == 'top_swimmers' else Q()) |
+            (Q(key='top_swimmers') if key == 'facilities' else Q())
+        ).first()
         if not section:
             return Response({'detail': 'بخش مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -614,6 +642,128 @@ class LandingSectionToggleView(APIView):
         section.save(update_fields=['is_enabled', 'updated_at'])
         serializer = LandingSectionSerializer(section)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+def _ensure_initial_top_swimmers():
+    """ثبت شناگران برتر اولیه مطابق با اسکرین‌شات و داده‌های واقعی آموزشگاه"""
+    if TopSwimmer.objects.count() == 0:
+        TopSwimmer.objects.bulk_create([
+            TopSwimmer(
+                name='محمد پارسا صفایی',
+                role='پروانه',
+                age='۱۵ تا ۱۷ سال',
+                description='رکورددار ۱۰۰ متر پروانه',
+                image='swimmers/top/safaei.jpg',
+                display_order=1,
+                is_active=True,
+            ),
+            TopSwimmer(
+                name='کاوه راموز',
+                role='استقامت سینه',
+                age='۱۸ سال به بالا',
+                description='قهرمان کشور',
+                image='swimmers/top/ramooz.jpg',
+                display_order=2,
+                is_active=True,
+            ),
+            TopSwimmer(
+                name='مازیار بگیان',
+                role='پروانه رو',
+                age='۱۸ سال به بالا',
+                description='قهرمان کشور',
+                image='swimmers/top/begian.jpg',
+                display_order=3,
+                is_active=True,
+            ),
+            TopSwimmer(
+                name='فربد ترابی',
+                role='پروانه رو',
+                age='۱۸ سال به بالا',
+                description='قهرمان کشور',
+                image='swimmers/top/torabi.jpg',
+                display_order=4,
+                is_active=True,
+            ),
+            TopSwimmer(
+                name='معراج توروه',
+                role='قورباغه رو',
+                age='۱۸ سال به بالا',
+                description='قهرمان کشور و مسابقات بین‌المللی دبی',
+                image='swimmers/top/toureh.jpg',
+                display_order=5,
+                is_active=True,
+            ),
+            TopSwimmer(
+                name='پوریا سید جعفری',
+                role='مختلط',
+                age='۱۸ سال به بالا',
+                description='قهرمان کشور',
+                image='swimmers/top/jafari.jpg',
+                display_order=6,
+                is_active=True,
+            ),
+            TopSwimmer(
+                name='امیر یعقوبی',
+                role='مختلط',
+                age='۱۳ تا ۱۴ سال',
+                description='قهرمان کشور در رده سنی نوجوانان',
+                image='swimmers/top/yaghoubi.jpg',
+                display_order=7,
+                is_active=True,
+            ),
+        ])
+
+
+class TopSwimmerListView(generics.ListCreateAPIView):
+    """لیست شناگران برتر جهت نمایش در لندینگ و ثبت شناگر جدید توسط مدیر"""
+    serializer_class = TopSwimmerSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    pagination_class = None
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [IsAdminUserRole()]
+
+    def get_queryset(self):
+        _ensure_initial_top_swimmers()
+        user = self.request.user
+        if user and (getattr(user, 'role', '') in ['ADMIN', 'SUPERVISOR'] or getattr(user, 'is_superuser', False)):
+            return TopSwimmer.objects.all().order_by('display_order', 'id')
+        return TopSwimmer.objects.filter(is_active=True).order_by('display_order', 'id')
+
+
+class TopSwimmerDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """مشاهده، ویرایش یا حذف یک شناگر برتر توسط مدیر"""
+    serializer_class = TopSwimmerSerializer
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+    queryset = TopSwimmer.objects.all()
+
+    def get_permissions(self):
+        if self.request.method == 'GET':
+            return [permissions.AllowAny()]
+        return [IsAdminUserRole()]
+
+
+class TopSwimmerReorderView(APIView):
+    """مرتب‌سازی ترتیب نمایش شناگران برتر توسط مدیر"""
+    permission_classes = [IsAdminUserRole]
+
+    def post(self, request):
+        orders = request.data.get('orders', [])
+        if not isinstance(orders, list):
+            return Response({'detail': 'لیست ارسالی نامعتبر است.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        for item in orders:
+            swimmer_id = item.get('id')
+            display_order = item.get('display_order')
+            if swimmer_id is not None and display_order is not None:
+                TopSwimmer.objects.filter(id=swimmer_id).update(display_order=display_order)
+
+        swimmers = TopSwimmer.objects.all().order_by('display_order', 'id')
+        serializer = TopSwimmerSerializer(swimmers, many=True, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 
