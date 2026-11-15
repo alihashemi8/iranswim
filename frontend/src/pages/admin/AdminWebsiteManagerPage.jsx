@@ -121,11 +121,11 @@ export const AdminWebsiteManagerPage = () => {
   const [coachSubmitting, setCoachSubmitting] = useState(false);
 
   const coachDegreeOptions = [
-    { value: 'GRADE_3', label: 'مربیگری درجه ۳ فدراسیون', badge: 'پایه' },
-    { value: 'GRADE_2', label: 'مربیگری درجه ۲ فدراسیون', badge: 'متوسط' },
-    { value: 'GRADE_1', label: 'مربیگری درجه ۱ فدراسیون', badge: 'پیشرفته' },
-    { value: 'NATIONAL', label: 'مربیگری ملی شنا', badge: 'ملی' },
-    { value: 'INTERNATIONAL', label: 'مربیگری بین‌المللی (World Aquatics / FINA)', badge: 'بین‌المللی' },
+    { value: 'GRADE_3', label: 'مربیگری درجه ۳ فدراسیون' },
+    { value: 'GRADE_2', label: 'مربیگری درجه ۲ فدراسیون' },
+    { value: 'GRADE_1', label: 'مربیگری درجه ۱ فدراسیون' },
+    { value: 'NATIONAL', label: 'مربیگری ملی شنا' },
+    { value: 'INTERNATIONAL', label: 'مربیگری بین‌المللی (World Aquatics / FINA)' },
   ];
 
   // =========================================================================

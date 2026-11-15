@@ -57,11 +57,11 @@ export const CoachCompleteProfilePage = () => {
 
   // Degree options matching backend CoachingDegree
   const degreeOptions = [
-    { value: 'GRADE_3', label: 'مربیگری درجه ۳ فدراسیون', badge: 'پایه', description: 'آموزش شنا مقدماتی و تکنیک‌های ۴ شنا' },
-    { value: 'GRADE_2', label: 'مربیگری درجه ۲ فدراسیون', badge: 'متوسط', description: 'تیم‌های پایه و دوره‌های نیمه‌پیشرفته' },
-    { value: 'GRADE_1', label: 'مربیگری درجه ۱ فدراسیون', badge: 'پیشرفته', description: 'تیم‌های استانی و مسابقات حرفه‌ای' },
-    { value: 'NATIONAL', label: 'مربیگری ملی شنا', badge: 'ملی', description: 'تیم‌های لیگ برتر و منتخب استان' },
-    { value: 'INTERNATIONAL', label: 'مربیگری بین‌المللی (FINA / World Aquatics)', badge: 'بین‌المللی', description: 'مربیگری دوره‌های جهانی و بین‌المللی' },
+    { value: 'GRADE_3', label: 'مربیگری درجه ۳ فدراسیون', description: 'آموزش شنا مقدماتی و تکنیک‌های ۴ شنا' },
+    { value: 'GRADE_2', label: 'مربیگری درجه ۲ فدراسیون', description: 'تیم‌های پایه و دوره‌های نیمه‌پیشرفته' },
+    { value: 'GRADE_1', label: 'مربیگری درجه ۱ فدراسیون', description: 'تیم‌های استانی و مسابقات حرفه‌ای' },
+    { value: 'NATIONAL', label: 'مربیگری ملی شنا', description: 'تیم‌های لیگ برتر و منتخب استان' },
+    { value: 'INTERNATIONAL', label: 'مربیگری بین‌المللی (FINA / World Aquatics)', description: 'مربیگری دوره‌های جهانی و بین‌المللی' },
   ];
 
   // Fetch coach current profile data
