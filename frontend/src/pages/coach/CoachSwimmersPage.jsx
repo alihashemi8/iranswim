@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   Users, Search, X, RotateCcw, Layers, Droplets, Award,
   LayoutGrid, Table, TrendingUp, UserCheck, ChevronLeft,
@@ -41,6 +41,7 @@ const attendanceBadge = (rate) => {
 };
 
 export const CoachSwimmersPage = () => {
+  const navigate = useNavigate();
   const toast = useToast();
   const [swimmers, setSwimmers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -570,7 +571,9 @@ export const CoachSwimmersPage = () => {
                 {filteredSwimmers.map((sw) => (
                   <tr
                     key={sw.swimmer_id}
-                    className="hover:bg-emerald-50/40 dark:hover:bg-slate-800/40 transition-colors"
+                    onClick={() => navigate(`/coach/progress/${sw.swimmer_id}`)}
+                    className="cursor-pointer hover:bg-emerald-50/50 dark:hover:bg-slate-800/60 transition-colors group"
+                    title={`مشاهده پرونده و پروفایل ${sw.full_name}`}
                   >
                     {/* نام شناگر */}
                     <td className="py-3.5 px-3 lg:px-4 align-middle">
@@ -657,7 +660,7 @@ export const CoachSwimmersPage = () => {
                     </td>
 
                     {/* عملیات */}
-                    <td className="py-3.5 px-3 lg:px-4 text-center align-middle">
+                    <td className="py-3.5 px-3 lg:px-4 text-center align-middle" onClick={(e) => e.stopPropagation()}>
                       <Link
                         to={`/coach/progress/${sw.swimmer_id}`}
                         className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 text-xs font-black hover:bg-emerald-600 hover:text-white dark:hover:bg-emerald-600 transition-all cursor-pointer"

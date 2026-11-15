@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  Search, X, RotateCcw, Layers, Droplets, ChevronRight, ArrowRight, Play, Square,
+  Search, X, RotateCcw, Layers, Droplets, ChevronRight, ChevronLeft, ArrowRight, Play, Square,
   Save, Timer as TimerIcon, Flag, Users, ArrowLeftRight, MoveRight,
   LayoutGrid, Table, Video, Upload, Trash2, Film, Edit3, CheckCircle2, AlertCircle
 } from 'lucide-react';
@@ -1166,8 +1166,20 @@ export const CoachRecordPage = () => {
               className="text-right bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs p-4 sm:p-5 flex flex-col justify-between transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md"
             >
               <div>
-                <div className="flex items-center gap-3">
-                  <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-xl shrink-0 shadow-xs overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800">
+                <div
+                  onClick={() => navigate(`/coach/progress/${sw.swimmer_id}`)}
+                  className="flex items-center gap-3 cursor-pointer group/card-header"
+                  title={`مشاهده پرونده و پروفایل ${sw.full_name}`}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate(`/coach/progress/${sw.swimmer_id}`);
+                    }
+                  }}
+                >
+                  <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-xl shrink-0 shadow-xs overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800 group-hover/card-header:ring-emerald-400 transition-all">
                     {sw.avatar ? (
                       <img
                         src={sw.avatar}
@@ -1180,8 +1192,9 @@ export const CoachRecordPage = () => {
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm sm:text-[15px] font-black text-slate-900 dark:text-white truncate">
-                      {sw.full_name}
+                    <div className="text-sm sm:text-[15px] font-black text-slate-900 dark:text-white truncate group-hover/card-header:text-emerald-600 dark:group-hover/card-header:text-emerald-400 transition-colors flex items-center gap-1.5">
+                      <span>{sw.full_name}</span>
+                      <ChevronLeft className="w-3.5 h-3.5 opacity-0 group-hover/card-header:opacity-100 transition-all -translate-x-1 group-hover/card-header:translate-x-0 text-emerald-600 dark:text-emerald-400 shrink-0" />
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 font-bold mt-0.5">
                       {sw.displayEnrollments.length} دوره ثبت‌نامی
@@ -1255,12 +1268,22 @@ export const CoachRecordPage = () => {
                     return (
                       <tr
                         key={sw.swimmer_id}
-                        className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
+                        onClick={() => navigate(`/coach/progress/${sw.swimmer_id}`)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            navigate(`/coach/progress/${sw.swimmer_id}`);
+                          }
+                        }}
+                        tabIndex={0}
+                        role="button"
+                        title={`مشاهده پرونده و پروفایل ${sw.full_name}`}
+                        className="cursor-pointer hover:bg-emerald-50/50 dark:hover:bg-slate-800/60 transition-colors group focus:outline-none focus:bg-emerald-50/70 dark:focus:bg-slate-800/80"
                       >
                         {/* نام شناگر */}
                         <td className="py-3.5 px-3 lg:px-4 align-middle">
                           <div className="flex items-center gap-2.5 lg:gap-3">
-                            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-sm shrink-0 overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800">
+                            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-sm shrink-0 overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800 group-hover:ring-emerald-400 transition-all">
                               {sw.avatar ? (
                                 <img
                                   src={sw.avatar}
@@ -1273,8 +1296,9 @@ export const CoachRecordPage = () => {
                               )}
                             </div>
                             <div className="min-w-0">
-                              <div className="text-sm lg:text-[15px] font-black text-slate-900 dark:text-white whitespace-nowrap">
-                                {sw.full_name}
+                              <div className="text-sm lg:text-[15px] font-black text-slate-900 dark:text-white whitespace-nowrap group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors flex items-center gap-1.5">
+                                <span>{sw.full_name}</span>
+                                <ChevronLeft className="w-3.5 h-3.5 opacity-0 group-hover:opacity-100 transition-all -translate-x-1 group-hover:translate-x-0 text-emerald-600 dark:text-emerald-400 shrink-0" />
                               </div>
                               {sw.phone && (
                                 <div className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
@@ -1319,11 +1343,17 @@ export const CoachRecordPage = () => {
                         </td>
 
                         {/* عملیات تفکیک‌شده: ثبت رکورد و فیلم */}
-                        <td className="py-3.5 px-3 lg:px-4 text-center align-middle whitespace-nowrap">
+                        <td
+                          className="py-3.5 px-3 lg:px-4 text-center align-middle whitespace-nowrap"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <div className="flex items-center justify-center gap-1.5">
                             <button
                               type="button"
-                              onClick={() => handleSelectSwimmer(sw, 'record')}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSelectSwimmer(sw, 'record');
+                              }}
                               className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 min-h-[36px] rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap"
                               title={`ثبت رکورد برای ${sw.full_name}`}
                             >
@@ -1332,7 +1362,10 @@ export const CoachRecordPage = () => {
                             </button>
                             <button
                               type="button"
-                              onClick={() => handleSelectSwimmer(sw, 'video')}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleSelectSwimmer(sw, 'video');
+                              }}
                               className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 min-h-[36px] rounded-xl bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 dark:hover:bg-sky-900/50 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 text-xs font-black shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap"
                               title={`فیلم‌های شناگر ${sw.full_name}`}
                             >

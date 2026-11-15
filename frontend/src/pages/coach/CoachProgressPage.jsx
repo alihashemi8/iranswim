@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   TrendingUp, Users, Award, Search,
   ChevronLeft, Calendar, BookOpen, Layers, X, RotateCcw,
@@ -140,6 +140,7 @@ const getClassScheduleInfo = (cls) => {
 };
 
 export const CoachProgressPage = () => {
+  const navigate = useNavigate();
   const [swimmers, setSwimmers] = useState([]);
   const [classes, setClasses] = useState([]);
   const [selectedDay, setSelectedDay] = useState('');
@@ -731,7 +732,9 @@ export const CoachProgressPage = () => {
                     return (
                       <tr
                         key={sw.swimmer_id}
-                        className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
+                        onClick={() => navigate(`/coach/progress/${sw.swimmer_id}`)}
+                        className="cursor-pointer hover:bg-emerald-50/50 dark:hover:bg-slate-800/60 transition-colors group"
+                        title={`مشاهده پرونده و پروفایل ${sw.full_name}`}
                       >
                         <td className="py-3.5 px-3 lg:px-4 font-bold text-slate-900 dark:text-white align-middle">
                           <div className="flex items-center gap-2.5 lg:gap-3">
@@ -821,7 +824,7 @@ export const CoachProgressPage = () => {
                           )}
                         </td>
 
-                        <td className="py-3.5 px-3 lg:px-4 text-center align-middle">
+                        <td className="py-3.5 px-3 lg:px-4 text-center align-middle" onClick={(e) => e.stopPropagation()}>
                           <div className="flex items-center justify-center gap-2">
                             <Link
                               to={`/coach/progress/${sw.swimmer_id}`}
