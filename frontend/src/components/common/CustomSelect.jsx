@@ -16,6 +16,7 @@ export const CustomSelect = ({
   disabled = false,
   clearable = false,
   size = 'md', // 'sm' | 'md'
+  textSize, // optional custom text size override
   color = 'sky', // 'sky' | 'emerald' | 'blue' | 'amber'
   align = 'auto', // 'auto' | 'left' | 'right'
   placement = 'auto', // 'auto' | 'top' | 'bottom'
@@ -268,7 +269,7 @@ export const CustomSelect = ({
       {label && (
         <label
           className={`block font-bold mb-1.5 truncate ${
-            labelClassName || (isCompact ? 'text-xs sm:text-sm text-slate-700 dark:text-slate-300' : 'text-sm sm:text-base text-slate-800 dark:text-slate-200')
+            labelClassName || (isCompact ? 'text-xs text-slate-700 dark:text-slate-300' : 'text-xs sm:text-sm text-slate-700 dark:text-slate-300')
           }`}
         >
           {label}
@@ -282,7 +283,7 @@ export const CustomSelect = ({
         disabled={disabled}
         onClick={handleToggle}
         className={`w-full text-right border transition-all flex items-center justify-between gap-2 cursor-pointer select-none rounded-xl ${
-          isCompact ? 'px-3 py-2 text-xs sm:text-sm min-h-[38px]' : 'px-3.5 py-2.5 text-sm sm:text-base min-h-[44px]'
+          isCompact ? 'px-3 py-2 text-xs min-h-[38px]' : 'px-3.5 py-2.5 text-xs sm:text-sm min-h-[44px]'
         } ${
           disabled ? 'opacity-60 cursor-not-allowed bg-slate-100 dark:bg-slate-800' : ''
         } ${
@@ -308,17 +309,17 @@ export const CustomSelect = ({
           <span
             className={`truncate ${
               isSelectedActive
-                ? 'font-bold text-slate-900 dark:text-white text-sm sm:text-base'
+                ? 'font-bold text-slate-900 dark:text-white'
                 : hasValue
-                ? 'font-medium text-slate-700 dark:text-slate-200 text-sm sm:text-base'
-                : 'text-slate-400 dark:text-slate-500 font-normal text-sm sm:text-base'
-            }`}
+                ? 'font-medium text-slate-700 dark:text-slate-200'
+                : 'text-slate-400 dark:text-slate-500 font-normal'
+            } ${textSize || (isCompact ? 'text-xs' : 'text-xs sm:text-sm')}`}
           >
             {selectedOption ? selectedOption.label : placeholder}
           </span>
           {selectedOption && selectedOption.badge !== undefined && selectedOption.badge !== null && selectedOption.badge !== '' && (
             <span
-              className={`text-xs sm:text-sm px-2 py-0.5 rounded-md font-bold shrink-0 transition-colors ${
+              className={`text-[11px] sm:text-xs px-2 py-0.5 rounded-md font-bold shrink-0 transition-colors ${
                 selectedOption.badgeClassName ||
                 (isSelectedActive
                   ? (colorStyles.selectedBadge || 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300')
@@ -394,7 +395,7 @@ export const CustomSelect = ({
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="جستجو در گزینه‌ها..."
-                  className={`w-full text-sm sm:text-base pr-8 pl-6 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 ${colorStyles.searchFocus}`}
+                  className={`w-full text-xs sm:text-sm pr-8 pl-6 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 ${colorStyles.searchFocus}`}
                 />
                 {searchTerm && (
                   <button
@@ -410,9 +411,9 @@ export const CustomSelect = ({
           )}
 
           {/* Options List */}
-          <div className="max-h-60 overflow-y-auto p-1.5 space-y-1 divide-y-0 text-sm sm:text-base">
+          <div className="max-h-60 overflow-y-auto p-1.5 space-y-1 divide-y-0 text-xs sm:text-sm">
             {filteredOptions.length === 0 ? (
-              <div className="p-3 text-center text-slate-400 text-sm">
+              <div className="p-3 text-center text-slate-400 text-xs sm:text-sm">
                 گزینه‌ای یافت نشد
               </div>
             ) : (
@@ -428,7 +429,9 @@ export const CustomSelect = ({
                     onClick={() => {
                       if (!isDisabled) handleSelect(opt.value);
                     }}
-                    className={`w-full text-right px-3.5 py-2.5 rounded-xl text-sm sm:text-base transition-colors flex items-center justify-between gap-2.5 ${
+                    className={`w-full text-right ${
+                      isCompact ? 'px-2.5 py-1.5 rounded-lg text-xs' : 'px-3 py-2 rounded-xl text-xs sm:text-sm'
+                    } transition-colors flex items-center justify-between gap-2.5 ${
                       isDisabled
                         ? 'opacity-50 cursor-not-allowed bg-slate-50/50 dark:bg-slate-800/40 text-slate-400 dark:text-slate-500'
                         : isSelected
@@ -441,20 +444,24 @@ export const CustomSelect = ({
                   >
                     <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       {OptIcon && (
-                        <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                        <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
                           isSelected
                             ? colorStyles.selectedIconBox
                             : 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'
                         }`}>
-                          <OptIcon className="w-4 h-4" />
+                          <OptIcon className="w-3.5 h-3.5" />
                         </div>
                       )}
                       <div className="min-w-0 flex-1 text-right">
-                        <span className="truncate block font-bold text-slate-900 dark:text-slate-100 text-sm sm:text-base">
+                        <span className={`truncate block font-bold text-slate-900 dark:text-slate-100 ${
+                          textSize || (isCompact ? 'text-xs' : 'text-xs sm:text-sm')
+                        }`}>
                           {opt.label}
                         </span>
                         {opt.description && (
-                          <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 block truncate font-normal mt-0.5">
+                          <span className={`block truncate font-normal mt-0.5 text-slate-500 dark:text-slate-400 ${
+                            isCompact ? 'text-[10px]' : 'text-[11px] sm:text-xs'
+                          }`}>
                             {opt.description}
                           </span>
                         )}
@@ -464,7 +471,7 @@ export const CustomSelect = ({
                     <div className="flex items-center gap-1.5 shrink-0">
                       {(opt.badge !== undefined && opt.badge !== null && opt.badge !== '') && (
                         <span
-                          className={`text-xs sm:text-sm px-2 py-0.5 rounded-md font-bold shrink-0 ${
+                          className={`text-[11px] sm:text-xs px-2 py-0.5 rounded-md font-bold shrink-0 ${
                             opt.badgeClassName ||
                             (isSelected
                               ? (colorStyles.selectedBadge || 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300')

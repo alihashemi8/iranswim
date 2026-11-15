@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   User, Phone, Hash, Calendar, MapPin, ShieldAlert, Award, FileText,
   Clock, Briefcase, Plus, Trash2, Download, AlertCircle, CheckCircle2,
-  FileCheck, Edit3, X, Save
+  FileCheck, Edit3, X, Save, Check, XCircle, Shield
 } from 'lucide-react';
 import { Badge } from '../../../components/common/Badge';
 import { Button } from '../../../components/common/Button';
@@ -27,6 +27,51 @@ export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertif
   });
   const [certFile, setCertFile] = useState(null);
   const [submittingCert, setSubmittingCert] = useState(false);
+
+  // Retraining Review Modal & States
+  const [isRejectModalOpen, setIsRejectModalOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [processingRetraining, setProcessingRetraining] = useState(false);
+
+  // Handle Approve Retraining
+  const handleApproveRetraining = async () => {
+    try {
+      setProcessingRetraining(true);
+      const res = await api.post(`/coaches/${coach.id}/verify-retraining/`, { action: 'APPROVE' });
+      toast.success(res.data.message || 'گواهی بازآموزی سال جاری با موفقیت تأیید شد.');
+      if (onCoachUpdated) onCoachUpdated();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.detail || 'خطا در تأیید گواهی بازآموزی');
+    } finally {
+      setProcessingRetraining(false);
+    }
+  };
+
+  // Handle Reject Retraining
+  const handleRejectRetraining = async (e) => {
+    e?.preventDefault();
+    if (!rejectionReason.trim()) {
+      toast.error('لطفاً دلیل عدم تأیید گواهی بازآموزی را وارد فرمایید.');
+      return;
+    }
+    try {
+      setProcessingRetraining(true);
+      const res = await api.post(`/coaches/${coach.id}/verify-retraining/`, {
+        action: 'REJECT',
+        reason: rejectionReason.trim(),
+      });
+      toast.success(res.data.message || 'گواهی بازآموزی رد شد و به مربی اطلاع‌رسانی گردید.');
+      setIsRejectModalOpen(false);
+      setRejectionReason('');
+      if (onCoachUpdated) onCoachUpdated();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.detail || 'خطا در ثبت عدم تأیید گواهی بازآموزی');
+    } finally {
+      setProcessingRetraining(false);
+    }
+  };
 
   // Handle Add Certificate
   const handleAddCertSubmit = async (e) => {
@@ -308,6 +353,133 @@ export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertif
         </div>
       </div>
 
+      {/* بخش اختصاصی: بازآموزی سال جاری و تأیید مدیریت */}
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border-2 border-emerald-300 dark:border-emerald-700/80 p-5 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+          <div className="space-y-1">
+            <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-emerald-600 text-white shadow-xs">
+                <FileCheck className="w-4 h-4" />
+              </span>
+              <span>گواهی دوره بازآموزی سال جاری ({coach.retraining_year || 1405})</span>
+            </h4>
+            <p className="text-xs text-slate-500">
+              اعتبار سالانه تا پایان اسفند ماه • نیازمند بررسی و تأیید صلاحیت اداری توسط مدیر
+            </p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {coach.retraining_status === 'APPROVED' ? (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-800">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>تأییدشده و معتبر</span>
+              </span>
+            ) : coach.retraining_status === 'PENDING' ? (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-800">
+                <Clock className="w-3.5 h-3.5 text-amber-600" />
+                <span>در انتظار بررسی و تأیید مدیر</span>
+              </span>
+            ) : coach.retraining_status === 'REJECTED' ? (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-200 border border-rose-300 dark:border-rose-800">
+                <AlertCircle className="w-3.5 h-3.5 text-rose-600" />
+                <span>رد شده / نیازمند اصلاح</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700">
+                <span>بارگذاری‌نشده</span>
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Content Details */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
+          <div className="space-y-3 bg-slate-50/70 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">فایل مدرک بازآموزی:</span>
+              {coach.retraining_certificate_file_url || coach.retraining_certificate_file ? (
+                <a
+                  href={coach.retraining_certificate_file_url || coach.retraining_certificate_file}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 font-bold text-emerald-600 hover:text-emerald-700 bg-white dark:bg-slate-900 px-3 py-1 rounded-lg border border-emerald-300 dark:border-emerald-700 shadow-2xs text-xs"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>دانلود / مشاهده گواهی بازآموزی</span>
+                </a>
+              ) : (
+                <span className="text-rose-500 font-semibold">مدرکی توسط مربی بارگذاری نشده است</span>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">تاریخ انقضای اعتبار قانونی:</span>
+              <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                {coach.retraining_expiry_date_jalali ? `تا ${coach.retraining_expiry_date_jalali} (پایان اسفند)` : (coach.retraining_year ? `تا ۲۹ اسفند ${coach.retraining_year}` : 'تا آخر اسفند سال جاری')}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <span className="text-slate-500">وضعیت انقضا:</span>
+              {coach.is_retraining_valid ? (
+                <span className="font-bold text-emerald-600 text-xs">دارای اعتبار قانونی تا پایان سال ✓</span>
+              ) : coach.is_retraining_expired ? (
+                <span className="font-bold text-rose-600 text-xs">منقضی‌شده (نیاز به بازآموزی سال جدید)</span>
+              ) : (
+                <span className="text-slate-500 text-xs">منوط به تأیید مدیریت</span>
+              )}
+            </div>
+
+            {coach.retraining_verified_by_name && (
+              <div className="flex items-center justify-between pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
+                <span className="text-slate-500">بررسی‌کننده:</span>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">
+                  {coach.retraining_verified_by_name}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col justify-between space-y-3 bg-slate-50/70 dark:bg-slate-800/40 p-4 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+            {coach.retraining_status === 'REJECTED' && coach.retraining_rejection_reason ? (
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 rounded-xl border border-rose-200 dark:border-rose-900/60 text-xs">
+                <span className="font-bold text-rose-800 dark:text-rose-300 block mb-1">دلیل رد مدرک توسط مدیر:</span>
+                <p className="text-rose-700 dark:text-rose-300 leading-relaxed">{coach.retraining_rejection_reason}</p>
+              </div>
+            ) : (
+              <p className="text-xs text-slate-500 leading-relaxed">
+                بر اساس ضوابط رسمی، مربیان تنها در صورتی مجاز به هدایت کلاس‌های شنا و دریافت ابلاغیه آموزشی هستند که گواهی بازآموزی سال جاری را گذرانده و تأییدیه مدیریت را دریافت کرده باشند.
+              </p>
+            )}
+
+            {/* Admin Verification Actions */}
+            <div className="pt-3 border-t border-slate-200/50 dark:border-slate-700/50 flex flex-wrap items-center gap-2 justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsRejectModalOpen(true)}
+                disabled={processingRetraining || !coach.retraining_certificate_file}
+                className="gap-1.5 text-xs text-rose-600 hover:text-rose-700 border-rose-200 dark:border-rose-800 hover:bg-rose-50 dark:hover:bg-rose-950/30"
+              >
+                <XCircle className="w-3.5 h-3.5 text-rose-600" />
+                <span>رد / نیاز به اصلاح</span>
+              </Button>
+
+              <Button
+                size="sm"
+                onClick={handleApproveRetraining}
+                loading={processingRetraining}
+                disabled={processingRetraining || !coach.retraining_certificate_file || coach.retraining_status === 'APPROVED'}
+                className="gap-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 text-white"
+              >
+                <Check className="w-3.5 h-3.5" />
+                <span>{coach.retraining_status === 'APPROVED' ? 'تأیید مجدد' : 'تأیید گواهی بازآموزی'}</span>
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Section C: Certificates and Diplomas */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
@@ -397,6 +569,55 @@ export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertif
           </div>
         )}
       </div>
+
+      {/* Modal: Rejection Reason for Retraining */}
+      <Modal
+        isOpen={isRejectModalOpen}
+        onClose={() => setIsRejectModalOpen(false)}
+        title="ثبت عدم تأیید گواهی بازآموزی سال جاری"
+        size="md"
+      >
+        <form onSubmit={handleRejectRetraining} className="space-y-4">
+          <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+            علت عدم تأیید مدرک را مشخص فرمایید. این توضیح به عنوان پیام سیستمی به مربی ارسال خواهد شد تا نسبت به اصلاح و بارگذاری مجدد فایل اقدام نماید.
+          </p>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+              دلیل عدم تأیید یا موارد نیازمند اصلاح <span className="text-rose-500">*</span>
+            </label>
+            <textarea
+              rows={4}
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              placeholder="مثال: گواهی مربوط به سال گذشته است، کیفیت تصویر ناخواناست، مدرک فاقد مهر هیئت شنا است..."
+              className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white text-xs leading-relaxed"
+              required
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsRejectModalOpen(false)}
+              disabled={processingRetraining}
+            >
+              انصراف
+            </Button>
+            <Button
+              type="submit"
+              size="sm"
+              loading={processingRetraining}
+              className="bg-rose-600 hover:bg-rose-500 text-white gap-1.5"
+            >
+              <XCircle className="w-4 h-4" />
+              <span>ثبت عدم تأیید و ارسال به مربی</span>
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };

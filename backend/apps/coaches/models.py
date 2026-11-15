@@ -28,6 +28,12 @@ class CoachProfile(models.Model):
         INTERNATIONAL = 'INTERNATIONAL', _('مربیگری بین‌المللی')
         OTHER = 'OTHER', _('سایر مدارک رسمی')
 
+    class RetrainingStatus(models.TextChoices):
+        UNUPLOADED = 'UNUPLOADED', _('بارگذاری‌نشده')
+        PENDING = 'PENDING', _('در انتظار بررسی و تأیید مدیر')
+        APPROVED = 'APPROVED', _('تأییدشده')
+        REJECTED = 'REJECTED', _('رد شده / نیازمند اصلاح')
+
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -70,6 +76,48 @@ class CoachProfile(models.Model):
     years_of_experience = models.PositiveIntegerField(_('سابقه کار (سال)'), default=0)
     bio = models.TextField(_('رزومه و بیوگرافی'), blank=True)
     resume_file = models.FileField(_('فایل رزومه'), upload_to='coach_resumes/', null=True, blank=True)
+
+    # Annual Retraining / دوره بازآموزی سال جاری
+    retraining_certificate_file = models.FileField(
+        _('فایل بازآموزی سال جاری'),
+        upload_to='coach_retraining/',
+        null=True,
+        blank=True
+    )
+    retraining_year = models.PositiveIntegerField(
+        _('سال بازآموزی'),
+        null=True,
+        blank=True
+    )
+    retraining_status = models.CharField(
+        _('وضعیت تأیید بازآموزی'),
+        max_length=20,
+        choices=RetrainingStatus.choices,
+        default=RetrainingStatus.UNUPLOADED,
+        db_index=True
+    )
+    retraining_expiry_date = models.DateField(
+        _('تاریخ انقضای بازآموزی'),
+        null=True,
+        blank=True
+    )
+    retraining_rejection_reason = models.TextField(
+        _('دلیل رد یا عدم تأیید بازآموزی'),
+        blank=True
+    )
+    retraining_verified_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name='verified_retrainings',
+        verbose_name=_('مدیر بررسی‌کننده بازآموزی')
+    )
+    retraining_verified_at = models.DateTimeField(
+        _('زمان بررسی بازآموزی'),
+        null=True,
+        blank=True
+    )
 
     # Financial & Banking details
     card_number = models.CharField(_('شماره کارت'), max_length=20, blank=True)
@@ -169,6 +217,36 @@ class CoachProfile(models.Model):
     def get_coaching_degree_display(self):
         degree_map = dict(self.CoachingDegree.choices)
         return degree_map.get(self.coaching_degree, self.coaching_degree or 'نامشخص')
+
+    def get_retraining_status_display(self):
+        status_map = dict(self.RetrainingStatus.choices)
+        return status_map.get(self.retraining_status, self.retraining_status or 'نامشخص')
+
+    @classmethod
+    def get_current_jalali_year(cls):
+        from apps.coaches.date_utils import get_current_jalali_year
+        return get_current_jalali_year()
+
+    @classmethod
+    def get_esfand_end_date(cls, jy=None):
+        from apps.coaches.date_utils import get_esfand_end_date
+        return get_esfand_end_date(jy)
+
+    @property
+    def is_retraining_valid(self):
+        import datetime
+        today = datetime.date.today()
+        if self.retraining_status == self.RetrainingStatus.APPROVED and self.retraining_expiry_date:
+            return self.retraining_expiry_date >= today
+        return False
+
+    @property
+    def is_retraining_expired(self):
+        import datetime
+        today = datetime.date.today()
+        if self.retraining_expiry_date:
+            return self.retraining_expiry_date < today
+        return False
 
     @property
     def active_contract(self):

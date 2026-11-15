@@ -9,7 +9,7 @@ from .views import (
 )
 from .hr_views import (
     CoachStatisticsView, CoachListHRView, CoachDetailHRView,
-    CoachChangeStatusView, CoachCertificateListCreateView, CoachCertificateDetailView,
+    CoachChangeStatusView, CoachVerifyRetrainingView, CoachCertificateListCreateView, CoachCertificateDetailView,
     CoachContractListCreateView, CoachContractDetailView, CoachContractRenewView,
     CoachPayrollListCreateView, CoachPayrollDetailView, CoachPayrollApproveView,
     PayrollAdjustmentCreateView, CoachPaymentCreateView, CoachPaymentReverseView,
@@ -59,6 +59,7 @@ urlpatterns = [
 
     # 6. Coach Profile & Sub-modules
     path('<int:pk>/change-status/', CoachChangeStatusView.as_view(), name='coach_change_status'),
+    path('<int:pk>/verify-retraining/', CoachVerifyRetrainingView.as_view(), name='coach_verify_retraining'),
     path('<int:pk>/certificates/', CoachCertificateListCreateView.as_view(), name='coach_certificates'),
     path('<int:pk>/contracts/', CoachContractListCreateView.as_view(), name='coach_contracts'),
     path('<int:pk>/payrolls/', CoachPayrollListCreateView.as_view(), name='coach_payrolls'),

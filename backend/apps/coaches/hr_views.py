@@ -280,7 +280,8 @@ class CoachDetailHRView(generics.RetrieveUpdateDestroyAPIView):
     COACH_SELF_UPDATE_ALLOWED_FIELDS = {
         'coaching_degree', 'coaching_certificate_date', 'years_of_experience',
         'card_number', 'shaba_number',
-        'bio', 'emergency_contact_name', 'emergency_contact_phone', 'address'
+        'bio', 'emergency_contact_name', 'emergency_contact_phone', 'address',
+        'retraining_certificate_file'
     }
 
     def get_permissions(self):
@@ -300,6 +301,11 @@ class CoachDetailHRView(generics.RetrieveUpdateDestroyAPIView):
             disallowed = set(serializer.validated_data.keys()) - self.COACH_SELF_UPDATE_ALLOWED_FIELDS
             if disallowed:
                 raise PermissionDenied('شما فقط مجاز به ویرایش فیلدهای مشخصات فردی و تخصصی خود هستید.')
+            if 'retraining_certificate_file' in serializer.validated_data and serializer.validated_data['retraining_certificate_file']:
+                serializer.validated_data['retraining_status'] = CoachProfile.RetrainingStatus.PENDING
+                serializer.validated_data['retraining_year'] = CoachProfile.get_current_jalali_year()
+                serializer.validated_data['retraining_expiry_date'] = CoachProfile.get_esfand_end_date(serializer.validated_data['retraining_year'])
+                serializer.validated_data['retraining_rejection_reason'] = ''
             serializer.save()
             return
         raise PermissionDenied('شما مجاز به ویرایش پرونده این مربی نیستید.')
@@ -354,6 +360,95 @@ class CoachChangeStatusView(APIView):
             'message': f'وضعیت مربی {coach.full_name} با موفقیت به {new_status_display} تغییر یافت.',
             'employment_status': new_status
         })
+
+
+class CoachVerifyRetrainingView(APIView):
+    """
+    بررسی و تأیید یا رد مدرک بازآموزی سال جاری مربی توسط مدیر / سوپروایزر
+    """
+    permission_classes = [IsAdminOrSupervisor]
+
+    def post(self, request, pk):
+        coach = get_target_coach(request, pk)
+        action = str(request.data.get('action', '')).upper()
+        reason = str(request.data.get('reason', '')).strip()
+
+        if not coach.retraining_certificate_file:
+            return Response({'detail': 'هنوز فایلی برای بازآموزی سال جاری توسط این مربی بارگذاری نشده است.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        current_year = CoachProfile.get_current_jalali_year()
+        if not coach.retraining_year:
+            coach.retraining_year = current_year
+
+        if not coach.retraining_expiry_date:
+            coach.retraining_expiry_date = CoachProfile.get_esfand_end_date(coach.retraining_year)
+
+        from apps.coaches.date_utils import format_jalali_date
+        esfand_date_str = format_jalali_date(coach.retraining_expiry_date)
+
+        from apps.content.models import Notification
+
+        if action == 'APPROVE':
+            coach.retraining_status = CoachProfile.RetrainingStatus.APPROVED
+            coach.retraining_verified_by = request.user
+            coach.retraining_verified_at = timezone.now()
+            coach.retraining_rejection_reason = ''
+            coach.save()
+
+            CoachActivityLogger.log(
+                coach=coach,
+                event_type=CoachActivityLog.EventType.PROFILE_UPDATED,
+                actor=request.user,
+                description=f"تأیید رسمی گواهی بازآموزی سال {coach.retraining_year} (معتبر تا ۲۹ اسفند {coach.retraining_year})",
+                metadata={'action': 'APPROVE', 'year': coach.retraining_year, 'expiry': str(coach.retraining_expiry_date)}
+            )
+
+            if coach.user:
+                Notification.objects.create(
+                    recipient=coach.user,
+                    title='تأیید گواهی بازآموزی سال جاری',
+                    message=f'گواهی دوره بازآموزی سال {coach.retraining_year} شما توسط مدیریت آموزشگاه تأیید گردید. این گواهی تا پایان اسفند ماه ({esfand_date_str}) دارای اعتبار است.',
+                    category=Notification.Category.ANNOUNCEMENT,
+                    link='/coach/complete-profile'
+                )
+
+            return Response({
+                'status': 'success',
+                'message': f'گواهی بازآموزی سال {coach.retraining_year} مربی با موفقیت تأیید شد.',
+                'coach': CoachProfileSerializer(coach, context={'request': request}).data
+            })
+
+        elif action == 'REJECT':
+            coach.retraining_status = CoachProfile.RetrainingStatus.REJECTED
+            coach.retraining_verified_by = request.user
+            coach.retraining_verified_at = timezone.now()
+            coach.retraining_rejection_reason = reason or 'مدارک نامعتبر یا غیرقابل خواندن است.'
+            coach.save()
+
+            CoachActivityLogger.log(
+                coach=coach,
+                event_type=CoachActivityLog.EventType.PROFILE_UPDATED,
+                actor=request.user,
+                description=f"عدم تأیید گواهی بازآموزی سال {coach.retraining_year} - علت: {coach.retraining_rejection_reason}",
+                metadata={'action': 'REJECT', 'year': coach.retraining_year, 'reason': coach.retraining_rejection_reason}
+            )
+
+            if coach.user:
+                Notification.objects.create(
+                    recipient=coach.user,
+                    title='نیاز به اصلاح گواهی بازآموزی',
+                    message=f'گواهی بازآموزی سال {coach.retraining_year} شما مورد تأیید قرار نگرفت. علت: {coach.retraining_rejection_reason}. لطفاً نسبت به اصلاح و بارگذاری مجدد در مرحله ۳ پرونده اقدام فرمایید.',
+                    category=Notification.Category.ANNOUNCEMENT,
+                    link='/coach/complete-profile'
+                )
+
+            return Response({
+                'status': 'success',
+                'message': 'وضعیت بازآموزی مربی به «رد شده / نیازمند اصلاح» تغییر یافت.',
+                'coach': CoachProfileSerializer(coach, context={'request': request}).data
+            })
+
+        return Response({'detail': 'عملیات نامعتبر است. مقدار action باید APPROVE یا REJECT باشد.'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 class CoachCertificateListCreateView(APIView):

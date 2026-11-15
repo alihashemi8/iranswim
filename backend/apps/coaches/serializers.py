@@ -312,6 +312,20 @@ class CoachProfileSerializer(serializers.ModelSerializer):
     active_contract_summary = serializers.SerializerMethodField()
     current_month_payroll_status = serializers.SerializerMethodField()
 
+    # Retraining (بازآموزی سال جاری)
+    retraining_certificate_file = serializers.FileField(required=False, allow_null=True)
+    retraining_certificate_file_url = serializers.SerializerMethodField()
+    retraining_year = serializers.IntegerField(required=False, allow_null=True)
+    retraining_status = serializers.CharField(required=False)
+    retraining_status_display = serializers.CharField(source='get_retraining_status_display', read_only=True)
+    retraining_expiry_date = serializers.DateField(required=False, allow_null=True)
+    retraining_expiry_date_jalali = serializers.SerializerMethodField()
+    is_retraining_valid = serializers.BooleanField(read_only=True)
+    is_retraining_expired = serializers.BooleanField(read_only=True)
+    retraining_rejection_reason = serializers.CharField(required=False, allow_blank=True)
+    retraining_verified_by_name = serializers.SerializerMethodField()
+    retraining_verified_at = serializers.DateTimeField(read_only=True)
+
     class Meta:
         model = CoachProfile
         fields = [
@@ -329,7 +343,14 @@ class CoachProfileSerializer(serializers.ModelSerializer):
             'hourly_rate', 'fixed_monthly_salary', 'revenue_percentage', 'percentage_revenue_basis',
             'contractual_weekly_hours', 'assigned_groups_count', 'active_classes_count',
             'assigned_group_names', 'attendance_count', 'payroll_summary',
-            'active_contract_summary', 'current_month_payroll_status', 'created_at', 'updated_at'
+            'active_contract_summary', 'current_month_payroll_status',
+            'retraining_certificate_file', 'retraining_certificate_file_url',
+            'retraining_year', 'retraining_status', 'retraining_status_display',
+            'retraining_expiry_date', 'retraining_expiry_date_jalali',
+            'is_retraining_valid', 'is_retraining_expired',
+            'retraining_rejection_reason', 'retraining_verified_by_name',
+            'retraining_verified_at',
+            'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
         extra_kwargs = {
@@ -452,9 +473,28 @@ class CoachProfileSerializer(serializers.ModelSerializer):
             validate_password_complexity(value)
         return value
 
+    def get_retraining_certificate_file_url(self, obj):
+        if obj.retraining_certificate_file:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.retraining_certificate_file.url)
+            return obj.retraining_certificate_file.url
+        return None
+
+    def get_retraining_expiry_date_jalali(self, obj):
+        if obj.retraining_expiry_date:
+            from apps.coaches.date_utils import format_jalali_date
+            return format_jalali_date(obj.retraining_expiry_date)
+        return None
+
+    def get_retraining_verified_by_name(self, obj):
+        if obj.retraining_verified_by:
+            return obj.retraining_verified_by.get_full_name() or obj.retraining_verified_by.phone
+        return None
+
     def to_internal_value(self, data):
         data = data.copy() if hasattr(data, 'copy') else dict(data)
-        for date_field in ['date_of_birth', 'coaching_certificate_date', 'lifeguard_expiration', 'employment_start_date']:
+        for date_field in ['date_of_birth', 'coaching_certificate_date', 'lifeguard_expiration', 'employment_start_date', 'retraining_expiry_date']:
             if date_field in data and (data[date_field] == '' or data[date_field] is None):
                 data[date_field] = None
 

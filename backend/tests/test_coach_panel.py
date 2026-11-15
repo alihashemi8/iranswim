@@ -545,8 +545,9 @@ def test_coach_profile_completion_and_validation(coach_user):
     assert 'شماره کارت ۱۶ رقمی معتبر' in fail_res.data['missing_fields']
     assert 'شماره شبا معتبر' in fail_res.data['missing_fields']
     assert 'آپلود مدرک مربیگری' in fail_res.data['missing_fields']
+    assert 'آپلود گواهی بازآموزی سال جاری' in fail_res.data['missing_fields']
 
-    # 3. Complete submission with all 14 mandatory fields
+    # 3. Complete submission with all mandatory fields including retraining
     complete_payload = {
         'first_name': 'رضا',
         'last_name': 'سهرابی',
@@ -562,6 +563,7 @@ def test_coach_profile_completion_and_validation(coach_user):
         'emergency_contact_name': 'علی سهرابی (برادر)',
         'emergency_contact_phone': '09123334455',
         'coaching_certificate_file': create_dummy_file('certificate.jpg'),
+        'retraining_certificate_file': create_dummy_file('retraining.jpg'),
     }
 
     comp_res = client.post('/api/coaches/me/complete/', complete_payload, format='multipart')
@@ -572,6 +574,9 @@ def test_coach_profile_completion_and_validation(coach_user):
     assert comp_res.data['profile']['coaching_degree'] == 'درجه ۲'
     assert comp_res.data['profile']['card_number'] == '6037991122334455'
     assert comp_res.data['profile']['shaba_number'] == 'IR120170000000112233445566'
+    assert comp_res.data['profile']['retraining_status'] == 'PENDING'
+    assert comp_res.data['profile']['retraining_year'] is not None
+    assert comp_res.data['profile']['retraining_expiry_date'] is not None
 
     # Check database persistence and user sync
     coach_user.refresh_from_db()
@@ -580,5 +585,32 @@ def test_coach_profile_completion_and_validation(coach_user):
     assert coach_user.national_id == '0077889911'
     coach_profile = coach_user.coach_profile
     assert coach_profile.is_profile_completed is True
+    assert coach_profile.retraining_status == CoachProfile.RetrainingStatus.PENDING
+
+    # 4. Admin verifies and approves retraining
+    admin_user = User.objects.create_user(phone='09129998877', password='AdminPassword123!', role=User.Role.ADMIN)
+    admin_client = APIClient()
+    admin_client.force_authenticate(user=admin_user)
+
+    verify_res = admin_client.post(f'/api/coaches/{coach_profile.id}/verify-retraining/', {'action': 'APPROVE'})
+    assert verify_res.status_code == 200
+    assert verify_res.data['coach']['retraining_status'] == 'APPROVED'
+    assert verify_res.data['coach']['is_retraining_valid'] is True
+
+    coach_profile.refresh_from_db()
+    assert coach_profile.retraining_status == CoachProfile.RetrainingStatus.APPROVED
+    assert coach_profile.is_retraining_valid is True
+
+    # 5. Admin can reject with reason
+    reject_res = admin_client.post(f'/api/coaches/{coach_profile.id}/verify-retraining/', {
+        'action': 'REJECT',
+        'reason': 'کیفیت تصویر ارسالی پایین است و مهر فدراسیون مشخص نیست.'
+    })
+    assert reject_res.status_code == 200
+    assert reject_res.data['coach']['retraining_status'] == 'REJECTED'
+    assert 'کیفیت تصویر' in reject_res.data['coach']['retraining_rejection_reason']
+    coach_profile.refresh_from_db()
+    assert coach_profile.retraining_status == CoachProfile.RetrainingStatus.REJECTED
+    assert coach_profile.is_retraining_valid is False
 
 

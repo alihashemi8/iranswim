@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import {
   User, Calendar, CreditCard, Home, Phone, Upload, CheckCircle2,
   AlertCircle, ShieldCheck, FileText, Sparkles, ArrowLeft, ArrowRight,
-  Eye, MapPin, Briefcase, Award, Shield, FileCheck, Check
+  Eye, MapPin, Briefcase, Award, Shield, FileCheck, Check, Clock
 } from 'lucide-react';
+import * as jalaali from 'jalaali-js';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -49,11 +50,27 @@ export const CoachCompleteProfilePage = () => {
   const [resumeFile, setResumeFile] = useState(null);
   const [resumeFileName, setResumeFileName] = useState('');
 
+  // بازآموزی سال جاری
+  const [retrainingCertificateFile, setRetrainingCertificateFile] = useState(null);
+  const [retrainingCertificateFilePreview, setRetrainingCertificateFilePreview] = useState(null);
+  const [retrainingStatus, setRetrainingStatus] = useState('UNUPLOADED');
+  const [retrainingYear, setRetrainingYear] = useState(null);
+  const [retrainingExpiryDate, setRetrainingExpiryDate] = useState('');
+  const [retrainingRejectionReason, setRetrainingRejectionReason] = useState('');
+
   // Step 4: اطلاعات بانکی
   const [cardNumber, setCardNumber] = useState('');
   const [shabaNumber, setShabaNumber] = useState('');
 
   const [isCompletedBefore, setIsCompletedBefore] = useState(false);
+
+  const currentJalaliYear = React.useMemo(() => {
+    try {
+      return jalaali.toJalaali(new Date()).jy;
+    } catch {
+      return 1405;
+    }
+  }, []);
 
   // Degree options matching backend CoachingDegree
   const degreeOptions = [
@@ -93,6 +110,14 @@ export const CoachCompleteProfilePage = () => {
         if (data.resume_file) {
           setResumeFileName(data.resume_file.split('/').pop() || 'فایل رزومه');
         }
+
+        if (data.retraining_certificate_file_url || data.retraining_certificate_file) {
+          setRetrainingCertificateFilePreview(data.retraining_certificate_file_url || data.retraining_certificate_file);
+        }
+        if (data.retraining_status) setRetrainingStatus(data.retraining_status);
+        if (data.retraining_year) setRetrainingYear(data.retraining_year);
+        if (data.retraining_expiry_date) setRetrainingExpiryDate(data.retraining_expiry_date);
+        if (data.retraining_rejection_reason) setRetrainingRejectionReason(data.retraining_rejection_reason);
 
         setCardNumber(data.card_number || '');
         setShabaNumber(data.shaba_number || '');
@@ -192,6 +217,10 @@ export const CoachCompleteProfilePage = () => {
       setError('بارگذاری تصویر یا فایل مدرک مربیگری الزامی است.');
       return false;
     }
+    if (!retrainingCertificateFile && !retrainingCertificateFilePreview) {
+      setError('بارگذاری فایل گواهی بازآموزی سال جاری الزامی است.');
+      return false;
+    }
     if (yearsOfExperience === '' || Number(yearsOfExperience) < 0) {
       setError('سابقه کار مربیگری الزامی است.');
       return false;
@@ -269,6 +298,7 @@ export const CoachCompleteProfilePage = () => {
       formData.append('coaching_degree', coachingDegree);
       formData.append('coaching_certificate_date', coachingCertificateDate);
       if (coachingCertificateFile) formData.append('coaching_certificate_file', coachingCertificateFile);
+      if (retrainingCertificateFile) formData.append('retraining_certificate_file', retrainingCertificateFile);
       formData.append('years_of_experience', Number(yearsOfExperience || 0));
       formData.append('bio', bio.trim());
       if (resumeFile) formData.append('resume_file', resumeFile);
@@ -685,6 +715,111 @@ export const CoachCompleteProfilePage = () => {
                     className="hidden"
                   />
                 </label>
+              </div>
+
+              {/* بخش بازآموزی سال جاری */}
+              <div className="sm:col-span-2 p-4 sm:p-5 rounded-2xl border-2 border-emerald-300 dark:border-emerald-700/80 bg-gradient-to-br from-emerald-50/70 via-teal-50/40 to-cyan-50/50 dark:from-emerald-950/30 dark:via-teal-950/20 dark:to-cyan-950/30 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-3 border-b border-emerald-200/80 dark:border-emerald-800/80">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="p-1.5 rounded-lg bg-emerald-600 text-white shadow-xs">
+                        <FileCheck className="w-4 h-4" />
+                      </span>
+                      <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white">
+                        بازآموزی سال جاری ({currentJalaliYear}) <span className="text-rose-500">*</span>
+                      </h3>
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                      طبق آیین‌نامه فدراسیون شنا، مربیان ملزم به شرکت در دوره‌های بازآموزی سالانه هستند. این مدرک تا <strong className="text-emerald-700 dark:text-emerald-300">پایان اسفند ماه ({currentJalaliYear})</strong> دارای اعتبار است و پس از آپلود، نیازمند تأیید مدیریت می‌باشد.
+                    </p>
+                  </div>
+
+                  {/* Status Badge */}
+                  <div className="shrink-0">
+                    {retrainingStatus === 'APPROVED' ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-700 text-xs font-bold shadow-2xs">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <span>تأییدشده توسط مدیر</span>
+                      </span>
+                    ) : retrainingStatus === 'PENDING' ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-200 border border-amber-300 dark:border-amber-700 text-xs font-bold shadow-2xs">
+                        <Clock className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                        <span>در انتظار بررسی و تأیید مدیر</span>
+                      </span>
+                    ) : retrainingStatus === 'REJECTED' ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-100 dark:bg-rose-950 text-rose-800 dark:text-rose-200 border border-rose-300 dark:border-rose-700 text-xs font-bold shadow-2xs">
+                        <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400" />
+                        <span>رد شده / نیازمند اصلاح</span>
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-700 text-xs font-bold">
+                        <span>بارگذاری‌نشده</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Rejection Alert if REJECTED */}
+                {retrainingStatus === 'REJECTED' && retrainingRejectionReason && (
+                  <div className="p-3 bg-rose-50 dark:bg-rose-950/40 rounded-xl border border-rose-200 dark:border-rose-900/60 flex items-start gap-2.5">
+                    <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+                    <div className="text-xs">
+                      <span className="font-bold text-rose-800 dark:text-rose-300 block mb-0.5">علت عدم تأیید توسط مدیریت:</span>
+                      <p className="text-rose-700 dark:text-rose-300/90 leading-relaxed">{retrainingRejectionReason}</p>
+                      <p className="text-[11px] text-rose-600 dark:text-rose-400 mt-1 font-semibold">لطفاً فایل اصلاح‌شده و معتبر بازآموزی سال جاری را مجدداً انتخاب و ثبت فرمایید.</p>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                  <div>
+                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                      آپلود فایل گواهی بازآموزی سال جاری (PDF یا تصویر) <span className="text-rose-500">*</span>
+                    </label>
+                    <label className="cursor-pointer flex items-center justify-between p-2.5 rounded-xl border border-dashed border-emerald-500 dark:border-emerald-600 bg-white/80 dark:bg-slate-900/80 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30 transition-all shadow-2xs">
+                      <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 truncate">
+                        <Upload className="w-4 h-4 shrink-0 text-emerald-600" />
+                        <span className="truncate text-xs font-semibold">
+                          {retrainingCertificateFile ? retrainingCertificateFile.name : retrainingCertificateFilePreview ? 'فایل بازآموزی انتخاب شده (تغییر؟)' : 'انتخاب فایل گواهی بازآموزی...'}
+                        </span>
+                      </div>
+                      <input
+                        type="file"
+                        accept=".pdf,image/*"
+                        onChange={(e) => handleFileChange(e, setRetrainingCertificateFile, setRetrainingCertificateFilePreview)}
+                        className="hidden"
+                      />
+                    </label>
+                  </div>
+
+                  <div className="bg-white/70 dark:bg-slate-900/60 p-3 rounded-xl border border-emerald-100 dark:border-emerald-900/40 text-xs space-y-1.5">
+                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
+                      <span>مدت اعتبار بازآموزی:</span>
+                      <span className="font-bold text-emerald-700 dark:text-emerald-300 font-mono">
+                        تا ۲۹ اسفند {retrainingYear || currentJalaliYear}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-600 dark:text-slate-400">
+                      <span>وضعیت تأیید:</span>
+                      <span className="font-medium text-slate-800 dark:text-slate-200">
+                        {retrainingStatus === 'APPROVED' ? 'تأییدشده توسط مدیر' : retrainingCertificateFile ? 'آماده ارسال برای بررسی' : retrainingCertificateFilePreview ? 'در انتظار بررسی مدیریت' : 'بارگذاری‌نشده'}
+                      </span>
+                    </div>
+                    {retrainingCertificateFilePreview && (
+                      <div className="pt-1 border-t border-emerald-100 dark:border-emerald-900/30 flex items-center justify-end">
+                        <a
+                          href={retrainingCertificateFilePreview}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[11px] font-bold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 flex items-center gap-1"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>مشاهده فایل بارگذاری‌شده فعلی</span>
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
 
               <div className="sm:col-span-2">

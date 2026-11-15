@@ -302,13 +302,19 @@ class CoachCompleteProfileView(APIView):
         # Handle uploaded files
         if 'coaching_certificate_file' in request.FILES:
             coach.coaching_certificate_file = request.FILES['coaching_certificate_file']
+        if 'retraining_certificate_file' in request.FILES:
+            coach.retraining_certificate_file = request.FILES['retraining_certificate_file']
+            coach.retraining_status = CoachProfile.RetrainingStatus.PENDING
+            coach.retraining_year = CoachProfile.get_current_jalali_year()
+            coach.retraining_expiry_date = CoachProfile.get_esfand_end_date(coach.retraining_year)
+            coach.retraining_rejection_reason = ''
         if 'resume_file' in request.FILES:
             coach.resume_file = request.FILES['resume_file']
         if 'avatar' in request.FILES and coach.user:
             coach.user.avatar = request.FILES['avatar']
             coach.user.save(update_fields=['avatar'])
 
-        # Validate mandatory 14 fields:
+        # Validate mandatory fields:
         missing = []
         fn = coach.first_name or (coach.user.first_name if coach.user else '')
         ln = coach.last_name or (coach.user.last_name if coach.user else '')
@@ -345,6 +351,8 @@ class CoachCompleteProfileView(APIView):
             missing.append('شماره مخاطب اضطراری')
         if not coach.coaching_certificate_file:
             missing.append('آپلود مدرک مربیگری')
+        if not coach.retraining_certificate_file:
+            missing.append('آپلود گواهی بازآموزی سال جاری')
 
         if missing:
             coach.save()
@@ -370,7 +378,7 @@ class CoachCompleteProfileView(APIView):
                 recipient=admin,
                 title=notification_title,
                 message=notification_msg,
-                notification_type='SYSTEM',
+                category=Notification.Category.ANNOUNCEMENT,
                 link=notification_link
             )
 
