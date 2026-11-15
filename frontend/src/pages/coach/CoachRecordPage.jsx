@@ -423,7 +423,7 @@ export const CoachRecordPage = () => {
   };
 
   // ── انتخاب شناگر و شروع ویزارد ──
-  const handleSelectSwimmer = (sw) => {
+  const handleSelectSwimmer = (sw, initialTab = 'record') => {
     setSelectedSwimmer({ swimmer_id: sw.swimmer_id, full_name: sw.full_name, avatar: sw.avatar });
     setWizardStep(0);
     setStroke('');
@@ -431,7 +431,7 @@ export const CoachRecordPage = () => {
     resetTimer();
     setManualTime('');
     resetVideoForm();
-    setActiveTab('record');
+    setActiveTab(initialTab);
   };
 
   const handleBackToSwimmers = () => {
@@ -880,33 +880,46 @@ export const CoachRecordPage = () => {
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs p-3.5 sm:p-5">
       <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
         {/* شناگر انتخاب‌شده */}
-        <div className="flex items-center gap-3 min-w-0 shrink-0">
-          <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-lg shrink-0 shadow-xs overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800">
-            {selectedSwimmer?.avatar ? (
-              <img
-                src={selectedSwimmer.avatar}
-                alt={selectedSwimmer.full_name}
-                onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              (selectedSwimmer?.full_name || 'ش').charAt(0)
-            )}
-          </div>
-          <div className="min-w-0">
-            <div className="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
-              {selectedSwimmer?.full_name}
+        <div className="flex items-center justify-between sm:justify-start gap-3 min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-lg shrink-0 shadow-xs overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800">
+              {selectedSwimmer?.avatar ? (
+                <img
+                  src={selectedSwimmer.avatar}
+                  alt={selectedSwimmer.full_name}
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                (selectedSwimmer?.full_name || 'ش').charAt(0)
+              )}
             </div>
-            <button
-              type="button"
-              onClick={handleBackToSwimmers}
-              className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer inline-flex items-center gap-1 mt-0.5"
-              title="بازگشت به انتخاب شناگر"
-            >
-              <ChevronRight className="w-3.5 h-3.5" />
-              تغییر شناگر
-            </button>
+            <div className="min-w-0">
+              <div className="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
+                {selectedSwimmer?.full_name}
+              </div>
+              <button
+                type="button"
+                onClick={handleBackToSwimmers}
+                className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer inline-flex items-center gap-1 mt-0.5"
+                title="بازگشت به انتخاب شناگر"
+              >
+                <ChevronRight className="w-3.5 h-3.5" />
+                تغییر شناگر
+              </button>
+            </div>
           </div>
+
+          {/* دکمه بازگشت موبایل در بالای هدر */}
+          <button
+            type="button"
+            onClick={handleBackStep}
+            className="sm:hidden inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold border border-slate-200/80 dark:border-slate-700 shrink-0"
+            title={wizardStep === 0 ? 'بازگشت به لیست شناگران' : 'بازگشت به مرحله قبل'}
+          >
+            <ChevronRight className="w-3.5 h-3.5" />
+            <span>بازگشت</span>
+          </button>
         </div>
 
         {/* مراحل */}
@@ -948,7 +961,7 @@ export const CoachRecordPage = () => {
           })}
         </div>
 
-        {/* دکمه بازگشت */}
+        {/* دکمه بازگشت تبلت و دسکتاپ */}
         <button
           type="button"
           onClick={handleBackStep}
@@ -1162,65 +1175,84 @@ export const CoachRecordPage = () => {
         viewMode === 'cards' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
           {filteredSwimmers.map((sw) => (
-            <button
+            <div
               key={sw.swimmer_id}
-              type="button"
-              onClick={() => handleSelectSwimmer(sw)}
-              className="group text-right bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs p-4 sm:p-5 transition-all duration-200 hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-md hover:-translate-y-0.5 active:scale-[0.98] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500"
-              title={`ثبت رکورد برای ${sw.full_name}`}
+              className="text-right bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs p-4 sm:p-5 flex flex-col justify-between transition-all duration-200 hover:border-slate-300 dark:hover:border-slate-700 hover:shadow-md"
             >
-              <div className="flex items-center gap-3">
-                <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-xl shrink-0 shadow-xs overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800 transition-transform group-hover:scale-105">
-                  {sw.avatar ? (
-                    <img
-                      src={sw.avatar}
-                      alt={sw.full_name}
-                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    sw.full_name?.charAt(0) || 'ش'
+              <div>
+                <div className="flex items-center gap-3">
+                  <div className="relative w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-xl shrink-0 shadow-xs overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800">
+                    {sw.avatar ? (
+                      <img
+                        src={sw.avatar}
+                        alt={sw.full_name}
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      sw.full_name?.charAt(0) || 'ش'
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm sm:text-[15px] font-black text-slate-900 dark:text-white truncate">
+                      {sw.full_name}
+                    </div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400 font-bold mt-0.5">
+                      {sw.displayEnrollments.length} دوره ثبت‌نامی
+                      {sw.phone && <span className="font-mono text-slate-400 dark:text-slate-500 mr-2">· {sw.phone}</span>}
+                    </div>
+                  </div>
+                </div>
+
+                {/* چیپ دوره‌ها */}
+                <div className="flex flex-wrap gap-1.5 mt-3.5 pt-3.5 border-t border-slate-100 dark:border-slate-800">
+                  {sw.displayEnrollments.slice(0, 2).map((en) => (
+                    <span
+                      key={en.id}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border border-slate-200/70 dark:border-slate-700 text-[11px] font-bold max-w-full"
+                      title={en.course_name}
+                    >
+                      <Layers className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <span className="truncate">{en.course_name}</span>
+                    </span>
+                  ))}
+                  {sw.displayEnrollments.length > 2 && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border border-slate-200/70 dark:border-slate-700 text-[11px] font-bold">
+                      +{sw.displayEnrollments.length - 2} دوره دیگر
+                    </span>
                   )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm sm:text-[15px] font-black text-slate-900 dark:text-white truncate group-hover:text-emerald-700 dark:group-hover:text-emerald-300 transition-colors">
-                    {sw.full_name}
-                  </div>
-                  <div className="text-xs text-slate-500 dark:text-slate-400 font-bold mt-0.5">
-                    {sw.displayEnrollments.length} دوره ثبت‌نامی
-                  </div>
-                </div>
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0 transition-all group-hover:bg-emerald-600 group-hover:text-white">
-                  <OlympicStopwatchIcon className="w-5 h-5" />
                 </div>
               </div>
 
-              {/* چیپ دوره‌ها */}
-              <div className="flex flex-wrap gap-1.5 mt-3.5 pt-3.5 border-t border-slate-100 dark:border-slate-800">
-                {sw.displayEnrollments.slice(0, 2).map((en) => (
-                  <span
-                    key={en.id}
-                    className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border border-slate-200/70 dark:border-slate-700 text-[11px] font-bold max-w-full"
-                    title={en.course_name}
-                  >
-                    <Layers className="w-3 h-3 text-emerald-600 dark:text-emerald-400 shrink-0" />
-                    <span className="truncate">{en.course_name}</span>
-                  </span>
-                ))}
-                {sw.displayEnrollments.length > 2 && (
-                  <span className="inline-flex items-center px-2 py-1 rounded-lg bg-slate-50 dark:bg-slate-800/80 text-slate-500 dark:text-slate-400 border border-slate-200/70 dark:border-slate-700 text-[11px] font-bold">
-                    +{sw.displayEnrollments.length - 2} دوره دیگر
-                  </span>
-                )}
+              {/* دکمه‌های تفکیک‌شده: ثبت رکورد و فیلم شناگر */}
+              <div className="grid grid-cols-2 gap-2 mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => handleSelectSwimmer(sw, 'record')}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-[13px] font-black shadow-xs transition-all active:scale-95 cursor-pointer"
+                  title={`ثبت رکورد زمانی برای ${sw.full_name}`}
+                >
+                  <OlympicStopwatchIcon className="w-4 h-4 shrink-0" />
+                  <span>ثبت رکورد</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleSelectSwimmer(sw, 'video')}
+                  className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 dark:hover:bg-sky-900/50 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 text-xs sm:text-[13px] font-black shadow-xs transition-all active:scale-95 cursor-pointer"
+                  title={`آپلود و مشاهده فیلم‌های شناگر ${sw.full_name}`}
+                >
+                  <Film className="w-4 h-4 shrink-0 text-sky-600 dark:text-sky-400" />
+                  <span>فیلم شناگر</span>
+                </button>
               </div>
-            </button>
+            </div>
           ))}
         </div>
         ) : (
           /* نمای جدولی */
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[680px] text-right text-sm">
+              <table className="w-full min-w-[720px] text-right text-sm">
                 <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700/60 font-bold text-xs lg:text-sm">
                   <tr>
                     <th className="py-3.5 px-3 lg:px-4 whitespace-nowrap">نام شناگر</th>
@@ -1237,7 +1269,7 @@ export const CoachRecordPage = () => {
                     return (
                       <tr
                         key={sw.swimmer_id}
-                        className="hover:bg-emerald-50/40 dark:hover:bg-slate-800/40 transition-colors"
+                        className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                       >
                         {/* نام شناگر */}
                         <td className="py-3.5 px-3 lg:px-4 align-middle">
@@ -1300,17 +1332,28 @@ export const CoachRecordPage = () => {
                           )}
                         </td>
 
-                        {/* عملیات */}
-                        <td className="py-3.5 px-3 lg:px-4 text-center align-middle">
-                          <button
-                            type="button"
-                            onClick={() => handleSelectSwimmer(sw)}
-                            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap"
-                            title={`ثبت رکورد برای ${sw.full_name}`}
-                          >
-                            <OlympicStopwatchIcon className="w-4 h-4 shrink-0" />
-                            <span>ثبت رکورد</span>
-                          </button>
+                        {/* عملیات تفکیک‌شده: ثبت رکورد و فیلم */}
+                        <td className="py-3.5 px-3 lg:px-4 text-center align-middle whitespace-nowrap">
+                          <div className="flex items-center justify-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleSelectSwimmer(sw, 'record')}
+                              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 min-h-[36px] rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-black shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+                              title={`ثبت رکورد برای ${sw.full_name}`}
+                            >
+                              <OlympicStopwatchIcon className="w-4 h-4 shrink-0" />
+                              <span>ثبت رکورد</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSelectSwimmer(sw, 'video')}
+                              className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 min-h-[36px] rounded-xl bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 dark:hover:bg-sky-900/50 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800 text-xs font-black shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap"
+                              title={`فیلم‌های شناگر ${sw.full_name}`}
+                            >
+                              <Film className="w-4 h-4 shrink-0 text-sky-600 dark:text-sky-400" />
+                              <span>فیلم شناگر</span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -1847,7 +1890,43 @@ export const CoachRecordPage = () => {
           </div>
 
           {activeTab === 'video' ? (
-            <div key="video" className="animate-slide-in-right">
+            <div key="video" className="space-y-4 sm:space-y-5 animate-slide-in-right">
+              {/* هدر مشخصات شناگر در بخش فیلم */}
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs p-3.5 sm:p-5 flex flex-wrap items-center justify-between gap-3">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-sky-600 to-blue-500 text-white flex items-center justify-center font-black text-lg shrink-0 shadow-xs overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800">
+                    {selectedSwimmer?.avatar ? (
+                      <img
+                        src={selectedSwimmer.avatar}
+                        alt={selectedSwimmer.full_name}
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      (selectedSwimmer?.full_name || 'ش').charAt(0)
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
+                      {selectedSwimmer?.full_name}
+                    </div>
+                    <div className="text-xs text-sky-600 dark:text-sky-400 font-bold mt-0.5 flex items-center gap-1.5">
+                      <Film className="w-3.5 h-3.5" />
+                      <span>مدیریت و آپلود فیلم‌های شناگر</span>
+                    </div>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleBackToSwimmers}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0"
+                  title="بازگشت به فهرست شناگران"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                  <span>تغییر شناگر</span>
+                </button>
+              </div>
+
               {renderVideoSection()}
             </div>
           ) : (
@@ -1864,11 +1943,11 @@ export const CoachRecordPage = () => {
           {/* دکمه بازگشت موبایل */}
           <button
             type="button"
-            onClick={handleBackStep}
+            onClick={activeTab === 'video' ? handleBackToSwimmers : handleBackStep}
             className="sm:hidden w-full inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 min-h-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-sm font-bold transition-all active:scale-95 cursor-pointer"
           >
             <ChevronRight className="w-4 h-4" />
-            {wizardStep === 0 ? 'بازگشت به لیست شناگران' : 'بازگشت به مرحله قبل'}
+            {activeTab === 'video' || wizardStep === 0 ? 'بازگشت به لیست شناگران' : 'بازگشت به مرحله قبل'}
           </button>
         </div>
       )}
