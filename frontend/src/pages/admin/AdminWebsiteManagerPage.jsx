@@ -171,11 +171,13 @@ export const AdminWebsiteManagerPage = () => {
   const [topSwimmerImageFile, setTopSwimmerImageFile] = useState(null);
   const [topSwimmerImagePreview, setTopSwimmerImagePreview] = useState(null);
   const [topSwimmerSubmitting, setTopSwimmerSubmitting] = useState(false);
+  const [togglingSwimmerId, setTogglingSwimmerId] = useState(null);
 
   // Fetch all website data
-  const fetchAllData = async () => {
+  const fetchAllData = async (showLoading = false) => {
+    const shouldShow = showLoading === true;
     try {
-      setLoading(true);
+      if (shouldShow) setLoading(true);
       const [poolsRes, coachesRes, newsRes, coursesRes, topSwimmersRes] = await Promise.allSettled([
         api.get('/content/pools/'),
         api.get('/coaches/'),
@@ -212,12 +214,23 @@ export const AdminWebsiteManagerPage = () => {
       console.error(err);
       toast.error('خطا در بارگذاری محتوای وبسایت');
     } finally {
-      setLoading(false);
+      if (shouldShow) setLoading(false);
+    }
+  };
+
+  const fetchTopSwimmers = async () => {
+    try {
+      const res = await api.get('/content/top-swimmers/');
+      const tsList = res.data.results || res.data;
+      const sorted = [...tsList].sort((a, b) => (a.display_order ?? 999) - (b.display_order ?? 999));
+      setTopSwimmers(sorted);
+    } catch (err) {
+      console.error(err);
     }
   };
 
   useEffect(() => {
-    fetchAllData();
+    fetchAllData(true);
   }, []);
 
   // Sync coach order list when coaches change
@@ -605,19 +618,34 @@ export const AdminWebsiteManagerPage = () => {
       }
 
       if (editingTopSwimmer) {
-        await api.patch(`/content/top-swimmers/${editingTopSwimmer.id}/`, formData, {
+        const res = await api.patch(`/content/top-swimmers/${editingTopSwimmer.id}/`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         toast.success(`اطلاعات شناگر برتر «${topSwimmerForm.name}» به‌روزرسانی شد.`);
+        if (res.data) {
+          setTopSwimmers((prev) =>
+            prev
+              .map((item) => (item.id === editingTopSwimmer.id ? res.data : item))
+              .sort((a, b) => (a.display_order ?? 999) - (b.display_order ?? 999))
+          );
+        } else {
+          fetchTopSwimmers();
+        }
       } else {
-        await api.post('/content/top-swimmers/', formData, {
+        const res = await api.post('/content/top-swimmers/', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         toast.success(`شناگر برتر جدید «${topSwimmerForm.name}» با موفقیت افزوده شد.`);
+        if (res.data) {
+          setTopSwimmers((prev) =>
+            [...prev, res.data].sort((a, b) => (a.display_order ?? 999) - (b.display_order ?? 999))
+          );
+        } else {
+          fetchTopSwimmers();
+        }
       }
 
       setTopSwimmerModalOpen(false);
-      fetchAllData();
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.detail || 'خطا در ذخیره‌سازی اطلاعات شناگر');
@@ -631,22 +659,40 @@ export const AdminWebsiteManagerPage = () => {
     try {
       await api.delete(`/content/top-swimmers/${id}/`);
       toast.success(`شناگر «${name}» با موفقیت حذف شد.`);
-      fetchAllData();
+      setTopSwimmers((prev) => prev.filter((item) => item.id !== id));
     } catch {
       toast.error('خطا در حذف شناگر برتر');
     }
   };
 
   const handleToggleTopSwimmerActive = async (swimmer) => {
+    if (togglingSwimmerId === swimmer.id) return;
+    const newStatus = !swimmer.is_active;
+
+    // Optimistic UI update: instant feedback, no page reload or skeleton flash
+    setTopSwimmers((prev) =>
+      prev.map((item) => (item.id === swimmer.id ? { ...item, is_active: newStatus } : item))
+    );
+    setTogglingSwimmerId(swimmer.id);
+
     try {
-      const newStatus = !swimmer.is_active;
-      await api.patch(`/content/top-swimmers/${swimmer.id}/`, { is_active: newStatus });
+      const res = await api.patch(`/content/top-swimmers/${swimmer.id}/`, { is_active: newStatus });
+      if (res.data) {
+        setTopSwimmers((prev) =>
+          prev.map((item) => (item.id === swimmer.id ? { ...item, ...res.data } : item))
+        );
+      }
       toast.success(
         `وضعیت نمایش «${swimmer.name}» به ${newStatus ? 'نمایش در سایت' : 'مخفی'} تغییر یافت.`
       );
-      fetchAllData();
     } catch {
+      // Revert optimistic update on failure
+      setTopSwimmers((prev) =>
+        prev.map((item) => (item.id === swimmer.id ? { ...item, is_active: swimmer.is_active } : item))
+      );
       toast.error('خطا در تغییر وضعیت شناگر');
+    } finally {
+      setTogglingSwimmerId(null);
     }
   };
 
@@ -808,7 +854,7 @@ export const AdminWebsiteManagerPage = () => {
         </div>
 
         <Button
-          onClick={fetchAllData}
+          onClick={() => fetchAllData(false)}
           variant="outline"
           className="bg-white/10 text-white hover:bg-white/20 border-white/20 text-xs sm:text-sm font-bold shrink-0 gap-2 py-2.5 px-4"
         >
@@ -1346,14 +1392,20 @@ export const AdminWebsiteManagerPage = () => {
 
                               <button
                                 type="button"
+                                disabled={togglingSwimmerId === swimmer.id}
                                 onClick={() => handleToggleTopSwimmerActive(swimmer)}
-                                className={`px-3 py-1 text-[11px] font-black rounded-lg backdrop-blur-md flex items-center gap-1.5 transition-colors cursor-pointer border ${
+                                className={`px-3 py-1 text-[11px] font-black rounded-lg backdrop-blur-md flex items-center gap-1.5 transition-all cursor-pointer border ${
                                   swimmer.is_active
-                                    ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40'
-                                    : 'bg-rose-950/80 text-rose-300 border-rose-500/40'
-                                }`}
+                                    ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/40 hover:bg-emerald-900/80'
+                                    : 'bg-rose-950/80 text-rose-300 border-rose-500/40 hover:bg-rose-900/80'
+                                } ${togglingSwimmerId === swimmer.id ? 'opacity-70 cursor-wait' : ''}`}
                               >
-                                {swimmer.is_active ? (
+                                {togglingSwimmerId === swimmer.id ? (
+                                  <>
+                                    <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                    <span>در حال تغییر...</span>
+                                  </>
+                                ) : swimmer.is_active ? (
                                   <>
                                     <Eye className="w-3.5 h-3.5" />
                                     <span>نمایش در سایت</span>
@@ -1396,9 +1448,15 @@ export const AdminWebsiteManagerPage = () => {
                         <div className="p-4 pt-3 mt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between gap-2">
                           <button
                             type="button"
+                            disabled={togglingSwimmerId === swimmer.id}
                             onClick={() => handleToggleTopSwimmerActive(swimmer)}
-                            className="text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 cursor-pointer"
+                            className={`text-xs font-bold text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white flex items-center gap-1 cursor-pointer transition-opacity ${
+                              togglingSwimmerId === swimmer.id ? 'opacity-50 cursor-wait' : ''
+                            }`}
                           >
+                            {togglingSwimmerId === swimmer.id && (
+                              <RefreshCw className="w-3 h-3 animate-spin" />
+                            )}
                             {swimmer.is_active ? 'مخفی کردن' : 'فعال کردن'}
                           </button>
 
