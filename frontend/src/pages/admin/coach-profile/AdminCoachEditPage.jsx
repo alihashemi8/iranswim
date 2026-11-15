@@ -640,7 +640,7 @@ export const AdminCoachEditPage = () => {
 
               <div className="sm:col-span-2">
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  عکس پرسنلی مربی
+                  عکس
                 </label>
                 <div className="flex items-center gap-3">
                   {avatarPreview ? (

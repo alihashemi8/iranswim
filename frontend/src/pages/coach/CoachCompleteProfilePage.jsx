@@ -94,7 +94,7 @@ export const CoachCompleteProfilePage = () => {
         setNationalId(data.national_id || user?.national_id || '');
         setDateOfBirth(data.date_of_birth || '');
         setGender(data.gender || 'MALE');
-        if (data.avatar) setAvatarPreview(data.avatar);
+        if (data.avatar || user?.avatar) setAvatarPreview(data.avatar || user?.avatar);
 
         setAddress(data.address || '');
         setEmergencyContactName(data.emergency_contact_name || '');
@@ -174,6 +174,10 @@ export const CoachCompleteProfilePage = () => {
     }
     if (!dateOfBirth) {
       setError('ثبت تاریخ تولد الزامی است.');
+      return false;
+    }
+    if (!avatar && !avatarPreview) {
+      setError('بارگذاری عکس الزامی است.');
       return false;
     }
     return true;
@@ -547,13 +551,13 @@ export const CoachCompleteProfilePage = () => {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  عکس پرسنلی مربی
+                  عکس <span className="text-rose-500">*</span>
                 </label>
                 <div className="flex items-center gap-3">
                   {avatarPreview ? (
                     <img
                       src={avatarPreview}
-                      alt="Avatar"
+                      alt="عکس"
                       className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-slate-700"
                     />
                   ) : (
@@ -563,7 +567,7 @@ export const CoachCompleteProfilePage = () => {
                   )}
                   <label className="cursor-pointer px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors">
                     <Upload className="w-4 h-4 text-emerald-600" />
-                    <span>انتخاب تصویر</span>
+                    <span>انتخاب عکس</span>
                     <input
                       type="file"
                       accept="image/*"

@@ -328,6 +328,8 @@ class CoachCompleteProfileView(APIView):
             missing.append('کد ملی ۱۰ رقمی معتبر')
         if not coach.date_of_birth:
             missing.append('تاریخ تولد')
+        if not (coach.user and coach.user.avatar):
+            missing.append('عکس')
         if not coach.coaching_degree or not str(coach.coaching_degree).strip():
             missing.append('درجه مربیگری')
         if not coach.coaching_certificate_date:

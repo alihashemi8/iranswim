@@ -541,6 +541,7 @@ def test_coach_profile_completion_and_validation(coach_user):
     assert 'missing_fields' in fail_res.data
     assert 'کد ملی ۱۰ رقمی معتبر' in fail_res.data['missing_fields']
     assert 'تاریخ تولد' in fail_res.data['missing_fields']
+    assert 'عکس' in fail_res.data['missing_fields']
     assert 'تاریخ اخذ مربیگری' in fail_res.data['missing_fields']
     assert 'شماره کارت ۱۶ رقمی معتبر' in fail_res.data['missing_fields']
     assert 'شماره شبا معتبر' in fail_res.data['missing_fields']
@@ -553,6 +554,7 @@ def test_coach_profile_completion_and_validation(coach_user):
         'last_name': 'سهرابی',
         'national_id': '0077889911',
         'date_of_birth': '1370-04-12',
+        'avatar': create_dummy_file('avatar.jpg'),
         'coaching_degree': 'درجه ۲',
         'coaching_certificate_date': '1398-06-20',
         'years_of_experience': 6,

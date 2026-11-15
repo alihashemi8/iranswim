@@ -597,7 +597,7 @@ export const AdminCreateCoachPage = () => {
 
               <div className="sm:col-span-2 lg:col-span-3">
                 <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  عکس پرسنلی مربی
+                  عکس
                 </label>
                 <div className="flex items-center gap-3">
                   {avatarPreview ? (
@@ -613,7 +613,7 @@ export const AdminCreateCoachPage = () => {
                   )}
                   <label className="cursor-pointer px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors">
                     <Upload className="w-4 h-4 text-sky-600" />
-                    <span>انتخاب عکس پرسنلی</span>
+                    <span>انتخاب عکس</span>
                     <input
                       type="file"
                       accept="image/*"
