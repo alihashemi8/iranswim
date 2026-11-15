@@ -81,6 +81,7 @@ import { CoachSkillsManagerPage } from './pages/coach/CoachSkillsManagerPage';
 import { CoachAssessmentsPage } from './pages/coach/CoachAssessmentsPage';
 import { CoachExamsPage } from './pages/coach/CoachExamsPage';
 import { CoachWorkoutsPage } from './pages/coach/CoachWorkoutsPage';
+import { CoachCreateWorkoutPage } from './pages/coach/CoachCreateWorkoutPage';
 import { CoachProfilePage } from './pages/coach/CoachProfilePage';
 import { CoachCompleteProfilePage } from './pages/coach/CoachCompleteProfilePage';
 
@@ -283,8 +284,10 @@ export default function App() {
                 {/* 5. Exams & Levels */}
                 <Route path="exams" element={<CoachExamsPage />} />
 
-                {/* 6. Workouts */}
+                {/* 6. Workouts & Plans */}
                 <Route path="workouts" element={<CoachWorkoutsPage />} />
+                <Route path="workouts/create" element={<CoachCreateWorkoutPage />} />
+                <Route path="workouts/:id/edit" element={<CoachCreateWorkoutPage />} />
 
                 {/* Redirect legacy AI assistant */}
                 <Route path="ai-assistant" element={<Navigate to="/coach" replace />} />

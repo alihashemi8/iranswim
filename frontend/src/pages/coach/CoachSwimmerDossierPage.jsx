@@ -5,7 +5,7 @@ import {
   TrendingUp, Award, Calendar, ChevronLeft,
   PlusCircle, Users, UserCheck, X, Video,
   Timer, CheckCircle2, Clock, AlertCircle,
-  Sparkles, Phone, Search, LayoutGrid, Check, ArrowRight
+  Sparkles, Phone, Search, LayoutGrid, Check, ArrowLeft
 } from 'lucide-react';
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
@@ -938,7 +938,7 @@ export const CoachSwimmerDossierPage = () => {
                     </span>
                   </div>
                   <div className="p-2 rounded-full bg-white dark:bg-slate-800 text-amber-600 dark:text-amber-400 shadow-2xs">
-                    <ArrowRight className="w-4 h-4 rtl:rotate-180" />
+                    <ArrowLeft className="w-4 h-4" />
                   </div>
                   <div className="text-left sm:text-right">
                     <span className="text-xs text-amber-700 dark:text-amber-400 font-semibold block">سطح پیشنهادی:</span>
