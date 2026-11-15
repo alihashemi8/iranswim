@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Search, X, RotateCcw, Layers, Droplets, ChevronRight, Play, Square,
   Save, Timer as TimerIcon, Flag, Users, ArrowLeftRight, MoveRight,
-  LayoutGrid, Table, Video, Upload, Trash2, Film
+  LayoutGrid, Table, Video, Upload, Trash2, Film, Edit3, CheckCircle2, AlertCircle
 } from 'lucide-react';
 
 import api from '../../api/client';
@@ -23,6 +23,7 @@ import {
 
 // ── ثابت‌های فرم ثبت رکورد ─────────────────────────────────────────────
 const VIEW_PREF_KEY = 'iranswim_record_view';
+const RECORD_MODE_KEY = 'iranswim_record_entry_mode';
 
 const STROKES = [
   {
@@ -69,7 +70,7 @@ const DISTANCES = [
 const WIZARD_STEPS = [
   { id: 'stroke', title: 'نوع شنا', subtitle: 'انتخاب ماده', Icon: ArrowLeftRight },
   { id: 'distance', title: 'مسافت', subtitle: 'انتخاب متراژ', Icon: Flag },
-  { id: 'timer', title: 'زمان‌سنج', subtitle: 'استارت و ثبت', Icon: TimerIcon },
+  { id: 'timer', title: 'ثبت زمان', subtitle: 'کرنومتر یا دستی', Icon: TimerIcon },
 ];
 
 // ── ابزار قالب‌بندی زمان: m:ss.cc (سانتی‌ثانیه) ────────────────────────
@@ -80,6 +81,103 @@ const formatStopwatch = (ms) => {
   const sec = totalSec % 60;
   const min = Math.floor(totalSec / 60);
   return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${String(cs).padStart(2, '0')}`;
+};
+
+// ── ابزار تحلیل و اعتبارسنجی زمان دستی واردشده (xx:xx یا xx:xx.xx یا ss.cc) ──
+export const parseRecordTime = (val) => {
+  if (!val) return null;
+  // تبدیل ارقام فارسی و عربی به انگلیسی
+  const str = String(val)
+    .replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+    .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d))
+    .trim();
+
+  if (!str) return null;
+
+  // الگوی اول: شامل دو نقطه : (مانند 01:25 یا 00:32 یا 28:45)
+  if (str.includes(':')) {
+    const parts = str.split(':');
+    if (parts.length === 2) {
+      const part1 = parseFloat(parts[0]);
+      const part2 = parseFloat(parts[1]);
+      if (isNaN(part1) || isNaN(part2) || part1 < 0 || part2 < 0) return null;
+
+      // اگر عدد اول بزرگ‌تر یا مساوی ۱۰ باشد و شامل اعشار نباشد (مانند 28:45)،
+      // در شنا برای مسافت‌های استخر (۲۵ تا ۲۰۰ متر) هیچ شناگری ۲۸ دقیقه شنا نمی‌کند؛
+      // این حالت مربوط به ثبت ثانیه:صدم‌ثانیه است.
+      if (part1 >= 10 && part2 < 100 && !parts[1].includes('.')) {
+        const total = Math.round((part1 + part2 / 100) * 100) / 100;
+        return {
+          totalSeconds: total,
+          minutes: 0,
+          seconds: Math.floor(part1),
+          centiseconds: Math.round(part2),
+          formatted: `${String(Math.floor(part1)).padStart(2, '0')}.${String(Math.round(part2)).padStart(2, '0')}`,
+          displayFa: `${Math.floor(part1)} ثانیه و ${Math.round(part2)} صدم ثانیه`,
+          isCentiseconds: true,
+        };
+      } else {
+        // دقیقه:ثانیه استاندارد MM:SS یا MM:SS.cc
+        const total = Math.round((part1 * 60 + part2) * 100) / 100;
+        if (total <= 0) return null;
+        const mins = Math.floor(total / 60);
+        const remSec = total % 60;
+        const secs = Math.floor(remSec);
+        const cs = Math.round((remSec - secs) * 100);
+        return {
+          totalSeconds: total,
+          minutes: mins,
+          seconds: secs,
+          centiseconds: cs,
+          formatted: `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}${cs > 0 ? '.' + String(cs).padStart(2, '0') : ''}`,
+          displayFa: mins > 0 
+            ? `${mins} دقیقه و ${secs} ثانیه${cs > 0 ? ` و ${cs} صدم` : ''}`
+            : `${secs} ثانیه${cs > 0 ? ` و ${cs} صدم` : ''}`,
+          isCentiseconds: false,
+        };
+      }
+    }
+  }
+
+  // الگوی دوم: شامل ممیز اعشار . (مانند 28.45)
+  if (str.includes('.')) {
+    const total = parseFloat(str);
+    if (!isNaN(total) && total > 0) {
+      const mins = Math.floor(total / 60);
+      const remSec = total % 60;
+      const secs = Math.floor(remSec);
+      const cs = Math.round((remSec - secs) * 100);
+      return {
+        totalSeconds: Math.round(total * 100) / 100,
+        minutes: mins,
+        seconds: secs,
+        centiseconds: cs,
+        formatted: `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}.${String(cs).padStart(2, '0')}`,
+        displayFa: mins > 0 
+          ? `${mins} دقیقه و ${secs} ثانیه و ${cs} صدم`
+          : `${secs} ثانیه و ${cs} صدم ثانیه`,
+        isCentiseconds: false,
+      };
+    }
+  }
+
+  // الگوی سوم: عدد صحیح تنها (مانند 35 -> 35 ثانیه)
+  const num = parseFloat(str);
+  if (!isNaN(num) && num > 0) {
+    const mins = Math.floor(num / 60);
+    const secs = num % 60;
+    return {
+      totalSeconds: num,
+      minutes: mins,
+      seconds: secs,
+      centiseconds: 0,
+      formatted: `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`,
+      displayFa: mins > 0 ? `${mins} دقیقه و ${secs} ثانیه` : `${secs} ثانیه`,
+      isCentiseconds: false,
+    };
+  }
+
+  return null;
 };
 
 export const CoachRecordPage = () => {
@@ -123,12 +221,47 @@ export const CoachRecordPage = () => {
   const [stroke, setStroke] = useState('');
   const [distance, setDistance] = useState(null);
 
-  // ── زمان‌سنج ──
+  // ── زمان‌سنج و ثبت دستی ──
+  const [recordMode, setRecordMode] = useState(() => {
+    try {
+      return localStorage.getItem(RECORD_MODE_KEY) === 'manual' ? 'manual' : 'stopwatch';
+    } catch {
+      return 'stopwatch';
+    }
+  });
+  const [manualTime, setManualTime] = useState('');
   const [timerState, setTimerState] = useState('idle'); // idle | running | stopped
   const [elapsedMs, setElapsedMs] = useState(0);
   const [saving, setSaving] = useState(false);
   const intervalRef = useRef(null);
   const startTsRef = useRef(0);
+
+  const handleSetRecordMode = (mode) => {
+    setRecordMode(mode);
+    try {
+      localStorage.setItem(RECORD_MODE_KEY, mode);
+    } catch {
+      /* ignore */
+    }
+  };
+
+  const handleManualTimeChange = (e) => {
+    let val = e.target.value;
+    // تبدیل ارقام فارسی و عربی به انگلیسی
+    val = val
+      .replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+      .replace(/[٠-٩]/g, (d) => '٠١٢٣٤٥٦٧٨٩'.indexOf(d));
+
+    // مجاز شمردن فقط ارقام، دو نقطه و ممیز
+    val = val.replace(/[^0-9:.]/g, '');
+
+    // اگر کاربر ۴ رقم پیوسته تایپ کرد (مانند 0125)، به صورت خودکار 01:25 شود
+    if (/^\d{4}$/.test(val)) {
+      val = `${val.slice(0, 2)}:${val.slice(2)}`;
+    }
+
+    setManualTime(val);
+  };
 
   // ── آپلود فیلم شناگر ──
   const [videoFile, setVideoFile] = useState(null);
@@ -296,6 +429,7 @@ export const CoachRecordPage = () => {
     setStroke('');
     setDistance(null);
     resetTimer();
+    setManualTime('');
     resetVideoForm();
     setActiveTab('record');
   };
@@ -303,6 +437,7 @@ export const CoachRecordPage = () => {
   const handleBackToSwimmers = () => {
     setSelectedSwimmer(null);
     resetTimer();
+    setManualTime('');
     resetVideoForm();
   };
 
@@ -313,6 +448,7 @@ export const CoachRecordPage = () => {
     }
     if (timerState === 'running') clearTimerInterval();
     resetTimer();
+    setManualTime('');
     setWizardStep((s) => s - 1);
   };
 
@@ -348,8 +484,29 @@ export const CoachRecordPage = () => {
 
   // ── ثبت نهایی رکورد در پروفایل شناگر ──
   const handleSaveRecord = async () => {
-    if (timerState !== 'stopped' || elapsedMs <= 0 || !stroke || !distance || !selectedSwimmer) return;
-    const durationSeconds = Math.round((elapsedMs / 1000) * 100) / 100;
+    if (!stroke || !distance || !selectedSwimmer) return;
+
+    let durationSeconds = 0;
+    let recordNotes = '';
+
+    if (recordMode === 'manual') {
+      const parsed = parseRecordTime(manualTime);
+      if (!parsed || parsed.totalSeconds <= 0) {
+        toast.error('لطفاً زمان رکورد را با فرمت xx:xx وارد کنید.');
+        return;
+      }
+      if (parsed.totalSeconds > 1200) {
+        toast.error('زمان واردشده بیشتر از حد مجاز است.');
+        return;
+      }
+      durationSeconds = parsed.totalSeconds;
+      recordNotes = 'ثبت دستی';
+    } else {
+      if (timerState !== 'stopped' || elapsedMs <= 0) return;
+      durationSeconds = Math.round((elapsedMs / 1000) * 100) / 100;
+      recordNotes = '';
+    }
+
     try {
       setSaving(true);
       await api.post('/assessments/records/', {
@@ -359,7 +516,7 @@ export const CoachRecordPage = () => {
         duration_seconds: durationSeconds.toFixed(2),
         pool_course: 'SHORT_25M',
         recorded_at: new Date().toLocaleDateString('en-CA'), // YYYY-MM-DD محلی
-        notes: '',
+        notes: recordNotes,
       });
       toast.success('رکورد با موفقیت ثبت شد و به پروفایل شناگر منتقل شد.');
       navigate(`/coach/progress/${selectedSwimmer.swimmer_id}`);
@@ -1284,18 +1441,24 @@ export const CoachRecordPage = () => {
     );
   };
 
-  // ═══════════════════ مرحله ۳: زمان‌سنج و ثبت ═══════════════════
+  // ═══════════════════ مرحله ۳: زمان‌سنج و ثبت (کرنومتر یا دستی) ═══════════════════
   const renderTimerStep = () => {
     const selectedStroke = STROKES.find((s) => s.value === stroke);
     const selectedDistance = DISTANCES.find((d) => d.value === distance);
     const isRunning = timerState === 'running';
     const isStopped = timerState === 'stopped';
+    const isManual = recordMode === 'manual';
+    const parsedManual = parseRecordTime(manualTime);
 
-    const statusPill = isRunning
+    const statusPill = isManual
+      ? (parsedManual
+          ? { text: `زمان آماده ثبت: ${parsedManual.displayFa}`, cls: 'bg-emerald-600 text-white border-emerald-600' }
+          : { text: 'ورود دستی زمان (xx:xx)', cls: 'bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-800' })
+      : isRunning
       ? { text: 'در حال زمان‌گیری...', cls: 'bg-emerald-600 text-white border-emerald-600' }
       : isStopped
       ? { text: 'زمان ثبت شد — آماده ذخیره', cls: 'bg-amber-500 text-slate-950 border-amber-500' }
-      : { text: 'آماده به شروع', cls: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700' };
+      : { text: 'آماده به شروع زمان‌سنج', cls: 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700' };
 
     return (
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs p-4 sm:p-6 lg:p-8">
@@ -1303,10 +1466,12 @@ export const CoachRecordPage = () => {
           {/* هدر مرحله */}
           <div className="text-center">
             <h2 className="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white">
-              مرحله ۳: استارت و ثبت زمان
+              {isManual ? 'مرحله ۳: ورود دستی زمان رکورد' : 'مرحله ۳: استارت و ثبت زمان'}
             </h2>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5">
-              دکمه استارت را در لحظه ورود شناگر به آب بزنید و هنگام پایان، استاپ را فشار دهید
+              {isManual
+                ? 'زمان شنا را با فرمت xx:xx وارد کنید یا در صورت نیاز به کرنومتر زنده تغییر دهید'
+                : 'دکمه استارت را در لحظه ورود شناگر به آب بزنید و هنگام پایان، استاپ را فشار دهید'}
             </p>
           </div>
 
@@ -1326,128 +1491,291 @@ export const CoachRecordPage = () => {
             </span>
           </div>
 
-          {/* نمایشگر زمان */}
-          <div
-            className={`relative w-full rounded-3xl border py-8 sm:py-12 px-4 text-center transition-colors duration-500 ${
-              isRunning
-                ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-300/70 dark:border-emerald-800'
-                : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/90 dark:border-slate-700'
-            }`}
-            role="timer"
-            aria-live="off"
-            aria-label="زمان‌سنج شنا"
-          >
-            {/* هاله پالس در حالت اجرا */}
-            {isRunning && (
-              <div className="absolute inset-3 rounded-2xl bg-emerald-500/5 animate-pulse pointer-events-none" />
-            )}
-            <div className="flex items-center justify-center mb-2 sm:mb-3">
-              <div
-                className={`p-2.5 sm:p-3 rounded-2xl transition-colors duration-300 ${
-                  isRunning
-                    ? 'bg-emerald-600 text-white'
-                    : isStopped
-                    ? 'bg-amber-500 text-slate-950'
-                    : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300'
+          {/* سوییچ حالت: زمان‌سنج (کرنومتر) یا ثبت دستی */}
+          <div className="flex items-center justify-center w-full pt-1">
+            <div className="inline-flex p-1 rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 shadow-xs">
+              <button
+                type="button"
+                onClick={() => handleSetRecordMode('stopwatch')}
+                aria-pressed={!isManual}
+                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
+                  !isManual
+                    ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
                 }`}
               >
-                <OlympicStopwatchIcon className="w-7 h-7 sm:w-9 sm:h-9" />
-              </div>
-            </div>
-            <div
-              className={`font-mono font-black tabular-nums tracking-tight leading-none select-none transition-colors duration-300 text-5xl sm:text-6xl lg:text-7xl ${
-                isRunning
-                  ? 'text-emerald-700 dark:text-emerald-300'
-                  : isStopped
-                  ? 'text-amber-600 dark:text-amber-400'
-                  : 'text-slate-400 dark:text-slate-500'
-              }`}
-              dir="ltr"
-            >
-              {formatStopwatch(elapsedMs)}
-            </div>
-            <div className="text-[11px] sm:text-xs font-bold text-slate-400 dark:text-slate-500 mt-2.5">
-              دقیقه : ثانیه : صدم ثانیه
+                <OlympicStopwatchIcon className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" />
+                <span>زمان‌سنج (کرنومتر)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (timerState === 'running') clearTimerInterval();
+                  handleSetRecordMode('manual');
+                }}
+                aria-pressed={isManual}
+                className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black transition-all cursor-pointer ${
+                  isManual
+                    ? 'bg-white dark:bg-slate-900 text-emerald-600 dark:text-emerald-400 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+                }`}
+              >
+                <Edit3 className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" />
+                <span>ثبت دستی (xx:xx)</span>
+              </button>
             </div>
           </div>
 
-          {/* کنترل‌های زمان‌سنج */}
-          <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
-            {timerState === 'idle' && (
-              <Button
-                variant="success"
-                size="lg"
-                onClick={handleStart}
-                className="min-h-[52px] col-span-1 sm:col-span-2 text-base font-black"
-                aria-label="استارت زمان‌سنج"
+          {/* ══════════ حالت ثبت دستی ══════════ */}
+          {isManual ? (
+            <div className="w-full max-w-lg mx-auto space-y-5 animate-slide-in-right">
+              {/* کادر نمایشگر بزرگ زمان واردشده */}
+              <div
+                className={`relative w-full rounded-3xl border py-7 sm:py-9 px-4 text-center transition-colors duration-300 ${
+                  parsedManual
+                    ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-300/70 dark:border-emerald-800'
+                    : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/90 dark:border-slate-700'
+                }`}
               >
-                <Play className="w-5 h-5 fill-current" />
-                استارت
-              </Button>
-            )}
-
-            {isRunning && (
-              <>
-                <Button
-                  variant="danger"
-                  size="lg"
-                  onClick={handleStop}
-                  className="min-h-[52px] text-base font-black"
-                  aria-label="توقف زمان‌سنج"
+                <div className="flex items-center justify-center mb-2.5">
+                  <div
+                    className={`p-2.5 rounded-2xl transition-colors duration-300 ${
+                      parsedManual
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300'
+                    }`}
+                  >
+                    <Edit3 className="w-6 h-6 sm:w-7 sm:h-7" />
+                  </div>
+                </div>
+                <div
+                  className={`font-mono font-black tabular-nums tracking-wider leading-none select-none transition-colors duration-300 text-5xl sm:text-6xl ${
+                    parsedManual
+                      ? 'text-emerald-700 dark:text-emerald-300'
+                      : 'text-slate-400 dark:text-slate-500'
+                  }`}
+                  dir="ltr"
                 >
-                  <Square className="w-4.5 h-4.5 fill-current" />
-                  استاپ
-                </Button>
-                <button
-                  type="button"
-                  onClick={handleCancel}
-                  aria-label="قطع زمان‌گیری"
-                  className="inline-flex items-center justify-center gap-2 min-h-[52px] px-5 py-2.5 text-base font-black rounded-xl whitespace-nowrap transition-all active:scale-95 cursor-pointer text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50"
-                >
-                  <X className="w-5 h-5" />
-                  قطع کردن
-                </button>
-              </>
-            )}
+                  {parsedManual ? parsedManual.formatted : (manualTime || 'xx:xx')}
+                </div>
+                <div className="text-[11px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 mt-2.5">
+                  {parsedManual ? parsedManual.displayFa : 'دقیقه : ثانیه (یا صدم ثانیه)'}
+                </div>
+              </div>
 
-            {isStopped && (
-              <>
+              {/* اینپوت xx:xx */}
+              <div className="space-y-2">
+                <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 text-right">
+                  زمان رکورد شناگر را وارد کنید <span className="text-emerald-600 font-mono font-black">(xx:xx)</span>
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    inputMode="decimal"
+                    value={manualTime}
+                    onChange={handleManualTimeChange}
+                    placeholder="xx:xx"
+                    dir="ltr"
+                    className="w-full min-h-[56px] text-center font-mono font-black text-2xl sm:text-3xl rounded-2xl bg-slate-50 dark:bg-slate-800/90 border-2 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white placeholder:text-slate-300 dark:placeholder:text-slate-600 focus:outline-none focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all shadow-inner"
+                    autoFocus
+                  />
+                  {manualTime && (
+                    <button
+                      type="button"
+                      onClick={() => setManualTime('')}
+                      className="absolute left-3.5 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer"
+                      title="پاک کردن"
+                      aria-label="پاک کردن مقدار"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
+                </div>
+                <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-relaxed text-right">
+                  راهنما: برای ۳۵ ثانیه وارد کنید <span className="font-mono font-bold text-slate-700 dark:text-slate-300">00:35</span> یا برای ۱ دقیقه و ۱۵ ثانیه وارد کنید <span className="font-mono font-bold text-slate-700 dark:text-slate-300">01:15</span> (امکان ثبت صدم‌ثانیه مانند <span className="font-mono font-bold text-slate-700 dark:text-slate-300">00:28.45</span> نیز فراهم است).
+                </p>
+              </div>
+
+              {/* بازخورد زنده اعتبارسنجی */}
+              {parsedManual && (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <div className="text-xs sm:text-sm font-bold">
+                    زمان محاسبه‌شده: <span className="font-mono text-base font-black underline">{parsedManual.displayFa}</span>
+                    <span className="text-slate-500 dark:text-slate-400 text-xs mr-2 font-mono font-normal">
+                      ({parsedManual.totalSeconds.toFixed(2)} ثانیه)
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* پیشنهادهای سریع */}
+              <div className="flex flex-wrap items-center justify-center gap-1.5 pt-1">
+                <span className="text-[11px] text-slate-400 font-bold ml-1">پیشنهاد سریع:</span>
+                {['00:25', '00:30', '00:35', '00:45', '01:00', '01:15', '01:30'].map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => setManualTime(preset)}
+                    className="px-2.5 py-1 text-xs font-mono font-bold rounded-lg bg-slate-100 hover:bg-emerald-50 hover:text-emerald-700 dark:bg-slate-800 dark:hover:bg-emerald-950/60 dark:hover:text-emerald-300 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
+
+              {/* دکمه‌های عملیات ثبت دستی */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 pt-2">
                 <Button
                   variant="success"
                   size="lg"
                   loading={saving}
                   onClick={handleSaveRecord}
-                  disabled={elapsedMs <= 0}
+                  disabled={!parsedManual || parsedManual.totalSeconds <= 0}
                   className="min-h-[52px] text-base font-black"
                   aria-label="ثبت رکورد شناگر"
                 >
                   {!saving && <Save className="w-5 h-5" />}
-                  ثبت رکورد
+                  ثبت رکورد دستی
                 </Button>
-                <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
-                  <button
-                    type="button"
-                    onClick={resetTimer}
-                    aria-label="تلاش مجدد"
-                    title="صفر کردن زمان‌سنج و شروع مجدد"
-                    className="inline-flex items-center justify-center gap-1.5 min-h-[52px] px-3 py-2.5 text-sm font-black rounded-xl whitespace-nowrap transition-all active:scale-95 cursor-pointer text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                <button
+                  type="button"
+                  onClick={() => setManualTime('')}
+                  disabled={!manualTime}
+                  className="inline-flex items-center justify-center gap-1.5 min-h-[52px] px-3 py-2.5 text-sm font-black rounded-xl whitespace-nowrap transition-all active:scale-95 cursor-pointer text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <RotateCcw className="w-4.5 h-4.5" />
+                  پاک کردن ورودی
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* ══════════ حالت زمان‌سنج (کرنومتر) ══════════ */
+            <>
+              {/* نمایشگر زمان */}
+              <div
+                className={`relative w-full rounded-3xl border py-8 sm:py-12 px-4 text-center transition-colors duration-500 ${
+                  isRunning
+                    ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-300/70 dark:border-emerald-800'
+                    : 'bg-slate-50/70 dark:bg-slate-800/40 border-slate-200/90 dark:border-slate-700'
+                }`}
+                role="timer"
+                aria-live="off"
+                aria-label="زمان‌سنج شنا"
+              >
+                {/* هاله پالس در حالت اجرا */}
+                {isRunning && (
+                  <div className="absolute inset-3 rounded-2xl bg-emerald-500/5 animate-pulse pointer-events-none" />
+                )}
+                <div className="flex items-center justify-center mb-2 sm:mb-3">
+                  <div
+                    className={`p-2.5 sm:p-3 rounded-2xl transition-colors duration-300 ${
+                      isRunning
+                        ? 'bg-emerald-600 text-white'
+                        : isStopped
+                        ? 'bg-amber-500 text-slate-950'
+                        : 'bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300'
+                    }`}
                   >
-                    <RotateCcw className="w-4.5 h-4.5" />
-                    تلاش مجدد
-                  </button>
-                  <button
-                    type="button"
-                    onClick={handleCancel}
-                    aria-label="قطع زمان‌گیری"
-                    className="inline-flex items-center justify-center gap-1.5 min-h-[52px] px-3 py-2.5 text-sm font-black rounded-xl whitespace-nowrap transition-all active:scale-95 cursor-pointer text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50"
-                  >
-                    <X className="w-4.5 h-4.5" />
-                    قطع کردن
-                  </button>
+                    <OlympicStopwatchIcon className="w-7 h-7 sm:w-9 sm:h-9" />
+                  </div>
                 </div>
-              </>
-            )}
-          </div>
+                <div
+                  className={`font-mono font-black tabular-nums tracking-tight leading-none select-none transition-colors duration-300 text-5xl sm:text-6xl lg:text-7xl ${
+                    isRunning
+                      ? 'text-emerald-700 dark:text-emerald-300'
+                      : isStopped
+                      ? 'text-amber-600 dark:text-amber-400'
+                      : 'text-slate-400 dark:text-slate-500'
+                  }`}
+                  dir="ltr"
+                >
+                  {formatStopwatch(elapsedMs)}
+                </div>
+                <div className="text-[11px] sm:text-xs font-bold text-slate-400 dark:text-slate-500 mt-2.5">
+                  دقیقه : ثانیه : صدم ثانیه
+                </div>
+              </div>
+
+              {/* کنترل‌های زمان‌سنج */}
+              <div className="w-full grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3">
+                {timerState === 'idle' && (
+                  <Button
+                    variant="success"
+                    size="lg"
+                    onClick={handleStart}
+                    className="min-h-[52px] col-span-1 sm:col-span-2 text-base font-black"
+                    aria-label="استارت زمان‌سنج"
+                  >
+                    <Play className="w-5 h-5 fill-current" />
+                    استارت
+                  </Button>
+                )}
+
+                {isRunning && (
+                  <>
+                    <Button
+                      variant="danger"
+                      size="lg"
+                      onClick={handleStop}
+                      className="min-h-[52px] text-base font-black"
+                      aria-label="توقف زمان‌سنج"
+                    >
+                      <Square className="w-4.5 h-4.5 fill-current" />
+                      استاپ
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={handleCancel}
+                      aria-label="قطع زمان‌گیری"
+                      className="inline-flex items-center justify-center gap-2 min-h-[52px] px-5 py-2.5 text-base font-black rounded-xl whitespace-nowrap transition-all active:scale-95 cursor-pointer text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50"
+                    >
+                      <X className="w-5 h-5" />
+                      قطع کردن
+                    </button>
+                  </>
+                )}
+
+                {isStopped && (
+                  <>
+                    <Button
+                      variant="success"
+                      size="lg"
+                      loading={saving}
+                      onClick={handleSaveRecord}
+                      disabled={elapsedMs <= 0}
+                      className="min-h-[52px] text-base font-black"
+                      aria-label="ثبت رکورد شناگر"
+                    >
+                      {!saving && <Save className="w-5 h-5" />}
+                      ثبت رکورد
+                    </Button>
+                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3">
+                      <button
+                        type="button"
+                        onClick={resetTimer}
+                        aria-label="تلاش مجدد"
+                        title="صفر کردن زمان‌سنج و شروع مجدد"
+                        className="inline-flex items-center justify-center gap-1.5 min-h-[52px] px-3 py-2.5 text-sm font-black rounded-xl whitespace-nowrap transition-all active:scale-95 cursor-pointer text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-slate-400"
+                      >
+                        <RotateCcw className="w-4.5 h-4.5" />
+                        تلاش مجدد
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancel}
+                        aria-label="قطع زمان‌گیری"
+                        className="inline-flex items-center justify-center gap-1.5 min-h-[52px] px-3 py-2.5 text-sm font-black rounded-xl whitespace-nowrap transition-all active:scale-95 cursor-pointer text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/40 hover:bg-rose-100 dark:hover:bg-rose-900/40 border border-rose-200 dark:border-rose-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-rose-500/50"
+                      >
+                        <X className="w-4.5 h-4.5" />
+                        قطع کردن
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </>
+          )}
 
           {/* راهنما */}
           <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 text-center leading-relaxed max-w-md">
