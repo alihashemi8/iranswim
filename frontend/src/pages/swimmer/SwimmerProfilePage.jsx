@@ -1028,7 +1028,160 @@ export const SwimmerProfilePage = () => {
       )}
 
       {/* =================================================================== */}
-      {/* TAB 2: PASSWORD & SECURITY                                          */}
+      {/* TAB 2: COACH ASSESSMENTS & PERFORMANCE DOSSIER                     */}
+      {/* =================================================================== */}
+      {activeMainTab === 'ASSESSMENTS' && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          {/* Header Summary Card */}
+          <div className="bg-gradient-to-l from-sky-600 via-blue-600 to-indigo-700 rounded-3xl p-6 text-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-xs font-bold text-sky-100">
+                <Sparkles className="w-3.5 h-3.5" />
+                کارنامه و ارزیابی‌های فنی شناگر
+              </div>
+              <h2 className="text-xl sm:text-2xl font-black">
+                سطح آموزشی: {profileLevelName || 'سطح پایه / مقدماتی'}
+              </h2>
+              <p className="text-xs sm:text-sm text-sky-100 max-w-xl">
+                ارزیابی‌های ثبت‌شده، نمرات کسب‌شده و توصیه‌های کادر مربیگری آکادمی
+              </p>
+            </div>
+
+            <Link
+              to="/swimmer/progress"
+              className="px-4 py-2.5 bg-white text-blue-700 hover:bg-sky-50 rounded-2xl text-xs sm:text-sm font-bold transition-all shadow-sm flex items-center gap-2 shrink-0 self-end sm:self-auto cursor-pointer"
+            >
+              <span>مشاهده ماتریس و زنجیره مهارت‌ها</span>
+              <ChevronLeft className="w-4 h-4" />
+            </Link>
+          </div>
+
+          {/* KPI Mini-cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+              <span className="text-xs font-bold text-slate-500 block mb-1">کل ارزیابی‌های ثبت‌شده</span>
+              <span className="text-2xl font-black text-slate-900 dark:text-white font-mono">{assessments.length}</span>
+            </div>
+            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+              <span className="text-xs font-bold text-emerald-600 block mb-1">مهارت‌های قبول‌شده</span>
+              <span className="text-2xl font-black text-emerald-600 font-mono">
+                {assessments.filter((a) => a.status === 'PASSED').length}
+              </span>
+            </div>
+            <div className="col-span-2 sm:col-span-1 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+              <span className="text-xs font-bold text-amber-600 block mb-1">در حال تمرین / یادگیری</span>
+              <span className="text-2xl font-black text-amber-600 font-mono">
+                {assessments.filter((a) => a.status !== 'PASSED').length}
+              </span>
+            </div>
+          </div>
+
+          {/* Assessments List */}
+          {assessments.length > 0 ? (
+            <div className="space-y-3.5">
+              {assessments.map((ass) => {
+                const dateStr = (ass.assessed_at || ass.assessment_date)
+                  ? toShamsiDate(ass.assessed_at || ass.assessment_date)?.shortNumeric
+                  : '—';
+                const hasFeedback = Boolean((ass.feedback || ass.notes)?.trim());
+
+                return (
+                  <div
+                    key={ass.id}
+                    className="p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3.5 transition-all hover:border-sky-300 dark:hover:border-sky-800"
+                  >
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+                      <div className="flex items-center gap-3">
+                        <div
+                          className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 border ${
+                            ass.status === 'PASSED'
+                              ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
+                              : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800'
+                          }`}
+                        >
+                          {ass.score !== undefined && ass.score !== null ? `${Math.round(ass.score)}` : '—'}
+                        </div>
+                        <div>
+                          <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                            {ass.skill_name || 'سرفصل مهارتی'}
+                          </h3>
+                          <div className="flex items-center gap-2 text-xs text-slate-500 mt-1 flex-wrap">
+                            <span className="flex items-center gap-1">
+                              <User className="w-3.5 h-3.5 text-slate-400" />
+                              <span>مربی ارزیاب: {ass.assessed_by_name || 'کادر فنی آکادمی'}</span>
+                            </span>
+                            <span>•</span>
+                            <span className="flex items-center gap-1 font-mono">
+                              <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                              <span>تاریخ ارزیابی: {dateStr}</span>
+                            </span>
+                            {ass.level_name && (
+                              <>
+                                <span>•</span>
+                                <span>سطح: {ass.level_name}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 self-end sm:self-auto">
+                        {ass.score !== undefined && ass.score !== null && (
+                          <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                            امتیاز: {Math.round(ass.score)} / ۱۰۰
+                          </span>
+                        )}
+                        <Badge variant={ass.status === 'PASSED' ? 'success' : 'warning'}>
+                          {ass.status_display || (ass.status === 'PASSED' ? 'قبول / کسب مهارت' : 'در حال تمرین')}
+                        </Badge>
+                      </div>
+                    </div>
+
+                    {/* Coach Feedback Box */}
+                    {hasFeedback ? (
+                      <div className="p-4 rounded-2xl bg-sky-50/60 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/60 text-xs sm:text-sm text-slate-700 dark:text-slate-200 space-y-1">
+                        <span className="font-bold text-sky-800 dark:text-sky-300 block flex items-center gap-1.5">
+                          <FileText className="w-3.5 h-3.5 text-sky-600" />
+                          بازخورد و نکات آموزشی مربی:
+                        </span>
+                        <p className="leading-relaxed pr-5 font-normal">
+                          «{ass.feedback || ass.notes}»
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-slate-400 italic">
+                        توضیحات متنی اضافی برای این ارزیابی ثبت نشده است.
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-10 border border-slate-200/80 dark:border-slate-800 text-center space-y-3">
+              <Award className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto" />
+              <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-200">
+                هنوز ارزیابی یا بازخوردی توسط مربی برای شما ثبت نشده است
+              </h3>
+              <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+                پس از برگزاری جلسات تمرینی یا آزمون‌های تعیین سطح، امتیازات کسب‌شده و توصیه‌های آموزشی مربی در این بخش قابل مشاهده خواهند بود.
+              </p>
+              <div className="pt-2">
+                <Link
+                  to="/swimmer/progress"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 text-xs sm:text-sm font-bold hover:bg-sky-100 transition-colors"
+                >
+                  <span>مشاهده نقشه راه مهارت‌های آموزشی</span>
+                  <ChevronLeft className="w-4 h-4" />
+                </Link>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* =================================================================== */}
+      {/* TAB 3: PASSWORD & SECURITY                                          */}
       {/* =================================================================== */}
       {activeMainTab === 'SECURITY' && (
         <div className="space-y-6 animate-in fade-in duration-200">
