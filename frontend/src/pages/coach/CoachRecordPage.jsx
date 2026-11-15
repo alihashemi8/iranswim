@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  Search, X, RotateCcw, Layers, Droplets, ChevronRight, Play, Square,
+  Search, X, RotateCcw, Layers, Droplets, ChevronRight, ArrowRight, Play, Square,
   Save, Timer as TimerIcon, Flag, Users, ArrowLeftRight, MoveRight,
   LayoutGrid, Table, Video, Upload, Trash2, Film, Edit3, CheckCircle2, AlertCircle
 } from 'lucide-react';
 
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
+import { BackButton } from '../../components/common/BackButton';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
@@ -878,52 +879,39 @@ export const CoachRecordPage = () => {
   // ── نوار پیشرفت ویزارد ──
   const renderStepper = () => (
     <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs p-3.5 sm:p-5">
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         {/* شناگر انتخاب‌شده */}
-        <div className="flex items-center justify-between sm:justify-start gap-3 min-w-0">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-lg shrink-0 shadow-xs overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800">
-              {selectedSwimmer?.avatar ? (
-                <img
-                  src={selectedSwimmer.avatar}
-                  alt={selectedSwimmer.full_name}
-                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                (selectedSwimmer?.full_name || 'ش').charAt(0)
-              )}
-            </div>
-            <div className="min-w-0">
-              <div className="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
-                {selectedSwimmer?.full_name}
-              </div>
-              <button
-                type="button"
-                onClick={handleBackToSwimmers}
-                className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer inline-flex items-center gap-1 mt-0.5"
-                title="بازگشت به انتخاب شناگر"
-              >
-                <ChevronRight className="w-3.5 h-3.5" />
-                تغییر شناگر
-              </button>
-            </div>
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="relative w-11 h-11 sm:w-12 sm:h-12 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-lg shrink-0 shadow-xs overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800">
+            {selectedSwimmer?.avatar ? (
+              <img
+                src={selectedSwimmer.avatar}
+                alt={selectedSwimmer.full_name}
+                onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              (selectedSwimmer?.full_name || 'ش').charAt(0)
+            )}
           </div>
-
-          {/* دکمه بازگشت موبایل در بالای هدر */}
-          <button
-            type="button"
-            onClick={handleBackStep}
-            className="sm:hidden inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold border border-slate-200/80 dark:border-slate-700 shrink-0"
-            title={wizardStep === 0 ? 'بازگشت به لیست شناگران' : 'بازگشت به مرحله قبل'}
-          >
-            <ChevronRight className="w-3.5 h-3.5" />
-            <span>بازگشت</span>
-          </button>
+          <div className="min-w-0">
+            <div className="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
+              {selectedSwimmer?.full_name}
+            </div>
+            <button
+              type="button"
+              onClick={handleBackToSwimmers}
+              className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:text-emerald-700 dark:hover:text-emerald-300 transition-colors cursor-pointer inline-flex items-center gap-1 mt-0.5"
+              title="بازگشت به انتخاب شناگر"
+            >
+              <ArrowRight className="w-3.5 h-3.5" />
+              تغییر شناگر
+            </button>
+          </div>
         </div>
 
-        {/* مراحل */}
-        <div className="flex items-center gap-1.5 sm:gap-2 flex-1 sm:justify-center min-w-0">
+        {/* مراحل با قابلیت کلیک روی مراحل سپری‌شده */}
+        <div className="flex items-center gap-1.5 sm:gap-2 justify-end sm:justify-center min-w-0">
           {WIZARD_STEPS.map((step, idx) => {
             const isActive = idx === wizardStep;
             const isDone = idx < wizardStep;
@@ -932,45 +920,43 @@ export const CoachRecordPage = () => {
               <React.Fragment key={step.id}>
                 {idx > 0 && (
                   <div
-                    className={`h-0.5 flex-1 min-w-3 sm:min-w-6 rounded-full transition-colors duration-300 ${
+                    className={`h-0.5 w-6 sm:w-10 rounded-full transition-colors duration-300 ${
                       isDone ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'
                     }`}
                   />
                 )}
-                <div
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isDone) {
+                      if (timerState === 'running') clearTimerInterval();
+                      setWizardStep(idx);
+                    }
+                  }}
+                  disabled={!isDone && !isActive}
                   className={`flex items-center gap-2 px-2.5 sm:px-3.5 py-2 rounded-xl border transition-all duration-300 shrink-0 ${
                     isActive
                       ? 'bg-emerald-600 border-emerald-600 text-white shadow-xs'
                       : isDone
-                      ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300'
-                      : 'bg-slate-50 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500'
+                      ? 'bg-emerald-50 dark:bg-emerald-950/50 border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 hover:border-emerald-400 cursor-pointer active:scale-95'
+                      : 'bg-slate-50 dark:bg-slate-800/70 border-slate-200 dark:border-slate-700 text-slate-400 dark:text-slate-500 cursor-default'
                   }`}
                   aria-current={isActive ? 'step' : undefined}
+                  title={isDone ? `بازگشت به مرحله ${idx + 1}: ${step.title}` : step.title}
                 >
                   <StepIcon className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" />
                   <div className="hidden sm:block leading-tight text-right">
                     <div className="text-xs font-black whitespace-nowrap">{step.title}</div>
-                    <div className={`text-[10px] font-bold ${isActive ? 'text-emerald-100' : 'opacity-70'}`}>
-                      مرحله {idx + 1}
+                    <div className={`text-[10px] font-bold ${isActive ? 'text-emerald-100' : isDone ? 'text-emerald-600 dark:text-emerald-400' : 'opacity-70'}`}>
+                      {isDone ? 'تغییر' : `مرحله ${idx + 1}`}
                     </div>
                   </div>
-                  <span className={`sm:hidden text-xs font-black`}>{idx + 1}</span>
-                </div>
+                  <span className="sm:hidden text-xs font-black">{idx + 1}</span>
+                </button>
               </React.Fragment>
             );
           })}
         </div>
-
-        {/* دکمه بازگشت تبلت و دسکتاپ */}
-        <button
-          type="button"
-          onClick={handleBackStep}
-          className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0"
-          title={wizardStep === 0 ? 'بازگشت به لیست شناگران' : 'بازگشت به مرحله قبل'}
-        >
-          <ChevronRight className="w-4 h-4" />
-          بازگشت
-        </button>
       </div>
     </div>
   );
@@ -1480,6 +1466,18 @@ export const CoachRecordPage = () => {
             );
           })}
         </div>
+
+        {/* دکمه بازگشت به مرحله ۱ (نوع شنا) */}
+        <div className="flex items-center justify-start pt-4 mt-2 border-t border-slate-100 dark:border-slate-800">
+          <button
+            type="button"
+            onClick={() => setWizardStep(0)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-all cursor-pointer"
+          >
+            <ArrowRight className="w-4 h-4 text-slate-400" />
+            <span>مرحله قبل: تغییر نوع شنا</span>
+          </button>
+        </div>
       </div>
     );
   };
@@ -1824,6 +1822,21 @@ export const CoachRecordPage = () => {
           <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 text-center leading-relaxed max-w-md">
             پس از ثبت، رکورد به‌صورت رسمی و تأییدشده به بخش «رکوردهای شنا» در پروفایل شناگر منتقل می‌شود.
           </p>
+
+          {/* بازگشت به مرحله ۲ (تغییر مسافت) */}
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800 w-full flex justify-center">
+            <button
+              type="button"
+              onClick={() => {
+                if (timerState === 'running') clearTimerInterval();
+                setWizardStep(1);
+              }}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer"
+            >
+              <ArrowRight className="w-4 h-4 text-slate-400" />
+              <span>مرحله قبل: تغییر مسافت</span>
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -1838,14 +1851,23 @@ export const CoachRecordPage = () => {
     <div className="space-y-4 sm:space-y-5 lg:space-y-6 pb-4 sm:pb-6 coach-panel">
       {/* هدر صفحه */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2 sm:gap-2.5">
-            <OlympicStopwatchIcon className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-600 dark:text-emerald-400 shrink-0" />
-            <span>ثبت رکورد شنا</span>
-          </h1>
-          <p className="text-xs sm:text-sm lg:text-base text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
-            انتخاب شاگرد، زمان‌گیری دقیق با زمان‌سنج و درج رکورد در پروفایل شناگر
-          </p>
+        <div className="flex items-center gap-3 min-w-0">
+          {selectedSwimmer && (
+            <BackButton
+              onClick={activeTab === 'video' ? handleBackToSwimmers : handleBackStep}
+              label={activeTab === 'video' || wizardStep === 0 ? 'لیست شناگران' : 'مرحله قبل'}
+              showLabelAlways
+            />
+          )}
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2 sm:gap-2.5">
+              <OlympicStopwatchIcon className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <span>ثبت رکورد شنا</span>
+            </h1>
+            <p className="text-xs sm:text-sm lg:text-base text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+              انتخاب شاگرد، زمان‌گیری دقیق با زمان‌سنج و درج رکورد در پروفایل شناگر
+            </p>
+          </div>
         </div>
         {!selectedSwimmer && (
           <div className="hidden sm:flex items-center gap-2 px-3.5 py-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200/70 dark:border-emerald-800 text-xs font-bold shrink-0">
@@ -1922,7 +1944,7 @@ export const CoachRecordPage = () => {
                   className="inline-flex items-center gap-1.5 px-3.5 py-2 min-h-[40px] rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-xs font-bold transition-all active:scale-95 cursor-pointer shrink-0"
                   title="بازگشت به فهرست شناگران"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ArrowRight className="w-4 h-4" />
                   <span>تغییر شناگر</span>
                 </button>
               </div>
@@ -1946,7 +1968,7 @@ export const CoachRecordPage = () => {
             onClick={activeTab === 'video' ? handleBackToSwimmers : handleBackStep}
             className="sm:hidden w-full inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 min-h-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200/80 dark:border-slate-700 text-sm font-bold transition-all active:scale-95 cursor-pointer"
           >
-            <ChevronRight className="w-4 h-4" />
+            <ArrowRight className="w-4 h-4" />
             {activeTab === 'video' || wizardStep === 0 ? 'بازگشت به لیست شناگران' : 'بازگشت به مرحله قبل'}
           </button>
         </div>
