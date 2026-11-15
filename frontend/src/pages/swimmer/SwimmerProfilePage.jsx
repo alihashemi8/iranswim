@@ -17,7 +17,7 @@ import { MapLocationPicker } from '../../components/common/MapLocationPicker';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { LogoutModal } from '../../components/common/LogoutModal';
 import { validatePassword, PasswordRequirementsList } from '../../utils/passwordValidator';
-import { getMediaUrl } from '../../utils/media';
+import { getMediaUrl, getAuthenticatedDocUrl } from '../../utils/media';
 import { toShamsiDate } from '../../utils/date';
 
 export const SwimmerProfilePage = () => {
@@ -131,9 +131,9 @@ export const SwimmerProfilePage = () => {
           setLongitude(data.longitude || 51.3890);
 
           if (data.avatar) setAvatarPreview(getMediaUrl(data.avatar));
-          if (data.birth_certificate_image) setBirthCertPreview(data.birth_certificate_image);
-          if (data.national_card_image) setNationalCardPreview(data.national_card_image);
-          if (data.sports_insurance_image) setSportsInsurancePreview(data.sports_insurance_image);
+          if (data.birth_certificate_image) setBirthCertPreview(getAuthenticatedDocUrl(data.birth_certificate_image));
+          if (data.national_card_image) setNationalCardPreview(getAuthenticatedDocUrl(data.national_card_image));
+          if (data.sports_insurance_image) setSportsInsurancePreview(getAuthenticatedDocUrl(data.sports_insurance_image));
 
           setBirthCertStatus(data.birth_certificate_status || '');
           setNationalCardStatus(data.national_card_status || '');

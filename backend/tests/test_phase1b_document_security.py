@@ -360,3 +360,21 @@ def test_upload_safety_rejects_dangerous_svg_and_script_payloads(api_client, swi
     traversal_file = SimpleUploadedFile('../../traversal.jpg', valid_jpg, content_type='image/jpeg')
     traversal_res = api_client.patch('/api/swimmers/me/', {'birth_certificate_image': traversal_file}, format='multipart')
     assert traversal_res.status_code == 400
+
+
+@pytest.mark.django_db
+def test_document_download_supports_token_query_param_for_preview_and_img(api_client, swimmer1, admin_user):
+    """
+    آزمون ۱۳: دسترسی به تصویر مدرک از طریق پارامتر کوئری ?token=<access_token> برای پیش‌نمایش در مرورگر و تگ‌های <img>
+    """
+    from rest_framework_simplejwt.tokens import RefreshToken
+    token = str(RefreshToken.for_user(admin_user).access_token)
+
+    # درخواست بدون توکن هدر و با کوئری پارامتر توکن
+    res = api_client.get(f'/api/swimmers/{swimmer1.id}/documents/birth_certificate/?token={token}')
+    assert res.status_code == 200
+
+    # توکن نامعتبر باید ۴۰۱ شود
+    bad_res = api_client.get(f'/api/swimmers/{swimmer1.id}/documents/birth_certificate/?token=invalid.token.here')
+    assert bad_res.status_code == 401
+

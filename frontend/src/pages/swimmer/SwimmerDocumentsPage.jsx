@@ -8,6 +8,7 @@ import api from '../../api/client';
 import { useSwimmer } from '../../context/SwimmerContext';
 import { Badge } from '../../components/common/Badge';
 import { LoadingState } from '../../components/common/LoadingState';
+import { SecureImage } from '../../components/common/SecureImage';
 
 export const SwimmerDocumentsPage = () => {
   const { activeSwimmer, activeSwimmerId } = useSwimmer();
@@ -235,7 +236,7 @@ export const SwimmerDocumentsPage = () => {
             </div>
             {profile?.birth_certificate_image ? (
               <div className="h-36 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-700 relative group border">
-                <img
+                <SecureImage
                   src={profile.birth_certificate_image}
                   alt="شناسنامه"
                   className="w-full h-full object-cover"
@@ -259,7 +260,7 @@ export const SwimmerDocumentsPage = () => {
             </div>
             {profile?.national_card_image ? (
               <div className="h-36 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-700 relative group border">
-                <img
+                <SecureImage
                   src={profile.national_card_image}
                   alt="کارت ملی"
                   className="w-full h-full object-cover"
@@ -283,7 +284,7 @@ export const SwimmerDocumentsPage = () => {
             </div>
             {profile?.sports_insurance_image ? (
               <div className="h-36 rounded-xl overflow-hidden bg-slate-200 dark:bg-slate-700 relative group border">
-                <img
+                <SecureImage
                   src={profile.sports_insurance_image}
                   alt="بیمه ورزشی"
                   className="w-full h-full object-cover"

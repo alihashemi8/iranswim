@@ -12,7 +12,7 @@ import { Button } from '../../components/common/Button';
 import { LoadingState } from '../../components/common/LoadingState';
 import { MapLocationPicker } from '../../components/common/MapLocationPicker';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
-import { getMediaUrl } from '../../utils/media';
+import { getMediaUrl, getAuthenticatedDocUrl } from '../../utils/media';
 
 export const SwimmerCompleteProfilePage = () => {
   const { user, updateUserData } = useAuth();
@@ -82,9 +82,9 @@ export const SwimmerCompleteProfilePage = () => {
         setLongitude(data.longitude || 51.3890);
 
         if (data.avatar) setAvatarPreview(getMediaUrl(data.avatar));
-        if (data.birth_certificate_image) setBirthCertPreview(data.birth_certificate_image);
-        if (data.national_card_image) setNationalCardPreview(data.national_card_image);
-        if (data.sports_insurance_image) setSportsInsurancePreview(data.sports_insurance_image);
+        if (data.birth_certificate_image) setBirthCertPreview(getAuthenticatedDocUrl(data.birth_certificate_image));
+        if (data.national_card_image) setNationalCardPreview(getAuthenticatedDocUrl(data.national_card_image));
+        if (data.sports_insurance_image) setSportsInsurancePreview(getAuthenticatedDocUrl(data.sports_insurance_image));
 
         setIsCompletedBefore(Boolean(data.is_profile_completed));
       } catch (err) {

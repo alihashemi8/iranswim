@@ -5,8 +5,9 @@ from django.db.models import Count, Q
 from django.utils import timezone
 from django.core.paginator import InvalidPage, EmptyPage
 from django.http import FileResponse, HttpResponse
-from rest_framework import generics, permissions, status
+from rest_framework import generics, permissions, status, authentication
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.pagination import PageNumberPagination
@@ -691,6 +692,27 @@ class SwimmerReviewDocumentsView(APIView):
             }, status=status.HTTP_200_OK)
 
 
+class DocumentJWTAuthentication(JWTAuthentication):
+    """
+    احراز هویت JWT منعطف:
+    ابتدا هدر استاندارد Authorization: Bearer را بررسی می‌کند.
+    در صورت نبود هدر، پارامتر query_string با نام token را بررسی می‌کند
+    تا مرورگر بتواند تصاویر مدارک را در تگ‌های <img> یا تب‌های جدید بدون افشای هدر بارگذاری نماید.
+    """
+    def authenticate(self, request):
+        header = self.get_header(request)
+        if header is not None:
+            raw_token = self.get_raw_token(header)
+        else:
+            raw_token = request.query_params.get('token')
+            if raw_token:
+                raw_token = raw_token.encode('utf-8')
+        if raw_token is None:
+            return None
+        validated_token = self.get_validated_token(raw_token)
+        return self.get_user(validated_token), validated_token
+
+
 class SwimmerDocumentDownloadView(APIView):
     """
     تحویل امن و کنترل‌شده مدارک هویتی محرمانه شناگران (شناسنامه، کارت ملی، بیمه ورزشی):
@@ -702,6 +724,7 @@ class SwimmerDocumentDownloadView(APIView):
     - هدرهای امنیتی ضد کش و عدم افشای ساختار دایرکتوری سرور
     - پشتیبانی از X-Accel-Redirect انجین‌ایکس در محیط پروداکشن
     """
+    authentication_classes = [DocumentJWTAuthentication, authentication.SessionAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     DOCUMENT_FIELD_MAP = {

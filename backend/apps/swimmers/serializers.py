@@ -120,8 +120,7 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
         for field_name, doc_type in doc_fields:
             file_field = getattr(instance, field_name, None)
             if file_field and file_field.name:
-                endpoint = f"/api/swimmers/{instance.id}/documents/{doc_type}/"
-                ret[field_name] = request.build_absolute_uri(endpoint) if request else endpoint
+                ret[field_name] = f"/api/swimmers/{instance.id}/documents/{doc_type}/"
             else:
                 ret[field_name] = None
 
