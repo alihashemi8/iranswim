@@ -120,7 +120,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
         },
         {
           to: '/admin/dossiers',
-          label: 'پرونده‌ها و مدارک',
+          label: 'رسید و مدارک',
           icon: FolderCheck,
           badge: pendingDossiersCount > 0 ? pendingDossiersCount : null,
           badgeColor: 'bg-amber-500 text-white',
@@ -232,7 +232,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       groupTitle: 'حساب کاربری',
       items: [
         { to: '/swimmer/profile', label: 'پروفایل و امنیت', icon: Settings },
-        { to: '/swimmer/documents', label: 'پرونده و مدارک', icon: FileText },
+        { to: '/swimmer/documents', label: 'رسید و مدارک', icon: FileText },
       ],
     },
   ];
