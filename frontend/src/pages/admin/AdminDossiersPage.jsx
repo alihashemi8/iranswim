@@ -5,7 +5,7 @@ import {
   Search, Eye, ShieldCheck, AlertTriangle, FileText,
   Download, ArrowLeft, RefreshCw, Filter, Whistle,
   ExternalLink, UserCheck, Calendar, Phone, Award,
-  Check, X, FileSpreadsheet, ZoomIn
+  Check, X, FileSpreadsheet, ZoomIn, Receipt, CreditCard
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -22,8 +22,9 @@ export const AdminDossiersPage = () => {
   const navigate = useNavigate();
   const toast = useToast();
 
-  // Active Main Tab: 'SWIMMERS' or 'COACHES'
-  const activeTab = searchParams.get('tab') === 'coaches' ? 'COACHES' : 'SWIMMERS';
+  // Active Main Tab: 'SWIMMERS', 'COACHES', or 'RECEIPTS'
+  const tabParam = searchParams.get('tab');
+  const activeTab = tabParam === 'coaches' ? 'COACHES' : tabParam === 'receipts' ? 'RECEIPTS' : 'SWIMMERS';
 
   // State: Summary Stats
   const [summaryStats, setSummaryStats] = useState({
@@ -34,7 +35,17 @@ export const AdminDossiersPage = () => {
     coaches_pending: 0,
     coaches_approved: 0,
     coaches_rejected: 0,
+    receipts_pending: 0,
+    receipts_approved: 0,
+    receipts_rejected: 0,
   });
+
+  // State: Receipts Tab
+  const [receipts, setReceipts] = useState([]);
+  const [receiptLoading, setReceiptLoading] = useState(true);
+  const [receiptSearch, setReceiptSearch] = useState('');
+  const [activeReceiptSearch, setActiveReceiptSearch] = useState('');
+  const [receiptFilter, setReceiptFilter] = useState('ALL'); // ALL, PENDING, APPROVED, REJECTED
 
   // State: Swimmers Tab
   const [swimmers, setSwimmers] = useState([]);
@@ -59,6 +70,15 @@ export const AdminDossiersPage = () => {
   // Action Modals
   // Document Image / File Preview Modal
   const [previewDoc, setPreviewDoc] = useState(null); // { title, url, type: 'image'|'pdf' }
+
+  // Receipt Approval Modal (with manager-entered amount)
+  const [approveModal, setApproveModal] = useState({
+    isOpen: false,
+    receipt: null,
+    approvedAmount: '',
+    notes: '',
+    submitting: false,
+  });
 
   // Rejection Reason Modal
   const [rejectionModal, setRejectionModal] = useState({
@@ -95,11 +115,44 @@ export const AdminDossiersPage = () => {
       const next = new URLSearchParams(prev);
       if (newTab === 'COACHES') {
         next.set('tab', 'coaches');
+      } else if (newTab === 'RECEIPTS') {
+        next.set('tab', 'receipts');
       } else {
         next.delete('tab');
       }
       return next;
     });
+  };
+
+  // Fetch Receipts (رسیدهای واریز شهریه کارت به کارت)
+  const fetchReceipts = useCallback(async () => {
+    try {
+      setReceiptLoading(true);
+      const params = {};
+      if (activeReceiptSearch.trim()) params.search = activeReceiptSearch.trim();
+      if (receiptFilter !== 'ALL') params.status = receiptFilter;
+
+      const res = await api.get('/finance/receipts/', { params });
+      const results = res.data.results || res.data || [];
+      setReceipts(results);
+    } catch (err) {
+      console.error(err);
+      toast.error('خطا در دریافت رسیدهای پرداخت');
+    } finally {
+      setReceiptLoading(false);
+    }
+  }, [activeReceiptSearch, receiptFilter, toast]);
+
+  useEffect(() => {
+    if (activeTab === 'RECEIPTS') {
+      fetchReceipts();
+    }
+  }, [activeTab, activeReceiptSearch, receiptFilter, fetchReceipts]);
+
+  // Handle Receipt Search
+  const handleReceiptSearchSubmit = (e) => {
+    e.preventDefault();
+    setActiveReceiptSearch(receiptSearch);
   };
 
   // Fetch Swimmers
@@ -238,13 +291,65 @@ export const AdminDossiersPage = () => {
     }
   };
 
+  // Open Receipt Approval Modal
+  const openApproveModal = (receipt) => {
+    // Default amount: remaining balance or claimed amount or empty
+    const defaultAmount = receipt.amount_claimed > 0
+      ? String(receipt.amount_claimed)
+      : (receipt.invoice_remaining_balance > 0 ? String(receipt.invoice_remaining_balance) : '');
+
+    setApproveModal({
+      isOpen: true,
+      receipt,
+      approvedAmount: defaultAmount,
+      notes: '',
+      submitting: false,
+    });
+  };
+
+  // Submit Receipt Approval (with manager-entered amount)
+  const handleApproveReceiptSubmit = async (e) => {
+    e.preventDefault();
+    if (!approveModal.receipt) return;
+    const amountNum = parseFloat(approveModal.approvedAmount);
+    if (!amountNum || amountNum <= 0) {
+      toast.error('لطفاً مبلغ پرداختی مورد تأیید (تومان) را به صورت معتبر وارد نمایید.');
+      return;
+    }
+
+    try {
+      setApproveModal((prev) => ({ ...prev, submitting: true }));
+      await api.post(`/finance/receipts/${approveModal.receipt.id}/review/`, {
+        action: 'APPROVE',
+        approved_amount: amountNum,
+        notes: approveModal.notes.trim(),
+      });
+
+      toast.success(
+        `مبلغ ${Number(amountNum).toLocaleString('fa-IR')} تومان با موفقیت تأیید و از شهریه شناگر کسر شد.`
+      );
+      setApproveModal({
+        isOpen: false,
+        receipt: null,
+        approvedAmount: '',
+        notes: '',
+        submitting: false,
+      });
+      fetchSummaryStats();
+      fetchReceipts();
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'خطا در تأیید رسید و اعمال شهریه');
+      setApproveModal((prev) => ({ ...prev, submitting: false }));
+    }
+  };
+
   // Open Rejection Modal
   const openRejectionModal = (type, item) => {
     setRejectionModal({
       isOpen: true,
       targetType: type,
       targetId: item.id,
-      targetName: item.full_name,
+      targetName: item.swimmer_name || item.full_name || `رسید شماره #${item.id}`,
       reason: '',
       submitting: false,
     });
@@ -253,14 +358,21 @@ export const AdminDossiersPage = () => {
   // Submit Rejection
   const handleSubmitRejection = async () => {
     if (!rejectionModal.reason.trim()) {
-      toast.error('لطفاً علت نقص یا دلیل عدم تأیید مدارک را وارد نمایید.');
+      toast.error('لطفاً علت نقص یا دلیل عدم تأیید را وارد نمایید.');
       return;
     }
 
     try {
       setRejectionModal((prev) => ({ ...prev, submitting: true }));
 
-      if (rejectionModal.targetType === 'SWIMMER') {
+      if (rejectionModal.targetType === 'RECEIPT') {
+        await api.post(`/finance/receipts/${rejectionModal.targetId}/review/`, {
+          action: 'REJECT',
+          reason: rejectionModal.reason.trim(),
+        });
+        toast.info(`عدم تأیید رسید پرداخت برای «${rejectionModal.targetName}» با موفقیت ثبت شد.`);
+        fetchReceipts();
+      } else if (rejectionModal.targetType === 'SWIMMER') {
         await api.post(`/swimmers/${rejectionModal.targetId}/review-documents/`, {
           action: 'REJECT',
           reason: rejectionModal.reason.trim(),
@@ -286,10 +398,18 @@ export const AdminDossiersPage = () => {
         submitting: false,
       });
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'خطا در ثبت عدم تأیید مدارک');
+      toast.error(err.response?.data?.detail || 'خطا در ثبت عدم تأیید');
       setRejectionModal((prev) => ({ ...prev, submitting: false }));
     }
   };
+
+  // Quick Preset Reasons
+  const receiptPresetReasons = [
+    'تصویر فیش یا رسید واریز ناخوانا یا ناقص است.',
+    'مبلغ اعلامی به حساب آموزشگاه واریز نشده یا گردش بانکی ندارد.',
+    'شماره پیگیری یا مرجع بانکی نامعتبر است.',
+    'فیش تکراری است یا قبلاً در سیستم ثبت شده است.',
+  ];
 
   // Quick Preset Reasons
   const swimmerPresetReasons = [
@@ -339,6 +459,47 @@ export const AdminDossiersPage = () => {
     );
   };
 
+  const formatPrice = (val) => Number(val || 0).toLocaleString('fa-IR');
+
+  const numToPersianWords = (num) => {
+    const n = parseInt(num, 10);
+    if (isNaN(n) || n <= 0) return '';
+    const yekan = ['', 'یک', 'دو', 'سه', 'چهار', 'پنج', 'شش', 'هفت', 'هشت', 'نه'];
+    const dahha = ['', 'ده', 'بیست', 'سی', 'چهل', 'پنجاه', 'شصت', 'هفتاد', 'هشتاد', 'نود'];
+    const dahYek = ['ده', 'یازده', 'دوازده', 'سیزده', 'چهارده', 'پانزده', 'شانزده', 'هفده', 'هجده', 'نوزده'];
+    const sadha = ['', 'یکصد', 'دویست', 'سیصد', 'چهارصد', 'پانصد', 'ششصد', 'هفتصد', 'هشتصد', 'نهصد'];
+    const scales = ['', 'هزار', 'میلیون', 'میلیارد'];
+
+    const convert3 = (val) => {
+      let res = [];
+      const s = Math.floor(val / 100);
+      const d = Math.floor((val % 100) / 10);
+      const y = val % 10;
+      if (s > 0) res.push(sadha[s]);
+      if (d === 1) {
+        res.push(dahYek[y]);
+      } else {
+        if (d > 0) res.push(dahha[d]);
+        if (y > 0) res.push(yekan[y]);
+      }
+      return res.join(' و ');
+    };
+
+    let chunks = [];
+    let temp = n;
+    while (temp > 0) {
+      chunks.push(temp % 1000);
+      temp = Math.floor(temp / 1000);
+    }
+    let words = [];
+    for (let i = chunks.length - 1; i >= 0; i--) {
+      if (chunks[i] > 0) {
+        words.push(convert3(chunks[i]) + (scales[i] ? ' ' + scales[i] : ''));
+      }
+    }
+    return words.join(' و ') + ' تومان';
+  };
+
   return (
     <div className="space-y-6">
       {/* Header Banner */}
@@ -346,10 +507,10 @@ export const AdminDossiersPage = () => {
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <FolderCheck className="w-6 h-6 text-sky-600" />
-            مرکز بررسی پرونده‌ها و مدارک
+            مرکز بررسی رسیدها و مدارک
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            بررسی و اعتبارسنجی مدارک هویتی، بیمه ورزشی و گواهی‌های بازآموزی شناگران و کادر مربیان
+            بررسی و اعتبارسنجی فیش‌های واریزی کارت‌به‌کارت شهریه، مدارک هویتی شناگران و کادر مربیان
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -358,7 +519,8 @@ export const AdminDossiersPage = () => {
             onClick={() => {
               fetchSummaryStats();
               if (activeTab === 'SWIMMERS') fetchSwimmers(swimmerPage);
-              else fetchCoaches(coachPage);
+              else if (activeTab === 'COACHES') fetchCoaches(coachPage);
+              else fetchReceipts();
             }}
             className="gap-1.5 text-xs whitespace-nowrap"
           >
@@ -377,35 +539,67 @@ export const AdminDossiersPage = () => {
       </div>
 
       {/* KPI Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
         {/* Total Pending */}
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-amber-200/80 dark:border-amber-900/40 shadow-2xs flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/60 dark:border-amber-800 flex items-center justify-center shrink-0">
-            <Clock className="w-6 h-6 text-amber-600 dark:text-amber-400" />
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-amber-200/80 dark:border-amber-900/40 shadow-2xs flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/60 dark:border-amber-800 flex items-center justify-center shrink-0">
+            <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
           </div>
           <div>
             <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">
-              کل نیازمند بررسی مدیریت
+              کل نیازمند بررسی
             </span>
-            <div className="flex items-baseline gap-2 mt-0.5">
+            <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-2xl font-bold text-amber-700 dark:text-amber-400 font-mono">
                 {summaryStats.total_pending}
               </span>
-              <span className="text-xs text-slate-400">پرونده</span>
+              <span className="text-xs text-slate-400">مورد</span>
+            </div>
+          </div>
+        </div>
+
+        {/* Receipts Pending */}
+        <div
+          onClick={() => handleTabChange('RECEIPTS')}
+          className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-2xs flex items-center gap-3 ${
+            activeTab === 'RECEIPTS'
+              ? 'bg-amber-50/70 dark:bg-amber-950/30 border-amber-300 dark:border-amber-800 ring-2 ring-amber-400/40'
+              : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-amber-300'
+          }`}
+        >
+          <div className="w-11 h-11 rounded-xl bg-amber-100 dark:bg-amber-900/60 border border-amber-300 dark:border-amber-700 flex items-center justify-center shrink-0">
+            <Receipt className="w-5 h-5 text-amber-700 dark:text-amber-300" />
+          </div>
+          <div>
+            <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">
+              فیش‌های در انتظار بررسی
+            </span>
+            <div className="flex items-baseline gap-1.5 mt-0.5">
+              <span className="text-2xl font-bold text-amber-700 dark:text-amber-300 font-mono">
+                {summaryStats.receipts_pending || 0}
+              </span>
+              <span className="text-xs text-slate-400">رسید</span>
             </div>
           </div>
         </div>
 
         {/* Swimmers Pending */}
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200/60 dark:border-sky-800 flex items-center justify-center shrink-0">
-            <Users className="w-6 h-6 text-sky-600 dark:text-sky-400" />
+        <div
+          onClick={() => handleTabChange('SWIMMERS')}
+          className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-2xs flex items-center gap-3 ${
+            activeTab === 'SWIMMERS'
+              ? 'bg-sky-50/70 dark:bg-sky-950/30 border-sky-300 dark:border-sky-800 ring-2 ring-sky-400/40'
+              : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-sky-300'
+          }`}
+        >
+          <div className="w-11 h-11 rounded-xl bg-sky-50 dark:bg-sky-950/60 border border-sky-200/60 dark:border-sky-800 flex items-center justify-center shrink-0">
+            <Users className="w-5 h-5 text-sky-600 dark:text-sky-400" />
           </div>
           <div>
             <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">
-              مدارک در انتظار شناگران
+              مدارک شناگران
             </span>
-            <div className="flex items-baseline gap-2 mt-0.5">
+            <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-2xl font-bold text-sky-700 dark:text-sky-400 font-mono">
                 {summaryStats.swimmers_pending}
               </span>
@@ -415,15 +609,22 @@ export const AdminDossiersPage = () => {
         </div>
 
         {/* Coaches Pending */}
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/60 dark:border-emerald-800 flex items-center justify-center shrink-0">
-            <Whistle className="w-6 h-6 text-emerald-600 dark:text-emerald-400" />
+        <div
+          onClick={() => handleTabChange('COACHES')}
+          className={`p-4 rounded-2xl border transition-all cursor-pointer shadow-2xs flex items-center gap-3 ${
+            activeTab === 'COACHES'
+              ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800 ring-2 ring-emerald-400/40'
+              : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800 hover:border-emerald-300'
+          }`}
+        >
+          <div className="w-11 h-11 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200/60 dark:border-emerald-800 flex items-center justify-center shrink-0">
+            <Whistle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div>
             <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">
-              بازآموزی و مدارک مربیان
+              مدارک مربیان
             </span>
-            <div className="flex items-baseline gap-2 mt-0.5">
+            <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 font-mono">
                 {summaryStats.coaches_pending}
               </span>
@@ -433,19 +634,19 @@ export const AdminDossiersPage = () => {
         </div>
 
         {/* Approved Records */}
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs flex items-center gap-3.5">
-          <div className="w-12 h-12 rounded-xl bg-cyan-50 dark:bg-cyan-950/60 border border-cyan-200/60 dark:border-cyan-800 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs flex items-center gap-3">
+          <div className="w-11 h-11 rounded-xl bg-cyan-50 dark:bg-cyan-950/60 border border-cyan-200/60 dark:border-cyan-800 flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
           </div>
           <div>
             <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">
-              پرونده‌های تأییدشده
+              کل تأییدشده‌ها
             </span>
-            <div className="flex items-baseline gap-2 mt-0.5">
+            <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-2xl font-bold text-slate-800 dark:text-slate-100 font-mono">
-                {summaryStats.swimmers_approved + summaryStats.coaches_approved}
+                {summaryStats.swimmers_approved + summaryStats.coaches_approved + (summaryStats.receipts_approved || 0)}
               </span>
-              <span className="text-xs text-slate-400">پرونده</span>
+              <span className="text-xs text-slate-400">مورد</span>
             </div>
           </div>
         </div>
@@ -485,6 +686,24 @@ export const AdminDossiersPage = () => {
           {summaryStats.coaches_pending > 0 && (
             <span className="px-2 py-0.5 text-xs rounded-full bg-emerald-500 text-white font-mono">
               {summaryStats.coaches_pending}
+            </span>
+          )}
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleTabChange('RECEIPTS')}
+          className={`pb-3.5 px-4 font-bold text-sm transition-all border-b-2 flex items-center gap-2 cursor-pointer ${
+            activeTab === 'RECEIPTS'
+              ? 'border-amber-600 text-amber-600 dark:text-amber-400'
+              : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+          }`}
+        >
+          <Receipt className="w-4 h-4" />
+          <span>رسید ها</span>
+          {summaryStats.receipts_pending > 0 && (
+            <span className="px-2 py-0.5 text-xs rounded-full bg-amber-500 text-white font-mono">
+              {summaryStats.receipts_pending}
             </span>
           )}
         </button>
@@ -1137,6 +1356,499 @@ export const AdminDossiersPage = () => {
         </div>
       )}
 
+      {/* TAB CONTENT: RECEIPTS (رسید ها) */}
+      {activeTab === 'RECEIPTS' && (
+        <div className="space-y-4">
+          {/* Controls: Search and Status Filters */}
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+            <form onSubmit={handleReceiptSearchSubmit} className="flex-1 flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+                <input
+                  type="text"
+                  value={receiptSearch}
+                  onChange={(e) => setReceiptSearch(e.target.value)}
+                  placeholder="جستجو با نام شناگر، شماره تماس، کد ملی یا شماره پیگیری فیش..."
+                  className="w-full pl-3 pr-10 py-2.5 text-xs bg-slate-50 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                />
+              </div>
+              <Button type="submit" variant="secondary" className="text-xs shrink-0 px-4 h-10">
+                جستجو
+              </Button>
+            </form>
+
+            <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/60 dark:border-slate-700/80 text-xs shrink-0 overflow-x-auto scrollbar-none">
+              <button
+                type="button"
+                onClick={() => setReceiptFilter('ALL')}
+                className={`px-3 py-1.5 rounded-lg font-medium transition-colors whitespace-nowrap text-xs cursor-pointer ${
+                  receiptFilter === 'ALL'
+                    ? 'bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-300 shadow-2xs font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
+              >
+                همه رسیدها ({receipts.length})
+              </button>
+              <button
+                type="button"
+                onClick={() => setReceiptFilter('PENDING')}
+                className={`px-3 py-1.5 rounded-lg font-medium transition-colors inline-flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
+                  receiptFilter === 'PENDING'
+                    ? 'bg-white dark:bg-slate-900 text-amber-700 dark:text-amber-300 shadow-2xs font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
+              >
+                <Clock className="w-3.5 h-3.5 text-amber-500" />
+                <span>در انتظار بررسی ({summaryStats.receipts_pending || 0})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setReceiptFilter('APPROVED')}
+                className={`px-3 py-1.5 rounded-lg font-medium transition-colors inline-flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
+                  receiptFilter === 'APPROVED'
+                    ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-2xs font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
+              >
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                <span>تأییدشده ({summaryStats.receipts_approved || 0})</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setReceiptFilter('REJECTED')}
+                className={`px-3 py-1.5 rounded-lg font-medium transition-colors inline-flex items-center gap-1.5 whitespace-nowrap text-xs cursor-pointer ${
+                  receiptFilter === 'REJECTED'
+                    ? 'bg-white dark:bg-slate-900 text-rose-700 dark:text-rose-300 shadow-2xs font-bold'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
+              >
+                <XCircle className="w-3.5 h-3.5 text-rose-500" />
+                <span>رد شده ({summaryStats.receipts_rejected || 0})</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Receipts List */}
+          {receiptLoading ? (
+            <LoadingState message="در حال دریافت و بارگذاری رسیدهای پرداخت..." />
+          ) : receipts.length === 0 ? (
+            <EmptyState
+              icon={Receipt}
+              title="رسیدی یافت نشد"
+              description="هیچ فیش یا رسید پرداختی در وضعیت یا جستجوی انتخابی ثبت نشده است."
+            />
+          ) : (
+            <div className="space-y-4">
+              {receipts.map((receipt) => (
+                <div
+                  key={receipt.id}
+                  className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-md transition-all space-y-4"
+                >
+                  {/* Card Top: Swimmer Info, Meta & Status Badge */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-700 text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0 overflow-hidden">
+                        {receipt.swimmer_avatar ? (
+                          <img
+                            src={getAuthenticatedDocUrl(receipt.swimmer_avatar)}
+                            alt={receipt.swimmer_name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <span>{receipt.swimmer_name?.charAt(0) || 'ش'}</span>
+                        )}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <h3 className="font-black text-slate-900 dark:text-white text-base">
+                            {receipt.swimmer_name}
+                          </h3>
+                          {receipt.gender_display && (
+                            <span className="text-[11px] px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-medium">
+                              {receipt.gender_display}
+                            </span>
+                          )}
+                          {receipt.national_id && (
+                            <span className="text-[11px] text-slate-400 font-mono">
+                              کد ملی: {receipt.national_id}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-3 mt-1 text-xs text-slate-500 flex-wrap">
+                          {receipt.swimmer_phone && (
+                            <span className="flex items-center gap-1 font-mono">
+                              <Phone className="w-3.5 h-3.5 text-slate-400" />
+                              {receipt.swimmer_phone}
+                            </span>
+                          )}
+                          {receipt.father_name && <span>نام پدر: {receipt.father_name}</span>}
+                          <span className="text-slate-400">·</span>
+                          <span className="flex items-center gap-1 text-slate-400">
+                            <Calendar className="w-3.5 h-3.5" />
+                            زمان ارسال: {receipt.created_at ? new Date(receipt.created_at).toLocaleDateString('fa-IR') : '—'}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Status Badge */}
+                    <div className="shrink-0">
+                      {receipt.status === 'APPROVED' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          تأییدشده و کسر از شهریه
+                        </span>
+                      ) : receipt.status === 'REJECTED' ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800">
+                          <XCircle className="w-4 h-4 text-rose-600" />
+                          عدم تأیید / رد شده
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl text-xs font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800">
+                          <Clock className="w-4 h-4 text-amber-600" />
+                          در انتظار بررسی مدیریت
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Card Middle: 3 Columns Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+                    {/* Col 1: Course & Tuition details */}
+                    <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 space-y-2">
+                      <span className="text-xs font-bold text-sky-700 dark:text-sky-300 flex items-center gap-1.5 block">
+                        <CreditCard className="w-4 h-4" />
+                        مشخصات دوره و وضعیت شهریه
+                      </span>
+                      <div className="text-xs space-y-1.5 text-slate-600 dark:text-slate-300">
+                        <div>
+                          <span className="text-slate-400">دوره آموزشی: </span>
+                          <span className="font-bold text-slate-800 dark:text-slate-100">
+                            {receipt.course_name}
+                          </span>
+                        </div>
+                        {receipt.group_name && receipt.group_name !== '—' && (
+                          <div>
+                            <span className="text-slate-400">گروه کلاسی: </span>
+                            <span>{receipt.group_name}</span>
+                          </div>
+                        )}
+                        {receipt.course_price && (
+                          <div>
+                            <span className="text-slate-400">شهریه مصوب دوره: </span>
+                            <span className="font-bold font-mono">
+                              {formatPrice(receipt.course_price)} تومان
+                            </span>
+                          </div>
+                        )}
+                        {receipt.invoice_number && (
+                          <div>
+                            <span className="text-slate-400">شماره صورتحساب: </span>
+                            <span className="font-mono text-[11px]">{receipt.invoice_number}</span>
+                          </div>
+                        )}
+                        <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                          <span className="text-slate-500 font-bold">مانده بدهی فعلی:</span>
+                          {Number(receipt.invoice_remaining_balance || 0) > 0 ? (
+                            <span className="text-xs font-black text-rose-600 font-mono">
+                              {formatPrice(receipt.invoice_remaining_balance)} تومان
+                            </span>
+                          ) : (
+                            <span className="text-xs font-bold text-emerald-600 flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> تسویه کامل
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Col 2: Bank transfer details & notes */}
+                    <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 space-y-2">
+                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 block">
+                        <Receipt className="w-4 h-4 text-emerald-600" />
+                        اطلاعات واریز کارت‌به‌کارت
+                      </span>
+                      <div className="text-xs space-y-1.5 text-slate-600 dark:text-slate-300">
+                        <div>
+                          <span className="text-slate-400">شماره پیگیری / مرجع: </span>
+                          <span className="font-bold font-mono text-slate-900 dark:text-white">
+                            {receipt.tracking_number || 'ثبت‌نشده'}
+                          </span>
+                        </div>
+                        {receipt.payer_card_number && (
+                          <div>
+                            <span className="text-slate-400">کارت واریزکننده: </span>
+                            <span className="font-mono" dir="ltr">
+                              {receipt.payer_card_number}
+                            </span>
+                          </div>
+                        )}
+                        <div>
+                          <span className="text-slate-400">مبلغ اعلامی شناگر: </span>
+                          <span className="font-bold font-mono text-slate-800 dark:text-slate-100">
+                            {receipt.amount_claimed > 0
+                              ? `${formatPrice(receipt.amount_claimed)} تومان`
+                              : 'ذکر نشده'}
+                          </span>
+                        </div>
+                        {receipt.notes && (
+                          <div className="text-[11px] text-slate-500 bg-white dark:bg-slate-900 p-2 rounded-xl border border-slate-200 dark:border-slate-800 mt-1">
+                            <span className="text-slate-400 block mb-0.5">توضیحات شناگر:</span>
+                            {receipt.notes}
+                          </div>
+                        )}
+
+                        {/* If Approved info */}
+                        {receipt.status === 'APPROVED' && (
+                          <div className="mt-2 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 text-emerald-800 dark:text-emerald-300 text-xs space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="font-bold">مبلغ کسر شده از شهریه:</span>
+                              <span className="font-black font-mono text-sm">
+                                {formatPrice(receipt.approved_amount)} تومان
+                              </span>
+                            </div>
+                            {receipt.reviewed_by_name && (
+                              <span className="text-[11px] text-emerald-700/80 dark:text-emerald-400 block">
+                                تأییدشده توسط: {receipt.reviewed_by_name}
+                              </span>
+                            )}
+                          </div>
+                        )}
+
+                        {/* If Rejected info */}
+                        {receipt.status === 'REJECTED' && (
+                          <div className="mt-2 p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800/60 text-rose-800 dark:text-rose-300 text-xs">
+                            <span className="font-bold block mb-0.5">علت عدم تأیید:</span>
+                            <span>{receipt.rejection_reason || 'مدارک ناقص است'}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Col 3: Receipt Image Thumbnail with Zoom */}
+                    <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 flex flex-col items-center justify-center text-center">
+                      <span className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block self-start">
+                        تصویر فیش / رسید بانکی
+                      </span>
+                      {receipt.receipt_image ? (
+                        <div
+                          onClick={() =>
+                            setPreviewDoc({
+                              title: `رسید واریز کارت‌به‌کارت ${receipt.swimmer_name}`,
+                              url: getAuthenticatedDocUrl(receipt.receipt_image),
+                              type: 'image',
+                            })
+                          }
+                          className="relative group w-full h-36 bg-slate-200 dark:bg-slate-800 rounded-xl overflow-hidden cursor-pointer border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-2xs hover:shadow-md transition-all"
+                        >
+                          <img
+                            src={getAuthenticatedDocUrl(receipt.receipt_image)}
+                            alt={`رسید ${receipt.swimmer_name}`}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = '/media/placeholder.png';
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-slate-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-1 text-xs font-bold">
+                            <ZoomIn className="w-6 h-6 text-emerald-400" />
+                            <span>مشاهده بزرگنمایی و جزئیات</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="w-full h-36 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-400 text-xs">
+                          تصویر فیش یافت نشد
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Card Bottom Actions */}
+                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2">
+                    {receipt.status === 'PENDING' ? (
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="primary"
+                          onClick={() => openApproveModal(receipt)}
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 shadow-2xs cursor-pointer"
+                        >
+                          <Check className="w-4 h-4" />
+                          <span>تأیید رسید و کسر از شهریه</span>
+                        </Button>
+                        <Button
+                          variant="outline"
+                          onClick={() => openRejectionModal('RECEIPT', receipt)}
+                          className="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-rose-300 dark:border-rose-800 font-bold text-xs gap-1.5 cursor-pointer"
+                        >
+                          <X className="w-4 h-4" />
+                          <span>عدم تأیید / رد رسید</span>
+                        </Button>
+                      </div>
+                    ) : receipt.status === 'APPROVED' ? (
+                      <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4" />
+                        این رسید تأیید شده و مبلغ {formatPrice(receipt.approved_amount)} تومان در حسابداری ثبت و از شهریه شناگر کسر گردید.
+                      </span>
+                    ) : (
+                      <span className="text-xs text-rose-600 dark:text-rose-400 font-bold flex items-center gap-1.5">
+                        <XCircle className="w-4 h-4" />
+                        این رسید رد شده است (علت: {receipt.rejection_reason || 'مدارک نامعتبر'})
+                      </span>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Modal 3: Approve Receipt & Deduct Tuition Amount */}
+      {approveModal.isOpen && (
+        <Modal
+          isOpen={approveModal.isOpen}
+          onClose={() => setApproveModal((prev) => ({ ...prev, isOpen: false }))}
+          title={`تأیید رسید پرداخت و کسر از شهریه شناگر: ${approveModal.receipt?.swimmer_name}`}
+          maxWidth="max-w-xl"
+        >
+          <form onSubmit={handleApproveReceiptSubmit} className="space-y-4 text-right" dir="rtl">
+            {/* Swimmer & Course Summary banner */}
+            <div className="bg-sky-50 dark:bg-sky-950/40 p-4 rounded-2xl border border-sky-200/80 dark:border-sky-900/60 space-y-2">
+              <div className="flex items-center justify-between text-xs font-bold text-sky-900 dark:text-sky-200">
+                <span>شناگر: {approveModal.receipt?.swimmer_name}</span>
+                <span>کد ملی: {approveModal.receipt?.national_id || '—'}</span>
+              </div>
+              <div className="text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between">
+                <span>دوره: {approveModal.receipt?.course_name}</span>
+                <span>شهریه کل: {formatPrice(approveModal.receipt?.course_price)} تومان</span>
+              </div>
+              <div className="pt-2 border-t border-sky-200 dark:border-sky-900/80 flex items-center justify-between text-xs">
+                <span className="font-bold text-slate-700 dark:text-slate-300">مانده بدهی فعلی دوره:</span>
+                <span className="font-black font-mono text-rose-600 text-sm">
+                  {formatPrice(approveModal.receipt?.invoice_remaining_balance)} تومان
+                </span>
+              </div>
+            </div>
+
+            {/* Quick Fill Helper Chips */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                تنظیم سریع مبلغ تأییدی:
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {Number(approveModal.receipt?.invoice_remaining_balance || 0) > 0 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setApproveModal((prev) => ({
+                        ...prev,
+                        approvedAmount: String(approveModal.receipt.invoice_remaining_balance),
+                      }))
+                    }
+                    className="text-xs px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200 hover:bg-emerald-200 border border-emerald-300 dark:border-emerald-800 font-bold transition-all cursor-pointer"
+                  >
+                    تسویه کامل بدهی ({formatPrice(approveModal.receipt.invoice_remaining_balance)} ت)
+                  </button>
+                )}
+                {Number(approveModal.receipt?.amount_claimed || 0) > 0 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setApproveModal((prev) => ({
+                        ...prev,
+                        approvedAmount: String(approveModal.receipt.amount_claimed),
+                      }))
+                    }
+                    className="text-xs px-3 py-1.5 rounded-xl bg-sky-100 dark:bg-sky-950 text-sky-800 dark:text-sky-200 hover:bg-sky-200 border border-sky-300 dark:border-sky-800 font-bold transition-all cursor-pointer"
+                  >
+                    مبلغ اعلامی شناگر ({formatPrice(approveModal.receipt.amount_claimed)} ت)
+                  </button>
+                )}
+                {Number(approveModal.receipt?.course_price || 0) > 0 && (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setApproveModal((prev) => ({
+                        ...prev,
+                        approvedAmount: String(approveModal.receipt.course_price),
+                      }))
+                    }
+                    className="text-xs px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 border border-slate-300 dark:border-slate-700 font-bold transition-all cursor-pointer"
+                  >
+                    شهریه کل ({formatPrice(approveModal.receipt.course_price)} ت)
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Approved Amount Input */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                مبلغ مورد تأیید مدیریت جهت کسر از شهریه (تومان) <span className="text-rose-500">*</span>
+              </label>
+              <div className="relative">
+                <input
+                  type="number"
+                  required
+                  min="1000"
+                  step="1000"
+                  value={approveModal.approvedAmount}
+                  onChange={(e) =>
+                    setApproveModal((prev) => ({ ...prev, approvedAmount: e.target.value }))
+                  }
+                  placeholder="مثال: ۱۵۰۰۰۰۰"
+                  className="w-full p-3 text-sm font-bold font-mono rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+              {approveModal.approvedAmount && (
+                <p className="text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+                  {numToPersianWords(approveModal.approvedAmount)}
+                </p>
+              )}
+            </div>
+
+            {/* Admin Notes */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                یادداشت یا توضیحات مدیر (اختیاری):
+              </label>
+              <input
+                type="text"
+                value={approveModal.notes}
+                onChange={(e) =>
+                  setApproveModal((prev) => ({ ...prev, notes: e.target.value }))
+                }
+                placeholder="مثلاً: واریز فیش کارت‌به‌کارت تأیید گردید."
+                className="w-full p-2.5 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500"
+              />
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setApproveModal((prev) => ({ ...prev, isOpen: false }))}
+                disabled={approveModal.submitting}
+              >
+                انصراف
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                disabled={approveModal.submitting || !approveModal.approvedAmount}
+                className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 text-xs font-bold"
+              >
+                <Check className="w-4 h-4" />
+                <span>{approveModal.submitting ? 'در حال اعمال در حسابداری...' : 'تأیید قطعی و کسر از شهریه'}</span>
+              </Button>
+            </div>
+          </form>
+        </Modal>
+      )}
+
       {/* Modal 1: High Resolution Document Preview */}
       {previewDoc && (
         <Modal
@@ -1180,12 +1892,18 @@ export const AdminDossiersPage = () => {
         <Modal
           isOpen={rejectionModal.isOpen}
           onClose={() => setRejectionModal((prev) => ({ ...prev, isOpen: false }))}
-          title={`اعلام نقص و عدم تأیید مدرک: ${rejectionModal.targetName}`}
+          title={
+            rejectionModal.targetType === 'RECEIPT'
+              ? `رد فیش پرداخت شناگر: ${rejectionModal.targetName}`
+              : `اعلام نقص و عدم تأیید مدرک: ${rejectionModal.targetName}`
+          }
           maxWidth="max-w-lg"
         >
           <div className="space-y-4">
             <p className="text-xs text-slate-500 dark:text-slate-400">
-              علت نقص مدارک برای کاربر ارسال خواهد شد تا نسبت به بارگذاری مجدد اقدام نماید.
+              {rejectionModal.targetType === 'RECEIPT'
+                ? 'دلیل عدم تأیید فیش برای شناگر نمایش داده خواهد شد تا نسبت به بررسی یا ارسال مجدد اقدام نماید.'
+                : 'علت نقص مدارک برای کاربر ارسال خواهد شد تا نسبت به بارگذاری مجدد اقدام نماید.'}
             </p>
 
             {/* Quick Presets */}
@@ -1194,7 +1912,9 @@ export const AdminDossiersPage = () => {
                 انتخاب سریع از موارد متداول:
               </label>
               <div className="flex flex-wrap gap-1.5">
-                {(rejectionModal.targetType === 'SWIMMER'
+                {(rejectionModal.targetType === 'RECEIPT'
+                  ? receiptPresetReasons
+                  : rejectionModal.targetType === 'SWIMMER'
                   ? swimmerPresetReasons
                   : coachPresetReasons
                 ).map((preset, idx) => (
@@ -1226,7 +1946,7 @@ export const AdminDossiersPage = () => {
                   setRejectionModal((prev) => ({ ...prev, reason: e.target.value }))
                 }
                 rows={4}
-                placeholder="توضیح دهید چه مواردی نیازمند اصلاح است..."
+                placeholder="توضیح دهید چه مواردی نیازمند اصلاح یا رفع مغایرت است..."
                 className="w-full p-3 text-xs rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-rose-500"
               />
             </div>
@@ -1246,9 +1966,13 @@ export const AdminDossiersPage = () => {
                 size="sm"
                 onClick={handleSubmitRejection}
                 disabled={rejectionModal.submitting || !rejectionModal.reason.trim()}
-                className="bg-rose-600 hover:bg-rose-700 text-white gap-1.5 text-xs"
+                className="bg-rose-600 hover:bg-rose-700 text-white gap-1.5 text-xs font-bold"
               >
-                {rejectionModal.submitting ? 'در حال ثبت...' : 'ثبت اعلام نقص'}
+                {rejectionModal.submitting
+                  ? 'در حال ثبت...'
+                  : rejectionModal.targetType === 'RECEIPT'
+                  ? 'تأیید رد رسید'
+                  : 'ثبت اعلام نقص'}
               </Button>
             </div>
           </div>

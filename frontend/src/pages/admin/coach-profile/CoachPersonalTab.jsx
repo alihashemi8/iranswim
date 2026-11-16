@@ -162,13 +162,6 @@ export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertif
             </div>
 
             <div>
-              <span className="text-slate-400 block mb-0.5">کد پرسنلی:</span>
-              <span className="font-mono font-bold text-sky-700 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/50 px-2 py-0.5 rounded-md inline-block">
-                {coach.personnel_id || '—'}
-              </span>
-            </div>
-
-            <div>
               <span className="text-slate-400 block mb-0.5">کد ملی:</span>
               <span className="font-mono font-semibold text-slate-700 dark:text-slate-300">
                 {coach.national_id || 'ثبت‌نشده'}
@@ -194,6 +187,15 @@ export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertif
               <span className="font-mono text-slate-700 dark:text-slate-300">
                 {coach.date_of_birth ? new Date(coach.date_of_birth).toLocaleDateString('fa-IR') : '—'}
               </span>
+            </div>
+
+            <div>
+              <span className="text-slate-400 block mb-0.5">وضعیت تکمیل پرونده:</span>
+              {coach.is_profile_completed ? (
+                <Badge variant="success">تکمیل و تأیید شده</Badge>
+              ) : (
+                <Badge variant="warning">نیازمند تکمیل مدارک</Badge>
+              )}
             </div>
 
             <div>
@@ -229,15 +231,6 @@ export const CoachPersonalTab = ({ coach, onCoachUpdated, certificates, onCertif
               <span className="font-mono text-xs font-bold text-slate-700 dark:text-slate-300">
                 {coach.shaba_number || 'ثبت نشده'}
               </span>
-            </div>
-
-            <div>
-              <span className="text-slate-400 block mb-0.5">وضعیت تکمیل پرونده:</span>
-              {coach.is_profile_completed ? (
-                <Badge variant="success">تکمیل و تأیید شده</Badge>
-              ) : (
-                <Badge variant="warning">نیازمند تکمیل مدارک</Badge>
-              )}
             </div>
 
             {coach.internal_notes && (

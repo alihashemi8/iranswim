@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   FileText, User, Phone, MapPin, ShieldCheck, AlertTriangle,
-  CheckCircle2, Clock, XCircle, ArrowLeft, Upload, Calendar, Edit3
+  CheckCircle2, Clock, XCircle, ArrowLeft, Upload, Calendar, Edit3,
+  Receipt, CreditCard, ExternalLink
 } from 'lucide-react';
 import api from '../../api/client';
 import { useSwimmer } from '../../context/SwimmerContext';
@@ -79,11 +80,11 @@ export const SwimmerDocumentsPage = () => {
               <FileText className="w-5 h-5" />
             </span>
             <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-              پرونده هویتی، مدارک و اطلاعات خانواده
+              رسید و مدارک هویتی شناگر
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            مشخصات فردی شناگر، تماس والدین، آدرس منزل و وضعیت بررسی مدارک رسمی
+            مشخصات فردی شناگر، تماس والدین، مدارک رسمی و رسیدهای واریزی کارت‌به‌کارت
           </p>
         </div>
 
@@ -92,7 +93,7 @@ export const SwimmerDocumentsPage = () => {
           className="px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-2xl transition-colors shadow-2xs flex items-center gap-2 cursor-pointer self-end md:self-auto"
         >
           <Edit3 className="w-4.5 h-4.5" />
-          <span>ویرایش پرونده و مدارک</span>
+          <span>ویرایش مشخصات پرونده</span>
         </Link>
       </div>
 
@@ -301,6 +302,31 @@ export const SwimmerDocumentsPage = () => {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Payment Receipts Section in Documents */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 border border-amber-200/60 dark:border-amber-800 flex items-center justify-center shrink-0">
+            <Receipt className="w-6 h-6" />
+          </div>
+          <div>
+            <h3 className="text-base font-bold text-slate-900 dark:text-white">
+              فیش‌ها و رسیدهای واریز کارت‌به‌کارت شهریه
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              آپلود تصویر رسید واریزی، پیگیری وضعیت تأیید مدیریت و مشاهده مبالغ کسرشده از شهریه دوره
+            </p>
+          </div>
+        </div>
+
+        <Link
+          to="/swimmer/finance"
+          className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0 self-start sm:self-auto"
+        >
+          <Upload className="w-4 h-4" />
+          <span>مشاهده و بارگذاری رسیدها در بخش مالی</span>
+        </Link>
       </div>
     </div>
   );
