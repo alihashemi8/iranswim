@@ -5,7 +5,7 @@ import {
   Activity, Bug, ShieldCheck, Zap,
   LayoutDashboard, BookOpen, Users, CreditCard, Calendar,
   ClipboardCheck, Award, Trophy, Bell,
-  UserCheck, X, LogOut, ChevronLeft, ChevronRight,
+  X, LogOut, ChevronLeft, ChevronRight,
   TrendingUp, MessageSquareQuote, FileText, Settings,
   Globe, Server, Radio, GitBranch, Database, Sliders, Whistle,
   FolderCheck
@@ -167,7 +167,6 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     {
       groupTitle: 'امنیت و تنظیمات',
       items: [
-        { to: '/supervisor/profile', label: 'پروفایل و مشخصات ناظر', icon: UserCheck },
         { to: '/supervisor/activity', label: 'نشست‌ها و امنیت کاربران', icon: Users },
         { to: '/supervisor/audit', label: 'حسابرسی عملیات (Audit)', icon: ShieldCheck },
         { to: '/supervisor/config', label: 'تنظیمات فنی و Flagها', icon: Sliders },
@@ -426,7 +425,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
               <div className="text-xs font-bold text-sky-400 mt-0.5">{roleTitles[user.role] || 'کاربر سیستم'}</div>
               {user.phone && <div className="text-xs text-slate-300 font-mono mt-0.5">{user.phone}</div>}
               <div className="text-xs text-slate-300 border-t border-slate-700/60 mt-1 pt-1 font-medium">
-                {user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'SWIMMER' ? 'مشاهده صفحه پروفایل شناگر' : 'کلیک برای ورود به صفحه'}
+                {user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'SWIMMER' ? 'مشاهده صفحه پروفایل شناگر' : user.role === 'SUPERVISOR' ? 'مشاهده صفحه پروفایل ناظر فنی' : 'کلیک برای ورود به صفحه'}
               </div>
               <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-y-4 border-y-transparent border-l-4 border-l-slate-900/95 dark:border-l-slate-800/95" />
             </div>

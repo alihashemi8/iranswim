@@ -303,3 +303,112 @@ class FinancialAdjustment(models.Model):
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
         self.invoice.recalculate_status()
+
+
+class PaymentReceipt(models.Model):
+    class Status(models.TextChoices):
+        PENDING = 'PENDING', _('در انتظار بررسی')
+        APPROVED = 'APPROVED', _('تأییدشده')
+        REJECTED = 'REJECTED', _('رد شده')
+
+    swimmer = models.ForeignKey(
+        'swimmers.SwimmerProfile',
+        on_delete=models.CASCADE,
+        related_name='payment_receipts',
+        verbose_name=_('شناگر')
+    )
+    enrollment = models.ForeignKey(
+        'education.Enrollment',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='receipts',
+        verbose_name=_('دوره یا ثبت‌نام مرتبط')
+    )
+    invoice = models.ForeignKey(
+        Invoice,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='receipts',
+        verbose_name=_('صورتحساب مرتبط')
+    )
+    installment = models.ForeignKey(
+        Installment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='receipts',
+        verbose_name=_('قسط مرتبط (اختیاری)')
+    )
+    receipt_image = models.FileField(
+        _('تصویر یا فایل فیش/رسید واریز'),
+        upload_to='receipts/%Y/%m/'
+    )
+    amount_claimed = models.DecimalField(
+        _('مبلغ ادعایی واریز (تومان)'),
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal('0.00'),
+        blank=True
+    )
+    approved_amount = models.DecimalField(
+        _('مبلغ تأییدشده توسط مدیریت (تومان)'),
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True
+    )
+    status = models.CharField(
+        _('وضعیت رسید'),
+        max_length=20,
+        choices=Status.choices,
+        default=Status.PENDING,
+        db_index=True
+    )
+    tracking_number = models.CharField(
+        _('شماره پیگیری / مرجع بانکی'),
+        max_length=100,
+        blank=True,
+        default=''
+    )
+    payer_card_number = models.CharField(
+        _('شماره کارت واریزکننده (۴ رقم آخر یا کامل)'),
+        max_length=30,
+        blank=True,
+        default=''
+    )
+    rejection_reason = models.TextField(
+        _('علت رد رسید'),
+        blank=True,
+        default=''
+    )
+    payment = models.ForeignKey(
+        Payment,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='receipts',
+        verbose_name=_('تراکنش مالی ثبت‌شده')
+    )
+    reviewed_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='reviewed_receipts',
+        verbose_name=_('کاربر بررسی‌کننده')
+    )
+    reviewed_at = models.DateTimeField(_('زمان بررسی'), null=True, blank=True)
+    notes = models.TextField(_('توضیحات شناگر یا مدیریت'), blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = _('رسید و فیش پرداخت')
+        verbose_name_plural = _('رسیدها و فیش‌های پرداخت')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"رسید {self.id} - {self.swimmer.full_name} ({self.get_status_display()})"
+

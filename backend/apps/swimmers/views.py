@@ -1069,13 +1069,28 @@ class DossiersSummaryView(APIView):
             retraining_status=CoachProfile.RetrainingStatus.REJECTED
         ).count()
 
+        # Receipts pending review
+        receipts_pending = 0
+        receipts_approved = 0
+        receipts_rejected = 0
+        try:
+            from apps.finance.models import PaymentReceipt
+            receipts_pending = PaymentReceipt.objects.filter(status=PaymentReceipt.Status.PENDING).count()
+            receipts_approved = PaymentReceipt.objects.filter(status=PaymentReceipt.Status.APPROVED).count()
+            receipts_rejected = PaymentReceipt.objects.filter(status=PaymentReceipt.Status.REJECTED).count()
+        except Exception:
+            pass
+
         return Response({
-            'total_pending': swimmers_pending + coaches_pending,
+            'total_pending': swimmers_pending + coaches_pending + receipts_pending,
             'swimmers_pending': swimmers_pending,
             'swimmers_approved': swimmers_approved,
             'swimmers_revision': swimmers_revision,
             'coaches_pending': coaches_pending,
             'coaches_approved': coaches_approved,
             'coaches_rejected': coaches_rejected,
+            'receipts_pending': receipts_pending,
+            'receipts_approved': receipts_approved,
+            'receipts_rejected': receipts_rejected,
         })
 

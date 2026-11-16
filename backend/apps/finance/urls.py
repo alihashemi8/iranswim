@@ -1,7 +1,8 @@
 from django.urls import path
 from .views import (
     InvoiceListView, InvoiceDetailView, InstallmentListView, PaymentListView,
-    RecordPaymentView, FinancialAdjustmentCreateView, FinancialSummaryView
+    RecordPaymentView, FinancialAdjustmentCreateView, FinancialSummaryView,
+    PaymentReceiptListCreateView, PaymentReceiptReviewView, PaymentReceiptDetailView
 )
 
 urlpatterns = [
@@ -12,4 +13,8 @@ urlpatterns = [
     path('payments/record/', RecordPaymentView.as_view(), name='payment_record'),
     path('adjustments/', FinancialAdjustmentCreateView.as_view(), name='adjustment_create'),
     path('summary/', FinancialSummaryView.as_view(), name='finance_summary'),
+    path('receipts/', PaymentReceiptListCreateView.as_view(), name='receipt_list_create'),
+    path('receipts/<int:pk>/', PaymentReceiptDetailView.as_view(), name='receipt_detail'),
+    path('receipts/<int:pk>/review/', PaymentReceiptReviewView.as_view(), name='receipt_review'),
 ]
+

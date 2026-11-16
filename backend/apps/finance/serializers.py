@@ -1,5 +1,6 @@
 from rest_framework import serializers
-from .models import Invoice, InvoiceItem, Installment, Payment, PaymentAllocation, FinancialAdjustment
+from .models import Invoice, InvoiceItem, Installment, Payment, PaymentAllocation, FinancialAdjustment, PaymentReceipt
+
 
 
 def gregorian_to_jalali(gy, gm, gd):
@@ -233,3 +234,101 @@ class PaymentSerializer(serializers.ModelSerializer):
 
     def get_coach_name(self, obj):
         return self._meta(obj)['coach_name']
+
+
+class PaymentReceiptSerializer(serializers.ModelSerializer):
+    swimmer_name = serializers.CharField(source='swimmer.full_name', read_only=True)
+    swimmer_phone = serializers.CharField(source='swimmer.phone', read_only=True)
+    swimmer_avatar = serializers.SerializerMethodField()
+    national_id = serializers.CharField(source='swimmer.national_id', read_only=True)
+    father_name = serializers.CharField(source='swimmer.father_name', read_only=True)
+    gender = serializers.CharField(source='swimmer.gender', read_only=True)
+    gender_display = serializers.CharField(source='swimmer.get_gender_display', read_only=True)
+    status_display = serializers.CharField(source='get_status_display', read_only=True)
+    reviewed_by_name = serializers.CharField(source='reviewed_by.full_name', read_only=True)
+
+    course_id = serializers.SerializerMethodField()
+    course_name = serializers.SerializerMethodField()
+    course_price = serializers.SerializerMethodField()
+    group_name = serializers.SerializerMethodField()
+
+    invoice_number = serializers.CharField(source='invoice.invoice_number', read_only=True)
+    invoice_total = serializers.DecimalField(source='invoice.total_amount', max_digits=12, decimal_places=2, read_only=True)
+    invoice_paid = serializers.DecimalField(source='invoice.total_paid', max_digits=12, decimal_places=2, read_only=True)
+    invoice_remaining_balance = serializers.DecimalField(source='invoice.remaining_balance', max_digits=12, decimal_places=2, read_only=True)
+    invoice_status = serializers.CharField(source='invoice.status', read_only=True)
+    invoice_status_display = serializers.CharField(source='invoice.get_status_display', read_only=True)
+
+    class Meta:
+        model = PaymentReceipt
+        fields = [
+            'id', 'swimmer', 'swimmer_name', 'swimmer_phone', 'swimmer_avatar',
+            'national_id', 'father_name', 'gender', 'gender_display',
+            'enrollment', 'course_id', 'course_name', 'course_price', 'group_name',
+            'invoice', 'invoice_number', 'invoice_total', 'invoice_paid',
+            'invoice_remaining_balance', 'invoice_status', 'invoice_status_display',
+            'installment', 'receipt_image', 'amount_claimed', 'approved_amount',
+            'status', 'status_display', 'tracking_number', 'payer_card_number',
+            'rejection_reason', 'payment', 'reviewed_by_name', 'reviewed_at',
+            'notes', 'created_at', 'updated_at'
+        ]
+        read_only_fields = [
+            'id', 'swimmer_name', 'swimmer_phone', 'swimmer_avatar', 'national_id',
+            'father_name', 'gender', 'gender_display', 'status_display',
+            'reviewed_by_name', 'reviewed_at', 'approved_amount', 'rejection_reason',
+            'payment', 'created_at', 'updated_at'
+        ]
+
+    def get_swimmer_avatar(self, obj):
+        if obj.swimmer and obj.swimmer.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.swimmer.avatar.url)
+            return obj.swimmer.avatar.url
+        return None
+
+    def _get_course(self, obj):
+        if obj.enrollment and obj.enrollment.course:
+            return obj.enrollment.course
+        if obj.invoice and obj.invoice.enrollment and obj.invoice.enrollment.course:
+            return obj.invoice.enrollment.course
+        if obj.swimmer:
+            enr = obj.swimmer.enrollments.select_related('course').order_by('-enrolled_at').first()
+            if enr and enr.course:
+                return enr.course
+        return None
+
+    def get_course_id(self, obj):
+        course = self._get_course(obj)
+        return course.id if course else None
+
+    def get_course_name(self, obj):
+        course = self._get_course(obj)
+        return course.name if course else '—'
+
+    def get_course_price(self, obj):
+        course = self._get_course(obj)
+        if course:
+            return course.base_price
+        if obj.invoice:
+            return obj.invoice.total_amount
+        return None
+
+    def get_group_name(self, obj):
+        if obj.enrollment and obj.enrollment.group:
+            return obj.enrollment.group.name
+        if obj.invoice and obj.invoice.enrollment and obj.invoice.enrollment.group:
+            return obj.invoice.enrollment.group.name
+        return '—'
+
+
+class PaymentReceiptCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PaymentReceipt
+        fields = [
+            'id', 'swimmer', 'enrollment', 'invoice', 'installment',
+            'receipt_image', 'amount_claimed', 'tracking_number',
+            'payer_card_number', 'notes'
+        ]
+        read_only_fields = ['id']
+
