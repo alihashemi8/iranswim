@@ -15,6 +15,8 @@ import { LoadingState } from '../../components/common/LoadingState';
 import { copyCardToClipboard } from '../../utils/bankCard';
 import { getAuthenticatedDocUrl } from '../../utils/media';
 
+const FALLBACK_RECEIPT_IMAGE = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f1f5f9'/%3E%3Cpath d='M160 110h80v70h-80z' fill='%23cbd5e1'/%3E%3Ccircle cx='180' cy='130' r='10' fill='%2394a3b8'/%3E%3Cpath d='M165 170l20-25 15 15 20-30 20 40z' fill='%2394a3b8'/%3E%3Ctext x='50%25' y='215' dominant-baseline='middle' text-anchor='middle' fill='%2364748b' font-family='sans-serif' font-size='15' font-weight='600'%3E%D8%AA%D8%B5%D9%88%DB%8C%D8%B1 %D9%81%DB%8C%D8%B4 %D8%AF%D8%B1 %D8%AF%D8%B3%D8%AA%D8%B1%D8%B3 %D9%86%DB%8C%D8%B3%D8%AA%3C/text%3E%3C/svg%3E";
+
 export const SwimmerFinancePage = () => {
   const { activeSwimmer, activeSwimmerId } = useSwimmer();
   const toast = useToast();
@@ -24,6 +26,38 @@ export const SwimmerFinancePage = () => {
   const [receipts, setReceipts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [payingInstallmentId, setPayingInstallmentId] = useState(null);
+
+  // Download raw original file
+  const handleDownloadFile = async (url, fallbackFilename = 'receipt-original.jpg') => {
+    if (!url) {
+      toast.error('آدرس فایل معتبر نیست');
+      return;
+    }
+    try {
+      toast.info('در حال دانلود فایل اصلی...');
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Download failed');
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fallbackFilename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+      toast.success('فایل اصلی با موفقیت دریافت و ذخیره شد');
+    } catch {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fallbackFilename;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   // Upload Receipt Modal State
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -495,22 +529,35 @@ export const SwimmerFinancePage = () => {
                   )}
                 </div>
 
-                {/* Thumbnail and view button */}
-                <div className="flex items-center justify-between pt-1">
+                {/* Thumbnail and view/download buttons */}
+                <div className="flex items-center justify-between pt-1 flex-wrap gap-2">
                   {rec.receipt_image && (
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setPreviewReceiptDoc({
-                          title: `رسید ارسالی برای ${rec.course_name}`,
-                          url: getAuthenticatedDocUrl(rec.receipt_image),
-                        })
-                      }
-                      className="text-xs font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer"
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      <span>مشاهده تصویر رسید</span>
-                    </button>
+                    <div className="flex items-center gap-3">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setPreviewReceiptDoc({
+                            title: `رسید ارسالی برای ${rec.course_name}`,
+                            url: getAuthenticatedDocUrl(rec.receipt_image),
+                            filename: `receipt_${rec.id}.jpg`,
+                          })
+                        }
+                        className="text-xs sm:text-sm font-bold text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <Eye className="w-4 h-4" />
+                        <span>مشاهده تصویر رسید</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleDownloadFile(getAuthenticatedDocUrl(rec.receipt_image), `receipt_${rec.id}.jpg`)
+                        }
+                        className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 hover:underline flex items-center gap-1 cursor-pointer"
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>دانلود فایل اصلی</span>
+                      </button>
+                    </div>
                   )}
                   {rec.status === 'REJECTED' && (
                     <button
@@ -523,9 +570,9 @@ export const SwimmerFinancePage = () => {
                         }));
                         setIsUploadModalOpen(true);
                       }}
-                      className="text-xs font-bold text-amber-600 hover:underline flex items-center gap-1 cursor-pointer"
+                      className="text-xs sm:text-sm font-bold text-amber-600 hover:underline flex items-center gap-1 cursor-pointer"
                     >
-                      <Upload className="w-3.5 h-3.5" />
+                      <Upload className="w-4 h-4" />
                       <span>ارسال فیش اصلاحی</span>
                     </button>
                   )}
@@ -723,28 +770,46 @@ export const SwimmerFinancePage = () => {
           maxWidth="max-w-2xl"
         >
           <div className="space-y-4">
-            <div className="max-h-[75vh] overflow-auto flex items-center justify-center bg-slate-100 dark:bg-slate-950 rounded-xl p-2 border border-slate-200 dark:border-slate-800">
+            <div className="max-h-[75vh] overflow-auto flex items-center justify-center bg-slate-100 dark:bg-slate-950 rounded-2xl p-3 border border-slate-200 dark:border-slate-800">
               <img
                 src={previewReceiptDoc.url}
                 alt={previewReceiptDoc.title}
-                className="max-h-[70vh] w-auto max-w-full object-contain rounded-lg shadow-md"
+                className="max-h-[70vh] w-auto max-w-full object-contain rounded-xl shadow-md"
+                loading="lazy"
+                decoding="async"
                 onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = '/media/placeholder.png';
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = FALLBACK_RECEIPT_IMAGE;
                 }}
               />
             </div>
-            <div className="flex items-center justify-between gap-3 pt-2">
-              <a
-                href={previewReceiptDoc.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs text-sky-600 dark:text-sky-400 font-semibold hover:underline"
-              >
-                <ExternalLink className="w-4 h-4" />
-                <span>باز کردن در اندازه اصلی</span>
-              </a>
-              <Button variant="secondary" size="sm" onClick={() => setPreviewReceiptDoc(null)}>
+            <div className="flex items-center justify-between gap-3 pt-2.5 flex-wrap">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() =>
+                    handleDownloadFile(
+                      previewReceiptDoc.url,
+                      previewReceiptDoc.filename || `${previewReceiptDoc.title || 'receipt'}.jpg`
+                    )
+                  }
+                  className="gap-2 text-sm font-bold bg-sky-600 hover:bg-sky-700 text-white cursor-pointer shadow-xs py-2 px-3.5"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>دانلود فایل اصلی با کیفیت بالا</span>
+                </Button>
+                <a
+                  href={previewReceiptDoc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm text-sky-600 dark:text-sky-400 font-bold hover:underline"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>مشاهده در برگه جدید</span>
+                </a>
+              </div>
+              <Button variant="secondary" size="sm" onClick={() => setPreviewReceiptDoc(null)} className="text-sm font-semibold px-4">
                 بستن
               </Button>
             </div>

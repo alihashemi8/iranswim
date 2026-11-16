@@ -17,10 +17,44 @@ import { Pagination } from '../../components/common/Pagination';
 import { useToast } from '../../context/ToastContext';
 import { getMediaUrl, getAuthenticatedDocUrl } from '../../utils/media';
 
+const FALLBACK_RECEIPT_IMAGE = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f1f5f9'/%3E%3Cpath d='M160 110h80v70h-80z' fill='%23cbd5e1'/%3E%3Ccircle cx='180' cy='130' r='10' fill='%2394a3b8'/%3E%3Cpath d='M165 170l20-25 15 15 20-30 20 40z' fill='%2394a3b8'/%3E%3Ctext x='50%25' y='215' dominant-baseline='middle' text-anchor='middle' fill='%2364748b' font-family='sans-serif' font-size='15' font-weight='600'%3E%D8%AA%D8%B5%D9%88%DB%8C%D8%B1 %D9%81%DB%8C%D8%B4 %D8%AF%D8%B1 %D8%AF%D8%B3%D8%AA%D8%B1%D8%B3 %D9%86%DB%8C%D8%B3%D8%AA%3C/text%3E%3C/svg%3E";
+
 export const AdminDossiersPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const toast = useToast();
+
+  // Download document or receipt in original full resolution
+  const downloadOriginalFile = async (url, fallbackFilename = 'receipt-original.jpg') => {
+    if (!url) {
+      toast.error('آدرس فایل معتبر نیست');
+      return;
+    }
+    try {
+      toast.info('در حال دانلود فایل اصلی با حداکثر کیفیت...');
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Download failed');
+      const blob = await response.blob();
+      const blobUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = blobUrl;
+      link.download = fallbackFilename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(blobUrl);
+      toast.success('فایل با کیفیت اصلی دانلود شد.');
+    } catch {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = fallbackFilename;
+      link.target = '_blank';
+      link.rel = 'noopener noreferrer';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
 
   // Active Main Tab: 'SWIMMERS', 'COACHES', or 'RECEIPTS'
   const tabParam = searchParams.get('tab');
@@ -505,11 +539,11 @@ export const AdminDossiersPage = () => {
       {/* Header Banner */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <FolderCheck className="w-6 h-6 text-sky-600" />
+          <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+            <FolderCheck className="w-7 h-7 text-sky-600" />
             مرکز بررسی رسیدها و مدارک
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1.5 font-medium">
             بررسی و اعتبارسنجی فیش‌های واریزی کارت‌به‌کارت شهریه، مدارک هویتی شناگران و کادر مربیان
           </p>
         </div>
@@ -546,14 +580,14 @@ export const AdminDossiersPage = () => {
             <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
           </div>
           <div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">
+            <span className="text-sm text-slate-500 dark:text-slate-400 block font-bold">
               کل نیازمند بررسی
             </span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-bold text-amber-700 dark:text-amber-400 font-mono">
+              <span className="text-2xl sm:text-3xl font-black text-amber-700 dark:text-amber-400 font-mono">
                 {summaryStats.total_pending}
               </span>
-              <span className="text-xs text-slate-400">مورد</span>
+              <span className="text-sm text-slate-400 font-medium">مورد</span>
             </div>
           </div>
         </div>
@@ -571,14 +605,14 @@ export const AdminDossiersPage = () => {
             <Receipt className="w-5 h-5 text-amber-700 dark:text-amber-300" />
           </div>
           <div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">
+            <span className="text-sm text-slate-500 dark:text-slate-400 block font-bold">
               فیش‌های در انتظار بررسی
             </span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-bold text-amber-700 dark:text-amber-300 font-mono">
+              <span className="text-2xl sm:text-3xl font-black text-amber-700 dark:text-amber-300 font-mono">
                 {summaryStats.receipts_pending || 0}
               </span>
-              <span className="text-xs text-slate-400">رسید</span>
+              <span className="text-sm text-slate-400 font-medium">رسید</span>
             </div>
           </div>
         </div>
@@ -596,14 +630,14 @@ export const AdminDossiersPage = () => {
             <Users className="w-5 h-5 text-sky-600 dark:text-sky-400" />
           </div>
           <div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">
+            <span className="text-sm text-slate-500 dark:text-slate-400 block font-bold">
               مدارک شناگران
             </span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-bold text-sky-700 dark:text-sky-400 font-mono">
+              <span className="text-2xl sm:text-3xl font-black text-sky-700 dark:text-sky-400 font-mono">
                 {summaryStats.swimmers_pending}
               </span>
-              <span className="text-xs text-slate-400">شناگر</span>
+              <span className="text-sm text-slate-400 font-medium">شناگر</span>
             </div>
           </div>
         </div>
@@ -621,14 +655,14 @@ export const AdminDossiersPage = () => {
             <Whistle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
           </div>
           <div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">
+            <span className="text-sm text-slate-500 dark:text-slate-400 block font-bold">
               مدارک مربیان
             </span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-bold text-emerald-700 dark:text-emerald-400 font-mono">
+              <span className="text-2xl sm:text-3xl font-black text-emerald-700 dark:text-emerald-400 font-mono">
                 {summaryStats.coaches_pending}
               </span>
-              <span className="text-xs text-slate-400">مربی</span>
+              <span className="text-sm text-slate-400 font-medium">مربی</span>
             </div>
           </div>
         </div>
@@ -639,14 +673,14 @@ export const AdminDossiersPage = () => {
             <CheckCircle2 className="w-5 h-5 text-cyan-600 dark:text-cyan-400" />
           </div>
           <div>
-            <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">
+            <span className="text-sm text-slate-500 dark:text-slate-400 block font-bold">
               کل تأییدشده‌ها
             </span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-bold text-slate-800 dark:text-slate-100 font-mono">
+              <span className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 font-mono">
                 {summaryStats.swimmers_approved + summaryStats.coaches_approved + (summaryStats.receipts_approved || 0)}
               </span>
-              <span className="text-xs text-slate-400">مورد</span>
+              <span className="text-sm text-slate-400 font-medium">مورد</span>
             </div>
           </div>
         </div>
@@ -657,7 +691,7 @@ export const AdminDossiersPage = () => {
         <button
           type="button"
           onClick={() => handleTabChange('SWIMMERS')}
-          className={`pb-3.5 px-4 font-bold text-sm transition-all border-b-2 flex items-center gap-2 cursor-pointer ${
+          className={`pb-3.5 px-4 font-black text-sm sm:text-base transition-all border-b-2 flex items-center gap-2.5 cursor-pointer ${
             activeTab === 'SWIMMERS'
               ? 'border-sky-600 text-sky-600 dark:text-sky-400'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
@@ -675,7 +709,7 @@ export const AdminDossiersPage = () => {
         <button
           type="button"
           onClick={() => handleTabChange('COACHES')}
-          className={`pb-3.5 px-4 font-bold text-sm transition-all border-b-2 flex items-center gap-2 cursor-pointer ${
+          className={`pb-3.5 px-4 font-black text-sm sm:text-base transition-all border-b-2 flex items-center gap-2.5 cursor-pointer ${
             activeTab === 'COACHES'
               ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
@@ -693,7 +727,7 @@ export const AdminDossiersPage = () => {
         <button
           type="button"
           onClick={() => handleTabChange('RECEIPTS')}
-          className={`pb-3.5 px-4 font-bold text-sm transition-all border-b-2 flex items-center gap-2 cursor-pointer ${
+          className={`pb-3.5 px-4 font-black text-sm sm:text-base transition-all border-b-2 flex items-center gap-2.5 cursor-pointer ${
             activeTab === 'RECEIPTS'
               ? 'border-amber-600 text-amber-600 dark:text-amber-400'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
@@ -826,7 +860,7 @@ export const AdminDossiersPage = () => {
                     {/* Card Top: Swimmer Info and Overall Status */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
                       <div className="flex items-center gap-3.5">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-bold text-base shrink-0 shadow-2xs overflow-hidden">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center font-black text-lg shrink-0 shadow-2xs overflow-hidden">
                           {swimmer.avatar ? (
                             <img src={swimmer.avatar} alt={swimmer.full_name} className="w-full h-full object-cover" />
                           ) : (
@@ -835,7 +869,7 @@ export const AdminDossiersPage = () => {
                         </div>
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                            <h3 className="font-black text-slate-900 dark:text-white text-lg">
                               {swimmer.full_name}
                             </h3>
                             <Badge variant={swimmer.is_active ? 'success' : 'neutral'} className="text-[11px]">
@@ -1146,7 +1180,7 @@ export const AdminDossiersPage = () => {
                     {/* Top Coach Info Header */}
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
                       <div className="flex items-center gap-3.5">
-                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-bold text-base shrink-0 shadow-2xs overflow-hidden">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-lg shrink-0 shadow-2xs overflow-hidden">
                           {coach.avatar ? (
                             <img src={coach.avatar} alt={coach.full_name} className="w-full h-full object-cover" />
                           ) : (
@@ -1155,7 +1189,7 @@ export const AdminDossiersPage = () => {
                         </div>
                         <div>
                           <div className="flex items-center gap-2 flex-wrap">
-                            <h3 className="font-bold text-slate-900 dark:text-white text-base">
+                            <h3 className="font-black text-slate-900 dark:text-white text-lg">
                               {coach.full_name}
                             </h3>
                             <Badge variant={coach.employment_status === 'ACTIVE' ? 'success' : 'neutral'} className="text-[11px]">
@@ -1447,7 +1481,7 @@ export const AdminDossiersPage = () => {
                   {/* Card Top: Swimmer Info, Meta & Status Badge */}
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-100 dark:border-slate-800 gap-3">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-700 text-white flex items-center justify-center font-bold text-base shadow-xs shrink-0 overflow-hidden">
+                      <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-sky-500 to-blue-700 text-white flex items-center justify-center font-black text-lg shadow-xs shrink-0 overflow-hidden">
                         {receipt.swimmer_avatar ? (
                           <img
                             src={getAuthenticatedDocUrl(receipt.swimmer_avatar)}
@@ -1460,7 +1494,7 @@ export const AdminDossiersPage = () => {
                       </div>
                       <div>
                         <div className="flex items-center gap-2 flex-wrap">
-                          <h3 className="font-black text-slate-900 dark:text-white text-base">
+                          <h3 className="font-black text-slate-900 dark:text-white text-lg">
                             {receipt.swimmer_name}
                           </h3>
                           {receipt.gender_display && (
@@ -1516,7 +1550,7 @@ export const AdminDossiersPage = () => {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
                     {/* Col 1: Course & Tuition details */}
                     <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 space-y-2">
-                      <span className="text-xs font-bold text-sky-700 dark:text-sky-300 flex items-center gap-1.5 block">
+                      <span className="text-sm font-black text-sky-700 dark:text-sky-300 flex items-center gap-1.5 block">
                         <CreditCard className="w-4 h-4" />
                         مشخصات دوره و وضعیت شهریه
                       </span>
@@ -1550,7 +1584,7 @@ export const AdminDossiersPage = () => {
                         <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
                           <span className="text-slate-500 font-bold">مانده بدهی فعلی:</span>
                           {Number(receipt.invoice_remaining_balance || 0) > 0 ? (
-                            <span className="text-xs font-black text-rose-600 font-mono">
+                            <span className="text-sm sm:text-base font-black text-rose-600 font-mono">
                               {formatPrice(receipt.invoice_remaining_balance)} تومان
                             </span>
                           ) : (
@@ -1564,7 +1598,7 @@ export const AdminDossiersPage = () => {
 
                     {/* Col 2: Bank transfer details & notes */}
                     <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 space-y-2">
-                      <span className="text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 block">
+                      <span className="text-sm font-black text-slate-700 dark:text-slate-300 flex items-center gap-1.5 block">
                         <Receipt className="w-4 h-4 text-emerald-600" />
                         اطلاعات واریز کارت‌به‌کارت
                       </span>
@@ -1625,39 +1659,85 @@ export const AdminDossiersPage = () => {
                       </div>
                     </div>
 
-                    {/* Col 3: Receipt Image Thumbnail with Zoom */}
-                    <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 flex flex-col items-center justify-center text-center">
-                      <span className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block self-start">
-                        تصویر فیش / رسید بانکی
-                      </span>
+                    {/* Col 3: Receipt Image Thumbnail with Stable Preview & Download */}
+                    <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-2xl border border-slate-200/60 dark:border-slate-800/80 flex flex-col justify-between text-center gap-2.5">
+                      <div className="w-full flex items-center justify-between">
+                        <span className="text-sm font-black text-slate-800 dark:text-slate-200">
+                          تصویر فیش واریزی
+                        </span>
+                        {receipt.receipt_image && (
+                          <span className="text-xs text-emerald-600 dark:text-emerald-400 font-bold bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
+                            کیفیت اصلی
+                          </span>
+                        )}
+                      </div>
+
                       {receipt.receipt_image ? (
-                        <div
-                          onClick={() =>
-                            setPreviewDoc({
-                              title: `رسید واریز کارت‌به‌کارت ${receipt.swimmer_name}`,
-                              url: getAuthenticatedDocUrl(receipt.receipt_image),
-                              type: 'image',
-                            })
-                          }
-                          className="relative group w-full h-36 bg-slate-200 dark:bg-slate-800 rounded-xl overflow-hidden cursor-pointer border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-2xs hover:shadow-md transition-all"
-                        >
-                          <img
-                            src={getAuthenticatedDocUrl(receipt.receipt_image)}
-                            alt={`رسید ${receipt.swimmer_name}`}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            onError={(e) => {
-                              e.target.onerror = null;
-                              e.target.src = '/media/placeholder.png';
-                            }}
-                          />
-                          <div className="absolute inset-0 bg-slate-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white gap-1 text-xs font-bold">
-                            <ZoomIn className="w-6 h-6 text-emerald-400" />
-                            <span>مشاهده بزرگنمایی و جزئیات</span>
+                        <div className="w-full space-y-2">
+                          <div
+                            onClick={() =>
+                              setPreviewDoc({
+                                title: `رسید واریز کارت‌به‌کارت ${receipt.swimmer_name}`,
+                                url: getAuthenticatedDocUrl(receipt.receipt_image),
+                                filename: `receipt_${receipt.id}_${receipt.swimmer_name || 'swimmer'}.jpg`,
+                                type: 'image',
+                              })
+                            }
+                            className="relative w-full h-40 bg-white dark:bg-slate-900 rounded-xl overflow-hidden cursor-pointer border border-slate-200 dark:border-slate-700 flex items-center justify-center shadow-2xs hover:border-sky-400 dark:hover:border-sky-500 transition-colors"
+                            title="مشاهده بزرگنمایی فیش"
+                          >
+                            <img
+                              src={getAuthenticatedDocUrl(receipt.receipt_image)}
+                              alt={`رسید ${receipt.swimmer_name}`}
+                              className="w-full h-full object-contain p-1"
+                              loading="lazy"
+                              decoding="async"
+                              onError={(e) => {
+                                e.currentTarget.onerror = null;
+                                e.currentTarget.src = FALLBACK_RECEIPT_IMAGE;
+                              }}
+                            />
+                            <div className="absolute inset-0 bg-slate-950/30 opacity-0 hover:opacity-100 transition-opacity flex items-center justify-center text-white gap-1.5 text-xs font-bold pointer-events-none">
+                              <ZoomIn className="w-5 h-5 text-emerald-400" />
+                              <span>بزرگنمایی فیش</span>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 w-full pt-1">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setPreviewDoc({
+                                  title: `رسید واریز کارت‌به‌کارت ${receipt.swimmer_name}`,
+                                  url: getAuthenticatedDocUrl(receipt.receipt_image),
+                                  filename: `receipt_${receipt.id}_${receipt.swimmer_name || 'swimmer'}.jpg`,
+                                  type: 'image',
+                                })
+                              }
+                              className="w-full py-2 px-2 rounded-xl bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 dark:hover:bg-sky-900/50 text-sky-700 dark:text-sky-300 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 border border-sky-200/80 dark:border-sky-800 transition-colors cursor-pointer"
+                            >
+                              <ZoomIn className="w-4 h-4" />
+                              <span>بزرگنمایی</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                downloadOriginalFile(
+                                  getAuthenticatedDocUrl(receipt.receipt_image),
+                                  `receipt_${receipt.id}_${receipt.swimmer_name || 'swimmer'}.jpg`
+                                )
+                              }
+                              className="w-full py-2 px-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 font-bold text-xs sm:text-sm flex items-center justify-center gap-1.5 border border-emerald-200/80 dark:border-emerald-800 transition-colors cursor-pointer"
+                            >
+                              <Download className="w-4 h-4" />
+                              <span>دانلود فیش</span>
+                            </button>
                           </div>
                         </div>
                       ) : (
-                        <div className="w-full h-36 flex items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-400 text-xs">
-                          تصویر فیش یافت نشد
+                        <div className="w-full h-40 flex flex-col items-center justify-center bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-400 text-sm gap-2">
+                          <Receipt className="w-8 h-8 opacity-40" />
+                          <span>تصویر فیش یافت نشد</span>
                         </div>
                       )}
                     </div>
@@ -1670,7 +1750,7 @@ export const AdminDossiersPage = () => {
                         <Button
                           variant="primary"
                           onClick={() => openApproveModal(receipt)}
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs gap-1.5 shadow-2xs cursor-pointer"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 py-2.5 gap-2 shadow-2xs cursor-pointer"
                         >
                           <Check className="w-4 h-4" />
                           <span>تأیید رسید و کسر از شهریه</span>
@@ -1678,7 +1758,7 @@ export const AdminDossiersPage = () => {
                         <Button
                           variant="outline"
                           onClick={() => openRejectionModal('RECEIPT', receipt)}
-                          className="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-rose-300 dark:border-rose-800 font-bold text-xs gap-1.5 cursor-pointer"
+                          className="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-rose-300 dark:border-rose-800 font-bold text-sm px-4 py-2.5 gap-2 cursor-pointer"
                         >
                           <X className="w-4 h-4" />
                           <span>عدم تأیید / رد رسید</span>
@@ -1797,7 +1877,7 @@ export const AdminDossiersPage = () => {
                     setApproveModal((prev) => ({ ...prev, approvedAmount: e.target.value }))
                   }
                   placeholder="مثال: ۱۵۰۰۰۰۰"
-                  className="w-full p-3 text-sm font-bold font-mono rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full p-3.5 text-base sm:text-lg font-black font-mono rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
               {approveModal.approvedAmount && (
@@ -1858,28 +1938,51 @@ export const AdminDossiersPage = () => {
           maxWidth="max-w-3xl"
         >
           <div className="space-y-4">
-            <div className="max-h-[75vh] overflow-auto flex items-center justify-center bg-slate-100 dark:bg-slate-950 rounded-xl p-2 border border-slate-200 dark:border-slate-800">
+            <div className="max-h-[75vh] overflow-auto flex items-center justify-center bg-slate-100 dark:bg-slate-950 rounded-2xl p-3 border border-slate-200 dark:border-slate-800">
               <img
                 src={previewDoc.url}
                 alt={previewDoc.title}
-                className="max-h-[70vh] w-auto max-w-full object-contain rounded-lg shadow-md"
+                className="max-h-[70vh] w-auto max-w-full object-contain rounded-xl shadow-md"
+                loading="lazy"
+                decoding="async"
                 onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = '/media/placeholder.png';
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = FALLBACK_RECEIPT_IMAGE;
                 }}
               />
             </div>
-            <div className="flex items-center justify-between gap-3 pt-2">
-              <a
-                href={previewDoc.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 text-xs text-sky-600 dark:text-sky-400 font-semibold hover:underline"
+            <div className="flex items-center justify-between gap-3 pt-2.5 flex-wrap">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() =>
+                    downloadOriginalFile(
+                      previewDoc.url,
+                      previewDoc.filename || `${previewDoc.title || 'document'}.jpg`
+                    )
+                  }
+                  className="gap-2 text-sm font-bold bg-sky-600 hover:bg-sky-700 text-white cursor-pointer shadow-xs py-2 px-3.5"
+                >
+                  <Download className="w-4 h-4" />
+                  <span>دانلود فایل اصلی با کیفیت بالا</span>
+                </Button>
+                <a
+                  href={previewDoc.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 text-sm text-sky-600 dark:text-sky-400 font-bold hover:underline"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  <span>مشاهده در برگه جدید</span>
+                </a>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setPreviewDoc(null)}
+                className="text-sm font-semibold px-4"
               >
-                <ExternalLink className="w-4 h-4" />
-                <span>باز کردن در برگه جدید / اندازه اصلی</span>
-              </a>
-              <Button variant="secondary" size="sm" onClick={() => setPreviewDoc(null)}>
                 بستن
               </Button>
             </div>
