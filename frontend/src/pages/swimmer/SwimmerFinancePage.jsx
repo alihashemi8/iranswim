@@ -14,6 +14,7 @@ import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { copyCardToClipboard } from '../../utils/bankCard';
 import { getAuthenticatedDocUrl } from '../../utils/media';
+import { toEnglishDigits, formatPersianDateEn } from '../../utils/date';
 
 const FALLBACK_RECEIPT_IMAGE = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f1f5f9'/%3E%3Cpath d='M160 110h80v70h-80z' fill='%23cbd5e1'/%3E%3Ccircle cx='180' cy='130' r='10' fill='%2394a3b8'/%3E%3Cpath d='M165 170l20-25 15 15 20-30 20 40z' fill='%2394a3b8'/%3E%3Ctext x='50%25' y='215' dominant-baseline='middle' text-anchor='middle' fill='%2364748b' font-family='sans-serif' font-size='15' font-weight='600'%3E%D8%AA%D8%B5%D9%88%DB%8C%D8%B1 %D9%81%DB%8C%D8%B4 %D8%AF%D8%B1 %D8%AF%D8%B3%D8%AA%D8%B1%D8%B3 %D9%86%DB%8C%D8%B3%D8%AA%3C/text%3E%3C/svg%3E";
 
@@ -145,7 +146,7 @@ export const SwimmerFinancePage = () => {
     const f = e.target.files?.[0];
     if (f) {
       if (f.size > 10 * 1024 * 1024) {
-        toast.error('حداکثر حجم مجاز فایل ۱۰ مگابایت است.');
+        toast.error('حداکثر حجم مجاز فایل 10 مگابایت است.');
         return;
       }
       setUploadForm((prev) => ({
@@ -216,7 +217,7 @@ export const SwimmerFinancePage = () => {
     return <LoadingState type="table" message="در حال محاسبه حسابداری و اقساط شناگر..." />;
   }
 
-  const formatPrice = (val) => Number(val || 0).toLocaleString('fa-IR');
+  const formatPrice = (val) => Number(val || 0).toLocaleString('en-US');
 
   const totalInvoiceAmount = invoices.reduce((acc, curr) => acc + Number(curr.final_amount || 0), 0);
   const totalPaid = invoices.reduce((acc, curr) => acc + Number(curr.paid_amount || 0), 0);
@@ -302,7 +303,7 @@ export const SwimmerFinancePage = () => {
               شماره کارت بانکی آموزشگاه (جهت واریز و کارت‌به‌کارت اقساط)
             </span>
             <span className="text-sm sm:text-base font-mono font-black tracking-wider text-emerald-300 block mt-0.5" dir="ltr">
-              ۶۰۳۷ - ۹۹۷۵ - ۱۲۳۴ - ۵۶۷۸
+              6037 - 9975 - 1234 - 5678
             </span>
             <span className="text-[11px] text-slate-300 block">
               بانک ملی ایران · به نام علی هاشمی (مدیریت مدرسه شنا)
@@ -481,10 +482,10 @@ export const SwimmerFinancePage = () => {
                       {rec.course_name || 'شهریه دوره شنا'}
                     </h4>
                     <span className="text-xs text-slate-500 block mt-0.5">
-                      شماره پیگیری: <strong className="font-mono text-slate-700 dark:text-slate-300">{rec.tracking_number || '—'}</strong>
+                      شماره پیگیری: <strong className="font-mono text-slate-700 dark:text-slate-300">{toEnglishDigits(rec.tracking_number) || '—'}</strong>
                     </span>
                     <span className="text-[11px] text-slate-400 block mt-0.5">
-                      تاریخ ارسال: {rec.created_at ? new Date(rec.created_at).toLocaleDateString('fa-IR') : '—'}
+                      تاریخ ارسال: {rec.created_at ? (formatPersianDateEn(rec.created_at) || '—') : '—'}
                     </span>
                   </div>
 
@@ -600,7 +601,7 @@ export const SwimmerFinancePage = () => {
             <div className="p-4 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200/80 dark:border-sky-900/60 text-sky-900 dark:text-sky-200 space-y-1 text-xs">
               <span className="font-bold block">شماره کارت آموزشگاه جهت واریز:</span>
               <div className="flex items-center justify-between font-mono font-black text-sm text-sky-700 dark:text-sky-300" dir="ltr">
-                <span>۶۰۳۷ - ۹۹۷۵ - ۱۲۳۴ - ۵۶۷۸</span>
+                <span>6037 - 9975 - 1234 - 5678</span>
                 <button
                   type="button"
                   onClick={() => copyCardToClipboard('6037997512345678', 'شماره کارت آموزشگاه', toast)}
@@ -661,7 +662,7 @@ export const SwimmerFinancePage = () => {
                     <span className="text-xs font-semibold text-slate-600 dark:text-slate-300">
                       برای انتخاب تصویر فیش یا اسکرین‌شات رسید، اینجا کلیک کنید
                     </span>
-                    <span className="text-[11px] text-slate-400">JPG, PNG یا PDF (حداکثر ۱۰ مگابایت)</span>
+                    <span className="text-[11px] text-slate-400">JPG, PNG یا PDF (حداکثر 10 مگابایت)</span>
                     <input
                       type="file"
                       required
@@ -683,7 +684,7 @@ export const SwimmerFinancePage = () => {
                 type="text"
                 required
                 value={uploadForm.tracking_number}
-                onChange={(e) => setUploadForm({ ...uploadForm, tracking_number: e.target.value })}
+                onChange={(e) => setUploadForm({ ...uploadForm, tracking_number: toEnglishDigits(e.target.value) })}
                 placeholder="مثلاً: 123456789 یا کد پیگیری آپ، همراه بانک و..."
                 className="w-full p-2.5 text-xs font-mono rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
               />
@@ -700,7 +701,7 @@ export const SwimmerFinancePage = () => {
                   min="0"
                   step="1000"
                   value={uploadForm.amount_claimed}
-                  onChange={(e) => setUploadForm({ ...uploadForm, amount_claimed: e.target.value })}
+                  onChange={(e) => setUploadForm({ ...uploadForm, amount_claimed: toEnglishDigits(e.target.value).replace(/\D/g, '') })}
                   placeholder="مثال: 1500000"
                   className="w-full p-2.5 text-xs font-mono rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 />
@@ -708,13 +709,13 @@ export const SwimmerFinancePage = () => {
 
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
-                  ۴ رقم آخر کارت واریزکننده:
+                  4 رقم آخر کارت واریزکننده:
                 </label>
                 <input
                   type="text"
                   maxLength="16"
                   value={uploadForm.payer_card_number}
-                  onChange={(e) => setUploadForm({ ...uploadForm, payer_card_number: e.target.value })}
+                  onChange={(e) => setUploadForm({ ...uploadForm, payer_card_number: toEnglishDigits(e.target.value) })}
                   placeholder="مثال: 4567"
                   className="w-full p-2.5 text-xs font-mono rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500"
                 />

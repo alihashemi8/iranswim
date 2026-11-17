@@ -16,6 +16,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { Pagination } from '../../components/common/Pagination';
 import { useToast } from '../../context/ToastContext';
 import { getMediaUrl, getAuthenticatedDocUrl } from '../../utils/media';
+import { toEnglishDigits, formatPersianDateEn } from '../../utils/date';
 
 const FALLBACK_RECEIPT_IMAGE = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f1f5f9'/%3E%3Cpath d='M160 110h80v70h-80z' fill='%23cbd5e1'/%3E%3Ccircle cx='180' cy='130' r='10' fill='%2394a3b8'/%3E%3Cpath d='M165 170l20-25 15 15 20-30 20 40z' fill='%2394a3b8'/%3E%3Ctext x='50%25' y='215' dominant-baseline='middle' text-anchor='middle' fill='%2364748b' font-family='sans-serif' font-size='15' font-weight='600'%3E%D8%AA%D8%B5%D9%88%DB%8C%D8%B1 %D9%81%DB%8C%D8%B4 %D8%AF%D8%B1 %D8%AF%D8%B3%D8%AA%D8%B1%D8%B3 %D9%86%DB%8C%D8%B3%D8%AA%3C/text%3E%3C/svg%3E";
 
@@ -360,7 +361,7 @@ export const AdminDossiersPage = () => {
       });
 
       toast.success(
-        `مبلغ ${Number(amountNum).toLocaleString('fa-IR')} تومان با موفقیت تأیید و از شهریه شناگر کسر شد.`
+        `مبلغ ${formatPrice(amountNum)} تومان با موفقیت تأیید و از شهریه شناگر کسر شد.`
       );
       setApproveModal({
         isOpen: false,
@@ -493,7 +494,16 @@ export const AdminDossiersPage = () => {
     );
   };
 
-  const formatPrice = (val) => Number(val || 0).toLocaleString('fa-IR');
+  const formatPrice = (val) => Number(val || 0).toLocaleString('en-US');
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '—';
+    try {
+      return formatPersianDateEn(dateStr) || '—';
+    } catch {
+      return toEnglishDigits(new Date(dateStr).toLocaleDateString('fa-IR'));
+    }
+  };
 
   const numToPersianWords = (num) => {
     const n = parseInt(num, 10);
@@ -585,7 +595,7 @@ export const AdminDossiersPage = () => {
             </span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-2xl sm:text-3xl font-black text-amber-700 dark:text-amber-400 font-mono">
-                {summaryStats.total_pending}
+                {toEnglishDigits(summaryStats.total_pending)}
               </span>
               <span className="text-sm text-slate-400 font-medium">مورد</span>
             </div>
@@ -610,7 +620,7 @@ export const AdminDossiersPage = () => {
             </span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-2xl sm:text-3xl font-black text-amber-700 dark:text-amber-300 font-mono">
-                {summaryStats.receipts_pending || 0}
+                {toEnglishDigits(summaryStats.receipts_pending || 0)}
               </span>
               <span className="text-sm text-slate-400 font-medium">رسید</span>
             </div>
@@ -635,7 +645,7 @@ export const AdminDossiersPage = () => {
             </span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-2xl sm:text-3xl font-black text-sky-700 dark:text-sky-400 font-mono">
-                {summaryStats.swimmers_pending}
+                {toEnglishDigits(summaryStats.swimmers_pending)}
               </span>
               <span className="text-sm text-slate-400 font-medium">شناگر</span>
             </div>
@@ -660,7 +670,7 @@ export const AdminDossiersPage = () => {
             </span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-2xl sm:text-3xl font-black text-emerald-700 dark:text-emerald-400 font-mono">
-                {summaryStats.coaches_pending}
+                {toEnglishDigits(summaryStats.coaches_pending)}
               </span>
               <span className="text-sm text-slate-400 font-medium">مربی</span>
             </div>
@@ -678,7 +688,7 @@ export const AdminDossiersPage = () => {
             </span>
             <div className="flex items-baseline gap-1.5 mt-0.5">
               <span className="text-2xl sm:text-3xl font-black text-slate-800 dark:text-slate-100 font-mono">
-                {summaryStats.swimmers_approved + summaryStats.coaches_approved + (summaryStats.receipts_approved || 0)}
+                {toEnglishDigits(summaryStats.swimmers_approved + summaryStats.coaches_approved + (summaryStats.receipts_approved || 0))}
               </span>
               <span className="text-sm text-slate-400 font-medium">مورد</span>
             </div>
@@ -701,7 +711,7 @@ export const AdminDossiersPage = () => {
           <span>پرونده‌ها و مدارک شناگران</span>
           {summaryStats.swimmers_pending > 0 && (
             <span className="px-2 py-0.5 text-xs rounded-full bg-amber-500 text-white font-mono">
-              {summaryStats.swimmers_pending}
+              {toEnglishDigits(summaryStats.swimmers_pending)}
             </span>
           )}
         </button>
@@ -719,7 +729,7 @@ export const AdminDossiersPage = () => {
           <span>پرونده‌ها و مدارک مربیان</span>
           {summaryStats.coaches_pending > 0 && (
             <span className="px-2 py-0.5 text-xs rounded-full bg-emerald-500 text-white font-mono">
-              {summaryStats.coaches_pending}
+              {toEnglishDigits(summaryStats.coaches_pending)}
             </span>
           )}
         </button>
@@ -737,7 +747,7 @@ export const AdminDossiersPage = () => {
           <span>رسید ها</span>
           {summaryStats.receipts_pending > 0 && (
             <span className="px-2 py-0.5 text-xs rounded-full bg-amber-500 text-white font-mono">
-              {summaryStats.receipts_pending}
+              {toEnglishDigits(summaryStats.receipts_pending)}
             </span>
           )}
         </button>
@@ -792,7 +802,7 @@ export const AdminDossiersPage = () => {
                 }`}
               >
                 <Clock className="w-3.5 h-3.5 text-amber-500" />
-                <span>در انتظار بررسی ({summaryStats.swimmers_pending})</span>
+                <span>در انتظار بررسی ({toEnglishDigits(summaryStats.swimmers_pending)})</span>
               </button>
               <button
                 type="button"
@@ -806,7 +816,7 @@ export const AdminDossiersPage = () => {
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
-                تأییدشده ({summaryStats.swimmers_approved})
+                تأییدشده ({toEnglishDigits(summaryStats.swimmers_approved)})
               </button>
               <button
                 type="button"
@@ -820,7 +830,7 @@ export const AdminDossiersPage = () => {
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
-                نیازمند اصلاح ({summaryStats.swimmers_revision})
+                نیازمند اصلاح ({toEnglishDigits(summaryStats.swimmers_revision)})
               </button>
             </div>
           </div>
@@ -882,17 +892,17 @@ export const AdminDossiersPage = () => {
                             )}
                           </div>
                           <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1 flex-wrap">
-                            <span className="font-mono">{swimmer.phone}</span>
+                            <span className="font-mono">{toEnglishDigits(swimmer.phone)}</span>
                             {swimmer.national_id && (
                               <>
                                 <span>•</span>
-                                <span>کد ملی: <span className="font-mono">{swimmer.national_id}</span></span>
+                                <span>کد ملی: <span className="font-mono">{toEnglishDigits(swimmer.national_id)}</span></span>
                               </>
                             )}
                             {swimmer.birth_year_jalali && (
                               <>
                                 <span>•</span>
-                                <span>متولد: <span className="font-mono">{swimmer.birth_year_jalali}</span></span>
+                                <span>متولد: <span className="font-mono">{toEnglishDigits(swimmer.birth_year_jalali)}</span></span>
                               </>
                             )}
                             {swimmer.emergency_contact_name && (
@@ -1124,7 +1134,7 @@ export const AdminDossiersPage = () => {
                 }`}
               >
                 <Clock className="w-3.5 h-3.5 text-amber-500" />
-                <span>در انتظار بررسی ({summaryStats.coaches_pending})</span>
+                <span>در انتظار بررسی ({toEnglishDigits(summaryStats.coaches_pending)})</span>
               </button>
               <button
                 type="button"
@@ -1138,7 +1148,7 @@ export const AdminDossiersPage = () => {
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
-                تأییدشده ({summaryStats.coaches_approved})
+                تأییدشده ({toEnglishDigits(summaryStats.coaches_approved)})
               </button>
               <button
                 type="button"
@@ -1152,7 +1162,7 @@ export const AdminDossiersPage = () => {
                     : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
                 }`}
               >
-                رد شده / نیازمند اصلاح ({summaryStats.coaches_rejected})
+                رد شده / نیازمند اصلاح ({toEnglishDigits(summaryStats.coaches_rejected)})
               </button>
             </div>
           </div>
@@ -1202,23 +1212,23 @@ export const AdminDossiersPage = () => {
                             )}
                           </div>
                           <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 mt-1 flex-wrap">
-                            <span className="font-mono">{coach.phone}</span>
+                            <span className="font-mono">{toEnglishDigits(coach.phone)}</span>
                             {coach.personnel_id && (
                               <>
                                 <span>•</span>
-                                <span>کد پرسنلی: <span className="font-mono">{coach.personnel_id}</span></span>
+                                <span>کد پرسنلی: <span className="font-mono">{toEnglishDigits(coach.personnel_id)}</span></span>
                               </>
                             )}
                             {coach.national_id && (
                               <>
                                 <span>•</span>
-                                <span>کد ملی: <span className="font-mono">{coach.national_id}</span></span>
+                                <span>کد ملی: <span className="font-mono">{toEnglishDigits(coach.national_id)}</span></span>
                               </>
                             )}
                             {coach.years_of_experience > 0 && (
                               <>
                                 <span>•</span>
-                                <span>سابقه: {coach.years_of_experience} سال</span>
+                                <span>سابقه: <span className="font-mono">{toEnglishDigits(coach.years_of_experience)}</span> سال</span>
                               </>
                             )}
                           </div>
@@ -1285,7 +1295,7 @@ export const AdminDossiersPage = () => {
                           </div>
                           <div className="truncate">
                             <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block truncate">
-                              بازآموزی {coach.retraining_year ? `سال ${coach.retraining_year}` : 'سال جاری'}
+                              بازآموزی {coach.retraining_year ? `سال ${toEnglishDigits(coach.retraining_year)}` : 'سال جاری'}
                             </span>
                             <div className="mt-0.5">
                               {getDocStatusBadge(coach.retraining_status, hasRetrainingFile)}
@@ -1433,7 +1443,7 @@ export const AdminDossiersPage = () => {
                 }`}
               >
                 <Clock className="w-3.5 h-3.5 text-amber-500" />
-                <span>در انتظار بررسی ({summaryStats.receipts_pending || 0})</span>
+                <span>در انتظار بررسی ({toEnglishDigits(summaryStats.receipts_pending || 0)})</span>
               </button>
               <button
                 type="button"
@@ -1445,7 +1455,7 @@ export const AdminDossiersPage = () => {
                 }`}
               >
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
-                <span>تأییدشده ({summaryStats.receipts_approved || 0})</span>
+                <span>تأییدشده ({toEnglishDigits(summaryStats.receipts_approved || 0)})</span>
               </button>
               <button
                 type="button"
@@ -1457,7 +1467,7 @@ export const AdminDossiersPage = () => {
                 }`}
               >
                 <XCircle className="w-3.5 h-3.5 text-rose-500" />
-                <span>رد شده ({summaryStats.receipts_rejected || 0})</span>
+                <span>رد شده ({toEnglishDigits(summaryStats.receipts_rejected || 0)})</span>
               </button>
             </div>
           </div>
@@ -1504,7 +1514,7 @@ export const AdminDossiersPage = () => {
                           )}
                           {receipt.national_id && (
                             <span className="text-[11px] text-slate-400 font-mono">
-                              کد ملی: {receipt.national_id}
+                              کد ملی: {toEnglishDigits(receipt.national_id)}
                             </span>
                           )}
                         </div>
@@ -1512,14 +1522,14 @@ export const AdminDossiersPage = () => {
                           {receipt.swimmer_phone && (
                             <span className="flex items-center gap-1 font-mono">
                               <Phone className="w-3.5 h-3.5 text-slate-400" />
-                              {receipt.swimmer_phone}
+                              {toEnglishDigits(receipt.swimmer_phone)}
                             </span>
                           )}
                           {receipt.father_name && <span>نام پدر: {receipt.father_name}</span>}
                           <span className="text-slate-400">·</span>
                           <span className="flex items-center gap-1 text-slate-400">
                             <Calendar className="w-3.5 h-3.5" />
-                            زمان ارسال: {receipt.created_at ? new Date(receipt.created_at).toLocaleDateString('fa-IR') : '—'}
+                            زمان ارسال: {formatDate(receipt.created_at)}
                           </span>
                         </div>
                       </div>
@@ -1578,7 +1588,7 @@ export const AdminDossiersPage = () => {
                         {receipt.invoice_number && (
                           <div>
                             <span className="text-slate-400">شماره صورتحساب: </span>
-                            <span className="font-mono text-[11px]">{receipt.invoice_number}</span>
+                            <span className="font-mono text-[11px]">{toEnglishDigits(receipt.invoice_number)}</span>
                           </div>
                         )}
                         <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
@@ -1606,14 +1616,14 @@ export const AdminDossiersPage = () => {
                         <div>
                           <span className="text-slate-400">شماره پیگیری / مرجع: </span>
                           <span className="font-bold font-mono text-slate-900 dark:text-white">
-                            {receipt.tracking_number || 'ثبت‌نشده'}
+                            {toEnglishDigits(receipt.tracking_number) || 'ثبت‌نشده'}
                           </span>
                         </div>
                         {receipt.payer_card_number && (
                           <div>
                             <span className="text-slate-400">کارت واریزکننده: </span>
                             <span className="font-mono" dir="ltr">
-                              {receipt.payer_card_number}
+                              {toEnglishDigits(receipt.payer_card_number)}
                             </span>
                           </div>
                         )}
@@ -1796,7 +1806,7 @@ export const AdminDossiersPage = () => {
             <div className="bg-sky-50 dark:bg-sky-950/40 p-4 rounded-2xl border border-sky-200/80 dark:border-sky-900/60 space-y-2">
               <div className="flex items-center justify-between text-xs font-bold text-sky-900 dark:text-sky-200">
                 <span>شناگر: {approveModal.receipt?.swimmer_name}</span>
-                <span>کد ملی: {approveModal.receipt?.national_id || '—'}</span>
+                <span>کد ملی: {toEnglishDigits(approveModal.receipt?.national_id) || '—'}</span>
               </div>
               <div className="text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between">
                 <span>دوره: {approveModal.receipt?.course_name}</span>
@@ -1874,9 +1884,9 @@ export const AdminDossiersPage = () => {
                   step="1000"
                   value={approveModal.approvedAmount}
                   onChange={(e) =>
-                    setApproveModal((prev) => ({ ...prev, approvedAmount: e.target.value }))
+                    setApproveModal((prev) => ({ ...prev, approvedAmount: toEnglishDigits(e.target.value).replace(/\D/g, '') }))
                   }
-                  placeholder="مثال: ۱۵۰۰۰۰۰"
+                  placeholder="مثال: 1500000"
                   className="w-full p-3.5 text-base sm:text-lg font-black font-mono rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
