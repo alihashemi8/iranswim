@@ -141,15 +141,19 @@ class CourseListView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         qs = Course.objects.all().prefetch_related('groups__schedules', 'groups__coach_assignments', 'coaches__user')
-        status_filter = self.request.query_params.get('status')
+        params = getattr(self.request, 'query_params', None)
+        if params is None:
+            params = getattr(self.request, 'GET', {})
+
+        status_filter = params.get('status')
         if status_filter:
             qs = qs.filter(status=status_filter)
 
-        gender = self.request.query_params.get('gender')
+        gender = params.get('gender')
         if gender and gender != 'ALL':
             qs = qs.filter(Q(gender=gender) | Q(gender='ALL') | Q(gender='') | Q(gender__isnull=True))
 
-        age = self.request.query_params.get('age')
+        age = params.get('age')
         if age:
             try:
                 age_val = int(age)
@@ -160,7 +164,7 @@ class CourseListView(generics.ListCreateAPIView):
             except (ValueError, TypeError):
                 pass
 
-        search = self.request.query_params.get('search')
+        search = params.get('search')
         if search:
             qs = qs.filter(
                 Q(name__icontains=search) |
@@ -170,12 +174,18 @@ class CourseListView(generics.ListCreateAPIView):
                 Q(coaches__user__last_name__icontains=search)
             ).distinct()
 
-        matched_only = self.request.query_params.get('matched_only')
+        matched_only = params.get('matched_only')
         if matched_only in ['true', '1', 'True']:
             from apps.swimmers.views import get_accessible_swimmer_profile
             swimmer = None
             if self.request.user and self.request.user.is_authenticated:
-                swimmer_id = self.request.query_params.get('swimmer_id') or self.request.headers.get('X-Swimmer-Id')
+                swimmer_id = params.get('swimmer_id')
+                if not swimmer_id:
+                    headers = getattr(self.request, 'headers', None)
+                    if headers and hasattr(headers, 'get'):
+                        swimmer_id = headers.get('X-Swimmer-Id')
+                    if not swimmer_id and hasattr(self.request, 'META'):
+                        swimmer_id = self.request.META.get('HTTP_X_SWIMMER_ID')
                 try:
                     swimmer = get_accessible_swimmer_profile(self.request.user, swimmer_id)
                 except Exception:
