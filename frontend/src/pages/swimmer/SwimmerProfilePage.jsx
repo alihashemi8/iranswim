@@ -19,6 +19,7 @@ import { MapLocationPicker } from '../../components/common/MapLocationPicker';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { LogoutModal } from '../../components/common/LogoutModal';
 import { SwimmerPerformanceSection } from '../../components/swimmer/SwimmerPerformanceSection';
+import { RegistrationSuccessModal } from '../../components/swimmer/RegistrationSuccessModal';
 import { validatePassword, PasswordRequirementsList } from '../../utils/passwordValidator';
 import { getMediaUrl, getAuthenticatedDocUrl } from '../../utils/media';
 import { toShamsiDate } from '../../utils/date';
@@ -59,6 +60,9 @@ export const SwimmerProfilePage = () => {
 
   // Document full-size preview modal
   const [previewDocModal, setPreviewDocModal] = useState(null);
+
+  // 3-Step Registration Completion Success Modal
+  const [showRegistrationSuccessModal, setShowRegistrationSuccessModal] = useState(false);
 
   // Coach Assessments State
   const [assessments, setAssessments] = useState([]);
@@ -349,6 +353,7 @@ export const SwimmerProfilePage = () => {
         national_id: nationalId.trim(),
         is_profile_completed: true,
       });
+      setShowRegistrationSuccessModal(true);
     } catch (err) {
       console.error(err);
       const data = err.response?.data;
@@ -474,6 +479,17 @@ export const SwimmerProfilePage = () => {
                   </span>
                 )}
 
+                {isCompletedBefore && (
+                  <button
+                    type="button"
+                    onClick={() => setShowRegistrationSuccessModal(true)}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 hover:bg-amber-100 cursor-pointer transition-colors"
+                  >
+                    <Clock className="w-3.5 h-3.5 text-amber-500" />
+                    <span>وضعیت تأیید مدارک</span>
+                  </button>
+                )}
+
                 <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-mono bg-slate-100 dark:bg-slate-800/80 px-2.5 py-0.5 rounded-full">
                   <Phone className="w-3 h-3 text-slate-400 shrink-0" />
                   <span>{user?.phone || '—'}</span>
@@ -595,6 +611,23 @@ export const SwimmerProfilePage = () => {
       {/* =================================================================== */}
       {activeMainTab === 'INFO' && (
         <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-200">
+          {/* Welcome Banner for Newly Registered Swimmer */}
+          {sessionStorage.getItem('iranswim_just_registered') === 'true' && (
+            <div className="bg-gradient-to-r from-sky-500/10 via-cyan-500/10 to-emerald-500/10 dark:from-sky-950/40 dark:to-emerald-950/30 border border-sky-300 dark:border-sky-800 rounded-3xl p-4 sm:p-5 flex items-start gap-3.5 shadow-xs animate-in fade-in duration-300">
+              <div className="w-10 h-10 rounded-2xl bg-sky-600 text-white flex items-center justify-center shrink-0 shadow-md shadow-sky-500/20">
+                <Sparkles className="w-5 h-5 text-cyan-200" />
+              </div>
+              <div className="space-y-1 min-w-0 flex-1">
+                <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                  عضویت شما با موفقیت انجام شد!
+                </h4>
+                <p className="text-[11px] sm:text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                  لطفاً ۳ مرحله زیر را جهت تکمیل پرونده و بارگذاری مدارک هویتی انجام دهید. پس از ثبت نهایی، مدارک جهت بررسی ارسال شده و می‌توانید بلافاصله دوره‌های آموزشی مناسب خود را انتخاب نمایید.
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Stepper Header Card */}
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs space-y-3.5">
             <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">
@@ -1650,6 +1683,13 @@ export const SwimmerProfilePage = () => {
         onConfirm={handleConfirmLogout}
         userName={displayName}
         userRole="شناگر"
+      />
+
+      {/* Registration & 3-Step Completion Success Modal */}
+      <RegistrationSuccessModal
+        isOpen={showRegistrationSuccessModal}
+        onClose={() => setShowRegistrationSuccessModal(false)}
+        swimmerName={firstName && lastName ? `${firstName} ${lastName}`.trim() : displayName}
       />
     </div>
   );

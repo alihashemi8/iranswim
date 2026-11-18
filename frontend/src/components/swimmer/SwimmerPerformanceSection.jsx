@@ -4,7 +4,7 @@ import {
   TrendingUp, Trophy, Video, MessageSquare,
   Sparkles, Calendar, User, ChevronLeft,
   AlertCircle, ArrowDownRight, Maximize2,
-  Crown, RefreshCw, Star, Layers,
+  Crown, RefreshCw, Star,
   Compass, Eye
 } from 'lucide-react';
 import api from '../../api/client';
@@ -81,8 +81,8 @@ const VIDEO_CATEGORIES = {
 };
 
 export const SwimmerPerformanceSection = ({ swimmerId, swimmerName = '' }) => {
-  // Navigation within Performance Tab: 'OVERVIEW' | 'PROGRESS_CHART' | 'BADGES' | 'COMMENTS' | 'VIDEOS'
-  const [activeSubTab, setActiveSubTab] = useState('OVERVIEW');
+  // Active Section: 'PROGRESS_CHART' | 'BADGES' | 'COMMENTS' | 'VIDEOS'
+  const [activeSubTab, setActiveSubTab] = useState('PROGRESS_CHART');
 
   // Loading & Error States
   const [loading, setLoading] = useState(true);
@@ -419,464 +419,176 @@ export const SwimmerPerformanceSection = ({ swimmerId, swimmerName = '' }) => {
 
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-200">
-      {/* =================================================================== */}
-      {/* 1. HERO HEADER: Swimmer Performance Overview & Sub-Nav Pills        */}
-      {/* =================================================================== */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-sky-950 to-indigo-950 text-white p-5 sm:p-7 shadow-lg border border-sky-900/50">
-        {/* Ambient background glows */}
-        <div className="absolute top-0 right-0 w-80 h-80 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl pointer-events-none" />
+      {/* Top Header Row with Title and Refresh Button */}
+      <div className="flex items-center justify-between gap-3 px-1">
+        <div>
+          <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
+            <TrendingUp className="w-5 h-5 text-sky-500" />
+            <span>عملکرد و افتخارات ورزشی</span>
+            {swimmerName && (
+              <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
+                ({swimmerName})
+              </span>
+            )}
+          </h2>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">
+            روی هر یک از کارت‌های زیر کلیک کنید تا اطلاعات تفصیلی آن نمایش داده شود
+          </p>
+        </div>
 
-        <div className="relative z-10 space-y-5">
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-            <div className="space-y-1.5">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-sky-500/20 text-sky-200 border border-sky-400/30 text-xs font-bold backdrop-blur-md">
-                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>پرونده عملکرد و پیشرفت تخصصی شناگر</span>
-              </div>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-white flex items-center gap-2.5">
-                <span>عملکرد و افتخارات ورزشی</span>
-                {swimmerName && <span className="text-sky-300 font-bold text-lg sm:text-xl">({swimmerName})</span>}
-              </h1>
-              <p className="text-xs sm:text-sm text-slate-300 max-w-2xl leading-relaxed">
-                رصد هوشمند رکوردهای زمانی ثبت‌شده توسط مربی، نشان‌ها و افتخارات لیگ، بازخوردهای تخصصی کادر مربیگری و ویدئوهای تحلیل تکنیک
-              </p>
-            </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => fetchPerformanceData(true)}
+          disabled={refreshing}
+          className="text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 text-xs gap-1.5 cursor-pointer rounded-xl"
+          title="بروزرسانی داده‌ها"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+          <span className="hidden sm:inline">بروزرسانی</span>
+        </Button>
+      </div>
 
-            <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => fetchPerformanceData(true)}
-                disabled={refreshing}
-                className="bg-white/10 hover:bg-white/20 text-white border-white/20 backdrop-blur-md text-xs gap-1.5 cursor-pointer"
-              >
-                <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-                <span>بروزرسانی دیتا</span>
-              </Button>
+      {/* 4 Interactive Selector Cards (Always visible, acts as the master navigation) */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {/* KPI 1: Records & Progress Chart */}
+        <div
+          onClick={() => setActiveSubTab('PROGRESS_CHART')}
+          className={`p-4 sm:p-5 rounded-3xl transition-all cursor-pointer group ${
+            activeSubTab === 'PROGRESS_CHART'
+              ? 'bg-sky-50/60 dark:bg-sky-950/30 border-2 border-sky-500 shadow-md ring-2 ring-sky-500/20'
+              : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-sky-300 dark:hover:border-sky-700'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className={`text-xs font-bold ${activeSubTab === 'PROGRESS_CHART' ? 'text-sky-700 dark:text-sky-300 font-black' : 'text-slate-500 dark:text-slate-400'}`}>
+              رکوردهای ثبت‌شده مربی
+            </span>
+            <div className={`p-2 rounded-xl transition-transform group-hover:scale-110 ${
+              activeSubTab === 'PROGRESS_CHART'
+                ? 'bg-sky-500 text-white shadow-xs'
+                : 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400'
+            }`}>
+              <TrendingUp className="w-4 h-4" />
             </div>
           </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">{records.length}</span>
+            <span className="text-xs text-slate-400">رکورد ثبت‌شده</span>
+          </div>
+          <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-sky-600 dark:text-sky-400 font-medium flex items-center justify-between">
+            <span>{personalBest ? `بهترین: ${personalBest.formatted_time || `${personalBest.duration_seconds}s`}` : 'نمودار و رکوردها'}</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold ${activeSubTab === 'PROGRESS_CHART' ? 'bg-sky-500 text-white' : 'text-slate-400'}`}>
+              {activeSubTab === 'PROGRESS_CHART' ? 'فعال' : 'مشاهده'}
+            </span>
+          </div>
+        </div>
 
-          {/* Sub-Navigation Pills (Touch-first, responsive, zero-overflow) */}
-          <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto pb-1 border-t border-white/10 pt-4 scrollbar-none">
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('OVERVIEW')}
-              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
-                activeSubTab === 'OVERVIEW'
-                  ? 'bg-white text-slate-900 shadow-md font-black'
-                  : 'bg-white/10 text-white/80 hover:bg-white/15 hover:text-white'
-              }`}
-            >
-              <Layers className="w-4 h-4" />
-              <span>نمای کلی عملکرد</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('PROGRESS_CHART')}
-              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 relative ${
-                activeSubTab === 'PROGRESS_CHART'
-                  ? 'bg-sky-500 text-white shadow-md font-black'
-                  : 'bg-white/10 text-white/80 hover:bg-white/15 hover:text-white'
-              }`}
-            >
-              <TrendingUp className="w-4 h-4" />
-              <span>نمودار پیشرفت و رکوردها</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-white/20">
-                {records.length}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('BADGES')}
-              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 relative ${
-                activeSubTab === 'BADGES'
-                  ? 'bg-amber-500 text-slate-950 shadow-md font-black'
-                  : 'bg-white/10 text-white/80 hover:bg-white/15 hover:text-white'
-              }`}
-            >
+        {/* KPI 2: League Badges & Medals */}
+        <div
+          onClick={() => setActiveSubTab('BADGES')}
+          className={`p-4 sm:p-5 rounded-3xl transition-all cursor-pointer group ${
+            activeSubTab === 'BADGES'
+              ? 'bg-amber-50/60 dark:bg-amber-950/30 border-2 border-amber-500 shadow-md ring-2 ring-amber-500/20'
+              : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-amber-300 dark:hover:border-amber-700'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className={`text-xs font-bold ${activeSubTab === 'BADGES' ? 'text-amber-700 dark:text-amber-300 font-black' : 'text-slate-500 dark:text-slate-400'}`}>
+              مدال‌ها و نشان‌های لیگ
+            </span>
+            <div className={`p-2 rounded-xl transition-transform group-hover:scale-110 ${
+              activeSubTab === 'BADGES'
+                ? 'bg-amber-500 text-white shadow-xs'
+                : 'bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400'
+            }`}>
               <Trophy className="w-4 h-4" />
-              <span>نشان‌های دریافتی از لیگ</span>
-              {leagueBadgesData.summary.total_medals > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-amber-400 text-slate-950 font-black">
-                  {leagueBadgesData.summary.total_medals}
-                </span>
-              )}
-            </button>
+            </div>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl sm:text-3xl font-black text-amber-500 font-mono">
+              {leagueBadgesData.summary.total_medals}
+            </span>
+            <span className="text-xs text-slate-400">مدال رسمی</span>
+          </div>
+          <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-amber-600 dark:text-amber-400 font-medium flex items-center justify-between">
+            <span>
+              🥇 {leagueBadgesData.summary.gold_medals} | 🥈 {leagueBadgesData.summary.silver_medals} | 🥉 {leagueBadgesData.summary.bronze_medals}
+            </span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold ${activeSubTab === 'BADGES' ? 'bg-amber-500 text-white' : 'text-slate-400'}`}>
+              {activeSubTab === 'BADGES' ? 'فعال' : 'مشاهده'}
+            </span>
+          </div>
+        </div>
 
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('COMMENTS')}
-              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 relative ${
-                activeSubTab === 'COMMENTS'
-                  ? 'bg-emerald-500 text-white shadow-md font-black'
-                  : 'bg-white/10 text-white/80 hover:bg-white/15 hover:text-white'
-              }`}
-            >
+        {/* KPI 3: Coach & Management Feedback */}
+        <div
+          onClick={() => setActiveSubTab('COMMENTS')}
+          className={`p-4 sm:p-5 rounded-3xl transition-all cursor-pointer group ${
+            activeSubTab === 'COMMENTS'
+              ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-2 border-emerald-500 shadow-md ring-2 ring-emerald-500/20'
+              : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-emerald-300 dark:hover:border-emerald-700'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className={`text-xs font-bold ${activeSubTab === 'COMMENTS' ? 'text-emerald-700 dark:text-emerald-300 font-black' : 'text-slate-500 dark:text-slate-400'}`}>
+              نظرات مربی و مدیریت
+            </span>
+            <div className={`p-2 rounded-xl transition-transform group-hover:scale-110 ${
+              activeSubTab === 'COMMENTS'
+                ? 'bg-emerald-500 text-white shadow-xs'
+                : 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400'
+            }`}>
               <MessageSquare className="w-4 h-4" />
-              <span>کامنت مربی و مدیریت</span>
-              {aggregatedComments.length > 0 && (
-                <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-white/20">
-                  {aggregatedComments.length}
-                </span>
-              )}
-            </button>
+            </div>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
+              {aggregatedComments.length}
+            </span>
+            <span className="text-xs text-slate-400">بازخورد و کامنت</span>
+          </div>
+          <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center justify-between">
+            <span>مشاهده بازخوردها</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold ${activeSubTab === 'COMMENTS' ? 'bg-emerald-500 text-white' : 'text-slate-400'}`}>
+              {activeSubTab === 'COMMENTS' ? 'فعال' : 'مشاهده'}
+            </span>
+          </div>
+        </div>
 
-            <button
-              type="button"
-              onClick={() => setActiveSubTab('VIDEOS')}
-              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 relative ${
-                activeSubTab === 'VIDEOS'
-                  ? 'bg-purple-600 text-white shadow-md font-black'
-                  : 'bg-white/10 text-white/80 hover:bg-white/15 hover:text-white'
-              }`}
-            >
+        {/* KPI 4: Swimming Videos */}
+        <div
+          onClick={() => setActiveSubTab('VIDEOS')}
+          className={`p-4 sm:p-5 rounded-3xl transition-all cursor-pointer group ${
+            activeSubTab === 'VIDEOS'
+              ? 'bg-purple-50/60 dark:bg-purple-950/30 border-2 border-purple-500 shadow-md ring-2 ring-purple-500/20'
+              : 'bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-purple-300 dark:hover:border-purple-700'
+          }`}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className={`text-xs font-bold ${activeSubTab === 'VIDEOS' ? 'text-purple-700 dark:text-purple-300 font-black' : 'text-slate-500 dark:text-slate-400'}`}>
+              ویدئوهای تحلیل شنا
+            </span>
+            <div className={`p-2 rounded-xl transition-transform group-hover:scale-110 ${
+              activeSubTab === 'VIDEOS'
+                ? 'bg-purple-500 text-white shadow-xs'
+                : 'bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400'
+            }`}>
               <Video className="w-4 h-4" />
-              <span>فیلم شنای شناگر</span>
-              <span className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-white/20">
-                {videos.length}
-              </span>
-            </button>
+            </div>
+          </div>
+          <div className="flex items-baseline gap-2">
+            <span className="text-2xl sm:text-3xl font-black text-purple-600 dark:text-purple-400 font-mono">{videos.length}</span>
+            <span className="text-xs text-slate-400">ویدئوی بارگذاری‌شده</span>
+          </div>
+          <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-[11px] text-purple-600 dark:text-purple-400 font-medium flex items-center justify-between">
+            <span>پخش و تحلیل تکنیک</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold ${activeSubTab === 'VIDEOS' ? 'bg-purple-500 text-white' : 'text-slate-400'}`}>
+              {activeSubTab === 'VIDEOS' ? 'فعال' : 'مشاهده'}
+            </span>
           </div>
         </div>
       </div>
-
-      {/* =================================================================== */}
-      {/* 2. SUB-TAB 1: OVERVIEW DASHBOARD                                    */}
-      {/* =================================================================== */}
-      {activeSubTab === 'OVERVIEW' && (
-        <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-150">
-          {/* Quick Metrics Bar (4 KPI Cards) */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-            {/* KPI 1: Records Count & PB */}
-            <div
-              onClick={() => setActiveSubTab('PROGRESS_CHART')}
-              className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-sky-400 dark:hover:border-sky-600 transition-all cursor-pointer group"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">رکوردهای ثبت‌شده مربی</span>
-                <div className="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 group-hover:scale-110 transition-transform">
-                  <TrendingUp className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white font-mono">{records.length}</span>
-                <span className="text-xs text-slate-400">رکورد ثبت‌شده</span>
-              </div>
-              <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-sky-600 dark:text-sky-400 font-medium flex items-center justify-between">
-                <span>بهترین: {personalBest ? personalBest.formatted_time || `${personalBest.duration_seconds}s` : '—'} {latestRecord ? `• آخرین: ${latestRecord.formatted_time || `${latestRecord.duration_seconds}s`}` : ''}</span>
-                <ChevronLeft className="w-3.5 h-3.5" />
-              </div>
-            </div>
-
-            {/* KPI 2: League Badges & Medals */}
-            <div
-              onClick={() => setActiveSubTab('BADGES')}
-              className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-amber-400 dark:hover:border-amber-600 transition-all cursor-pointer group"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">مدال‌ها و نشان‌های لیگ</span>
-                <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 group-hover:scale-110 transition-transform">
-                  <Trophy className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-black text-amber-500 font-mono">
-                  {leagueBadgesData.summary.total_medals}
-                </span>
-                <span className="text-xs text-slate-400">مدال رسمی</span>
-              </div>
-              <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-amber-600 dark:text-amber-400 font-medium flex items-center justify-between">
-                <span>
-                  🥇 {leagueBadgesData.summary.gold_medals} | 🥈 {leagueBadgesData.summary.silver_medals} | 🥉 {leagueBadgesData.summary.bronze_medals}
-                </span>
-                <ChevronLeft className="w-3.5 h-3.5" />
-              </div>
-            </div>
-
-            {/* KPI 3: Coach & Management Feedback */}
-            <div
-              onClick={() => setActiveSubTab('COMMENTS')}
-              className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-emerald-400 dark:hover:border-emerald-600 transition-all cursor-pointer group"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">نظرات مربی و مدیریت</span>
-                <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 group-hover:scale-110 transition-transform">
-                  <MessageSquare className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
-                  {aggregatedComments.length}
-                </span>
-                <span className="text-xs text-slate-400">بازخورد و کامنت</span>
-              </div>
-              <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-emerald-600 dark:text-emerald-400 font-medium flex items-center justify-between">
-                <span>مشاهده آخرین نظرات</span>
-                <ChevronLeft className="w-3.5 h-3.5" />
-              </div>
-            </div>
-
-            {/* KPI 4: Swimming Videos */}
-            <div
-              onClick={() => setActiveSubTab('VIDEOS')}
-              className="p-4 sm:p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-purple-400 dark:hover:border-purple-600 transition-all cursor-pointer group"
-            >
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-bold text-slate-500 dark:text-slate-400">ویدئوهای تحلیل شنا</span>
-                <div className="p-2 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform">
-                  <Video className="w-4 h-4" />
-                </div>
-              </div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-2xl sm:text-3xl font-black text-purple-600 dark:text-purple-400 font-mono">{videos.length}</span>
-                <span className="text-xs text-slate-400">ویدئوی بارگذاری‌شده</span>
-              </div>
-              <div className="mt-2 pt-2 border-t border-slate-100 dark:border-slate-800 text-[11px] text-purple-600 dark:text-purple-400 font-medium flex items-center justify-between">
-                <span>پخش و تحلیل تکنیک</span>
-                <ChevronLeft className="w-3.5 h-3.5" />
-              </div>
-            </div>
-          </div>
-
-          {/* Featured Section 1: Progress Chart Preview */}
-          <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-              <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400">
-                  <TrendingUp className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
-                    نمودار پیشرفت زمانی رکوردها
-                  </h3>
-                  <p className="text-xs text-slate-500">روند کاهش تایم و سرعت شناگر در تست‌های رسمی مربی</p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setActiveSubTab('PROGRESS_CHART')}
-                className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-sky-600 dark:text-sky-400 hover:underline cursor-pointer self-end sm:self-auto"
-              >
-                <span>مشاهده کامل و فیلتر ماده‌ها</span>
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Chart SVG Canvas */}
-            {chartPoints ? (
-              <div className="space-y-3">
-                <div className="relative w-full overflow-hidden rounded-2xl bg-gradient-to-b from-slate-50/80 to-white dark:from-slate-950/60 dark:to-slate-900 p-2 sm:p-4 border border-slate-100 dark:border-slate-800/80">
-                  <svg
-                    viewBox={`0 0 ${chartPoints.width} ${chartPoints.height}`}
-                    className="w-full h-48 sm:h-64 overflow-visible"
-                  >
-                    <defs>
-                      <linearGradient id="overviewAreaGradient" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#0284c7" stopOpacity="0.35" />
-                        <stop offset="100%" stopColor="#0284c7" stopOpacity="0.0" />
-                      </linearGradient>
-                    </defs>
-
-                    {/* Grid lines */}
-                    <line x1="50" y1="40" x2="750" y2="40" stroke="currentColor" className="text-slate-200 dark:text-slate-800" strokeDasharray="3 3" />
-                    <line x1="50" y1="130" x2="750" y2="130" stroke="currentColor" className="text-slate-200 dark:text-slate-800" strokeDasharray="3 3" />
-                    <line x1="50" y1="220" x2="750" y2="220" stroke="currentColor" className="text-slate-200 dark:text-slate-800" strokeDasharray="3 3" />
-
-                    {/* Gradient Area Fill */}
-                    <path d={chartPoints.areaD} fill="url(#overviewAreaGradient)" />
-
-                    {/* Stroke Line */}
-                    <path
-                      d={chartPoints.pathD}
-                      fill="none"
-                      stroke="#0284c7"
-                      strokeWidth="3.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-
-                    {/* Points */}
-                    {chartPoints.points.map((pt, i) => (
-                      <g key={i}>
-                        <circle
-                          cx={pt.x}
-                          cy={pt.y}
-                          r="6"
-                          className="fill-white dark:fill-slate-900 stroke-sky-600 dark:stroke-sky-400 stroke-[3px] transition-all hover:scale-150 cursor-pointer"
-                          onMouseEnter={() => setHoveredPoint(pt)}
-                          onMouseLeave={() => setHoveredPoint(null)}
-                        />
-                        <text
-                          x={pt.x}
-                          y={chartPoints.height - 10}
-                          textAnchor="middle"
-                          className="text-[10px] fill-slate-400 dark:fill-slate-500 font-mono"
-                        >
-                          {pt.date}
-                        </text>
-                      </g>
-                    ))}
-                  </svg>
-
-                  {/* Tooltip on Hover */}
-                  {hoveredPoint && (
-                    <div
-                      className="absolute z-20 pointer-events-none p-3 rounded-xl bg-slate-900 text-white dark:bg-white dark:text-slate-900 shadow-xl border border-slate-700 dark:border-slate-200 text-xs space-y-1 transform -translate-x-1/2 -translate-y-full"
-                      style={{
-                        left: `${(hoveredPoint.x / chartPoints.width) * 100}%`,
-                        top: `${(hoveredPoint.y / chartPoints.height) * 100}%`,
-                      }}
-                    >
-                      <div className="font-bold flex items-center gap-1.5">
-                        <span>{hoveredPoint.distance}م {hoveredPoint.strokeLabel}</span>
-                        {hoveredPoint.isVerified && <Badge variant="success" size="sm">تأییدشده</Badge>}
-                      </div>
-                      <div className="text-base font-black font-mono text-sky-400 dark:text-sky-600">
-                        {hoveredPoint.formattedTime}
-                      </div>
-                      <div className="text-[10px] text-slate-300 dark:text-slate-600">
-                        {hoveredPoint.date} • {hoveredPoint.recordedBy}
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {progressionMetrics && (
-                  <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-2xl bg-sky-50/70 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/50 text-xs">
-                    <span className="font-bold text-sky-900 dark:text-sky-200 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-sky-500" />
-                      <span>میزان رشد زمانی:</span>
-                    </span>
-                    <span className="font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                      <ArrowDownRight className="w-4 h-4" />
-                      <span>{progressionMetrics.diffSeconds} ثانیه کاهش زمان ({progressionMetrics.percent}٪ سریع‌تر)</span>
-                    </span>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="py-8 text-center text-xs sm:text-sm text-slate-400 dark:text-slate-500">
-                {records.length === 1 ? 'یک رکورد ثبت شده است. با ثبت دومین رکورد توسط مربی، نمودار پیشرفت فعال می‌شود.' : 'هنوز رکوردی توسط مربی در پرونده ثبت نشده است.'}
-              </div>
-            )}
-          </div>
-
-          {/* Featured Section 2: Latest League Badges & Latest Coach Comment (2-Column Grid) */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-            {/* Box 1: Latest Medals / League Badges */}
-            <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400">
-                    <Trophy className="w-4.5 h-4.5" />
-                  </div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">نشان‌های مسابقاتی لیگ</h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setActiveSubTab('BADGES')}
-                  className="text-xs font-bold text-amber-600 dark:text-amber-400 hover:underline cursor-pointer flex items-center gap-1"
-                >
-                  <span>همه نشان‌ها</span>
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {leagueBadgesData.medals.length > 0 || leagueBadgesData.honor_badges.length > 0 ? (
-                <div className="space-y-2.5">
-                  {leagueBadgesData.medals.slice(0, 3).map((medalItem) => (
-                    <div
-                      key={medalItem.id}
-                      className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3"
-                    >
-                      <div className="flex items-center gap-2.5">
-                        <span className="text-2xl shrink-0">
-                          {medalItem.medal === 'GOLD' ? '🥇' : medalItem.medal === 'SILVER' ? '🥈' : '🥉'}
-                        </span>
-                        <div>
-                          <h4 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100">
-                            {medalItem.event_name}
-                          </h4>
-                          <span className="text-[11px] text-slate-400 dark:text-slate-500 block">
-                            {medalItem.competition_title} • {medalItem.season}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="text-left shrink-0">
-                        <span className="text-xs font-mono font-black text-amber-600 dark:text-amber-400 block">
-                          +{medalItem.score_points} امتیاز
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-mono">
-                          {medalItem.formatted_time || '—'}
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-6 text-center text-xs text-slate-400 dark:text-slate-500">
-                  هنوز نشانی در لیگ مسابقاتی برای این شناگر ثبت نشده است.
-                </div>
-              )}
-            </div>
-
-            {/* Box 2: Latest Coach & Management Comments */}
-            <div className="p-5 sm:p-6 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
-                    <MessageSquare className="w-4.5 h-4.5" />
-                  </div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white">نظرات و بازخوردها</h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setActiveSubTab('COMMENTS')}
-                  className="text-xs font-bold text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer flex items-center gap-1"
-                >
-                  <span>مشاهده همه ({aggregatedComments.length})</span>
-                  <ChevronLeft className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              {aggregatedComments.length > 0 ? (
-                <div className="space-y-3">
-                  {aggregatedComments.slice(0, 2).map((comm) => (
-                    <div
-                      key={comm.id}
-                      className={`p-3.5 rounded-2xl border text-xs space-y-2 ${
-                        comm.type === 'COACH'
-                          ? 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-100 dark:border-emerald-900/40'
-                          : 'bg-indigo-50/40 dark:bg-indigo-950/20 border-indigo-100 dark:border-indigo-900/40'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className={`font-bold flex items-center gap-1.5 ${comm.type === 'COACH' ? 'text-emerald-800 dark:text-emerald-300' : 'text-indigo-800 dark:text-indigo-300'}`}>
-                          <User className="w-3 h-3" />
-                          <span>{comm.authorName}</span>
-                          <span className="text-[10px] opacity-75 font-normal">({comm.sourceTitle})</span>
-                        </span>
-                        <span className="text-[10px] text-slate-400 font-mono">{comm.date}</span>
-                      </div>
-                      <p className="text-slate-700 dark:text-slate-200 leading-relaxed font-normal">
-                        «{comm.content}»
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-6 text-center text-xs text-slate-400 dark:text-slate-500">
-                  هنوز یادداشت یا بازخوردی توسط مربی یا مدیریت ثبت نشده است.
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* =================================================================== */}
       {/* 3. SUB-TAB 2: PROGRESS CHART & DETAILED RECORDS                     */}

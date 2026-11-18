@@ -382,7 +382,8 @@ export const LoginPage = ({ defaultMode }) => {
       sessionStorage.removeItem('iranswim_reg_otp_sent');
       sessionStorage.removeItem('iranswim_reg_otp_code');
       sessionStorage.removeItem('iranswim_reg_otp_expires_at');
-      toast.success('ورود با موفقیت انجام شد! در حال هدایت به بخش پروفایل...');
+      sessionStorage.setItem('iranswim_just_registered', 'true');
+      toast.success('ثبت‌نام اولیه با موفقیت انجام شد! لطفاً ۳ مرحله مشخصات و مدارک را تکمیل فرمایید.');
       navigate('/swimmer/profile');
     } else {
       setError(res.error);

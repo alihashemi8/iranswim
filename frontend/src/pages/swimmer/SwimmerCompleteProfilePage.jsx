@@ -12,6 +12,7 @@ import { Button } from '../../components/common/Button';
 import { LoadingState } from '../../components/common/LoadingState';
 import { MapLocationPicker } from '../../components/common/MapLocationPicker';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
+import { RegistrationSuccessModal } from '../../components/swimmer/RegistrationSuccessModal';
 import { getMediaUrl, getAuthenticatedDocUrl } from '../../utils/media';
 
 export const SwimmerCompleteProfilePage = () => {
@@ -22,6 +23,7 @@ export const SwimmerCompleteProfilePage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   // Current Step: 1, 2, or 3
   const [currentStep, setCurrentStep] = useState(1);
@@ -274,7 +276,7 @@ export const SwimmerCompleteProfilePage = () => {
         is_profile_completed: true,
       });
 
-      navigate('/swimmer');
+      setShowSuccessModal(true);
     } catch (err) {
       console.error(err);
       const data = err.response?.data;
@@ -904,6 +906,16 @@ export const SwimmerCompleteProfilePage = () => {
         )}
 
       </form>
+
+      {/* Registration & 3-Step Completion Success Modal */}
+      <RegistrationSuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => {
+          setShowSuccessModal(false);
+          navigate('/swimmer');
+        }}
+        swimmerName={firstName && lastName ? `${firstName} ${lastName}`.trim() : 'شناگر گرامی'}
+      />
     </div>
   );
 };
