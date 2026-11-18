@@ -839,22 +839,22 @@ export const HomePage = () => {
             ========================================================================= */}
         {isSectionEnabled('hero') && (
           <>
-            <section className="landing-hero relative w-full pt-8 sm:pt-14 lg:pt-18 pb-12 sm:pb-16 min-w-0">
+            <section className="landing-hero relative w-full pt-4 sm:pt-14 lg:pt-18 pb-8 sm:pb-16 min-w-0">
               <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-20">
             <div className="landing-hero__panel relative w-full">
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-14 items-center">
               {/* Text & Primary Actions */}
-              <div className="lg:col-span-7 space-y-6 sm:space-y-8 text-right">
+              <div className="lg:col-span-7 space-y-3.5 sm:space-y-6 lg:space-y-8 text-right">
                 
                 {/* Floating Aquatic Pill */}
-                <div className="inline-flex items-center gap-2.5 px-4 py-2 bg-white/95 border-2 border-cyan-200/90 rounded-full text-xs sm:text-sm font-bold text-slate-900 shadow-md">
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 bg-white/95 border-2 border-cyan-200/90 rounded-full text-[11px] sm:text-sm font-bold text-slate-900 shadow-md">
                   <MapPin className="w-4 h-4 text-cyan-600 shrink-0" />
                   <span>مدرسه شنای ایران • استان قزوین</span>
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse mr-1" />
                 </div>
 
                 {/* Main Headline */}
-                <div className="space-y-4">
+                <div className="space-y-2 sm:space-y-4">
                   <h1 className="text-3xl sm:text-4xl md:text-[1.85rem] lg:text-[2.6rem] xl:text-5xl font-black tracking-tight leading-[1.25] text-white">
                     <span>آموزش اصولی شنا</span>{' '}
                     <br className="block md:hidden" />
@@ -862,22 +862,22 @@ export const HomePage = () => {
                       از مبتدی تا پیشرفته
                     </span>
                   </h1>
-                  <p className="hero-lead-text text-base sm:text-xl font-bold text-sky-100 leading-snug">
+                  <p className="hero-lead-text text-xs sm:text-base lg:text-xl font-bold text-sky-100 leading-normal sm:leading-snug">
                     دوره‌های آموزش شنا ویژه کودکان، نوجوانان و بزرگسالان زیر نظر مربیان رسمی فدراسیون شنا
                   </p>
                 </div>
 
                 {/* Editorial Description */}
-                <p className="hero-editorial-p text-sm sm:text-base lg:text-lg text-slate-100/90 leading-relaxed font-normal max-w-2xl text-justify">
+                <p className="hero-editorial-p text-xs sm:text-base lg:text-lg text-slate-100/90 leading-relaxed font-normal max-w-2xl text-justify line-clamp-3 sm:line-clamp-none">
                   اگر به دنبال یادگیری اصولی شنا، رفع ترس از آب در کودکان یا آموزش چهار شنا (کرال سینه، کرال پشت، قورباغه و پروانه) هستید؛ کلاس‌های ما در استخرهای منتخب قزوین در محیطی بهداشتی، خلوت و با برنامه‌ریزی منظم برگزار می‌شود.
                 </p>
 
                 {/* Primary Conversion & Navigation Buttons */}
-                <div className="flex flex-row items-center gap-2.5 sm:gap-4 pt-3 w-full sm:w-auto">
+                <div className="flex flex-row items-center gap-2 sm:gap-4 pt-1 sm:pt-3 w-full sm:w-auto">
                   {user ? (
                     <Link
                       to={getDashboardDestination()}
-                      className="flex-1 sm:flex-initial justify-center px-4 sm:px-7 py-3.5 sm:py-4 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black rounded-2xl shadow-[0_8px_20px_-4px_rgba(34,211,238,0.5)] hover:shadow-cyan-400/60 transition-all text-xs sm:text-base inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95 text-center whitespace-nowrap"
+                      className="flex-1 sm:flex-initial justify-center px-3 sm:px-7 py-2.5 sm:py-4 bg-cyan-400 hover:bg-cyan-300 text-slate-950 font-black rounded-xl sm:rounded-2xl shadow-[0_8px_20px_-4px_rgba(34,211,238,0.5)] hover:shadow-cyan-400/60 transition-all text-xs sm:text-base inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95 text-center whitespace-nowrap"
                     >
                       <span>ورود به پنل کاربری</span>
                       <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
@@ -885,7 +885,7 @@ export const HomePage = () => {
                   ) : (
                     <Link
                       to="/login?mode=register"
-                      className="flex-1 sm:flex-initial justify-center px-4 sm:px-7 py-3.5 sm:py-4 bg-cyan-300 hover:bg-cyan-200 text-slate-950 font-black rounded-2xl shadow-[0_8px_20px_-4px_rgba(34,211,238,0.5)] hover:shadow-cyan-400/60 transition-all text-xs sm:text-base inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95 text-center whitespace-nowrap"
+                      className="flex-1 sm:flex-initial justify-center px-3 sm:px-7 py-2.5 sm:py-4 bg-cyan-300 hover:bg-cyan-200 text-slate-950 font-black rounded-xl sm:rounded-2xl shadow-[0_8px_20px_-4px_rgba(34,211,238,0.5)] hover:shadow-cyan-400/60 transition-all text-xs sm:text-base inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95 text-center whitespace-nowrap"
                     >
                       <span>ثبت‌نام در کلاس‌ها</span>
                       <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
@@ -894,7 +894,7 @@ export const HomePage = () => {
 
                   <a
                     href="#courses"
-                    className="flex-1 sm:flex-initial justify-center px-4 sm:px-6 py-3.5 sm:py-4 bg-white hover:bg-cyan-50 text-slate-950 font-black rounded-2xl border-2 border-cyan-200/80 shadow-[0_8px_20px_-4px_rgba(255,255,255,0.4)] hover:shadow-white/60 transition-all text-xs sm:text-base inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95 text-center whitespace-nowrap"
+                    className="flex-1 sm:flex-initial justify-center px-3 sm:px-6 py-2.5 sm:py-4 bg-white hover:bg-cyan-50 text-slate-950 font-black rounded-xl sm:rounded-2xl border-2 border-cyan-200/80 shadow-[0_8px_20px_-4px_rgba(255,255,255,0.4)] hover:shadow-white/60 transition-all text-xs sm:text-base inline-flex items-center gap-1.5 sm:gap-2 cursor-pointer active:scale-95 text-center whitespace-nowrap"
                   >
                     <Waves className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-600 shrink-0" />
                     <span>مشاهده دوره‌ها و کلاس‌ها</span>

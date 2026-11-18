@@ -799,11 +799,11 @@ html.dark .pool-header > div:first-child > div > a > div > span:nth-child(2) {
 @media (max-width: 767px) {
   .landing-hero {
     min-height: 0;
-    padding-top: 1.25rem;
+    padding-top: 0.5rem;
   }
 
   .landing-hero__panel {
-    padding: 1.25rem;
+    padding: 0 !important;
     border-radius: 1.5rem 1.5rem 1.5rem 0.45rem;
   }
 
@@ -1333,6 +1333,7 @@ html.dark .pool-header > div:first-child > div > a > div > span:nth-child(2) {
 @media (max-width: 767px) {
   .landing-hero {
     min-height: 0;
+    padding-top: 0.5rem;
   }
 
   .landing-hero::before {
@@ -1342,7 +1343,24 @@ html.dark .pool-header > div:first-child > div > a > div > span:nth-child(2) {
   }
 
   .landing-hero__panel {
+    padding: 0 !important;
     background: transparent !important;
+  }
+
+  .landing-experience .landing-hero__panel h1 {
+    font-size: clamp(1.45rem, 6.2vw, 1.95rem) !important;
+    line-height: 1.25 !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  .landing-experience .landing-hero__panel .hero-lead-text {
+    font-size: 0.875rem !important;
+    line-height: 1.45 !important;
+  }
+
+  .landing-experience .landing-hero__panel > .grid p.hero-editorial-p {
+    font-size: 0.8125rem !important;
+    line-height: 1.55 !important;
   }
 
   #about::before,
