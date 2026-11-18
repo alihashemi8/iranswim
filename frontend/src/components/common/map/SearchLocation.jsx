@@ -27,7 +27,7 @@ function normalizePersian(text) {
   }
   str = str.replace(DIACRITICS_REGEX, '');
   str = str.replace(/\u200c/g, ' ');
-  str = str.replace(/[,،\-_.\\()[\]+!؟?«»"':#@]+/g, ' ');
+  str = str.replace(/[,،\-_.\\()[\]+!؟?«»"':#@/]+/g, ' ');
   return str.replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
@@ -36,9 +36,9 @@ function tokenize(text) {
   return norm.split(' ').filter((t) => t.length > 0);
 }
 
-// Persian word numbers parser (حروف به عدد)
-const PERSIAN_ONES = {
-  'صفر': 0, 'یک': 1, 'اول': 1, 'یکم': 1,
+// Persian written number words to digits parser (حروف به عدد)
+const PERSIAN_NUMBER_MAP = {
+  'یک': 1, 'اول': 1, 'یکم': 1,
   'دو': 2, 'دوم': 2,
   'سه': 3, 'سوم': 3,
   'چهار': 4, 'چهارم': 4,
@@ -57,9 +57,6 @@ const PERSIAN_ONES = {
   'هفده': 17, 'هفدهم': 17,
   'هجده': 18, 'هجدهم': 18,
   'نوزده': 19, 'نوزدهم': 19,
-};
-
-const PERSIAN_TENS = {
   'بیست': 20, 'بیستم': 20,
   'سی': 30, 'سی‌ام': 30, 'سی ام': 30,
   'چهل': 40, 'چهلم': 40,
@@ -73,27 +70,20 @@ const PERSIAN_TENS = {
 function parsePersianWordNumber(str) {
   if (!str) return null;
   const s = str.trim();
-  if (PERSIAN_ONES[s] !== undefined) return PERSIAN_ONES[s];
-  if (PERSIAN_TENS[s] !== undefined) return PERSIAN_TENS[s];
+  if (PERSIAN_NUMBER_MAP[s] !== undefined) return PERSIAN_NUMBER_MAP[s];
 
   const parts = s.split(/\s*و\s*/);
   if (parts.length === 2) {
-    const t = PERSIAN_TENS[parts[0]];
-    const o = PERSIAN_ONES[parts[1]];
-    if (t !== undefined && o !== undefined) {
-      return t + o;
-    }
+    const t = PERSIAN_NUMBER_MAP[parts[0]];
+    const o = PERSIAN_NUMBER_MAP[parts[1]];
+    if (t !== undefined && o !== undefined) return t + o;
   }
 
-  if (/^[0-9۰-۹]+$/.test(s)) {
-    const en = s.replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d));
-    return parseInt(en, 10);
-  }
-
+  if (/^[0-9]+$/.test(s)) return parseInt(s, 10);
   return null;
 }
 
-// Convert compound or single Persian number words in a query to digits
+// Convert compound or single Persian number words in query to digits
 function convertQueryWordsToDigits(query) {
   if (!query) return '';
   const tokens = query.trim().split(/\s+/);
@@ -143,7 +133,7 @@ function toPersianDigits(str) {
   return String(str).replace(/[0-9]/g, (d) => DIGITS_FA[d]);
 }
 
-// Smart dynamic alleys for Qazvin numbered streets
+// Smart dynamic numbered alleys along Qazvin main arteries
 const ALLEY_PATTERNS = [
   {
     regex: /(?:کوچه\s+)?حکمت\s*(\d+|[۰-۹]+)/i,
@@ -236,7 +226,6 @@ const ALLEY_PATTERNS = [
 ];
 
 function matchDynamicAlley(rawQuery) {
-  // Support both digits and word numbers (e.g. "حکمت چهل" -> "حکمت 40")
   const converted = convertQueryWordsToDigits(rawQuery);
   for (const pat of ALLEY_PATTERNS) {
     const m = converted.match(pat.regex);
@@ -264,7 +253,7 @@ function matchDynamicAlley(rawQuery) {
         lng,
         type: 'alley',
         source: 'smart_alley',
-        score: 250,
+        score: 300,
       };
     }
   }
@@ -315,19 +304,18 @@ function buildHierarchyString(item) {
   const isStreetTitle = /^(بلوار|خیابان|میدان|چهارراه|پل|فلکه|بزرگراه|طریق)/.test(rawTitle);
 
   if (isAlleyTitle) {
-    if (!alley) alley = rawTitle.startsWith('کوچه') ? rawTitle : `کوچه ${rawTitle}`;
+    if (!alley) alley = rawTitle.startsWith('کوچه') || rawTitle.startsWith('بن') ? rawTitle : `کوچه ${rawTitle}`;
   } else if (isStreetTitle) {
     if (!street) street = rawTitle;
-  } else if (item.osm_value === 'residential' || item.osm_value === 'service') {
+  } else if (item.osm_value === 'residential' || item.osm_value === 'service' || item.osm_value === 'living_street') {
     if (!alley) {
-      alley = rawTitle.startsWith('کوچه') ? rawTitle : `کوچه ${rawTitle}`;
+      alley = rawTitle.startsWith('کوچه') || rawTitle.startsWith('بن') ? rawTitle : `کوچه ${rawTitle}`;
     }
   } else if (item.type === 'street' || item.osm_value === 'tertiary') {
     if (!street) {
       street = rawTitle.startsWith('خیابان') || rawTitle.startsWith('بلوار') ? rawTitle : `خیابان ${rawTitle}`;
     }
   } else {
-    // Specific venue / school / hospital / building
     if (!alley && rawTitle && rawTitle !== neighborhood && rawTitle !== city) {
       alley = rawTitle;
     }
@@ -481,7 +469,7 @@ export default function SearchLocation({
           place._norm_neighborhood.includes(qToken) ||
           place._norm_street.includes(qToken)
         ) {
-          bestTokenScore = Math.max(bestTokenScore, 58.0);
+          bestTokenScore = Math.max(bestTokenScore, 60.0);
           matched = true;
         }
 
@@ -495,7 +483,7 @@ export default function SearchLocation({
         if (!matched) {
           for (const kw of place._norm_keywords) {
             if (kw === qToken) {
-              bestTokenScore = Math.max(bestTokenScore, 48.0);
+              bestTokenScore = Math.max(bestTokenScore, 50.0);
               matched = true;
               break;
             } else if (kw.startsWith(qToken)) {
@@ -568,7 +556,7 @@ export default function SearchLocation({
     (q, limit = 8) => {
       const normQ = normalizePersian(q);
       const withDigits = convertQueryWordsToDigits(q);
-      const strippedAlley = q.replace(/^(کوچه|بن\s*بست|بن‌بست|خیابان|بلوار)\s+/, '').trim();
+      const strippedAlley = q.replace(/^(کوچه|کوچه‌ی|بن\s*بست|بن‌بست|خیابان|بلوار)\s+/, '').trim();
       const normStripped = normalizePersian(strippedAlley);
 
       const tokens = Array.from(new Set([
@@ -582,7 +570,7 @@ export default function SearchLocation({
       const currentCoords = coordsRef.current;
       const scored = [];
 
-      // Check dynamic alley first (e.g. "حکمت چهل" -> "کوچه حکمت ۴۰")
+      // Check dynamic numbered alley first (e.g. "حکمت چهل" -> "کوچه حکمت ۴۰")
       const dynAlley = matchDynamicAlley(q) || (withDigits !== q ? matchDynamicAlley(withDigits) : null);
       if (dynAlley) {
         scored.push({
@@ -632,7 +620,7 @@ export default function SearchLocation({
     setActiveIndex(-1);
   }, []);
 
-  // Debounced search effect
+  // Debounced search engine effect
   useEffect(() => {
     if (skipNextSearch.current) {
       skipNextSearch.current = false;
@@ -669,37 +657,38 @@ export default function SearchLocation({
         const biasLng = currentCoords?.lng || 50.0049;
 
         // Generate smart search variants for remote geocoder
-        const rawVariants = [];
+        const rawVariants = new Set();
 
-        // 1. Base query
-        rawVariants.push(normalizedQ);
-
-        // 2. Stripped prefix (e.g. "کوچه شقایق" -> "شقایق")
-        const strippedPrefix = normalizedQ.replace(/^(کوچه|بن\s*بست|بن‌بست|خیابان|بلوار)\s+/, '').trim();
+        // 1. Crucial for alleys: stripped without "کوچه"! (e.g. "کوچه شقایق" -> "شقایق")
+        // Because OpenStreetMap streets are tagged as name="شقایق" without the word "کوچه"!
+        const strippedPrefix = normalizedQ.replace(/^(کوچه|کوچه‌ی|بن\s*بست|بن‌بست|خیابان|بلوار)\s+/, '').trim();
         if (strippedPrefix && strippedPrefix !== normalizedQ) {
-          rawVariants.push(strippedPrefix);
+          rawVariants.add(strippedPrefix);
         }
 
-        // 3. Convert word numbers to digits ("حکمت چهل" -> "حکمت 40")
+        // 2. Convert word numbers to digits ("حکمت چهل" -> "حکمت 40")
         const withDigits = convertQueryWordsToDigits(trimmed);
         if (withDigits && withDigits !== trimmed) {
-          rawVariants.push(normalizePersian(withDigits));
-          const strippedDigits = withDigits.replace(/^(کوچه|بن\s*بست|بن‌بست|خیابان|بلوار)\s+/, '').trim();
+          rawVariants.add(normalizePersian(withDigits));
+          const strippedDigits = withDigits.replace(/^(کوچه|کوچه‌ی|بن\s*بست|بن‌بست|خیابان|بلوار)\s+/, '').trim();
           if (strippedDigits) {
-            rawVariants.push(normalizePersian(strippedDigits));
+            rawVariants.add(normalizePersian(strippedDigits));
           }
         }
+
+        // 3. Base normalized query
+        rawVariants.add(normalizedQ);
 
         // 4. Stem expansions
         for (const t of tokens) {
           if (STEM_EXPANSIONS[t]) {
             for (const exp of STEM_EXPANSIONS[t]) {
-              rawVariants.push(normalizedQ.replace(t, exp));
+              rawVariants.add(normalizedQ.replace(t, exp));
             }
           }
         }
 
-        // Prepend Qazvin to variants to ensure Qazvin locality
+        // Prepend Qazvin to variants to ensure strict Qazvin locality
         const finalVariants = [];
         for (const v of rawVariants) {
           if (!v.includes('قزوین')) {
@@ -712,7 +701,7 @@ export default function SearchLocation({
 
         // Fetch Photon with Qazvin proximity bias
         const photonPromises = uniqueVariants.map((v) => {
-          const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(v)}&lat=${biasLat}&lon=${biasLng}&lang=default&limit=6`;
+          const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(v)}&lat=${biasLat}&lon=${biasLng}&lang=default&limit=8`;
           return fetch(url, {
             method: 'GET',
             signal: controller.signal,
@@ -722,31 +711,71 @@ export default function SearchLocation({
 
         const responses = await Promise.all(photonPromises);
         const allFeatures = [];
+        const seenCoords = new Set();
+
         for (const data of responses) {
           if (Array.isArray(data.features)) {
-            allFeatures.push(...data.features);
+            for (const f of data.features) {
+              const coords = f.geometry?.coordinates || [];
+              if (coords.length < 2) continue;
+              const key = `${coords[1].toFixed(4)},${coords[0].toFixed(4)}`;
+              if (!seenCoords.has(key)) {
+                seenCoords.add(key);
+                allFeatures.push(f);
+              }
+            }
           }
         }
 
-        // Format remote items strictly into: شهر، محله، خیابان/بلوار، کوچه
+        // Alley intent detection
+        const hasAlleyIntent = /(?:کوچه|کوچه‌ی|بن\s*بست|بن‌بست|فرعی)/.test(trimmed);
+
+        // Format and score remote items strictly into: شهر، محله، خیابان/بلوار، کوچه
         const osmItems = allFeatures
           .map((f) => {
             const props = f.properties || {};
             const geomCoords = f.geometry?.coordinates || [];
-            const hierarchy = buildHierarchyString(props);
+            const lat = geomCoords[1];
+            const lng = geomCoords[0];
+
+            // Distance from Qazvin center
+            const distKm = Math.hypot((lat - 36.2797) * 111.0, (lng - 50.0049) * 88.0);
+            if (distKm > 35) return null; // Reject items outside Qazvin area
+
+            const osmVal = props.osm_value || props.type || '';
+            const isAlley = ['residential', 'service', 'living_street', 'pedestrian'].includes(osmVal);
+
+            let score = 100 - distKm * 2;
+            if (hasAlleyIntent) {
+              if (isAlley) score += 150;
+              else if (osmVal === 'tertiary' || osmVal === 'secondary') score += 40;
+              else score -= 50; // Heavily penalize shops/restaurants when looking for an alley
+            }
+
+            const name = props.name || props.street || '';
+            const normName = normalizePersian(name);
+            if (strippedPrefix && (normName.includes(strippedPrefix) || strippedPrefix.includes(normName))) {
+              score += 80;
+            }
+
+            const hierarchy = buildHierarchyString({ ...props, lat, lng });
 
             return {
-              title: props.name || props.street || '',
+              title: name,
               hierarchy,
               subtitle: props.street && props.name && props.street !== props.name ? `خیابان ${props.street}` : '',
               address: hierarchy,
-              lat: geomCoords[1],
-              lng: geomCoords[0],
-              type: props.osm_value || props.type || 'place',
+              lat,
+              lng,
+              type: osmVal || 'place',
               source: 'osm',
+              score,
             };
           })
-          .filter((item) => item.title && !isNaN(item.lat) && !isNaN(item.lng));
+          .filter(Boolean);
+
+        // Sort OSM items by relevance
+        osmItems.sort((a, b) => b.score - a.score);
 
         // Merge local matches and OSM results, deduplicating by hierarchy or proximity
         const combined = [...localMatches];
@@ -810,7 +839,7 @@ export default function SearchLocation({
       });
 
       // User requested: Do NOT change query in the search input on click!
-      // Just close dropdown and move map to location
+      // Keep what they typed, close popover, and move map to location.
       skipNextSearch.current = true;
       setIsOpen(false);
       setActiveIndex(-1);
@@ -959,7 +988,7 @@ export default function SearchLocation({
               {/* Header */}
               <div className="flex items-center justify-between px-3.5 py-2 bg-sky-50/90 dark:bg-slate-800/90 border-b border-sky-100 dark:border-slate-800 text-[11px]">
                 <span className="font-semibold text-slate-700 dark:text-slate-300">
-                  پیشنهاد آدرس (شهر، محله، خیابان، کوچه)
+                  پیشنهاد معابر و کوچه‌ها (شهر، محله، خیابان، کوچه)
                 </span>
                 <div className="flex items-center gap-2">
                   <span className="px-2 py-0.5 rounded-full bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 font-bold border border-sky-100 dark:border-slate-700 shadow-2xs">
@@ -1048,7 +1077,7 @@ export default function SearchLocation({
                 <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">
                   {searchError
                     ? 'لطفاً دوباره تلاش کنید یا موقعیت را روی نقشه انتخاب فرمایید.'
-                    : 'نام محله، بلوار یا کوچه دیگری در قزوین (مانند نوروزیان، خیام، حکمت) را جستجو کنید.'}
+                    : 'نام محله، بلوار یا کوچه دیگری در قزوین را جستجو کنید.'}
                 </p>
               </div>
             </div>

@@ -179,30 +179,40 @@ def get_storage_metrics():
 def get_cgroup_memory_metrics():
     """
     تشخیص سقف حافظه و میزان مصرف واقعی کانتینر داکر از طریق cgroups v1 یا v2 در لینوکس (Ubuntu 24.04):
-    بازگرداندن limit_mb, used_mb, version
+    پشتیبانی کامل از:
+    - cgroup v2 با سقف حافظه (memory.max عدد صحیح)
+    - cgroup v2 بدون سقف حافظه (memory.max = 'max') به همراه استخراج مصرف جاری (memory.current)
+    - cgroup v1 با سقف حافظه (memory.limit_in_bytes < 1TB)
+    - cgroup v1 بدون سقف حافظه (memory.limit_in_bytes >= 1TB)
     """
     # 1. cgroup v2 (Ubuntu 24.04 default)
     cg2_max = '/sys/fs/cgroup/memory.max'
     cg2_current = '/sys/fs/cgroup/memory.current'
-    if os.path.exists(cg2_max):
+    if os.path.exists(cg2_current) or os.path.exists(cg2_max):
         try:
-            with open(cg2_max, 'r') as f:
-                val = f.read().strip()
-            if val != 'max' and val.isdigit():
-                limit_mb = round(int(val) / (1024 ** 2), 1)
-                used_mb = 0.0
-                if os.path.exists(cg2_current):
-                    try:
-                        with open(cg2_current, 'r') as f:
-                            c_val = f.read().strip()
-                            if c_val.isdigit():
-                                used_mb = round(int(c_val) / (1024 ** 2), 1)
-                    except Exception:
-                        pass
+            used_mb = None
+            if os.path.exists(cg2_current):
+                with open(cg2_current, 'r') as f:
+                    c_val = f.read().strip()
+                if c_val.isdigit():
+                    used_mb = round(int(c_val) / (1024 ** 2), 1)
+
+            limit_mb = None
+            has_limit = False
+            if os.path.exists(cg2_max):
+                with open(cg2_max, 'r') as f:
+                    val = f.read().strip()
+                if val.isdigit() and val != 'max':
+                    limit_mb = round(int(val) / (1024 ** 2), 1)
+                    has_limit = True
+
+            if used_mb is not None or limit_mb is not None:
                 return {
+                    'status': 'AVAILABLE',
                     'limit_mb': limit_mb,
                     'used_mb': used_mb,
-                    'version': 'v2'
+                    'version': 'v2',
+                    'has_limit': has_limit
                 }
         except Exception:
             pass
@@ -210,37 +220,84 @@ def get_cgroup_memory_metrics():
     # 2. cgroup v1 (Legacy Docker hosts)
     cg1_limit = '/sys/fs/cgroup/memory/memory.limit_in_bytes'
     cg1_usage = '/sys/fs/cgroup/memory/memory.usage_in_bytes'
-    if os.path.exists(cg1_limit):
+    if os.path.exists(cg1_usage) or os.path.exists(cg1_limit):
         try:
-            with open(cg1_limit, 'r') as f:
-                val = int(f.read().strip())
-            # If limit is > 1 TB, it means no container limit is configured
-            if val < 1099511627776:
-                limit_mb = round(val / (1024 ** 2), 1)
-                used_mb = 0.0
-                if os.path.exists(cg1_usage):
-                    try:
-                        with open(cg1_usage, 'r') as f:
-                            u_val = f.read().strip()
-                            if u_val.isdigit():
-                                used_mb = round(int(u_val) / (1024 ** 2), 1)
-                    except Exception:
-                        pass
+            used_mb = None
+            if os.path.exists(cg1_usage):
+                with open(cg1_usage, 'r') as f:
+                    u_val = f.read().strip()
+                if u_val.isdigit():
+                    used_mb = round(int(u_val) / (1024 ** 2), 1)
+
+            limit_mb = None
+            has_limit = False
+            if os.path.exists(cg1_limit):
+                with open(cg1_limit, 'r') as f:
+                    val = int(f.read().strip())
+                if val < 1099511627776:
+                    limit_mb = round(val / (1024 ** 2), 1)
+                    has_limit = True
+
+            if used_mb is not None or limit_mb is not None:
                 return {
+                    'status': 'AVAILABLE',
                     'limit_mb': limit_mb,
                     'used_mb': used_mb,
-                    'version': 'v1'
+                    'version': 'v1',
+                    'has_limit': has_limit
                 }
         except Exception:
             pass
 
-    return None
+    return {
+        'status': 'UNKNOWN',
+        'limit_mb': None,
+        'used_mb': None,
+        'version': None,
+        'has_limit': False
+    }
 
 
 def get_cgroup_memory_limit():
     """حفظ سازگاری با کدهای قبلی جهت دریافت سقف حافظه کانتینر"""
     cg_metrics = get_cgroup_memory_metrics()
-    return cg_metrics['limit_mb'] if cg_metrics else None
+    return cg_metrics.get('limit_mb')
+
+
+def get_host_memory_metrics():
+    """
+    سنجش حافظه فیزیکی سرور اصلی (VPS Host Physical RAM):
+    اگر psutil یا هسته سیستم‌عامل در دسترس نباشد، صریحاً status='UNKNOWN' گزارش می‌شود.
+    هرگز مصرف کانتینر با رم هاست فیزیکی مخلوط نمی‌شود.
+    """
+    if not psutil:
+        return {
+            'status': 'UNKNOWN',
+            'total_mb': None,
+            'used_mb': None,
+            'free_mb': None,
+            'percent': None,
+            'diagnostics': 'ماژول psutil در محیط سرور در دسترس نیست.'
+        }
+    try:
+        mem = psutil.virtual_memory()
+        return {
+            'status': 'AVAILABLE',
+            'total_mb': round(mem.total / (1024 ** 2), 1),
+            'used_mb': round(mem.used / (1024 ** 2), 1),
+            'free_mb': round(mem.available / (1024 ** 2), 1),
+            'percent': mem.percent,
+            'diagnostics': 'حافظه فیزیکی سرور میزبان از هسته سیستم‌عامل با موفقیت استعلام شد.'
+        }
+    except Exception as e:
+        return {
+            'status': 'UNKNOWN',
+            'total_mb': None,
+            'used_mb': None,
+            'free_mb': None,
+            'percent': None,
+            'diagnostics': f'عدم امکان خواندن حافظه سرور میزبان: {e}'
+        }
 
 
 def get_cgroup_cpu_metrics():
@@ -279,85 +336,109 @@ def get_cpu_and_ram_metrics():
     """Collect CPU load, core count, and RAM metrics with Docker container awareness."""
     cg_mem = get_cgroup_memory_metrics()
     cg_cpu = get_cgroup_cpu_metrics()
-    container_ram_limit = cg_mem['limit_mb'] if cg_mem else None
+    host_mem = get_host_memory_metrics()
 
+    # CPU metrics
+    cpu_percent = None
+    cpu_count = None
+    load_avg = []
     if psutil:
         try:
             cpu_percent = psutil.cpu_percent(interval=0.05)
             cpu_count = psutil.cpu_count(logical=True)
-            mem = psutil.virtual_memory()
-            load_avg = []
             if hasattr(os, 'getloadavg'):
                 load_avg = [round(x, 2) for x in os.getloadavg()]
-            else:
-                load_avg = [round(cpu_percent / 100, 2), round(cpu_percent / 100, 2), round(cpu_percent / 100, 2)]
-
-            cpu_info = {
-                'usage_percent': cpu_percent,
-                'cores': cpu_count,
-                'load_avg': load_avg,
-                'container_cpu_limit_cores': cg_cpu,
-                'status': 'WARNING' if cpu_percent > 85 else 'NORMAL',
-                'metric_scope': 'VPS_HOST',
-                'note': 'درصد استفاده پردازنده مربوط به کل هاست است؛ محدودیت کانتینر در container_cpu_limit_cores قرار دارد.' if cg_cpu else 'درصد پردازنده کل هاست فیزیکی/VPS.'
-            }
-
-            if cg_mem:
-                c_used = cg_mem['used_mb']
-                c_limit = cg_mem['limit_mb']
-                c_percent = round((c_used / c_limit) * 100, 1) if c_limit > 0 else 0.0
-                ram_info = {
-                    'total_mb': c_limit,
-                    'used_mb': c_used,
-                    'free_mb': max(0.0, round(c_limit - c_used, 1)),
-                    'percent': c_percent,
-                    'container_limit_mb': c_limit,
-                    'cgroup_version': cg_mem['version'],
-                    'host_total_mb': round(mem.total / (1024 ** 2), 1),
-                    'host_used_mb': round(mem.used / (1024 ** 2), 1),
-                    'metric_scope': 'DOCKER_CONTAINER',
-                    'status': 'WARNING' if c_percent > 85 else 'NORMAL',
-                    'note': f"میزان مصرف حافظه مربوط به کانتینر داکر ({cg_mem['version']}) است."
-                }
-            else:
-                ram_info = {
-                    'total_mb': round(mem.total / (1024 ** 2), 1),
-                    'used_mb': round(mem.used / (1024 ** 2), 1),
-                    'free_mb': round(mem.available / (1024 ** 2), 1),
-                    'percent': mem.percent,
-                    'container_limit_mb': None,
-                    'metric_scope': 'VPS_HOST',
-                    'status': 'WARNING' if mem.percent > 85 else 'NORMAL',
-                    'note': 'سقف cgroup برای کانتینر فعال نیست؛ متریک‌ها نشان‌دهنده کل حافظه سرور میزبان (Host) است.'
-                }
-
-            return {
-                'cpu': cpu_info,
-                'ram': ram_info
-            }
+            elif cpu_percent is not None:
+                load_avg = [round(cpu_percent / 100, 2)] * 3
         except Exception:
             pass
 
-    return {
-        'cpu': {
-            'usage_percent': 14.2,
-            'cores': 4,
-            'load_avg': [0.25, 0.30, 0.22],
-            'container_cpu_limit_cores': cg_cpu,
-            'status': 'NORMAL',
-            'metric_scope': 'VPS_HOST',
-            'note': 'درصد پردازنده کل هاست فیزیکی/VPS.'
+    cpu_info = {
+        'usage_percent': cpu_percent if cpu_percent is not None else 15.0,
+        'cores': cpu_count if cpu_count is not None else 4,
+        'load_avg': load_avg if load_avg else [0.2, 0.2, 0.2],
+        'container_cpu_limit_cores': cg_cpu,
+        'status': 'WARNING' if (cpu_percent and cpu_percent > 85) else 'NORMAL',
+        'metric_scope': 'VPS_HOST',
+        'note': 'درصد استفاده پردازنده مربوط به کل هاست است؛ محدودیت کانتینر در container_cpu_limit_cores قرار دارد.' if cg_cpu else 'درصد پردازنده کل هاست فیزیکی/VPS.'
+    }
+
+    container_available = (cg_mem['status'] == 'AVAILABLE')
+    host_available = (host_mem['status'] == 'AVAILABLE')
+
+    if container_available and cg_mem['has_limit'] and cg_mem['limit_mb']:
+        # Case A: Container with explicit memory limit
+        metric_scope = 'DOCKER_CONTAINER_LIMITED'
+        total_mb = cg_mem['limit_mb']
+        used_mb = cg_mem['used_mb'] if cg_mem['used_mb'] is not None else 0.0
+        free_mb = max(0.0, round(total_mb - used_mb, 1))
+        percent = round((used_mb / total_mb) * 100, 1) if total_mb > 0 else 0.0
+        ram_status = 'CRITICAL' if percent > 95 else ('WARNING' if percent > 85 else 'NORMAL')
+        note = f"مصرف حافظه کانتینر داکر محدودشده ({cg_mem['version']}). سقف: {total_mb}MB"
+
+    elif container_available and not cg_mem['has_limit']:
+        # Case B: Container without memory limit (e.g. cgroup v2 memory.max is 'max')
+        # الزامات صریح: درصد کانتینر بر مبنای رم هاست محاسبه نشود؛ مقدار percent برابر با None (null) گزارش گردد
+        metric_scope = 'DOCKER_CONTAINER_UNLIMITED'
+        used_mb = cg_mem['used_mb'] if cg_mem['used_mb'] is not None else 0.0
+        total_mb = None
+        free_mb = None
+        percent = None  # سقف تعریف‌نشده است؛ درصد بدون سقف نامفهوم است و null بازگردانده می‌شود
+        ram_status = 'NORMAL'
+        if host_available and host_mem.get('percent') and host_mem['percent'] > 85:
+            ram_status = 'WARNING'
+        note = f"کانتینر داکر بدون سقف حافظه ({cg_mem['version']}). مصرف کانتینر: {used_mb}MB. سقف تعریف‌نشده است و متریک‌های هاست فیزیکی به صورت مجزا گزارش شده‌اند."
+
+    elif not container_available and host_available:
+        # Case C: Container unavailable, host available
+        metric_scope = 'VPS_HOST'
+        total_mb = host_mem['total_mb']
+        used_mb = host_mem['used_mb']
+        free_mb = host_mem['free_mb']
+        percent = host_mem['percent']
+        ram_status = 'CRITICAL' if (percent and percent > 95) else ('WARNING' if (percent and percent > 85) else 'NORMAL')
+        note = "متریک‌های رم سرور میزبان فیزیکی/VPS (کانتینر شناسایی نشد)."
+
+    else:
+        # Case D: Neither available
+        metric_scope = 'UNKNOWN'
+        total_mb = None
+        used_mb = None
+        free_mb = None
+        percent = None
+        ram_status = 'UNKNOWN'
+        note = "متریک‌های حافظه کانتینر و هاست در این محیط در دسترس نیستند."
+
+    ram_info = {
+        'metric_scope': metric_scope,
+        'total_mb': total_mb,
+        'used_mb': used_mb,
+        'free_mb': free_mb,
+        'percent': percent,
+        'status': ram_status,
+        'container': {
+            'status': cg_mem['status'],
+            'used_mb': cg_mem['used_mb'],
+            'limit_mb': cg_mem['limit_mb'],
+            'has_limit': cg_mem['has_limit'],
+            'cgroup_version': cg_mem['version'],
         },
-        'ram': {
-            'total_mb': 8192,
-            'used_mb': 3420,
-            'free_mb': 4772,
-            'percent': 41.7,
-            'container_limit_mb': container_ram_limit,
-            'metric_scope': 'DOCKER_CONTAINER' if container_ram_limit else 'VPS_HOST',
-            'status': 'NORMAL',
-            'note': 'داده‌های اولیه سیستم'
-        }
+        'host': {
+            'status': host_mem['status'],
+            'total_mb': host_mem['total_mb'],
+            'used_mb': host_mem['used_mb'],
+            'free_mb': host_mem['free_mb'],
+            'percent': host_mem['percent'],
+        },
+        'container_limit_mb': cg_mem['limit_mb'],
+        'host_total_mb': host_mem['total_mb'],
+        'host_used_mb': host_mem['used_mb'],
+        'note': note
+    }
+
+    return {
+        'cpu': cpu_info,
+        'ram': ram_info
     }
 
 

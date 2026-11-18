@@ -2,8 +2,16 @@ from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
-from django.http import HttpResponseNotFound
+from django.http import HttpResponseNotFound, JsonResponse
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+
+def health_ping_view(request):
+    """
+    پروب سبک و سریع ارزیابی آمادگی بک‌اند برای Docker Healthcheck:
+    پاسخ HTTP 200 جهت اطمینان از بالا آمدن کامل Gunicorn و اتمام مایگریشن‌ها
+    """
+    return JsonResponse({"status": "healthy", "service": "iranswim-backend"})
 
 
 def block_sensitive_documents_direct_access(request, subpath=None):
@@ -14,6 +22,9 @@ def block_sensitive_documents_direct_access(request, subpath=None):
 
 
 urlpatterns = [
+    # Unauthenticated Health Probe for Docker Container Readiness
+    path('api/health/', health_ping_view, name='health_ping'),
+
     # Block direct public access to sensitive swimmer documents
     path('media/swimmers/documents/<path:subpath>', block_sensitive_documents_direct_access),
 

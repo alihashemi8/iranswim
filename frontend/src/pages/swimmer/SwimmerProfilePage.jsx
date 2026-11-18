@@ -4,8 +4,8 @@ import {
   User, Calendar, CreditCard, Home, Phone, Upload, CheckCircle2,
   AlertCircle, ShieldCheck, FileText, Image as ImageIcon, School,
   Sparkles, ArrowLeft, ArrowRight, Trash2, Eye, EyeOff, MapPin,
-  KeyRound, Shield, Smartphone, Briefcase, Lock, LogOut, AlertTriangle,
-  BadgeCheck, Award, Clock, ChevronLeft, Camera, ZoomIn
+  KeyRound, Shield, Smartphone, Briefcase, Lock, AlertTriangle,
+  BadgeCheck, Award, Clock, ChevronLeft, Camera, ZoomIn, LogOut
 } from 'lucide-react';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
@@ -394,26 +394,32 @@ export const SwimmerProfilePage = () => {
 
   // Steps definition for Stepper Bar
   const steps = [
-    { number: 1, title: 'مشخصات هویتی و فردی', shortTitle: 'هویتی و فردی', icon: User, desc: 'نام، کد ملی، تولد و عکس' },
-    { number: 2, title: 'اولیاء، شغل‌ها و نشانی', shortTitle: 'والدین و آدرس', icon: Home, desc: 'تلفن و شغل والدین، نقشه' },
-    { number: 3, title: 'بارگذاری مدارک هویتی', shortTitle: 'مدارک هویتی', icon: ShieldCheck, desc: 'شناسنامه، کارت ملی، بیمه' },
+    { number: 1, title: 'مشخصات هویتی و فردی', shortTitle: 'مشخصات شناگر', icon: User, desc: 'نام، کد ملی، تاریخ تولد و عکس چهره' },
+    { number: 2, title: 'اولیاء، شغل‌ها و نشانی', shortTitle: 'والدین و نشانی', icon: Home, desc: 'شماره تماس و شغل والدین، موقعیت روی نقشه' },
+    { number: 3, title: 'بارگذاری مدارک هویتی', shortTitle: 'مدارک و بیمه', icon: ShieldCheck, desc: 'شناسنامه، کارت ملی و کارت بیمه ورزشی' },
   ];
 
   const progressPercentage = currentStep === 1 ? 33 : currentStep === 2 ? 66 : 100;
   const displayName = user?.full_name || `${firstName} ${lastName}`.trim() || user?.phone || 'شناگر محترم';
 
+  // Count approved documents
+  const approvedDocsCount = [birthCertStatus, nationalCardStatus, sportsInsuranceStatus].filter((s) => s === 'APPROVED').length;
+
   return (
     <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 pb-12 px-1 sm:px-0">
-      {/* Top Profile Header Card - Sleek, compact on mobile with discreet logout */}
+      {/* =================================================================== */}
+      {/* 1. HERO PROFILE CARD (100% Identity-Focused, NO Logout in Header)    */}
+      {/* =================================================================== */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs relative overflow-hidden">
-        {/* Subtle decorative background gradient */}
-        <div className="absolute -top-12 -left-12 w-36 h-36 bg-sky-500/10 dark:bg-sky-500/5 rounded-full blur-2xl pointer-events-none" />
+        {/* Soft decorative background glow */}
+        <div className="absolute -top-16 -left-16 w-48 h-48 bg-gradient-to-br from-sky-400/15 via-blue-500/10 to-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="flex items-start justify-between gap-3 relative z-10">
-          <div className="flex items-center gap-3.5 sm:gap-4.5 min-w-0">
-            {/* Avatar with direct upload camera badge */}
+        <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between gap-4 relative z-10 text-center sm:text-right">
+          {/* Avatar & Core Swimmer Info */}
+          <div className="flex flex-col sm:flex-row items-center gap-3.5 sm:gap-5 min-w-0 w-full sm:w-auto">
+            {/* Swimmer Avatar with Direct Camera Upload Badge */}
             <div className="relative shrink-0 group">
-              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-sky-600 via-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-2xl shadow-md overflow-hidden ring-3 ring-sky-100 dark:ring-sky-950/60">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-3xl bg-gradient-to-tr from-sky-600 via-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-3xl shadow-md overflow-hidden ring-4 ring-sky-50 dark:ring-sky-950/60 transition-transform group-hover:scale-[1.02]">
                 {avatarPreview ? (
                   <img src={getMediaUrl(avatarPreview)} alt={displayName} className="w-full h-full object-cover" />
                 ) : (
@@ -422,9 +428,9 @@ export const SwimmerProfilePage = () => {
               </div>
               <label
                 title="تغییر عکس پرسنلی"
-                className="absolute -bottom-1 -left-1 w-7 h-7 bg-sky-600 hover:bg-sky-700 active:scale-90 text-white rounded-full flex items-center justify-center shadow-md cursor-pointer border-2 border-white dark:border-slate-900 transition-all"
+                className="absolute -bottom-1 -left-1 w-8 h-8 bg-sky-600 hover:bg-sky-700 active:scale-95 text-white rounded-full flex items-center justify-center shadow-md cursor-pointer border-2 border-white dark:border-slate-900 transition-all"
               >
-                <Camera className="w-3.5 h-3.5" />
+                <Camera className="w-4 h-4" />
                 <input
                   type="file"
                   accept="image/*"
@@ -434,87 +440,93 @@ export const SwimmerProfilePage = () => {
               </label>
             </div>
 
-            {/* Profile Info & Badges */}
-            <div className="min-w-0 space-y-1">
-              <div className="flex items-center gap-2 flex-wrap">
-                <h1 className="text-base sm:text-2xl font-black text-slate-900 dark:text-white truncate">
+            {/* Name, Roles, and Quick Info */}
+            <div className="space-y-1.5 min-w-0">
+              <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                <h1 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white truncate">
                   {displayName}
                 </h1>
-                <span className="px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-bold bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 shrink-0">
-                  شناگر
+                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300">
+                  شناگر آکادمی
                 </span>
               </div>
 
-              {/* Status and Meta Pills */}
-              <div className="flex items-center gap-2 flex-wrap pt-0.5">
+              {/* Status and Meta Badges */}
+              <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap pt-0.5">
                 {isCompletedBefore ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300">
-                    <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-                    <span>تکمیل‌شده</span>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300">
+                    <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                    <span>پرونده تکمیل‌شده</span>
                   </span>
                 ) : (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300">
-                    <AlertCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
-                    <span>نیازمند تکمیل</span>
+                  <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                    <span>نیازمند تکمیل پرونده</span>
                   </span>
                 )}
 
-                <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-mono">
+                <span className="inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-mono bg-slate-100 dark:bg-slate-800/80 px-2.5 py-0.5 rounded-full">
                   <Phone className="w-3 h-3 text-slate-400 shrink-0" />
                   <span>{user?.phone || '—'}</span>
                 </span>
 
-                {profileLevelName && (
-                  <span className="hidden xs:inline-flex items-center gap-1 text-[11px] sm:text-xs text-sky-600 dark:text-sky-400 font-bold">
-                    <Award className="w-3 h-3 shrink-0" />
-                    <span>{profileLevelName}</span>
+                {nationalId && (
+                  <span className="hidden xs:inline-flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 font-mono bg-slate-100 dark:bg-slate-800/80 px-2.5 py-0.5 rounded-full">
+                    <CreditCard className="w-3 h-3 text-slate-400 shrink-0" />
+                    <span>{nationalId}</span>
                   </span>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Discreet logout icon button in corner - safe from accidental clicks on mobile */}
-          <button
-            type="button"
-            onClick={() => setShowLogoutModal(true)}
-            title="خروج از حساب کاربری"
-            aria-label="خروج از حساب کاربری"
-            className="p-2 sm:px-3 sm:py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl sm:rounded-2xl border border-rose-200/80 dark:border-rose-900/60 transition-all flex items-center gap-1.5 cursor-pointer shrink-0 self-start active:scale-95 shadow-2xs group"
-          >
-            <LogOut className="w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform group-hover:-translate-x-0.5" />
-            <span className="hidden sm:inline text-xs font-bold">خروج از حساب</span>
-          </button>
+          {/* Athletic Summary Pills (Level & Documents Counter) */}
+          <div className="flex sm:flex-col items-center sm:items-end justify-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800 w-full sm:w-auto">
+            {profileLevelName && (
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-sky-50 dark:bg-sky-950/60 border border-sky-100 dark:border-sky-900/60 rounded-xl text-xs font-bold text-sky-700 dark:text-sky-300">
+                <Sparkles className="w-3.5 h-3.5 text-sky-500" />
+                <span>سطح: {profileLevelName}</span>
+              </div>
+            )}
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 dark:bg-slate-800/80 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-400">
+              <ShieldCheck className="w-3.5 h-3.5 text-slate-500" />
+              <span>مدارک: {approvedDocsCount} از ۳ تأییدشده</span>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Main Tabs Header - Responsive 3-segment bar (fits all mobile screens without overflow) */}
+      {/* =================================================================== */}
+      {/* 2. MAIN SEGMENTED TABS (Touch-first, 3-column, zero overflow)       */}
+      {/* =================================================================== */}
       <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-slate-100/90 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 select-none">
+        {/* Tab 1: Info & Dossier */}
         <button
           type="button"
           onClick={() => handleTabChange('INFO')}
-          className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+          className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeMainTab === 'INFO'
               ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-300 shadow-xs border border-slate-200/70 dark:border-slate-700/80'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <FileText className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" />
-          <span className="sm:hidden">مشخصات</span>
-          <span className="hidden sm:inline">مشخصات و مدارک</span>
+          <FileText className="w-4.5 h-4.5 shrink-0" />
+          <span className="sm:hidden">پرونده</span>
+          <span className="hidden sm:inline">پرونده و مدارک</span>
         </button>
 
+        {/* Tab 2: Assessments */}
         <button
           type="button"
           onClick={() => handleTabChange('ASSESSMENTS')}
-          className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer relative ${
+          className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer relative ${
             activeMainTab === 'ASSESSMENTS'
               ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-300 shadow-xs border border-slate-200/70 dark:border-slate-700/80'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <div className="relative">
-            <Award className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" />
+            <Award className="w-4.5 h-4.5 shrink-0" />
             {assessments.length > 0 && (
               <span className="sm:hidden absolute -top-1.5 -right-2 px-1 py-0.2 rounded-full text-[9px] font-mono font-black bg-sky-600 text-white">
                 {assessments.length}
@@ -522,7 +534,7 @@ export const SwimmerProfilePage = () => {
             )}
           </div>
           <span className="sm:hidden">کارنامه</span>
-          <span className="hidden sm:inline">کارنامه و ارزیابی</span>
+          <span className="hidden sm:inline">کارنامه مربی</span>
           {assessments.length > 0 && (
             <span className="hidden sm:inline-block px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300">
               {assessments.length}
@@ -530,23 +542,24 @@ export const SwimmerProfilePage = () => {
           )}
         </button>
 
+        {/* Tab 3: Security & Account */}
         <button
           type="button"
           onClick={() => handleTabChange('SECURITY')}
-          className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer relative ${
+          className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer relative ${
             activeMainTab === 'SECURITY'
               ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-300 shadow-xs border border-slate-200/70 dark:border-slate-700/80'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
           <div className="relative">
-            <ShieldCheck className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" />
+            <ShieldCheck className="w-4.5 h-4.5 shrink-0" />
             {user && !user.is_password_changed && (
               <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-rose-500 animate-ping" />
             )}
           </div>
           <span className="sm:hidden">امنیت</span>
-          <span className="hidden sm:inline">رمز عبور و امنیت</span>
+          <span className="hidden sm:inline">امنیت و حساب</span>
         </button>
       </div>
 
@@ -555,11 +568,11 @@ export const SwimmerProfilePage = () => {
       {/* =================================================================== */}
       {activeMainTab === 'INFO' && (
         <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-200">
-          {/* Stepper Progress Bar - Redesigned with visible icons & labels on mobile */}
+          {/* Stepper Header Card */}
           <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs space-y-3.5">
             <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">
               <span className="flex items-center gap-2">
-                <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
+                <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-pulse"></span>
                 <span>گام {currentStep} از ۳: <span className="text-sky-600 dark:text-sky-400">{steps[currentStep - 1].shortTitle}</span></span>
               </span>
               <span className="font-mono font-black text-xs sm:text-sm text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-2.5 py-0.5 rounded-lg border border-sky-100 dark:border-sky-900/40">
@@ -574,7 +587,7 @@ export const SwimmerProfilePage = () => {
               />
             </div>
 
-            {/* Step Selection Buttons - Shows Icon and Short Title on mobile */}
+            {/* Stepper 3 Interactive Buttons */}
             <div className="grid grid-cols-3 gap-2 sm:gap-3.5 pt-1">
               {steps.map((st) => {
                 const Icon = st.icon;
@@ -594,7 +607,7 @@ export const SwimmerProfilePage = () => {
                         if (validateStep2()) setCurrentStep(3);
                       }
                     }}
-                    className={`p-2 sm:p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col sm:flex-row items-center sm:items-start gap-1.5 sm:gap-3 text-center sm:text-right ${
+                    className={`p-2.5 sm:p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col sm:flex-row items-center sm:items-start gap-1.5 sm:gap-3 text-center sm:text-right ${
                       isCurrent
                         ? 'bg-sky-50/90 dark:bg-sky-950/50 border-sky-400 dark:border-sky-700 shadow-xs ring-2 ring-sky-500/20'
                         : isPassed
@@ -628,15 +641,15 @@ export const SwimmerProfilePage = () => {
             </div>
           </div>
 
-          {/* Error alert */}
+          {/* Error Alert */}
           {error && (
-            <div className="p-3.5 sm:p-4 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-200 rounded-2xl text-xs sm:text-sm flex items-center gap-2 font-medium animate-in fade-in">
+            <div className="p-3.5 sm:p-4 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-200 rounded-2xl text-xs sm:text-sm flex items-center gap-2.5 font-medium animate-in fade-in">
               <AlertCircle className="w-4.5 h-4.5 shrink-0 text-rose-600" />
               <span>{error}</span>
             </div>
           )}
 
-          {/* Form container */}
+          {/* Form Content */}
           <form onSubmit={handleSubmitProfile} className="space-y-4 sm:space-y-6">
             {/* STEP 1: PERSONAL INFORMATION */}
             {currentStep === 1 && (
@@ -739,7 +752,7 @@ export const SwimmerProfilePage = () => {
                     />
                   </div>
 
-                  {/* Gender Selection - Icon buttons */}
+                  {/* Gender Selector - Icon Buttons */}
                   <div>
                     <label className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                       جنسیت شناگر <span className="text-rose-500 font-bold">*</span>
@@ -790,7 +803,7 @@ export const SwimmerProfilePage = () => {
                     </div>
                   </div>
 
-                  {/* Personal Photo Upload Card */}
+                  {/* Photo Card */}
                   <div>
                     <label className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                       عکس پرسنلی شناگر <span className="text-rose-500 font-bold">*</span>
@@ -832,7 +845,7 @@ export const SwimmerProfilePage = () => {
                     onClick={handleNextStep}
                     className="w-full sm:w-auto px-6 sm:px-7 py-2.5 sm:py-3 text-xs sm:text-sm font-bold gap-2 cursor-pointer shadow-sm rounded-xl sm:rounded-2xl bg-sky-600 hover:bg-sky-700 text-white"
                   >
-                    <span>گام بعدی: اولیاء و نشانی</span>
+                    <span>گام بعدی: اطلاعات والدین</span>
                     <ArrowLeft className="w-4 h-4" />
                   </Button>
                 </div>
@@ -844,12 +857,12 @@ export const SwimmerProfilePage = () => {
               <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-7 shadow-xs space-y-4 sm:space-y-6 animate-in fade-in duration-300">
                 <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800">
                   <Home className="w-5 h-5 text-sky-600 shrink-0" />
-                  <h2 className="text-sm sm:text-lg font-bold text-slate-900 dark:text-white">گام دوم: اطلاعات والدین و نشانی منزل</h2>
+                  <h2 className="text-sm sm:text-lg font-bold text-slate-900 dark:text-white">گام دوم: اطلاعات اولیاء، شغل والدین و نشانی منزل</h2>
                 </div>
 
                 <div className="p-3 sm:p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl text-xs sm:text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2 font-medium leading-relaxed">
                   <Phone className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                  <span>ثبت اطلاعات تماس و <strong>شغل والدین</strong> جهت هماهنگی و اعزام به مسابقات ورزشی اصناف و ادارات است؛ در صورت عدم تمایل به درج نام سازمان، لطفاً عبارت <strong>«آزاد»</strong> را وارد نمایید.</span>
+                  <span>ثبت شماره تماس و شغل هر دو والد (جهت اعزام مسابقات اصناف و ادارات) الزامی است.</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
@@ -883,7 +896,7 @@ export const SwimmerProfilePage = () => {
                         required
                         value={fatherJob}
                         onChange={(e) => setFatherJob(e.target.value)}
-                        placeholder="اداره (آب...)، سازمان...، فرهنگی، پزشک، آزاد..."
+                        placeholder="مثال: کارمند، پزشک، مهندس، آزاد..."
                         className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                       />
                     </div>
@@ -910,7 +923,7 @@ export const SwimmerProfilePage = () => {
                   {/* Mother Job */}
                   <div>
                     <label className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-                      شغل مادر (یا مخاطب اضطراری) <span className="text-rose-500 font-bold">*</span>
+                      شغل مادر <span className="text-rose-500 font-bold">*</span>
                     </label>
                     <div className="relative">
                       <Briefcase className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
@@ -919,7 +932,7 @@ export const SwimmerProfilePage = () => {
                         required
                         value={motherJob}
                         onChange={(e) => setMotherJob(e.target.value)}
-                        placeholder="اداره (آب...)، سازمان...، فرهنگی، پزشک، آزاد..."
+                        placeholder="مثال: فرهنگی، پزشک، خانه‌دار، کارمند..."
                         className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                       />
                     </div>
@@ -991,7 +1004,7 @@ export const SwimmerProfilePage = () => {
               <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-7 shadow-xs space-y-4 sm:space-y-6 animate-in fade-in duration-300">
                 <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800">
                   <ShieldCheck className="w-5 h-5 text-sky-600 shrink-0" />
-                  <h2 className="text-sm sm:text-lg font-bold text-slate-900 dark:text-white">گام سوم: بارگذاری مدارک هویتی شناگر</h2>
+                  <h2 className="text-sm sm:text-lg font-bold text-slate-900 dark:text-white">گام سوم: بارگذاری مدارک هویتی و ورزشی</h2>
                   <span className="text-[11px] sm:text-xs text-slate-400 mr-auto font-medium">هر ۳ مدرک الزامی است</span>
                 </div>
 
@@ -1255,7 +1268,7 @@ export const SwimmerProfilePage = () => {
                 سطح آموزشی: {profileLevelName || 'سطح پایه / مقدماتی'}
               </h2>
               <p className="text-xs sm:text-sm text-sky-100 max-w-xl">
-                ارزیابی‌های ثبت‌شده و توصیه‌های کادر مربیگری آکادمی
+                ارزیابی‌های ثبت‌شده و توصیه‌های آموزشی کادر مربیگری آکادمی
               </p>
             </div>
 
@@ -1268,7 +1281,7 @@ export const SwimmerProfilePage = () => {
             </Link>
           </div>
 
-          {/* KPI Mini-cards - 3 column grid on all devices */}
+          {/* KPI Mini-cards */}
           <div className="grid grid-cols-3 gap-2 sm:gap-4">
             <div className="p-3 sm:p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs text-center sm:text-right">
               <span className="text-[11px] sm:text-xs font-bold text-slate-500 block mb-0.5 sm:mb-1">کل ارزیابی‌ها</span>
@@ -1387,7 +1400,7 @@ export const SwimmerProfilePage = () => {
       )}
 
       {/* =================================================================== */}
-      {/* TAB 3: PASSWORD & SECURITY                                          */}
+      {/* TAB 3: PASSWORD & SECURITY (With Proper Account Management at Bottom)*/}
       {/* =================================================================== */}
       {activeMainTab === 'SECURITY' && (
         <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-200">
@@ -1400,7 +1413,7 @@ export const SwimmerProfilePage = () => {
                   توجه امنیتی: شما هنوز کلمه عبور اختصاصی تعیین نکرده‌اید!
                 </h4>
                 <p className="text-xs text-amber-800 dark:text-amber-200/90 leading-relaxed font-medium">
-                  برای ورود بدون پیامک و افزایش امنیت، یک رمز عبور اختصاصی تعیین فرمایید.
+                  جهت ورود مستقیم بدون نیاز به پیامک، پیشنهاد می‌شود یک رمز عبور اختصاصی تعیین فرمایید.
                 </p>
               </div>
             </div>
@@ -1505,8 +1518,9 @@ export const SwimmerProfilePage = () => {
               </form>
             </div>
 
-            {/* Account & Security Cards */}
+            {/* Account & Session Management Cards */}
             <div className="space-y-4">
+              {/* OTP Phone Verification Info */}
               <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-800">
                   <Smartphone className="w-4.5 h-4.5 text-sky-600" />
@@ -1535,14 +1549,25 @@ export const SwimmerProfilePage = () => {
                 </div>
               </div>
 
-              {/* Dedicated Session Management / Logout Card inside Security */}
+              {/* Data Protection & Privacy Notice */}
+              <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-2">
+                <h4 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-emerald-600" />
+                  حریم خصوصی و امنیت پرونده
+                </h4>
+                <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                  اطلاعات هویتی، آدرس و مدارک بارگذاری‌شده شناگر در سرورهای ابری امن آکادمی ذخیره و تنها توسط کادر مجاز آموزشگاه قابل ارزیابی هستند.
+                </p>
+              </div>
+
+              {/* Account Management & Logout Card (Properly Positioned at Bottom of Security) */}
               <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 border border-rose-100 dark:border-rose-950/40 shadow-xs space-y-3">
                 <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
                   <LogOut className="w-4 h-4 text-rose-600" />
                   مدیریت نشست و خروج از حساب
                 </h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-                  در صورت استفاده از دستگاه‌های اشتراکی یا عمومی، جهت حفظ امنیت حتماً از حساب کاربری خود خارج شوید.
+                  در صورت استفاده از دستگاه‌های اشتراکی یا عمومی، جهت حفظ امنیت حساب خود می‌توانید از اینجا خارج شوید.
                 </p>
                 <button
                   type="button"
@@ -1550,7 +1575,7 @@ export const SwimmerProfilePage = () => {
                   className="w-full py-2.5 px-4 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/60 text-rose-700 dark:text-rose-300 rounded-xl border border-rose-200 dark:border-rose-900/60 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
                 >
                   <LogOut className="w-4 h-4" />
-                  <span>خروج کامل از حساب کاربری</span>
+                  <span>خروج از حساب کاربری</span>
                 </button>
               </div>
             </div>
@@ -1558,7 +1583,10 @@ export const SwimmerProfilePage = () => {
         </div>
       )}
 
-      {/* Document Zoom / Preview Modal */}
+      {/* =================================================================== */}
+      {/* 4. MODALS (Document Zoom & Logout Confirmation)                     */}
+      {/* =================================================================== */}
+      {/* Document Full-Size Zoom / Preview Modal */}
       {previewDocModal && (
         <Modal
           isOpen={Boolean(previewDocModal)}

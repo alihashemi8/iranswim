@@ -8,6 +8,7 @@ from django.db import connection
 logger = logging.getLogger(__name__)
 
 # Predefined advisory lock IDs for supervisor background tasks
+LOCK_SCHEDULER_PROCESS = 19827360
 LOCK_EVALUATE_ALERTS = 19827364
 LOCK_CLEANUP_LOGS = 19827365
 
