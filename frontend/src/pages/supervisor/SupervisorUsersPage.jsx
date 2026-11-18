@@ -14,7 +14,7 @@ import { EmptyState } from '../../components/common/EmptyState';
 import { Pagination } from '../../components/common/Pagination';
 import { useToast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
-import { formatPersianDate } from '../../utils/date';
+import { formatPersianDate, toEnglishDigits } from '../../utils/date';
 import { validatePassword, generateStrongPassword, PasswordRequirementsList } from '../../utils/passwordValidator';
 
 const ROLE_DEFINITIONS = {
@@ -208,7 +208,7 @@ export const SupervisorUsersPage = () => {
       return;
     }
 
-    const cleanedPhone = addForm.phone.trim();
+    const cleanedPhone = toEnglishDigits(addForm.phone).trim();
     if (!cleanedPhone.startsWith('09') || cleanedPhone.length !== 11) {
       toast.error('شماره تلفن همراه باید ۱۱ رقمی بوده و با ۰۹ شروع شود.');
       return;
@@ -228,7 +228,7 @@ export const SupervisorUsersPage = () => {
         phone: cleanedPhone,
         first_name: addForm.first_name.trim(),
         last_name: addForm.last_name.trim(),
-        national_id: addForm.national_id.trim() || undefined,
+        national_id: toEnglishDigits(addForm.national_id).trim() || undefined,
         role: addForm.role,
         is_active: addForm.is_active,
       };
@@ -272,8 +272,8 @@ export const SupervisorUsersPage = () => {
       const res = await api.patch(`/auth/users/${selectedUser.id}/`, {
         first_name: editForm.first_name.trim(),
         last_name: editForm.last_name.trim(),
-        phone: editForm.phone.trim(),
-        national_id: editForm.national_id.trim(),
+        phone: toEnglishDigits(editForm.phone).trim(),
+        national_id: toEnglishDigits(editForm.national_id).trim(),
         role: editForm.role,
         is_active: editForm.is_active,
       });
