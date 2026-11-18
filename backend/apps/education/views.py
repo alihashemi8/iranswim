@@ -144,6 +144,51 @@ class CourseListView(generics.ListCreateAPIView):
         status_filter = self.request.query_params.get('status')
         if status_filter:
             qs = qs.filter(status=status_filter)
+
+        gender = self.request.query_params.get('gender')
+        if gender and gender != 'ALL':
+            qs = qs.filter(Q(gender=gender) | Q(gender='ALL') | Q(gender='') | Q(gender__isnull=True))
+
+        age = self.request.query_params.get('age')
+        if age:
+            try:
+                age_val = int(age)
+                qs = qs.filter(
+                    (Q(min_age__isnull=True) | Q(min_age__lte=age_val)) &
+                    (Q(max_age__isnull=True) | Q(max_age__gte=age_val))
+                )
+            except (ValueError, TypeError):
+                pass
+
+        search = self.request.query_params.get('search')
+        if search:
+            qs = qs.filter(
+                Q(name__icontains=search) |
+                Q(description__icontains=search) |
+                Q(pool_location__icontains=search) |
+                Q(coaches__user__first_name__icontains=search) |
+                Q(coaches__user__last_name__icontains=search)
+            ).distinct()
+
+        matched_only = self.request.query_params.get('matched_only')
+        if matched_only in ['true', '1', 'True']:
+            from apps.swimmers.views import get_accessible_swimmer_profile
+            swimmer = None
+            if self.request.user and self.request.user.is_authenticated:
+                swimmer_id = self.request.query_params.get('swimmer_id') or self.request.headers.get('X-Swimmer-Id')
+                try:
+                    swimmer = get_accessible_swimmer_profile(self.request.user, swimmer_id)
+                except Exception:
+                    swimmer = getattr(self.request.user, 'swimmer_profile', None)
+            if swimmer:
+                if swimmer.gender:
+                    qs = qs.filter(Q(gender=swimmer.gender) | Q(gender='ALL') | Q(gender='') | Q(gender__isnull=True))
+                if swimmer.age is not None:
+                    qs = qs.filter(
+                        (Q(min_age__isnull=True) | Q(min_age__lte=swimmer.age)) &
+                        (Q(max_age__isnull=True) | Q(max_age__gte=swimmer.age))
+                    )
+
         return qs
 
 
@@ -207,8 +252,22 @@ class EnrollmentRequestCreateView(generics.CreateAPIView):
         user = self.request.user
         swimmer = None
         if user and user.is_authenticated:
-            swimmer = getattr(user, 'swimmer_profile', None)
-        serializer.save(swimmer=swimmer)
+            from apps.swimmers.views import get_accessible_swimmer_profile
+            swimmer_id = self.request.data.get('swimmer') or self.request.data.get('swimmer_id') or self.request.headers.get('X-Swimmer-Id')
+            try:
+                swimmer = get_accessible_swimmer_profile(user, swimmer_id)
+            except Exception:
+                swimmer = getattr(user, 'swimmer_profile', None)
+
+        kwargs = {'swimmer': swimmer}
+        if swimmer:
+            if not serializer.validated_data.get('applicant_name'):
+                kwargs['applicant_name'] = swimmer.full_name
+            if not serializer.validated_data.get('applicant_phone'):
+                kwargs['applicant_phone'] = swimmer.phone or (user.phone if user and user.is_authenticated else '')
+            if not serializer.validated_data.get('applicant_national_id'):
+                kwargs['applicant_national_id'] = swimmer.national_id or ''
+        serializer.save(**kwargs)
 
 
 class EnrollmentRequestListView(generics.ListAPIView):
