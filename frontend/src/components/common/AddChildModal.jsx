@@ -3,6 +3,18 @@ import { createPortal } from 'react-dom';
 import { X, UserPlus, CheckCircle2 } from 'lucide-react';
 import { useSwimmer } from '../../context/SwimmerContext';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
+import { CustomSelect } from './CustomSelect';
+
+const GENDER_OPTIONS = [
+  { value: 'MALE', label: 'پسر / آقایان' },
+  { value: 'FEMALE', label: 'دختر / بانوان' },
+];
+
+const RELATIONSHIP_OPTIONS = [
+  { value: 'MOTHER', label: 'مادر' },
+  { value: 'FATHER', label: 'پدر' },
+  { value: 'GUARDIAN', label: 'سرپرست قانونی' },
+];
 
 export const AddChildModal = ({ isOpen, onClose }) => {
   const { addChild } = useSwimmer();
@@ -52,12 +64,12 @@ export const AddChildModal = ({ isOpen, onClose }) => {
       style={{ overscrollBehavior: 'none', touchAction: 'none' }}
     >
       <div
-        className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden select-auto"
+        className="relative w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 select-auto"
         onClick={(e) => e.stopPropagation()}
         style={{ overscrollBehavior: 'contain' }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 bg-sky-50/50 dark:bg-sky-950/20">
+        <div className="flex items-center justify-between p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 bg-sky-50/50 dark:bg-sky-950/20 rounded-t-3xl">
           <div className="flex items-center gap-2.5">
             <div className="w-9 h-9 rounded-xl bg-sky-600 text-white flex items-center justify-center shadow-xs">
               <UserPlus className="w-5 h-5" />
@@ -136,28 +148,29 @@ export const AddChildModal = ({ isOpen, onClose }) => {
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                 جنسیت
               </label>
-              <select
+              <CustomSelect
                 value={formData.gender}
-                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-sky-500 outline-none"
-              >
-                <option value="MALE">پسر / آقایان</option>
-                <option value="FEMALE">دختر / بانوان</option>
-              </select>
+                onChange={(val) => setFormData({ ...formData, gender: val })}
+                options={GENDER_OPTIONS}
+                color="sky"
+                size="sm"
+                textSize="text-xs sm:text-sm"
+                menuClassName="w-full"
+              />
             </div>
             <div>
               <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
                 نسبت شما
               </label>
-              <select
+              <CustomSelect
                 value={formData.relationship_type}
-                onChange={(e) => setFormData({ ...formData, relationship_type: e.target.value })}
-                className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-sky-500 outline-none"
-              >
-                <option value="MOTHER">مادر</option>
-                <option value="FATHER">پدر</option>
-                <option value="GUARDIAN">سرپرست قانونی</option>
-              </select>
+                onChange={(val) => setFormData({ ...formData, relationship_type: val })}
+                options={RELATIONSHIP_OPTIONS}
+                color="sky"
+                size="sm"
+                textSize="text-xs sm:text-sm"
+                menuClassName="w-full"
+              />
             </div>
           </div>
 

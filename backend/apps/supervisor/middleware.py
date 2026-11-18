@@ -6,7 +6,9 @@ import traceback
 from django.utils import timezone
 from django.http import JsonResponse
 from django.conf import settings
-from .models import SystemErrorLog, ErrorGroup, DeploymentMarker
+from django.db import IntegrityError, transaction
+from django.db.models import F
+from .models import SystemErrorLog, ErrorGroup, DeploymentMarker, IncidentActivity, IncidentStatus
 from .fingerprint import (
     generate_error_fingerprint,
     determine_error_severity,
@@ -24,6 +26,8 @@ SENSITIVE_KEYS = {
     'cvv', 'cvv2', 'pan', 'card_number', 'phone_verification', 'api_key',
     'private_key', 'passphrase', 'auth'
 }
+
+MAX_BODY_PREVIEW_BYTES = 10240  # 10 KB safety limit for request body preview
 
 
 def sanitize_data(data, max_depth=5):
@@ -75,8 +79,9 @@ class SupervisorExceptionLoggingMiddleware:
     میدل‌ویر جامع پایش خطاها و مدیریت وقایع (Incident Management Middleware):
     - ثبت و گروه‌بندی خودکار استثناها بر اساس اثرانگشت پایدار (Stable Fingerprint)
     - ماسک‌سازی داده‌های محرمانه (Sanitization)
-    - ثبت مدت‌زمان پردازش، هدرها، پارامترهای URL و شناسه یکتای پیگیری (Correlation ID)
-    - امنیت کامل و عدم ایجاد اختلال در پردازش درخواست در صورت بروز خطا در ثبت لاگ
+    - تضمین تراکنش‌های همزمان امن و جلوگیری از بروز Race Condition در شمارش وقوع خطا
+    - عدم ایجاد سربار دیتابیس یا وقفه در درخواست‌های موفق
+    - امنیت کامل و عدم ایجاد اختلال در پاسخ HTTP در صورت بروز هرگونه خطا در ثبت لاگ
     """
     def __init__(self, get_response):
         self.get_response = get_response
@@ -122,24 +127,18 @@ class SupervisorExceptionLoggingMiddleware:
                 except Exception:
                     query_preview = '(خطا در پردازش پارامترهای GET)'
 
-            # Request body preview (sanitized)
+            # Request body preview (safe & bounded in size)
             req_preview = ''
             if request.method in ['POST', 'PUT', 'PATCH']:
                 try:
                     if request.content_type == 'application/json' and request.body:
-                        parsed = json.loads(request.body.decode('utf-8', errors='ignore'))
+                        raw_body = request.body[:MAX_BODY_PREVIEW_BYTES]
+                        parsed = json.loads(raw_body.decode('utf-8', errors='ignore'))
                         req_preview = json.dumps(sanitize_data(parsed), ensure_ascii=False)
                     elif request.POST:
                         req_preview = json.dumps(sanitize_data(request.POST.dict()), ensure_ascii=False)
                 except Exception:
                     req_preview = '(قالب داده ارسالی غیرقابل پردازش)'
-
-            # Safe headers
-            headers_summary = ''
-            try:
-                headers_summary = json.dumps(sanitize_headers(request.META), ensure_ascii=False)
-            except Exception:
-                headers_summary = '{}'
 
             user = request.user if getattr(request, 'user', None) and request.user.is_authenticated else None
 
@@ -161,51 +160,62 @@ class SupervisorExceptionLoggingMiddleware:
                 deployed_at__lte=now
             ).order_by('-deployed_at').first()
 
-            # 2. Get or create ErrorGroup (Issue/Incident)
-            error_group, created = ErrorGroup.objects.get_or_create(
-                fingerprint=fingerprint,
-                defaults={
-                    'title': f"{exc_type}: {err_msg[:120]}",
-                    'exception_type': exc_type,
-                    'error_message': err_msg,
-                    'severity': severity,
-                    'category': category,
-                    'status': 'NEW',
-                    'status_code': 500,
-                    'http_method': http_method,
-                    'endpoint': endpoint,
-                    'first_seen': now,
-                    'last_seen': now,
-                    'occurrence_count': 1,
-                    'affected_users_count': 1 if user else 0,
-                    'first_deployment': latest_deploy
-                }
-            )
+            # 2. Get or create ErrorGroup with atomic concurrency handling
+            error_group = None
+            created = False
+            try:
+                error_group, created = ErrorGroup.objects.get_or_create(
+                    fingerprint=fingerprint,
+                    defaults={
+                        'title': f"{exc_type}: {err_msg[:120]}",
+                        'exception_type': exc_type,
+                        'error_message': err_msg,
+                        'severity': severity,
+                        'category': category,
+                        'status': IncidentStatus.NEW,
+                        'status_code': 500,
+                        'http_method': http_method,
+                        'endpoint': endpoint,
+                        'first_seen': now,
+                        'last_seen': now,
+                        'occurrence_count': 1,
+                        'affected_users_count': 1 if user else 0,
+                        'first_deployment': latest_deploy
+                    }
+                )
+            except IntegrityError:
+                # Concurrent request created the group in parallel
+                error_group = ErrorGroup.objects.get(fingerprint=fingerprint)
+                created = False
 
-            if not created:
-                error_group.occurrence_count += 1
-                error_group.last_seen = now
-                if error_group.status in ['RESOLVED', 'CLOSED']:
-                    # Auto-reopen issue if new occurrences happen after resolution
-                    error_group.status = 'NEW'
-                    from .models import IncidentActivity
+            if not created and error_group:
+                # Atomic update using F() expression to prevent lost updates under high concurrency
+                update_kwargs = {
+                    'occurrence_count': F('occurrence_count') + 1,
+                    'last_seen': now,
+                    'updated_at': now,
+                }
+                if error_group.status in [IncidentStatus.RESOLVED, IncidentStatus.CLOSED]:
+                    update_kwargs['status'] = IncidentStatus.NEW
                     IncidentActivity.objects.create(
                         error_group=error_group,
                         actor=None,
                         activity_type=IncidentActivity.ActivityType.REOPENED,
-                        old_value='RESOLVED',
-                        new_value='NEW',
+                        old_value=error_group.status,
+                        new_value=IncidentStatus.NEW,
                         note='بازگشایی خودکار رخداد به دلیل وقوع مجدد باگ پس از رفع.'
                     )
-                # Recalculate distinct affected users count
+
+                ErrorGroup.objects.filter(pk=error_group.pk).update(**update_kwargs)
+                error_group.refresh_from_db()
+
+                # Update distinct affected users count periodically/when user present
                 if user:
                     distinct_users = SystemErrorLog.objects.filter(
                         error_group=error_group,
                         user__isnull=False
                     ).values('user_id').distinct().count()
-                    error_group.affected_users_count = max(distinct_users, 1)
-
-                error_group.save(update_fields=['occurrence_count', 'last_seen', 'status', 'affected_users_count', 'updated_at'])
+                    ErrorGroup.objects.filter(pk=error_group.pk).update(affected_users_count=max(distinct_users, 1))
 
             # 3. Create individual SystemErrorLog occurrence
             log_entry = SystemErrorLog.objects.create(
@@ -224,15 +234,15 @@ class SupervisorExceptionLoggingMiddleware:
                 request_id=request_id,
                 duration_ms=duration_ms,
                 query_params=query_preview,
-                headers_summary=headers_summary
+                headers_summary=json.dumps(sanitize_headers(request.META), ensure_ascii=False)
             )
 
             logger.error(
-                f"[SUPERVISOR INCIDENT #{error_group.id} (Occurrence #{log_entry.id})] {exc_type}: {err_msg} on {http_method} {endpoint}",
+                f"[SUPERVISOR INCIDENT #{error_group.id if error_group else 'N/A'} (Occurrence #{log_entry.id})] {exc_type}: {err_msg} on {http_method} {endpoint}",
                 exc_info=True
             )
 
-            # 4. Check Alert Rules evaluation asynchronously or safely
+            # 4. Scoped Alert Rules evaluation (Only checks error spike during HTTP exceptions to avoid disk/db overhead)
             try:
                 from .services import evaluate_alert_rules
                 evaluate_alert_rules(trigger_type='ERROR_OCCURRENCE', context={'error_group': error_group, 'log': log_entry})
@@ -244,7 +254,7 @@ class SupervisorExceptionLoggingMiddleware:
                 return JsonResponse({
                     'detail': 'خطای غیرمنتظره‌ای در سرور رخ داده است. این رخداد با موفقیت در سامانه ناظر ثبت گردید.',
                     'error_tracking_id': log_entry.id,
-                    'incident_id': error_group.id,
+                    'incident_id': error_group.id if error_group else None,
                     'exception_type': exc_type,
                     'request_id': request_id
                 }, status=500)

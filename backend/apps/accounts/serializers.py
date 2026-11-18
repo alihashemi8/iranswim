@@ -113,6 +113,11 @@ class IranSwimTokenObtainPairSerializer(TokenObtainPairSerializer):
 
 class UserSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(read_only=True)
+    role_display = serializers.CharField(source='get_role_display', read_only=True)
+    is_staff = serializers.BooleanField(read_only=True)
+    is_superuser = serializers.BooleanField(read_only=True)
+    date_joined = serializers.DateTimeField(read_only=True)
+    last_login = serializers.DateTimeField(read_only=True)
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
     avatar = serializers.ImageField(required=False, allow_null=True, validators=[validate_avatar_file])
     swimmer_id = serializers.SerializerMethodField()
@@ -123,10 +128,11 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             'id', 'phone', 'first_name', 'last_name', 'full_name',
-            'national_id', 'role', 'avatar', 'is_active', 'is_password_changed', 'password',
+            'national_id', 'role', 'role_display', 'avatar', 'is_active', 'is_password_changed', 'password',
+            'is_staff', 'is_superuser', 'date_joined', 'last_login',
             'swimmer_id', 'coach_id', 'is_profile_completed', 'created_at'
         ]
-        read_only_fields = ['id', 'created_at']
+        read_only_fields = ['id', 'created_at', 'role_display', 'is_staff', 'is_superuser', 'date_joined', 'last_login']
 
     def to_representation(self, instance):
         ret = super().to_representation(instance)

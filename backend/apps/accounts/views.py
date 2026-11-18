@@ -6,6 +6,7 @@ from django.utils import timezone
 from rest_framework import status, generics, permissions
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.exceptions import ValidationError, AuthenticationFailed
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -398,10 +399,17 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
 
 
+class UserPagination(PageNumberPagination):
+    page_size = 20
+    page_size_query_param = 'page_size'
+    max_page_size = 200
+
+
 class UserListView(generics.ListCreateAPIView):
     """لیست و ایجاد کاربران با دسترسی مدیر و ناظر فنی سامانه"""
     serializer_class = UserSerializer
     permission_classes = [IsAdminOrSupervisor]
+    pagination_class = UserPagination
 
     def get_queryset(self):
         qs = User.objects.all().order_by('-created_at')
@@ -412,7 +420,14 @@ class UserListView(generics.ListCreateAPIView):
             )
         role = self.request.query_params.get('role')
         if role:
-            qs = qs.filter(role=role)
+            if role.upper() == 'PRIVILEGED':
+                qs = qs.filter(
+                    Q(role__in=[User.Role.ADMIN, User.Role.SUPERVISOR]) |
+                    Q(is_staff=True) |
+                    Q(is_superuser=True)
+                )
+            else:
+                qs = qs.filter(role=role)
         is_active = self.request.query_params.get('is_active')
         if is_active is not None and is_active != '':
             if is_active.lower() in ['true', '1']:
@@ -436,7 +451,23 @@ class UserListView(generics.ListCreateAPIView):
         if user.is_authenticated and user.role == User.Role.ADMIN:
             if role in [User.Role.ADMIN, User.Role.SUPERVISOR]:
                 raise ValidationError({'role': 'مدیر آموزشگاه فقط مجاز به ایجاد کاربر شناگر یا مربی است.'})
-        serializer.save()
+        new_user = serializer.save()
+        try:
+            from apps.supervisor.models import AuditLog
+            AuditLog.objects.create(
+                actor=user,
+                action='USER_CREATE',
+                entity_type='User',
+                entity_id=str(new_user.id),
+                details={
+                    'phone': new_user.phone,
+                    'full_name': new_user.full_name,
+                    'role': new_user.role,
+                    'is_active': new_user.is_active
+                }
+            )
+        except Exception:
+            pass
 
 
 class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -457,15 +488,46 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
     def perform_update(self, serializer):
         user = self.request.user
         target = serializer.instance
+        if target.id == user.id and serializer.validated_data.get('is_active') is False:
+            raise ValidationError({'is_active': 'شما نمی‌توانید حساب کاربری فعال خود را معلق یا غیرفعال کنید.'})
         if user.is_authenticated and user.role == User.Role.ADMIN:
             if target.role == User.Role.SUPERVISOR or (target.role == User.Role.ADMIN and target.id != user.id):
                 raise ValidationError('شما دسترسی لازم برای ویرایش این کاربر را ندارید.')
             new_role = serializer.validated_data.get('role')
             if new_role and new_role in [User.Role.ADMIN, User.Role.SUPERVISOR]:
                 raise ValidationError({'role': 'مدیر آموزشگاه فقط مجاز به تخصیص نقش شناگر یا مربی است.'})
-            if target.id == user.id and serializer.validated_data.get('is_active') is False:
-                raise ValidationError({'is_active': 'شما نمی‌توانید حساب کاربری فعال خود را معلق یا غیرفعال کنید.'})
-        serializer.save()
+
+        has_password = bool(serializer.validated_data.get('password'))
+        was_active = target.is_active
+        updated_user = serializer.save()
+
+        try:
+            from apps.supervisor.models import AuditLog
+            if has_password:
+                AuditLog.objects.create(
+                    actor=user,
+                    action='PASSWORD_RESET',
+                    entity_type='User',
+                    entity_id=str(updated_user.id),
+                    details={'phone': updated_user.phone, 'full_name': updated_user.full_name}
+                )
+            details = {
+                'phone': updated_user.phone,
+                'full_name': updated_user.full_name,
+                'role': updated_user.role,
+                'is_active': updated_user.is_active,
+            }
+            if was_active != updated_user.is_active:
+                details['status_change'] = 'ACTIVATED' if updated_user.is_active else 'SUSPENDED'
+            AuditLog.objects.create(
+                actor=user,
+                action='USER_UPDATE',
+                entity_type='User',
+                entity_id=str(updated_user.id),
+                details=details
+            )
+        except Exception:
+            pass
 
     def perform_destroy(self, instance):
         if instance == self.request.user:

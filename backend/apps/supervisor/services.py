@@ -172,8 +172,36 @@ def get_storage_metrics():
         }
 
 
+def get_cgroup_memory_limit():
+    """تشخیص سقف حافظه کانتینر داکر از طریق cgroups v1 یا v2 در لینوکس"""
+    # cgroup v2
+    cg2_path = '/sys/fs/cgroup/memory.max'
+    if os.path.exists(cg2_path):
+        try:
+            with open(cg2_path, 'r') as f:
+                val = f.read().strip()
+                if val != 'max' and val.isdigit():
+                    return round(int(val) / (1024 ** 2), 1)
+        except Exception:
+            pass
+    # cgroup v1
+    cg1_path = '/sys/fs/cgroup/memory/memory.limit_in_bytes'
+    if os.path.exists(cg1_path):
+        try:
+            with open(cg1_path, 'r') as f:
+                val = int(f.read().strip())
+                # If limit is > 1 TB, it means no container limit is configured
+                if val < 1099511627776:
+                    return round(val / (1024 ** 2), 1)
+        except Exception:
+            pass
+    return None
+
+
 def get_cpu_and_ram_metrics():
-    """Collect CPU load, core count, and RAM metrics."""
+    """Collect CPU load, core count, and RAM metrics with Docker container awareness."""
+    container_ram_limit = get_cgroup_memory_limit()
+
     if psutil:
         try:
             cpu_percent = psutil.cpu_percent(interval=0.05)
@@ -190,13 +218,16 @@ def get_cpu_and_ram_metrics():
                     'usage_percent': cpu_percent,
                     'cores': cpu_count,
                     'load_avg': load_avg,
-                    'status': 'WARNING' if cpu_percent > 85 else 'NORMAL'
+                    'status': 'WARNING' if cpu_percent > 85 else 'NORMAL',
+                    'metric_scope': 'VPS_HOST'
                 },
                 'ram': {
                     'total_mb': round(mem.total / (1024 ** 2), 1),
                     'used_mb': round(mem.used / (1024 ** 2), 1),
                     'free_mb': round(mem.available / (1024 ** 2), 1),
                     'percent': mem.percent,
+                    'container_limit_mb': container_ram_limit,
+                    'metric_scope': 'DOCKER_CONTAINER_LIMITED' if container_ram_limit else 'VPS_HOST',
                     'status': 'WARNING' if mem.percent > 85 else 'NORMAL'
                 }
             }
@@ -208,13 +239,16 @@ def get_cpu_and_ram_metrics():
             'usage_percent': 14.2,
             'cores': 4,
             'load_avg': [0.25, 0.30, 0.22],
-            'status': 'NORMAL'
+            'status': 'NORMAL',
+            'metric_scope': 'VPS_HOST'
         },
         'ram': {
             'total_mb': 8192,
             'used_mb': 3420,
             'free_mb': 4772,
             'percent': 41.7,
+            'container_limit_mb': container_ram_limit,
+            'metric_scope': 'DOCKER_CONTAINER_LIMITED' if container_ram_limit else 'VPS_HOST',
             'status': 'NORMAL'
         }
     }
@@ -471,58 +505,92 @@ def check_celery_beat_health():
 
 
 def check_nginx_proxy_health():
-    """بررسی اتصال به وب‌سرور Nginx و پروکسی معکوس"""
-    # Probe Nginx reverse proxy port (8080 in docker-compose)
-    start_time = time.time()
-    is_connected = False
-    proxy_latency = None
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        s.settimeout(0.5)
-        # Check port 8080 or port 80
-        result = s.connect_ex(('127.0.0.1', 8080))
-        if result == 0:
-            is_connected = True
-        else:
-            result = s.connect_ex(('127.0.0.1', 80))
-            if result == 0:
-                is_connected = True
-        s.close()
-        if is_connected:
-            proxy_latency = round((time.time() - start_time) * 1000, 2)
-            HEALTH_CHECK_HISTORY['nginx']['last_success'] = timezone.now().isoformat()
-    except Exception:
-        pass
+    """
+    بررسی اتصال واقعی و سرویس‌دهی HTTP وب‌سرور Nginx و پروکسی معکوس:
+    علاوه بر پورت TCP، پاسخ واقعی پروتکل HTTP بررسی می‌شود تا از آماده‌بودن Nginx اطمینان حاصل گردد.
+    """
+    import urllib.request
 
-    if is_connected:
+    start_time = time.time()
+    http_ok = False
+    proxy_latency = None
+    diag_message = ''
+
+    # Try probing HTTP response on reverse proxy addresses
+    candidate_urls = [
+        'http://127.0.0.1:8080/',
+        'http://localhost:8080/',
+        'http://frontend:8080/',
+        'http://127.0.0.1:80/'
+    ]
+
+    for url in candidate_urls:
+        try:
+            req = urllib.request.Request(url, headers={'User-Agent': 'IranSwim-HealthCheck/1.0'})
+            with urllib.request.urlopen(req, timeout=1.0) as resp:
+                if resp.status in [200, 301, 302, 304, 404]:
+                    http_ok = True
+                    proxy_latency = round((time.time() - start_time) * 1000, 2)
+                    server_hdr = resp.headers.get('Server', 'Nginx Gateway')
+                    diag_message = f"پاسخ معتبر HTTP (کد وضعیت {resp.status} از {server_hdr}) دریافت شد."
+                    break
+        except urllib.error.HTTPError as he:
+            # Even 404 or 403 confirms Nginx web server is actively handling HTTP traffic
+            http_ok = True
+            proxy_latency = round((time.time() - start_time) * 1000, 2)
+            diag_message = f"پاسخ HTTP با وضعیت {he.code} از وب‌سرور Nginx دریافت گردید."
+            break
+        except Exception:
+            continue
+
+    if http_ok:
+        HEALTH_CHECK_HISTORY['nginx']['last_success'] = timezone.now().isoformat()
         return {
             'id': 'nginx',
             'name': 'وب‌سرور Nginx و پروکسی فرانت‌اند',
             'category': 'gateway',
             'status': 'HEALTHY',
-            'status_label': 'پایدار و در حال ارائه محتوا',
+            'status_label': 'پایدار و در حال ارائه محتوای وب',
             'is_configured': True,
             'port': '8080 / 80',
             'latency_ms': proxy_latency or 4,
             'last_successful_check': HEALTH_CHECK_HISTORY['nginx']['last_success'],
             'last_failure': HEALTH_CHECK_HISTORY['nginx']['last_failure'],
-            'diagnostics': 'Nginx Reverse Proxy & Static Asset Engine آنلاین است.'
+            'diagnostics': diag_message
         }
     else:
-        # If running in local dev without docker container running nginx, report UNKNOWN
-        return {
-            'id': 'nginx',
-            'name': 'وب‌سرور Nginx و پروکسی فرانت‌اند',
-            'category': 'gateway',
-            'status': 'UNKNOWN',
-            'status_label': 'عدم شناسایی پورت در محیط توسعه محلی',
-            'is_configured': False,
-            'port': '8080',
-            'latency_ms': None,
-            'last_successful_check': HEALTH_CHECK_HISTORY['nginx']['last_success'],
-            'last_failure': None,
-            'diagnostics': 'سامانه در حالت توسعه مستقیم (Vite / Runserver) اجرا می‌شود؛ کانتینر Nginx فعال نیست.'
-        }
+        # Check if environment is production (where Nginx is mandatory)
+        is_prod = getattr(settings, 'ENVIRONMENT', 'development') == 'production' and not getattr(settings, 'DEBUG', True)
+        if is_prod:
+            now_iso = timezone.now().isoformat()
+            HEALTH_CHECK_HISTORY['nginx']['last_failure'] = now_iso
+            return {
+                'id': 'nginx',
+                'name': 'وب‌سرور Nginx و پروکسی فرانت‌اند',
+                'category': 'gateway',
+                'status': 'DOWN',
+                'status_label': 'عدم پاسخگویی وب‌سرور در محیط پروداکشن',
+                'is_configured': True,
+                'port': '8080',
+                'latency_ms': -1,
+                'last_successful_check': HEALTH_CHECK_HISTORY['nginx']['last_success'],
+                'last_failure': now_iso,
+                'diagnostics': 'درگاه وب‌سرور Nginx در محیط تولید پاسخگو نیست.'
+            }
+        else:
+            return {
+                'id': 'nginx',
+                'name': 'وب‌سرور Nginx و پروکسی فرانت‌اند',
+                'category': 'gateway',
+                'status': 'UNKNOWN',
+                'status_label': 'عدم شناسایی پورت در محیط توسعه محلی',
+                'is_configured': False,
+                'port': '8080',
+                'latency_ms': None,
+                'last_successful_check': HEALTH_CHECK_HISTORY['nginx']['last_success'],
+                'last_failure': None,
+                'diagnostics': 'سامانه در حالت توسعه مستقیم (Vite / Runserver) اجرا می‌شود؛ کانتینر Nginx فعال نیست.'
+            }
 
 
 def get_comprehensive_infrastructure_health():

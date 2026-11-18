@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { MapPin, Navigation, Compass, AlertCircle, Loader2 } from 'lucide-react';
+import { MapPin, LocateFixed, Compass, AlertCircle, Loader2 } from 'lucide-react';
 import SearchLocation from './SearchLocation';
 
 const createCustomPinIcon = () => {
@@ -270,7 +270,7 @@ export const MapLocationPicker = ({
           </div>
         )}
 
-        {/* 2. FLOATING LIVE LOCATION (GPS) BUTTON (Inside the Map at Bottom-Left) */}
+        {/* 2. FLOATING LIVE LOCATION (GPS) BUTTON (Icon Only) */}
         {!readOnly && (
           <div
             className={`
@@ -290,17 +290,17 @@ export const MapLocationPicker = ({
               title={geoLocating ? 'در حال دریافت موقعیت...' : 'موقعیت فعلی من (GPS)'}
               aria-label="موقعیت فعلی من (GPS)"
               className="
-                group flex items-center gap-1.5
-                h-10 sm:h-11
-                px-3
-                rounded-2xl
-                bg-white/95 dark:bg-slate-900/95
+                group flex items-center justify-center
+                w-11 h-11
+                rounded-full
+                bg-white/98 dark:bg-slate-900/98
                 backdrop-blur-md
-                border border-slate-200/90 dark:border-slate-700/90
-                shadow-lg shadow-slate-900/10 dark:shadow-black/40
+                border border-sky-200/90 dark:border-slate-700/90
+                shadow-xl shadow-slate-900/15 dark:shadow-black/50
                 text-sky-600 dark:text-sky-400
                 hover:bg-sky-50 dark:hover:bg-slate-800
-                hover:border-sky-300 dark:hover:border-sky-600
+                hover:border-sky-400 dark:hover:border-sky-500
+                hover:scale-105
                 active:scale-95
                 transition-all duration-200
                 cursor-pointer
@@ -308,13 +308,10 @@ export const MapLocationPicker = ({
               "
             >
               {geoLocating ? (
-                <Loader2 className="w-4 h-4 animate-spin text-sky-600 dark:text-sky-400" />
+                <Loader2 className="w-5 h-5 animate-spin text-sky-600 dark:text-sky-400" />
               ) : (
-                <Navigation className="w-4 h-4 text-sky-600 dark:text-sky-400 transition-transform group-hover:scale-110" />
+                <LocateFixed className="w-5 h-5 text-sky-600 dark:text-sky-400 transition-transform group-hover:scale-110" />
               )}
-              <span className="text-xs font-semibold hidden sm:inline">
-                {geoLocating ? 'در حال دریافت...' : 'لایو لوکیشن (GPS)'}
-              </span>
             </button>
           </div>
         )}

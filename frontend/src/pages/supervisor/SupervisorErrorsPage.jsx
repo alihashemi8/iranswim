@@ -1,345 +1,363 @@
-import React, { useState, useEffect } from 'react';
-import { Bug, Search, Terminal, Copy, Check, RefreshCw } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import {
+  Activity,
+  AlertTriangle,
+  Bell,
+  Bug,
+  CheckCircle2,
+  Clock,
+  History,
+  Layers,
+  RefreshCw,
+  Server,
+  Shield,
+  ShieldAlert,
+  Sliders,
+  Terminal,
+} from 'lucide-react';
 import api from '../../api/client';
-import { Badge } from '../../components/common/Badge';
-import { Button } from '../../components/common/Button';
-import { Modal } from '../../components/common/Modal';
-import { LoadingState } from '../../components/common/LoadingState';
-import { EmptyState } from '../../components/common/EmptyState';
-import { Pagination } from '../../components/common/Pagination';
 import { useToast } from '../../context/ToastContext';
+import { OverviewTab } from './error-center/OverviewTab';
+import { ErrorIssuesTab } from './error-center/ErrorIssuesTab';
+import { ErrorDetailDrawer } from './error-center/ErrorDetailDrawer';
+import { InfrastructureTab } from './error-center/InfrastructureTab';
+import { AlertsTab } from './error-center/AlertsTab';
+import { InvestigationHistoryTab } from './error-center/InvestigationHistoryTab';
+import { MonitoringSettingsTab } from './error-center/MonitoringSettingsTab';
 
 export const SupervisorErrorsPage = () => {
-  const [errors, setErrors] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [levelFilter, setLevelFilter] = useState('');
-  const [resolvedFilter, setResolvedFilter] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
-  const pageSize = 8;
-  const toast = useToast();
-  
-  // Selected error modal state
-  const [selectedError, setSelectedError] = useState(null);
-  const [resolveNote, setResolveNote] = useState('');
-  const [updating, setUpdating] = useState(false);
-  const [copied, setCopied] = useState(false);
+  // Navigation State
+  const [activeTab, setActiveTab] = useState('overview'); // overview, issues, infrastructure, alerts, history, settings
 
-  const fetchErrors = async () => {
+  // Deep Inspection Drawer State
+  const [selectedIssueId, setSelectedIssueId] = useState(null);
+
+  // Overview Tab State
+  const [statsData, setStatsData] = useState(null);
+  const [overviewLoading, setOverviewLoading] = useState(true);
+  const [timeRange, setTimeRange] = useState('24h');
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
+
+  // Issues Tab State
+  const [issues, setIssues] = useState([]);
+  const [issuesLoading, setIssuesLoading] = useState(true);
+  const [search, setSearch] = useState('');
+  const [severityFilter, setSeverityFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [statusCodeFilter, setStatusCodeFilter] = useState('');
+  const [assignedFilter, setAssignedFilter] = useState('');
+  const [ordering, setOrdering] = useState('-last_seen');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const pageSize = 12;
+
+  // Infrastructure Tab State
+  const [infraData, setInfraData] = useState(null);
+  const [infraLoading, setInfraLoading] = useState(true);
+
+  // Technicians List
+  const [technicians, setTechnicians] = useState([]);
+
+  const toast = useToast();
+
+  // 1. Fetch Overview Stats
+  const fetchOverviewStats = useCallback(async () => {
     try {
-      setLoading(true);
-      const params = {};
-      if (search) params.search = search;
-      if (levelFilter) params.level = levelFilter;
-      if (resolvedFilter) params.is_resolved = resolvedFilter;
-      const res = await api.get('/supervisor/errors/', { params });
-      setErrors(res.data.results || res.data);
-      setCurrentPage(1);
+      setOverviewLoading(true);
+      const params = { time_range: timeRange };
+      if (timeRange === 'custom' && customStart && customEnd) {
+        params.start_date = customStart;
+        params.end_date = customEnd;
+      }
+      const res = await api.get('/supervisor/errors/overview/', { params });
+      setStatsData(res.data);
     } catch (err) {
       console.error(err);
-      toast.error('خطا در دریافت لاگ‌های خطای سرور');
+      toast.error('خطا در دریافت آمار نمای کلی خطاهای سرور');
     } finally {
-      setLoading(false);
+      setOverviewLoading(false);
     }
-  };
+  }, [timeRange, customStart, customEnd]);
+
+  // 2. Fetch Grouped Error Issues
+  const fetchIssues = useCallback(async (page = 1) => {
+    try {
+      setIssuesLoading(true);
+      const params = {
+        page,
+        page_size: pageSize,
+        ordering,
+      };
+      if (search) params.search = search;
+      if (severityFilter) params.severity = severityFilter;
+      if (categoryFilter) params.category = categoryFilter;
+      if (statusFilter) params.status = statusFilter;
+      if (statusCodeFilter) params.status_code = statusCodeFilter;
+      if (assignedFilter) params.assigned_to = assignedFilter;
+
+      const res = await api.get('/supervisor/errors/groups/', { params });
+      if (res.data?.results) {
+        setIssues(res.data.results);
+        setTotalItems(res.data.count || 0);
+      } else if (Array.isArray(res.data)) {
+        setIssues(res.data);
+        setTotalItems(res.data.length);
+      }
+      setCurrentPage(page);
+    } catch (err) {
+      console.error(err);
+      toast.error('خطا در دریافت لیست باگ‌ها و رخدادها');
+    } finally {
+      setIssuesLoading(false);
+    }
+  }, [search, severityFilter, categoryFilter, statusFilter, statusCodeFilter, assignedFilter, ordering]);
+
+  // 3. Fetch Comprehensive Infrastructure
+  const fetchInfrastructure = useCallback(async () => {
+    try {
+      setInfraLoading(true);
+      const res = await api.get('/supervisor/infrastructure/live/');
+      setInfraData(res.data);
+    } catch (err) {
+      console.error(err);
+      toast.error('خطا در ارزیابی وضعیت سلامت زیرساخت');
+    } finally {
+      setInfraLoading(false);
+    }
+  }, []);
+
+  // 4. Fetch Technicians List
+  const fetchTechnicians = useCallback(async () => {
+    try {
+      const res = await api.get('/supervisor/technicians/');
+      setTechnicians(res.data || []);
+    } catch (err) {
+      console.error(err);
+    }
+  }, []);
 
   useEffect(() => {
-    fetchErrors();
-  }, [levelFilter, resolvedFilter]);
+    fetchOverviewStats();
+    fetchTechnicians();
+  }, [fetchOverviewStats, fetchTechnicians]);
+
+  useEffect(() => {
+    if (activeTab === 'issues') {
+      fetchIssues(1);
+    } else if (activeTab === 'infrastructure') {
+      fetchInfrastructure();
+    }
+  }, [activeTab, fetchIssues, fetchInfrastructure]);
 
   const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    fetchErrors();
+    if (e) e.preventDefault();
+    fetchIssues(1);
   };
 
-  const handleResolve = async (isResolved) => {
-    if (!selectedError) return;
-    try {
-      setUpdating(true);
-      const res = await api.post(`/supervisor/errors/${selectedError.id}/resolve/`, {
-        is_resolved: isResolved,
-        resolution_note: resolveNote
-      });
-      setSelectedError(res.data);
-      toast.success(isResolved ? 'باگ به عنوان رفع‌شده علامت‌گذاری گردید.' : 'باگ مجدداً بازگشایی شد.');
-      fetchErrors();
-    } catch (err) {
-      console.error(err);
-      toast.error('خطا در تغییر وضعیت خطا');
-    } finally {
-      setUpdating(false);
-    }
-  };
-
-  const copyStackTrace = () => {
-    if (selectedError?.stack_trace) {
-      navigator.clipboard.writeText(selectedError.stack_trace);
-      setCopied(true);
-      toast.info('استک‌ترس خطا با موفقیت در حافظه موقت (Clipboard) کپی شد.');
-      setTimeout(() => setCopied(false), 2000);
-    }
-  };
-
-  const totalPages = Math.ceil(errors.length / pageSize) || 1;
-  const paginatedErrors = errors.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+  const totalPages = Math.ceil(totalItems / pageSize) || 1;
 
   return (
-    <div className="space-y-6">
-      {/* Title */}
+    <div className="space-y-6 select-auto">
+      {/* Top Banner & Hub Title */}
       <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Bug className="w-5 h-5 text-rose-500" />
-            مرکز ثبت و پایش خطاهای سرور و باگ‌ها
-          </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            مشاهده استک‌ترس کامل، پارامترهای درخواست کلاینت و ثبت وضعیت رفع باگ‌ها توسط ناظر
-          </p>
+          <div className="flex items-center gap-2.5">
+            <span className="p-2.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-900/80 shadow-2xs">
+              <Bug className="w-5 h-5" />
+            </span>
+            <div>
+              <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span>مرکز جامع پایش خطاها و مدیریت رخدادها</span>
+                <span className="text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                  Incident Center
+                </span>
+              </h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                تجمیع خطاهای تکراری بر مبنای Fingerprint پایدار، پایش سلامت سرویس‌های زیرساخت و چرخه حیات پیگیری باگ‌ها
+              </p>
+            </div>
+          </div>
         </div>
+
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => {
+              if (activeTab === 'overview') fetchOverviewStats();
+              else if (activeTab === 'issues') fetchIssues(currentPage);
+              else if (activeTab === 'infrastructure') fetchInfrastructure();
+              toast.info('داده‌ها به‌روزرسانی شدند.');
+            }}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>تازه‌سازی سریع</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Main Navigation Tabs Bar */}
+      <div className="bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-1 overflow-x-auto text-xs">
         <button
-          onClick={fetchErrors}
-          className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors self-start sm:self-auto"
+          type="button"
+          onClick={() => setActiveTab('overview')}
+          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+            activeTab === 'overview'
+              ? 'bg-sky-600 text-white shadow-xs'
+              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+          }`}
         >
-          <RefreshCw className="w-3.5 h-3.5" />
-          <span>تازه‌سازی لاگ‌ها</span>
+          <Activity className="w-4 h-4" />
+          <span>۱. نمای کلی و آمار (Overview)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('issues')}
+          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+            activeTab === 'issues'
+              ? 'bg-sky-600 text-white shadow-xs'
+              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+          }`}
+        >
+          <Bug className="w-4 h-4" />
+          <span>۲. مدیریت باگ‌ها و خطاها (Issues)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('infrastructure')}
+          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+            activeTab === 'infrastructure'
+              ? 'bg-sky-600 text-white shadow-xs'
+              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+          }`}
+        >
+          <Server className="w-4 h-4" />
+          <span>۳. پایش زیرساخت (Infrastructure)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('alerts')}
+          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+            activeTab === 'alerts'
+              ? 'bg-sky-600 text-white shadow-xs'
+              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+          }`}
+        >
+          <Bell className="w-4 h-4" />
+          <span>۴. هشدارها و وقایع (Alerts)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('history')}
+          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+            activeTab === 'history'
+              ? 'bg-sky-600 text-white shadow-xs'
+              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+          }`}
+        >
+          <History className="w-4 h-4" />
+          <span>۵. تاریخچه و پیگیری (History)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('settings')}
+          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+            activeTab === 'settings'
+              ? 'bg-sky-600 text-white shadow-xs'
+              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+          }`}
+        >
+          <Sliders className="w-4 h-4" />
+          <span>۶. تنظیمات و آستانه‌ها (Settings)</span>
         </button>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 flex flex-col md:flex-row items-center gap-3 transition-colors">
-        <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center gap-2 w-full">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute right-3 top-3" />
-            <input
-              type="text"
-              placeholder="جستجو در مسیر اندپوینت، پیام خطا یا نوع استثنا..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-full pr-9 pl-4 py-2 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:bg-white dark:focus:bg-slate-800 transition-all"
-            />
-          </div>
-          <Button type="submit" size="sm">جستجو</Button>
-        </form>
-
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <select
-            value={levelFilter}
-            onChange={(e) => setLevelFilter(e.target.value)}
-            className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
-          >
-            <option value="">تمام سطوح خطا</option>
-            <option value="CRITICAL">بحرانی (CRITICAL)</option>
-            <option value="ERROR">خطا (ERROR)</option>
-            <option value="WARNING">هشدار (WARNING)</option>
-          </select>
-
-          <select
-            value={resolvedFilter}
-            onChange={(e) => setResolvedFilter(e.target.value)}
-            className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
-          >
-            <option value="">تمام وضعیت‌ها</option>
-            <option value="false">رفع‌نشده (نیاز به اقدام)</option>
-            <option value="true">بررسی و رفع‌شده</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Errors Table */}
-      {loading ? (
-        <LoadingState type="table" rows={6} message="در حال دریافت لاگ‌های خطای سرور..." />
-      ) : errors.length === 0 ? (
-        <EmptyState
-          title="هیچ خطایی ثبت نشده است"
-          description="خوشبختانه با این فیلتر، هیچ خطای سروری در سیستم ثبت نشده است."
+      {/* Tab Panels */}
+      {activeTab === 'overview' && (
+        <OverviewTab
+          statsData={statsData}
+          loading={overviewLoading}
+          timeRange={timeRange}
+          setTimeRange={setTimeRange}
+          customStart={customStart}
+          setCustomStart={setCustomStart}
+          customEnd={customEnd}
+          setCustomEnd={setCustomEnd}
+          onRefresh={fetchOverviewStats}
+          onViewIssues={(filterStatus) => {
+            if (filterStatus) setStatusFilter(filterStatus);
+            setActiveTab('issues');
+          }}
+          onViewAlerts={() => setActiveTab('alerts')}
         />
-      ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs transition-colors">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm text-right">
-              <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
-                <tr>
-                  <th className="px-4 py-3.5 rounded-r-xl">کد خطا</th>
-                  <th className="px-4 py-3.5">نوع استثنا (Exception)</th>
-                  <th className="px-4 py-3.5">مسیر و متد</th>
-                  <th className="px-4 py-3.5">کاربر مربوطه</th>
-                  <th className="px-4 py-3.5">زمان وقوع</th>
-                  <th className="px-4 py-3.5">وضعیت</th>
-                  <th className="px-4 py-3.5 text-center rounded-l-xl">عملیات</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800/70">
-                {paginatedErrors.map((err) => (
-                  <tr key={err.id} className="hover:bg-slate-50/70 dark:hover:bg-slate-800/30 transition-colors">
-                    <td className="px-4 py-3.5">
-                      <span className="font-mono text-xs font-bold text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-2.5 py-1 rounded-lg border border-rose-100 dark:border-rose-900">
-                        {err.status_code}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5">
-                      <span className="font-mono font-bold text-slate-900 dark:text-white block">{err.exception_type}</span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 truncate max-w-xs block" title={err.error_message}>
-                        {err.error_message}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3.5 font-mono text-xs text-slate-600 dark:text-slate-300">
-                      <span className="font-bold text-slate-800 dark:text-slate-200 ml-1">[{err.http_method}]</span>
-                      {err.endpoint}
-                    </td>
-                    <td className="px-4 py-3.5 text-xs text-slate-600 dark:text-slate-300 font-medium">
-                      {err.user_name}
-                    </td>
-                    <td className="px-4 py-3.5 text-xs text-slate-500 dark:text-slate-400 font-mono">
-                      {new Date(err.timestamp).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                    </td>
-                    <td className="px-4 py-3.5">
-                      {err.is_resolved ? (
-                        <Badge variant="success">رفع‌شده</Badge>
-                      ) : (
-                        <Badge variant="danger">در انتظار بررسی</Badge>
-                      )}
-                    </td>
-                    <td className="px-4 py-3.5 text-center">
-                      <button
-                        onClick={() => {
-                          setSelectedError(err);
-                          setResolveNote(err.resolution_note || '');
-                        }}
-                        className="px-3 py-1.5 text-xs font-semibold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/60 rounded-xl border border-sky-200 dark:border-sky-800 transition-colors shadow-2xs"
-                      >
-                        بررسی و استک‌ترس
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            totalItems={errors.length}
-            pageSize={pageSize}
-            onPageChange={(page) => setCurrentPage(page)}
-          />
-        </div>
       )}
 
-      {/* Stack Trace & Error Detail Modal */}
-      <Modal
-        isOpen={!!selectedError}
-        onClose={() => setSelectedError(null)}
-        title={`جزئیات باگ #${selectedError?.id} - [${selectedError?.exception_type}]`}
-        maxWidth="max-w-4xl"
-      >
-        {selectedError && (
-          <div className="space-y-5">
-            {/* Meta info */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200 dark:border-slate-700 text-xs">
-              <div>
-                <span className="text-slate-400 dark:text-slate-400 block">کد وضعیت HTTP:</span>
-                <span className="font-bold font-mono text-rose-600 dark:text-rose-400 text-sm">{selectedError.status_code}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 dark:text-slate-400 block">متد و مسیر:</span>
-                <span className="font-mono text-slate-800 dark:text-slate-200">{selectedError.http_method} {selectedError.endpoint}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 dark:text-slate-400 block">آدرس IP کلاینت:</span>
-                <span className="font-mono text-slate-800 dark:text-slate-200">{selectedError.ip_address || '—'}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 dark:text-slate-400 block">کاربر:</span>
-                <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedError.user_name}</span>
-              </div>
-            </div>
+      {activeTab === 'issues' && (
+        <ErrorIssuesTab
+          issues={issues}
+          loading={issuesLoading}
+          search={search}
+          setSearch={setSearch}
+          handleSearchSubmit={handleSearchSubmit}
+          severityFilter={severityFilter}
+          setSeverityFilter={setSeverityFilter}
+          categoryFilter={categoryFilter}
+          setCategoryFilter={setCategoryFilter}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          statusCodeFilter={statusCodeFilter}
+          setStatusCodeFilter={setStatusCodeFilter}
+          assignedFilter={assignedFilter}
+          setAssignedFilter={setAssignedFilter}
+          ordering={ordering}
+          setOrdering={setOrdering}
+          technicians={technicians}
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={totalItems}
+          pageSize={pageSize}
+          onPageChange={(page) => fetchIssues(page)}
+          onSelectIssue={(id) => setSelectedIssueId(id)}
+          onRefresh={() => fetchIssues(currentPage)}
+        />
+      )}
 
-            {/* Error Message */}
-            <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">متن پیام خطا:</label>
-              <div className="p-3.5 bg-rose-50/70 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-900 dark:text-rose-200 rounded-xl text-sm font-mono leading-relaxed">
-                {selectedError.error_message}
-              </div>
-            </div>
+      {activeTab === 'infrastructure' && (
+        <InfrastructureTab
+          infraData={infraData}
+          loading={infraLoading}
+          onRefresh={fetchInfrastructure}
+        />
+      )}
 
-            {/* Request Data Preview (Safe) */}
-            {selectedError.request_data && (
-              <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1">داده‌های ارسالی کلاینت (فیلترشده):</label>
-                <pre className="p-3 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-mono text-slate-700 dark:text-slate-300 overflow-x-auto">
-                  {selectedError.request_data}
-                </pre>
-              </div>
-            )}
+      {activeTab === 'alerts' && <AlertsTab />}
 
-            {/* Full Stack Trace with Copy Button */}
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
-                  <Terminal className="w-3.5 h-3.5 text-slate-500" />
-                  استک‌ترس کامل خطا (Traceback):
-                </label>
-                <button
-                  onClick={copyStackTrace}
-                  className="inline-flex items-center gap-1 text-xs text-sky-600 dark:text-sky-400 hover:underline font-medium"
-                >
-                  {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                  <span>{copied ? 'کپی شد!' : 'کپی استک‌ترس'}</span>
-                </button>
-              </div>
-              <pre
-                dir="ltr"
-                className="p-4 bg-slate-900 text-slate-100 rounded-2xl text-xs font-mono overflow-x-auto max-h-72 leading-relaxed selection:bg-sky-500 border border-slate-800"
-              >
-                {selectedError.stack_trace}
-              </pre>
-            </div>
+      {activeTab === 'history' && (
+        <InvestigationHistoryTab
+          onSelectIssue={(id) => setSelectedIssueId(id)}
+        />
+      )}
 
-            {/* Resolution Form */}
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 -mx-6 -mb-6 p-6">
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 block mb-1.5">
-                یادداشت ناظر سامانه (علت باگ، اقدام اصلاحی یا توضیحات):
-              </label>
-              <textarea
-                rows={2}
-                value={resolveNote}
-                onChange={(e) => setResolveNote(e.target.value)}
-                placeholder="توضیحات و نتیجه بررسی باگ..."
-                className="w-full text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl p-2.5 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-sky-500 mb-3"
-              />
-              <div className="flex items-center justify-between">
-                <div className="text-xs text-slate-500 dark:text-slate-400">
-                  {selectedError.is_resolved && (
-                    <span>توسط {selectedError.resolved_by_name} در تاریخ {new Date(selectedError.resolved_at).toLocaleDateString('fa-IR')} رفع شده است.</span>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
-                  {selectedError.is_resolved ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      loading={updating}
-                      onClick={() => handleResolve(false)}
-                    >
-                      بازگشایی مجدد خطا
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      loading={updating}
-                      onClick={() => handleResolve(true)}
-                    >
-                      علامت‌گذاری به عنوان رفع‌شده
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </Modal>
+      {activeTab === 'settings' && <MonitoringSettingsTab />}
+
+      {/* Deep Inspection Drawer / Modal */}
+      <ErrorDetailDrawer
+        issueId={selectedIssueId}
+        isOpen={!!selectedIssueId}
+        onClose={() => setSelectedIssueId(null)}
+        onUpdated={() => {
+          fetchIssues(currentPage);
+          fetchOverviewStats();
+        }}
+        technicians={technicians}
+      />
     </div>
   );
 };

@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, MapPin, X, Loader2, ChevronLeft } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { Search, MapPin, X, Loader2, ChevronLeft, Building2 } from 'lucide-react';
+import { LOCAL_PLACES } from './iranPlaces';
 
 const DIGITS_MAP = {
   '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
@@ -30,77 +31,34 @@ function normalizePersian(text) {
   return str.replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
-// Comprehensive local Iranian locations for sub-5ms instant matching
-const IRAN_MAJOR_PLACES = [
-  // Tehran landmarks & districts
-  { title: 'میدان آزادی', subtitle: 'تهران، منطقه ۹', lat: 35.6997, lng: 51.3375, keywords: ['ازادی', 'میدان ازادی', 'تهران', 'برج ازادی'] },
-  { title: 'میدان انقلاب اسلامی', subtitle: 'تهران، منطقه ۶ و ۱۱', lat: 35.7008, lng: 51.3912, keywords: ['انقلاب', 'میدان انقلاب', 'تهران'] },
-  { title: 'میدان ولیعصر', subtitle: 'تهران، منطقه ۶', lat: 35.7115, lng: 51.4070, keywords: ['ولیعصر', 'میدان ولیعصر', 'تهران'] },
-  { title: 'میدان ونک', subtitle: 'تهران، منطقه ۳', lat: 35.7592, lng: 51.4057, keywords: ['ونک', 'میدان ونک', 'تهران'] },
-  { title: 'تجریش', subtitle: 'تهران، منطقه ۱، شمیرانات', lat: 35.8036, lng: 51.4283, keywords: ['تجریش', 'میدان تجریش', 'شمیران'] },
-  { title: 'سعادت‌آباد', subtitle: 'تهران، منطقه ۲', lat: 35.7836, lng: 51.3789, keywords: ['سعادت اباد', 'سعادت آباد', 'تهران'] },
-  { title: 'شهرک غرب', subtitle: 'تهران، منطقه ۲', lat: 35.7538, lng: 51.3688, keywords: ['شهرک غرب', 'قدس', 'تهران'] },
-  { title: 'پونک', subtitle: 'تهران، منطقه ۵', lat: 35.7667, lng: 51.3411, keywords: ['پونک', 'میدان پونک', 'تهران'] },
-  { title: 'تهرانپارس', subtitle: 'تهران، منطقه ۴ و ۸', lat: 35.7289, lng: 51.5294, keywords: ['تهرانپارس', 'فلکه اول', 'فلکه دوم', 'تهران'] },
-  { title: 'پاسداران', subtitle: 'تهران، منطقه ۳ و ۴', lat: 35.7725, lng: 51.4658, keywords: ['پاسداران', 'سلطنت اباد', 'تهران'] },
-  { title: 'صادقیه (آریاشهر)', subtitle: 'تهران، منطقه ۲ و ۵', lat: 35.7208, lng: 51.3350, keywords: ['صادقیه', 'اریاشهر', 'فلکه صادقیه'] },
-  { title: 'ستارخان', subtitle: 'تهران، منطقه ۲', lat: 35.7175, lng: 51.3644, keywords: ['ستارخان', 'خیابان ستارخان', 'تهران'] },
-  { title: 'هفت تیر', subtitle: 'تهران، منطقه ۶ و ۷', lat: 35.7170, lng: 51.4247, keywords: ['هفت تیر', 'میدان هفت تیر', 'تهران'] },
-  { title: 'میدان رسالت', subtitle: 'تهران، منطقه ۴ و ۸', lat: 35.7336, lng: 51.5033, keywords: ['رسالت', 'میدان رسالت', 'تهران'] },
-  { title: 'نارمک', subtitle: 'تهران، منطقه ۸', lat: 35.7280, lng: 51.4980, keywords: ['نارمک', 'هفت حوض', 'تهران'] },
-  { title: 'جنت‌آباد', subtitle: 'تهران، منطقه ۵', lat: 35.7483, lng: 51.3125, keywords: ['جنت اباد', 'جنت آباد', 'تهران'] },
-  { title: 'مرزداران', subtitle: 'تهران، منطقه ۲', lat: 35.7342, lng: 51.3528, keywords: ['مرزداران', 'بلوار مرزداران', 'تهران'] },
-  { title: 'نیاوران', subtitle: 'تهران، منطقه ۱', lat: 35.8190, lng: 51.4680, keywords: ['نیاوران', 'کاخ نیاوران', 'تهران'] },
-  { title: 'الهیه', subtitle: 'تهران، منطقه ۱', lat: 35.7890, lng: 51.4240, keywords: ['الهیه', 'فرشته', 'تهران'] },
-  { title: 'قیطریه', subtitle: 'تهران، منطقه ۱', lat: 35.7925, lng: 51.4420, keywords: ['قیطریه', 'پارک قیطریه', 'تهران'] },
-  { title: 'سیدخندان', subtitle: 'تهران، منطقه ۷', lat: 35.7420, lng: 51.4460, keywords: ['سیدخندان', 'پل سیدخندان', 'تهران'] },
+function tokenize(text) {
+  const norm = normalizePersian(text);
+  return norm.split(' ').filter((t) => t.length > 0);
+}
 
-  // Alborz / Karaj
-  { title: 'کرج (مرکز البرز)', subtitle: 'استان البرز، شهر کرج', lat: 35.8327, lng: 50.9915, keywords: ['کرج', 'البرز', 'مرکز کرج'] },
-  { title: 'گوهردشت (رجایی‌شهر)', subtitle: 'کرج، استان البرز', lat: 35.8560, lng: 50.9850, keywords: ['گوهردشت', 'رجایی شهر', 'کرج'] },
-  { title: 'مهرشهر', subtitle: 'کرج، استان البرز', lat: 35.8050, lng: 50.9120, keywords: ['مهرشهر', 'چهارباندی', 'کرج'] },
-  { title: 'عظیمیه', subtitle: 'کرج، استان البرز', lat: 35.8450, lng: 51.0150, keywords: ['عظیمیه', 'میدان مهران', 'کرج'] },
-  { title: 'جهانشهر', subtitle: 'کرج، استان البرز', lat: 35.8280, lng: 50.9820, keywords: ['جهانشهر', 'میدان گلها', 'کرج'] },
-  { title: 'فردیس', subtitle: 'استان البرز، فردیس', lat: 35.7250, lng: 50.9750, keywords: ['فردیس', 'فلکه اول فردیس', 'کرج'] },
-
-  // Provincial Centers
-  { title: 'تهران', subtitle: 'پایتخت ایران', lat: 35.6892, lng: 51.3890, keywords: ['تهران', 'پایتخت'] },
-  { title: 'مشهد', subtitle: 'مرکز استان خراسان رضوی', lat: 36.2972, lng: 59.6067, keywords: ['مشهد', 'خراسان رضوی'] },
-  { title: 'اصفهان', subtitle: 'مرکز استان اصفهان', lat: 32.6546, lng: 51.6680, keywords: ['اصفهان', 'نصف جهان'] },
-  { title: 'شیراز', subtitle: 'مرکز استان فارس', lat: 29.5918, lng: 52.5837, keywords: ['شیراز', 'فارس'] },
-  { title: 'تبریز', subtitle: 'مرکز استان آذربایجان شرقی', lat: 38.0800, lng: 46.2919, keywords: ['تبریز', 'اذربایجان شرقی'] },
-  { title: 'اهواز', subtitle: 'مرکز استان خوزستان', lat: 31.3183, lng: 48.6706, keywords: ['اهواز', 'خوزستان'] },
-  { title: 'قم', subtitle: 'مرکز استان قم', lat: 34.6401, lng: 50.8764, keywords: ['قم'] },
-  { title: 'رشت', subtitle: 'مرکز استان گیلان', lat: 37.2809, lng: 49.5924, keywords: ['رشت', 'گیلان'] },
-  { title: 'کرمانشاه', subtitle: 'مرکز استان کرمانشاه', lat: 34.3142, lng: 47.0650, keywords: ['کرمانشاه'] },
-  { title: 'ارومیه', subtitle: 'مرکز استان آذربایجان غربی', lat: 37.5527, lng: 45.0761, keywords: ['ارومیه', 'اورمیه'] },
-  { title: 'یزد', subtitle: 'مرکز استان یزد', lat: 31.8974, lng: 54.3569, keywords: ['یزد'] },
-  { title: 'کرمان', subtitle: 'مرکز استان کرمان', lat: 30.2839, lng: 57.0834, keywords: ['کرمان'] },
-  { title: 'همدان', subtitle: 'مرکز استان همدان', lat: 34.7989, lng: 48.5150, keywords: ['همدان'] },
-  { title: 'اراک', subtitle: 'مرکز استان مرکزی', lat: 34.0954, lng: 49.7013, keywords: ['اراک', 'مرکزی'] },
-  { title: 'قزوین', subtitle: 'مرکز استان قزوین', lat: 36.2797, lng: 50.0049, keywords: ['قزوین'] },
-  { title: 'ساری', subtitle: 'مرکز استان مازندران', lat: 36.5659, lng: 53.0586, keywords: ['ساری', 'مازندران'] },
-  { title: 'گرگان', subtitle: 'مرکز استان گلستان', lat: 36.8427, lng: 54.4439, keywords: ['گرگان', 'گلستان'] },
-  { title: 'زنجان', subtitle: 'مرکز استان زنجان', lat: 36.6736, lng: 48.4787, keywords: ['زنجان'] },
-  { title: 'سنندج', subtitle: 'مرکز استان کردستان', lat: 35.3144, lng: 46.9923, keywords: ['سنندج', 'کردستان'] },
-  { title: 'خرم‌آباد', subtitle: 'مرکز استان لرستان', lat: 33.4878, lng: 48.3558, keywords: ['خرم اباد', 'خرم آباد', 'لرستان'] },
-  { title: 'بندرعباس', subtitle: 'مرکز استان هرمزگان', lat: 27.1832, lng: 56.2666, keywords: ['بندرعباس', 'هرمزگان'] },
-  { title: 'بوشهر', subtitle: 'مرکز استان بوشهر', lat: 28.9220, lng: 50.8331, keywords: ['بوشهر'] },
-  { title: 'سمنان', subtitle: 'مرکز استان سمنان', lat: 35.5769, lng: 53.3970, keywords: ['سمنان'] },
-  { title: 'زاهدان', subtitle: 'مرکز استان سیستان و بلوچستان', lat: 29.4963, lng: 60.8629, keywords: ['زاهدان', 'سیستان'] },
-  { title: 'بجنورد', subtitle: 'مرکز استان خراسان شمالی', lat: 37.4761, lng: 57.3283, keywords: ['بجنورد'] },
-  { title: 'بیرجند', subtitle: 'مرکز استان خراسان جنوبی', lat: 32.8663, lng: 59.2211, keywords: ['بیرجند'] },
-  { title: 'اردبیل', subtitle: 'مرکز استان اردبیل', lat: 38.2498, lng: 48.2973, keywords: ['اردبیل'] },
-  { title: 'ایلام', subtitle: 'مرکز استان ایلام', lat: 33.6374, lng: 46.4227, keywords: ['ایلام'] },
-  { title: 'شهرکرد', subtitle: 'مرکز استان چهارمحال و بختیاری', lat: 32.3256, lng: 50.8644, keywords: ['شهرکرد'] },
-  { title: 'یاسوج', subtitle: 'مرکز استان کهگیلویه و بویراحمد', lat: 30.6684, lng: 51.5876, keywords: ['یاسوج'] },
-];
+// Synonyms and stem expansions for common Iranian search patterns (like Neshan / Snapp)
+const STEM_EXPANSIONS = {
+  'نوروزی': ['نوروزیان', 'نوروز'],
+  'نوروز': ['نوروزیان', 'نوروزی'],
+  'ولیعصر': ['ولی عصر', 'عصر'],
+  'شریعتی': ['دکتر شریعتی', 'کوروش'],
+  'مطهری': ['شهید مطهری', 'تخت طاووس'],
+  'بهشتی': ['شهید بهشتی', 'عباس آباد'],
+  'سعادت اباد': ['سعادت آباد', 'کاج'],
+  'صادقیه': ['آریاشهر', 'اریاشهر'],
+  'گوهردشت': ['رجایی شهر', 'رجایی‌شهر'],
+  'تهرانپارس': ['تهران پارس'],
+  'هفت تیر': ['شهدای هفتم تیر', '۲۵ شهریور'],
+  'پاسداران': ['سلطنت آباد', 'سلطنت اباد'],
+  'انقلاب': ['میدان انقلاب', 'انقلاب اسلامی'],
+  'ازادی': ['آزادی', 'میدان آزادی'],
+};
 
 export default function SearchLocation({
   onSelect,
   coords,
   onOpenChange,
-  placeholder = 'جستجوی آدرس (شهر، محله، خیابان...)',
+  placeholder = 'جستجوی آدرس (استان، شهر، محله، خیابان...)',
   disabled = false,
 }) {
   const [query, setQuery] = useState('');
@@ -125,6 +83,18 @@ export default function SearchLocation({
     onOpenChange?.(isOpen);
   }, [isOpen, onOpenChange]);
 
+  // Pre-indexed local database for sub-1ms search
+  const indexedPlaces = useMemo(() => {
+    return (LOCAL_PLACES || []).map((p) => ({
+      ...p,
+      _norm_title: normalizePersian(p.title),
+      _norm_city: normalizePersian(p.city || ''),
+      _norm_county: normalizePersian(p.county || ''),
+      _norm_state: normalizePersian(p.state || ''),
+      _norm_keywords: (p.keywords || []).map(normalizePersian),
+    }));
+  }, []);
+
   // Close suggestions popover when clicking outside
   useEffect(() => {
     const handleOutside = (e) => {
@@ -141,7 +111,165 @@ export default function SearchLocation({
     };
   }, []);
 
-  // Debounced search query
+  // Multi-token scoring algorithm (based on afshar geo_search engine)
+  const scorePlace = useCallback(
+    (place, queryTokens, rawQueryNorm, biasCoords) => {
+      if (!queryTokens.length) return 0;
+      const normTitle = place._norm_title;
+      const titleWords = normTitle.split(' ');
+      let score = 0;
+      let matchedCount = 0;
+
+      for (const qToken of queryTokens) {
+        let matched = false;
+        let bestTokenScore = 0;
+
+        // Check each word in title
+        for (const tw of titleWords) {
+          if (tw === qToken) {
+            bestTokenScore = Math.max(bestTokenScore, 60.0);
+            matched = true;
+          } else if (tw.startsWith(qToken)) {
+            // Prefix match (e.g., 'نوروزی' matches 'نوروزیان')
+            const ratio = qToken.length / tw.length;
+            bestTokenScore = Math.max(bestTokenScore, 42.0 + ratio * 15.0);
+            matched = true;
+          } else if (qToken.startsWith(tw) && tw.length >= 3) {
+            bestTokenScore = Math.max(bestTokenScore, 35.0);
+            matched = true;
+          }
+        }
+
+        // Check city / county match
+        if (place._norm_city === qToken || place._norm_county === qToken) {
+          bestTokenScore = Math.max(bestTokenScore, 45.0);
+          matched = true;
+        } else if (place._norm_city.startsWith(qToken) || place._norm_county.startsWith(qToken)) {
+          bestTokenScore = Math.max(bestTokenScore, 35.0);
+          matched = true;
+        }
+
+        // Check keywords and synonyms
+        if (!matched) {
+          for (const kw of place._norm_keywords) {
+            if (kw === qToken) {
+              bestTokenScore = Math.max(bestTokenScore, 38.0);
+              matched = true;
+              break;
+            } else if (kw.startsWith(qToken)) {
+              bestTokenScore = Math.max(bestTokenScore, 28.0);
+              matched = true;
+              break;
+            } else if (kw.includes(qToken)) {
+              bestTokenScore = Math.max(bestTokenScore, 18.0);
+              matched = true;
+              break;
+            }
+          }
+        }
+
+        // Check stem expansions (e.g. 'نوروزی' -> 'نوروزیان')
+        if (!matched && STEM_EXPANSIONS[qToken]) {
+          for (const exp of STEM_EXPANSIONS[qToken]) {
+            const expNorm = normalizePersian(exp);
+            if (normTitle.includes(expNorm)) {
+              bestTokenScore = Math.max(bestTokenScore, 40.0);
+              matched = true;
+              break;
+            }
+            for (const kw of place._norm_keywords) {
+              if (kw.includes(expNorm)) {
+                bestTokenScore = Math.max(bestTokenScore, 30.0);
+                matched = true;
+                break;
+              }
+            }
+          }
+        }
+
+        if (matched) {
+          matchedCount++;
+          score += bestTokenScore;
+        } else {
+          score -= 22.0;
+        }
+      }
+
+      if (matchedCount === 0) return 0;
+
+      // Penalize missing tokens in multi-word queries
+      if (matchedCount < queryTokens.length) {
+        score *= (matchedCount / queryTokens.length) * 0.35;
+      } else {
+        score += 45.0; // Full coverage bonus
+      }
+
+      // Exact match bonus
+      if (normTitle === rawQueryNorm) {
+        score += 55.0;
+      } else if (normTitle.includes(rawQueryNorm)) {
+        score += 30.0;
+      }
+
+      // Base weight bonus
+      score += (place.weight || 50) * 0.1;
+
+      // Distance proximity bonus/penalty if coords are provided
+      if (biasCoords && typeof biasCoords.lat === 'number' && typeof biasCoords.lng === 'number') {
+        const distKm = Math.hypot((place.lat - biasCoords.lat) * 111.0, (place.lng - biasCoords.lng) * 88.0);
+        if (distKm < 25) {
+          score += 20.0; // Nearby bonus
+        } else {
+          score -= Math.min(distKm * 0.25, 25.0);
+        }
+      }
+
+      return score;
+    },
+    []
+  );
+
+  // Fast local search engine
+  const searchLocal = useCallback(
+    (q, limit = 8) => {
+      const normQ = normalizePersian(q);
+      const tokens = tokenize(q);
+      if (!tokens.length) return [];
+
+      const currentCoords = coordsRef.current;
+      const scored = [];
+
+      for (const p of indexedPlaces) {
+        const s = scorePlace(p, tokens, normQ, currentCoords);
+        if (s > 25.0) {
+          scored.push({
+            score: s,
+            title: p.title,
+            subtitle: p.subtitle || (p.city ? `${p.city}، ${p.state || ''}` : p.address),
+            address: p.address || p.title,
+            lat: p.lat,
+            lng: p.lng,
+            type: p.type || 'place',
+            source: 'local',
+          });
+        }
+      }
+
+      scored.sort((a, b) => b.score - a.score);
+      return scored.slice(0, limit);
+    },
+    [indexedPlaces, scorePlace]
+  );
+
+  const resetSearch = useCallback(() => {
+    setResults([]);
+    setHasSearched(false);
+    setSearchError(false);
+    setIsOpen(false);
+    setActiveIndex(-1);
+  }, []);
+
+  // Debounced search effect
   useEffect(() => {
     if (skipNextSearch.current) {
       skipNextSearch.current = false;
@@ -150,34 +278,20 @@ export default function SearchLocation({
 
     const trimmed = query.trim();
     if (!trimmed || trimmed.length < 2) {
-      if (results.length > 0 || hasSearched || isOpen || activeIndex !== -1) {
-        setResults([]);
-        setHasSearched(false);
-        setSearchError(false);
-        setIsOpen(false);
-        setActiveIndex(-1);
-      }
+      resetSearch();
       return;
     }
 
     const normalizedQ = normalizePersian(trimmed);
+    const tokens = tokenize(trimmed);
 
-    // 1. Instant local matches (0ms latency)
-    const localMatches = IRAN_MAJOR_PLACES.filter((p) => {
-      const matchTitle = normalizePersian(p.title).includes(normalizedQ);
-      const matchSubtitle = normalizePersian(p.subtitle).includes(normalizedQ);
-      const matchKeyword = p.keywords?.some((k) => normalizePersian(k).includes(normalizedQ));
-      return matchTitle || matchSubtitle || matchKeyword;
-    }).map((p) => ({
-      ...p,
-      address: `${p.subtitle}، ${p.title}`,
-      source: 'local',
-    }));
-
+    // 1. Instant local matches (0ms response time!)
+    const localMatches = searchLocal(trimmed, 8);
     if (localMatches.length > 0) {
-      setResults(localMatches.slice(0, 8));
+      setResults(localMatches);
       setHasSearched(true);
       setIsOpen(true);
+      setActiveIndex(-1);
     }
 
     const controller = new AbortController();
@@ -190,51 +304,78 @@ export default function SearchLocation({
         const biasLat = currentCoords?.lat || 35.6892;
         const biasLng = currentCoords?.lng || 51.3890;
 
-        const photonUrl = `https://photon.komoot.io/api/?q=${encodeURIComponent(normalizedQ)}&lat=${biasLat}&lon=${biasLng}&lang=default&limit=8`;
+        // Generate smart search variants for remote geocoder
+        const variants = [normalizedQ];
 
-        const res = await fetch(photonUrl, {
-          method: 'GET',
-          signal: controller.signal,
-          headers: {
-            Accept: 'application/json',
-          },
-        });
-
-        if (!res.ok) {
-          throw new Error(`Search error status: ${res.status}`);
+        // If query contains stems like 'نوروزی', also search 'نوروزیان'
+        for (const t of tokens) {
+          if (STEM_EXPANSIONS[t]) {
+            for (const exp of STEM_EXPANSIONS[t]) {
+              variants.push(normalizedQ.replace(t, exp));
+            }
+          }
         }
 
-        const data = await res.json();
-        const features = Array.isArray(data.features) ? data.features : [];
+        // If tokens > 1, try inverted variant
+        if (tokens.length >= 2) {
+          variants.push(tokens.slice().reverse().join(' '));
+        }
 
-        const osmItems = features.map((f) => {
-          const props = f.properties || {};
-          const geomCoords = f.geometry?.coordinates || [];
-          const name = props.name || props.street || '';
-          const city = props.city || props.town || props.village || props.county || '';
-          const state = props.state || '';
-          const district = props.district || props.suburb || props.neighbourhood || '';
+        const uniqueVariants = Array.from(new Set(variants)).slice(0, 2);
 
-          const subtitleParts = [district, city, state].filter(Boolean);
-          const subtitle = subtitleParts.join('، ') || (props.country || 'ایران');
-          const address = [state, city, district, name].filter(Boolean).join('، ');
+        // Fetch Photon with proximity bias
+        const photonPromises = uniqueVariants.map((v) => {
+          const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(v)}&lat=${biasLat}&lon=${biasLng}&lang=default&limit=6`;
+          return fetch(url, {
+            method: 'GET',
+            signal: controller.signal,
+            headers: { Accept: 'application/json' },
+          }).then((r) => (r.ok ? r.json() : { features: [] })).catch(() => ({ features: [] }));
+        });
 
-          return {
-            title: name,
-            subtitle,
-            address: address || name,
-            lat: geomCoords[1],
-            lng: geomCoords[0],
-            source: 'osm',
-          };
-        }).filter((item) => item.title && !isNaN(item.lat) && !isNaN(item.lng));
+        const responses = await Promise.all(photonPromises);
+        const allFeatures = [];
+        for (const data of responses) {
+          if (Array.isArray(data.features)) {
+            allFeatures.push(...data.features);
+          }
+        }
 
-        // Merge & deduplicate local + OSM results
+        // Format remote items into clean Snapp/Neshan style
+        const osmItems = allFeatures
+          .map((f) => {
+            const props = f.properties || {};
+            const geomCoords = f.geometry?.coordinates || [];
+            const name = props.name || props.street || '';
+            const city = props.city || props.town || props.village || props.county || '';
+            const state = props.state || '';
+            const district = props.district || props.suburb || props.neighbourhood || '';
+
+            const subtitleParts = [district, city, state].filter(Boolean);
+            const subtitle = subtitleParts.join('، ') || (props.country || 'ایران');
+            const address = [state, city, district, name].filter(Boolean).join('، ');
+
+            return {
+              title: name,
+              subtitle,
+              address: address || name,
+              lat: geomCoords[1],
+              lng: geomCoords[0],
+              type: props.osm_value || props.type || 'place',
+              source: 'osm',
+            };
+          })
+          .filter((item) => item.title && !isNaN(item.lat) && !isNaN(item.lng));
+
+        // Merge local matches and OSM results, deduplicating by coordinates and title
         const combined = [...localMatches];
         for (const o of osmItems) {
           const isDuplicate = combined.some((existing) => {
             const dist = Math.hypot(existing.lat - o.lat, existing.lng - o.lng);
-            return dist < 0.003 || normalizePersian(existing.title) === normalizePersian(o.title);
+            return (
+              dist < 0.003 ||
+              normalizePersian(existing.title) === normalizePersian(o.title)
+            );
           });
           if (!isDuplicate) {
             combined.push(o);
@@ -251,7 +392,6 @@ export default function SearchLocation({
         }
       } catch (err) {
         if (err.name === 'AbortError') return;
-        // If local matches already exist, keep them rather than showing an error
         if (localMatches.length === 0) {
           setResults([]);
           setSearchError(true);
@@ -268,7 +408,7 @@ export default function SearchLocation({
       controller.abort();
       clearTimeout(timeout);
     };
-  }, [query]);
+  }, [query, searchLocal, resetSearch]);
 
   const handleSelect = useCallback(
     (item) => {
@@ -350,19 +490,19 @@ export default function SearchLocation({
       <div
         className="
           flex items-center gap-2.5
-          h-10 sm:h-11
-          bg-white/95 dark:bg-slate-900/95
+          h-11 sm:h-12
+          bg-white/98 dark:bg-slate-900/98
           backdrop-blur-md
-          border border-slate-200/90 dark:border-slate-700/90
+          border border-sky-200/90 dark:border-slate-700/90
           rounded-2xl
-          px-3
-          shadow-md shadow-slate-900/5 dark:shadow-black/30
+          px-3.5
+          shadow-lg shadow-slate-900/10 dark:shadow-black/40
           transition-all
           focus-within:border-sky-500 dark:focus-within:border-sky-400
-          focus-within:ring-2 focus-within:ring-sky-200/60 dark:focus-within:ring-sky-500/20
+          focus-within:ring-2 focus-within:ring-sky-200/60 dark:focus-within:ring-sky-500/25
         "
       >
-        <Search className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0" />
+        <Search className="w-4.5 h-4.5 text-sky-600 dark:text-sky-400 shrink-0" />
 
         <input
           ref={inputRef}
@@ -393,7 +533,7 @@ export default function SearchLocation({
 
         {loading && (
           <div className="flex items-center gap-1.5 text-xs text-sky-600 dark:text-sky-400 shrink-0">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <Loader2 className="w-4 h-4 animate-spin" />
             <span className="hidden sm:inline text-[11px] font-medium">در حال جستجو...</span>
           </div>
         )}
@@ -406,7 +546,7 @@ export default function SearchLocation({
             title="پاک کردن"
             className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors shrink-0 cursor-pointer"
           >
-            <X className="w-3.5 h-3.5" />
+            <X className="w-4 h-4" />
           </button>
         )}
       </div>
@@ -425,20 +565,20 @@ export default function SearchLocation({
             overflow-hidden
             bg-white/98 dark:bg-slate-900/98
             backdrop-blur-xl
-            border border-slate-200 dark:border-slate-700
-            shadow-xl shadow-slate-900/15 dark:shadow-black/50
+            border border-sky-200/90 dark:border-slate-700
+            shadow-2xl shadow-slate-900/20 dark:shadow-black/60
             z-[1050]
           "
         >
           {showResultsList && (
             <>
               {/* Header */}
-              <div className="flex items-center justify-between px-3.5 py-1.5 bg-sky-50/80 dark:bg-slate-800/80 border-b border-sky-100 dark:border-slate-800 text-[11px]">
+              <div className="flex items-center justify-between px-3.5 py-2 bg-sky-50/90 dark:bg-slate-800/90 border-b border-sky-100 dark:border-slate-800 text-[11px]">
                 <span className="font-semibold text-slate-700 dark:text-slate-300">
-                  نتایج جستجو
+                  نتایج جستجو (نشان / اسنپ)
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 rounded-full bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 font-bold border border-sky-100 dark:border-slate-700">
+                  <span className="px-2 py-0.5 rounded-full bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-400 font-bold border border-sky-100 dark:border-slate-700 shadow-2xs">
                     {results.length.toLocaleString('fa-IR')} مورد
                   </span>
                   <button
@@ -460,7 +600,7 @@ export default function SearchLocation({
                   flex flex-col
                   overflow-y-auto
                   overscroll-contain
-                  max-h-[190px] sm:max-h-[220px]
+                  max-h-[210px] sm:max-h-[240px]
                   divide-y divide-slate-100 dark:divide-slate-800/60
                 "
               >
@@ -476,20 +616,24 @@ export default function SearchLocation({
                       onMouseEnter={() => setActiveIndex(index)}
                       onClick={() => handleSelect(item)}
                       className={`
-                        group flex items-center gap-2.5 px-3 py-2 cursor-pointer text-right transition-colors
+                        group flex items-center gap-3 px-3.5 py-2.5 cursor-pointer text-right transition-colors
                         ${
                           isActive
-                            ? 'bg-sky-50 dark:bg-slate-800/90'
+                            ? 'bg-sky-50/90 dark:bg-slate-800/90'
                             : 'hover:bg-sky-50/60 dark:hover:bg-slate-800/50'
                         }
                       `}
                     >
-                      <span className="w-7 h-7 rounded-lg bg-sky-100/70 dark:bg-slate-800 border border-sky-200/60 dark:border-slate-700 text-sky-600 dark:text-sky-400 group-hover:bg-sky-200/80 dark:group-hover:bg-sky-900/40 flex items-center justify-center shrink-0 transition-colors">
-                        <MapPin className="w-3.5 h-3.5" />
+                      <span className="w-8 h-8 rounded-xl bg-sky-100/70 dark:bg-slate-800 border border-sky-200/60 dark:border-slate-700 text-sky-600 dark:text-sky-400 group-hover:bg-sky-200/80 dark:group-hover:bg-sky-900/40 flex items-center justify-center shrink-0 transition-colors shadow-2xs">
+                        {item.type === 'university' || item.type === 'hospital' || item.type === 'office' ? (
+                          <Building2 className="w-4 h-4" />
+                        ) : (
+                          <MapPin className="w-4 h-4" />
+                        )}
                       </span>
 
                       <div className="flex-1 min-w-0 text-right">
-                        <div className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 truncate">
+                        <div className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 truncate">
                           {item.title}
                         </div>
                         {secondaryText && (
@@ -499,7 +643,7 @@ export default function SearchLocation({
                         )}
                       </div>
 
-                      <ChevronLeft className="w-3.5 h-3.5 text-slate-300 dark:text-slate-600 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-transform group-hover:-translate-x-0.5 shrink-0" />
+                      <ChevronLeft className="w-4 h-4 text-slate-300 dark:text-slate-600 group-hover:text-sky-500 dark:group-hover:text-sky-400 transition-transform group-hover:-translate-x-0.5 shrink-0" />
                     </li>
                   );
                 })}
@@ -508,7 +652,7 @@ export default function SearchLocation({
           )}
 
           {showEmptyState && (
-            <div className="px-4 py-3 flex items-center gap-3 text-right">
+            <div className="px-4 py-3.5 flex items-center gap-3 text-right">
               <span className="w-8 h-8 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center shrink-0">
                 <Search className="w-4 h-4" />
               </span>
@@ -518,8 +662,8 @@ export default function SearchLocation({
                 </p>
                 <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">
                   {searchError
-                    ? 'لطفاً دوباره تلاش کنید یا موقعیت را روی نقشه انتخاب نمایید.'
-                    : 'نام شهر، محله یا خیابان دیگری را امتحان فرمایید.'}
+                    ? 'لطفاً دوباره تلاش کنید یا موقعیت را روی نقشه انتخاب فرمایید.'
+                    : 'نام شهر، خیابان، محله یا میدان دیگری را جستجو فرمایید.'}
                 </p>
               </div>
             </div>
