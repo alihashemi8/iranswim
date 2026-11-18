@@ -114,8 +114,8 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
           className={`${
             isFullWidth
               ? 'w-full px-3 sm:px-6'
-              : 'max-w-7xl mx-auto px-2.5 sm:px-4 lg:px-8'
-          } h-16 sm:h-[68px] flex items-center justify-between gap-2 md:gap-2.5 lg:gap-4 flex-nowrap`}
+              : 'max-w-7xl mx-auto px-3 sm:px-4 lg:px-8'
+          } h-[74px] sm:h-[68px] lg:h-[72px] flex items-center justify-between gap-2 md:gap-2.5 lg:gap-4 flex-nowrap`}
         >
           {/* Brand & Main Navigation (Right side in RTL) */}
           <div className="flex items-center gap-1.5 md:gap-2 lg:gap-4 xl:gap-8 shrink-0 flex-nowrap min-w-0">
@@ -124,10 +124,10 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               <button
                 type="button"
                 onClick={onMenuClick}
-                className="p-1.5 sm:p-2 -mr-1 md:hidden text-slate-700 dark:text-slate-200 hover:text-sky-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors shrink-0 cursor-pointer"
+                className="w-10 h-10 flex items-center justify-center -mr-1 md:hidden text-slate-700 dark:text-slate-200 hover:text-sky-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors shrink-0 cursor-pointer"
                 aria-label="باز کردن منوی سایدبار"
               >
-                <Menu className="w-5 h-5" />
+                <Menu className="w-5.5 h-5.5 sm:w-5 sm:h-5" />
               </button>
             )}
 
@@ -136,31 +136,31 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(true)}
-                className="p-2 -mr-1.5 md:hidden text-[#083B5C] dark:text-slate-200 hover:text-[#087EA4] dark:hover:text-cyan-400 hover:bg-sky-50 dark:hover:bg-slate-800 rounded-xl transition-colors shrink-0 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#087EA4]/40"
+                className="w-10 h-10 flex items-center justify-center -mr-1 md:hidden text-[#083B5C] dark:text-slate-200 hover:text-[#087EA4] dark:hover:text-cyan-400 hover:bg-sky-50 dark:hover:bg-slate-800 rounded-xl transition-colors shrink-0 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#087EA4]/40"
                 aria-label="باز کردن منوی ناوبری"
                 aria-expanded={mobileMenuOpen}
               >
-                <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
+                <Menu className="w-6 h-6 sm:w-6 sm:h-6" />
               </button>
             )}
 
             {/* Brand Logo - 1 single line on tablet & mobile */}
             <Link
               to="/"
-              className="flex items-center gap-2 md:gap-2.5 lg:gap-3 text-[#083B5C] dark:text-white hover:opacity-95 transition-opacity shrink-0 select-none py-1"
+              className="flex items-center gap-2 sm:gap-2.5 lg:gap-3 text-[#083B5C] dark:text-white hover:opacity-95 transition-opacity shrink-0 select-none py-1"
             >
               <picture>
                 <source srcSet="/images/logo.webp" type="image/webp" />
                 <img
                   src="/images/logo.webp"
                   alt="لوگوی مدرسه شنای ایران"
-                  className="w-12 h-12 sm:w-14 sm:h-14 lg:w-[62px] lg:h-[62px] object-contain shrink-0 drop-shadow-sm select-none transition-transform hover:scale-105 duration-200"
+                  className="w-[54px] h-[54px] sm:w-14 sm:h-14 lg:w-[62px] lg:h-[62px] object-contain shrink-0 drop-shadow-sm select-none transition-transform hover:scale-105 duration-200"
                   loading="eager"
                   fetchPriority="high"
                 />
               </picture>
               <div className="flex flex-col xl:flex-col shrink-0 text-right">
-                <span className="font-extrabold text-xs sm:text-sm md:text-[13px] lg:text-base text-[#083B5C] dark:text-white tracking-tight leading-tight whitespace-nowrap">
+                <span className="font-black sm:font-extrabold text-[14.5px] sm:text-sm md:text-[13px] lg:text-base text-[#083B5C] dark:text-white tracking-tight leading-tight whitespace-nowrap">
                   مدرسه شنای ایران
                 </span>
 
@@ -227,14 +227,14 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 <button
                   type="button"
                   onClick={toggleTheme}
-                  className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center text-slate-500 hover:text-amber-500 dark:text-slate-300 dark:hover:text-amber-400 bg-white dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-xl transition-colors border border-slate-200/80 dark:border-slate-700/80 shadow-2xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40"
+                  className="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-amber-500 dark:text-slate-300 dark:hover:text-amber-400 bg-white dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-xl transition-colors border border-slate-200/80 dark:border-slate-700/80 shadow-2xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40"
                   aria-label={theme === 'dark' ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
                   title={theme === 'dark' ? 'حالت روز (روشن)' : 'حالت شب (تاریک)'}
                 >
                   {theme === 'dark' ? (
-                    <Sun className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-amber-400 transition-transform hover:rotate-45" />
+                    <Sun className="w-5 h-5 text-amber-400 transition-transform hover:rotate-45" />
                   ) : (
-                    <Moon className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-300 transition-transform hover:-rotate-12" />
+                    <Moon className="w-5 h-5 text-slate-600 dark:text-slate-300 transition-transform hover:-rotate-12" />
                   )}
                 </button>
               </div>
@@ -244,14 +244,14 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 <button
                   type="button"
                   onClick={toggleTheme}
-                  className="w-8.5 h-8.5 sm:w-9 sm:h-9 flex items-center justify-center text-slate-600 hover:text-amber-500 dark:text-slate-300 dark:hover:text-amber-400 bg-white/80 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-xl transition-colors border border-slate-200/80 dark:border-slate-700/80 shadow-2xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40"
+                  className="w-10 h-10 sm:w-9 sm:h-9 lg:w-10 lg:h-10 flex items-center justify-center text-slate-600 hover:text-amber-500 dark:text-slate-300 dark:hover:text-amber-400 bg-white/80 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-xl transition-colors border border-slate-200/80 dark:border-slate-700/80 shadow-2xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40"
                   aria-label={theme === 'dark' ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
                   title={theme === 'dark' ? 'حالت روز (روشن)' : 'حالت شب (تاریک)'}
                 >
                   {theme === 'dark' ? (
-                    <Sun className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-amber-400 transition-transform hover:rotate-45" />
+                    <Sun className="w-5 h-5 sm:w-4.5 sm:h-4.5 text-amber-400 transition-transform hover:rotate-45" />
                   ) : (
-                    <Moon className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-slate-600 dark:text-slate-300 transition-transform hover:-rotate-12" />
+                    <Moon className="w-5 h-5 sm:w-4.5 sm:h-4.5 text-slate-600 dark:text-slate-300 transition-transform hover:-rotate-12" />
                   )}
                 </button>
 
@@ -261,13 +261,13 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 {user ? (
                   <Link
                     to={getDashboardPath(user.role)}
-                    className="flex items-center gap-2 px-2.5 sm:px-3 py-1.5 rounded-xl hover:bg-sky-50/80 dark:hover:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/90 transition-colors cursor-pointer group shrink-0"
+                    className="flex items-center gap-2 p-1 sm:px-3 sm:py-1.5 rounded-xl hover:bg-sky-50/80 dark:hover:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/90 transition-colors cursor-pointer group shrink-0"
                     title="ورود به داشبورد"
                   >
                     <div
-                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-xl bg-gradient-to-tr ${
+                      className={`w-9 h-9 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-tr ${
                         roleGradients[user.role] || 'from-sky-600 to-cyan-500'
-                      } text-white flex items-center justify-center font-bold text-xs shadow-2xs shrink-0`}
+                      } text-white flex items-center justify-center font-bold text-sm sm:text-xs shadow-2xs shrink-0`}
                     >
                       {user.full_name ? user.full_name.trim().charAt(0) : 'U'}
                     </div>
@@ -283,18 +283,18 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 ) : (location.pathname === '/login' || location.pathname === '/register') ? (
                   <Link
                     to="/"
-                    className="inline-flex items-center gap-1 md:gap-1.5 lg:gap-2 px-2.5 md:px-3 lg:px-4 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-bold text-[#083B5C] dark:text-cyan-300 bg-sky-50 dark:bg-slate-800/90 hover:bg-sky-100 dark:hover:bg-slate-700/80 hover:text-[#087EA4] dark:hover:text-cyan-200 border border-sky-200/90 dark:border-slate-700/90 rounded-xl shadow-2xs transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
+                    className="inline-flex items-center gap-1.5 md:gap-1.5 lg:gap-2 px-3 sm:px-3 lg:px-4 py-2 md:py-2 text-[13px] md:text-xs lg:text-sm font-bold text-[#083B5C] dark:text-cyan-300 bg-sky-50 dark:bg-slate-800/90 hover:bg-sky-100 dark:hover:bg-slate-700/80 hover:text-[#087EA4] dark:hover:text-cyan-200 border border-sky-200/90 dark:border-slate-700/90 rounded-xl shadow-2xs transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                   >
-                    <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 rotate-180" />
+                    <ChevronLeft className="w-4 h-4 sm:w-4 sm:h-4 shrink-0 rotate-180" />
                     <span className="hidden sm:inline">بازگشت به سایت</span>
                     <span className="inline sm:hidden">صفحه اصلی</span>
                   </Link>
                 ) : (
                   <Link
                     to="/login"
-                    className="group inline-flex items-center gap-1 md:gap-1.5 lg:gap-2 px-2.5 md:px-3 lg:px-4.5 py-1.5 md:py-2 text-xs md:text-xs lg:text-sm font-bold !text-white hover:!text-white bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] rounded-xl shadow-xs hover:shadow-md hover:shadow-cyan-500/25 transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
+                    className="group inline-flex items-center gap-1.5 md:gap-1.5 lg:gap-2 px-3.5 sm:px-3 lg:px-4.5 py-2 md:py-2 text-[13px] md:text-xs lg:text-sm font-bold !text-white hover:!text-white bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] rounded-xl shadow-xs hover:shadow-md hover:shadow-cyan-500/25 transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                   >
-                    <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 !text-white transition-transform duration-200 group-hover:-translate-x-0.5" />
+                    <LogIn className="w-4 h-4 sm:w-4 sm:h-4 shrink-0 !text-white transition-transform duration-200 group-hover:-translate-x-0.5" />
                     <span className="hidden sm:inline !text-white">ورود / ثبت‌نام</span>
                     <span className="inline sm:hidden !text-white">ورود</span>
                   </Link>
@@ -314,7 +314,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
           >
             <svg
               viewBox="0 0 1440 28"
-              className="w-full h-3 sm:h-4.5 lg:h-5.5 block drop-shadow-[0_4px_6px_rgba(8,59,92,0.06)] dark:drop-shadow-[0_4px_6px_rgba(0,0,0,0.4)]"
+              className="w-full h-3.5 sm:h-4.5 lg:h-5.5 block drop-shadow-[0_4px_6px_rgba(8,59,92,0.06)] dark:drop-shadow-[0_4px_6px_rgba(0,0,0,0.4)]"
               preserveAspectRatio="none"
               fill="none"
               xmlns="http://www.w3.org/2000/svg"
