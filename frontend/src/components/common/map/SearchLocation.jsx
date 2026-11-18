@@ -515,6 +515,7 @@ export default function SearchLocation({
     }
 
     const normalizedQ = normalizePersian(trimmed);
+    const withDigits = convertQueryWordsToDigits(trimmed);
     const tokens = tokenize(trimmed);
 
     // 1. Instant local matches (0ms response time!)
@@ -537,27 +538,31 @@ export default function SearchLocation({
         const biasLat = currentCoords?.lat || 36.2797;
         const biasLng = currentCoords?.lng || 50.0049;
 
-        // Parse numbers if present in query (e.g. "حکمت چهل" -> 40, "اندیشه ۱۲" -> 12)
+        // Parse numbers if present in query (e.g. "حکمت چهل" -> 40, "حکمت سی" -> 30, "اندیشه ۱۲" -> 12)
         const queryNum = parsePersianWordNumber(trimmed) || parsePersianWordNumber(withDigits);
         const strippedPrefix = normalizedQ.replace(/^(کوچه|کوچه‌ی|بن\s*بست|بن‌بست|خیابان|بلوار)\s+/, '').trim();
         const strippedWithDigits = withDigits.replace(/^(کوچه|کوچه‌ی|بن\s*بست|بن‌بست|خیابان|بلوار)\s+/, '').trim();
+
+        // Extract pure alley query without neighborhood (e.g. "نوروزیان حکمت سی" -> "حکمت سی" / "حکمت 30")
+        let alleyQuery = strippedPrefix;
+        let alleyQueryWithDigits = strippedWithDigits;
+        for (const kn of KNOWN_NEIGHBORHOODS) {
+          if (normalizedQ.includes(kn)) {
+            const s1 = alleyQuery.replace(kn, '').trim();
+            if (s1.length >= 2) alleyQuery = s1;
+            const s2 = alleyQueryWithDigits.replace(kn, '').trim();
+            if (s2.length >= 2) alleyQueryWithDigits = s2;
+          }
+        }
 
         // Generate smart search variants for remote geocoder
         const rawVariants = new Set();
         if (strippedPrefix) rawVariants.add(strippedPrefix);
         if (strippedWithDigits) rawVariants.add(strippedWithDigits);
+        if (alleyQuery) rawVariants.add(alleyQuery);
+        if (alleyQueryWithDigits) rawVariants.add(alleyQueryWithDigits);
         rawVariants.add(normalizedQ);
         if (withDigits) rawVariants.add(withDigits);
-
-        // If query combines a neighborhood + alley (e.g. "نوروزیان حکمت چهل"), add pure alley variant
-        for (const kn of KNOWN_NEIGHBORHOODS) {
-          if (normalizedQ.includes(kn)) {
-            const pureAlley = strippedWithDigits.replace(kn, '').trim();
-            if (pureAlley.length >= 2) {
-              rawVariants.add(pureAlley);
-            }
-          }
-        }
 
         // Stem expansions
         for (const t of tokens) {
@@ -631,25 +636,25 @@ export default function SearchLocation({
             const nameNum = parsePersianWordNumber(normName) || parsePersianWordNumber(normNameWithDigits);
 
             // EXACT MATCH CHECKS (Massive +650 boost)
-            const isExactName = (normName === strippedPrefix || normName === normalizedQ);
-            const isExactDigits = (normNameWithDigits === strippedWithDigits || normNameWithDigits === withDigits);
+            const isExactName = (normName === strippedPrefix || normName === normalizedQ || normName === alleyQuery);
+            const isExactDigits = (normNameWithDigits === strippedWithDigits || normNameWithDigits === withDigits || normNameWithDigits === alleyQueryWithDigits);
 
             if (isExactName || isExactDigits) {
               score += 650;
-            } else if (normName.startsWith(strippedPrefix) && !normName.includes(' و ')) {
+            } else if (normName.startsWith(alleyQuery) && !normName.includes(' و ')) {
               score += 200;
-            } else if (normName.includes(strippedPrefix)) {
+            } else if (normName.includes(alleyQuery)) {
               score += 40;
             }
 
-            // Conflict penalty: If user asked for specific number (e.g. 40 in حکمت چهل),
-            // and candidate has a different number (e.g. 41 or 43), penalize heavily
+            // Conflict penalty: If user asked for specific number (e.g. 30 in حکمت سی),
+            // and candidate has a different number (e.g. 31 or 38), penalize heavily
             if (queryNum !== null && nameNum !== null && queryNum !== nameNum) {
               score -= 250;
             }
 
             // Multi-token neighborhood match:
-            // e.g. user typed "نوروزیان حکمت چهل" -> candidate has locality "نوروزیان"
+            // e.g. user typed "نوروزیان حکمت سی" -> candidate has locality "نوروزیان" or "دانشگاه"
             const fullCand = `${props.locality || ''} ${props.district || ''} ${props.street || ''} ${props.name || ''}`;
             for (const kn of KNOWN_NEIGHBORHOODS) {
               if (normalizedQ.includes(kn) && fullCand.includes(kn)) {
