@@ -110,6 +110,11 @@ class CourseSerializer(serializers.ModelSerializer):
     )
     coaches = serializers.SerializerMethodField(read_only=True)
     time_display = serializers.SerializerMethodField(read_only=True)
+    is_matched = serializers.SerializerMethodField(read_only=True)
+    match_details = serializers.SerializerMethodField(read_only=True)
+    is_enrolled = serializers.SerializerMethodField(read_only=True)
+    enrollment_status = serializers.SerializerMethodField(read_only=True)
+    has_pending_request = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
         model = Course
@@ -118,9 +123,99 @@ class CourseSerializer(serializers.ModelSerializer):
             'start_time', 'end_time', 'time_display', 'coaches', 'coach_ids',
             'start_date', 'end_date', 'base_price', 'sessions_count', 'installments_count',
             'card_number', 'card_holder', 'status',
-            'groups', 'age_range', 'gender', 'gender_display', 'what_you_learn',
+            'groups', 'age_range', 'min_age', 'max_age', 'gender', 'gender_display', 'what_you_learn',
+            'is_matched', 'match_details', 'is_enrolled', 'enrollment_status', 'has_pending_request',
             'created_at'
         ]
+
+    def _get_target_swimmer(self):
+        if hasattr(self, '_target_swimmer_cached'):
+            return self._target_swimmer_cached
+        request = self.context.get('request')
+        swimmer = None
+        if request and request.user and request.user.is_authenticated:
+            from apps.swimmers.views import get_accessible_swimmer_profile
+            swimmer_id = request.query_params.get('swimmer_id') or request.headers.get('X-Swimmer-Id')
+            try:
+                swimmer = get_accessible_swimmer_profile(request.user, swimmer_id)
+            except Exception:
+                swimmer = getattr(request.user, 'swimmer_profile', None)
+        self._target_swimmer_cached = swimmer
+        return swimmer
+
+    def get_match_details(self, obj):
+        swimmer = self._get_target_swimmer()
+        if not swimmer:
+            return {
+                'has_profile': False,
+                'is_matched': True,
+                'gender_matched': True,
+                'age_matched': True,
+                'gender_reason': '',
+                'age_reason': ''
+            }
+
+        swimmer_gender = getattr(swimmer, 'gender', None)
+        swimmer_age = getattr(swimmer, 'age', None)
+
+        gender_ok = obj.is_gender_eligible(swimmer_gender)
+        age_ok = obj.is_age_eligible(swimmer_age)
+
+        gender_reason = ''
+        if not gender_ok:
+            if obj.gender == 'MALE':
+                gender_reason = 'این دوره اختصاصاً ویژه پسران / آقایان است.'
+            elif obj.gender == 'FEMALE':
+                gender_reason = 'این دوره اختصاصاً ویژه دختران / بانوان است.'
+
+        age_reason = ''
+        if not age_ok and swimmer_age is not None:
+            if obj.min_age is not None and swimmer_age < obj.min_age:
+                age_reason = f'حداقل سن مجاز {obj.min_age} سال است (سن شما: {swimmer_age} سال).'
+            elif obj.max_age is not None and swimmer_age > obj.max_age:
+                age_reason = f'حداکثر سن مجاز {obj.max_age} سال است (سن شما: {swimmer_age} سال).'
+        elif swimmer_age is None and (obj.min_age is not None or obj.max_age is not None):
+            age_reason = 'تاریخ تولد شناگر در پروفایل ثبت نشده است.'
+
+        return {
+            'has_profile': True,
+            'swimmer_id': swimmer.id,
+            'swimmer_name': swimmer.full_name,
+            'swimmer_gender': swimmer_gender,
+            'swimmer_age': swimmer_age,
+            'gender_matched': gender_ok,
+            'age_matched': age_ok,
+            'is_matched': gender_ok and age_ok,
+            'gender_reason': gender_reason,
+            'age_reason': age_reason,
+        }
+
+    def get_is_matched(self, obj):
+        details = self.get_match_details(obj)
+        return details.get('is_matched', True)
+
+    def get_is_enrolled(self, obj):
+        swimmer = self._get_target_swimmer()
+        if not swimmer:
+            return False
+        return obj.enrollments.filter(swimmer=swimmer, status__in=['ACTIVE', 'PENDING_PAYMENT']).exists()
+
+    def get_has_pending_request(self, obj):
+        swimmer = self._get_target_swimmer()
+        if not swimmer:
+            return False
+        return obj.enrollment_requests.filter(swimmer=swimmer, status='PENDING').exists()
+
+    def get_enrollment_status(self, obj):
+        swimmer = self._get_target_swimmer()
+        if not swimmer:
+            return 'NOT_ENROLLED'
+        enr = obj.enrollments.filter(swimmer=swimmer).first()
+        if enr:
+            return enr.status
+        if obj.enrollment_requests.filter(swimmer=swimmer, status='PENDING').exists():
+            return 'REQUEST_PENDING'
+        return 'AVAILABLE'
 
     def get_time_display(self, obj):
         if obj.start_time and obj.end_time:

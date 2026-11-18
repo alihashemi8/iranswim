@@ -52,6 +52,7 @@ class SwimVideoSerializer(serializers.ModelSerializer):
 
 class SwimmerProfileSerializer(serializers.ModelSerializer):
     full_name = serializers.CharField(read_only=True)
+    age = serializers.IntegerField(read_only=True)
     level_name = serializers.CharField(source='current_level.name', read_only=True)
     gender_display = serializers.CharField(source='get_gender_display', read_only=True)
     has_required_info = serializers.BooleanField(read_only=True)
@@ -78,7 +79,7 @@ class SwimmerProfileSerializer(serializers.ModelSerializer):
         model = SwimmerProfile
         fields = [
             'id', 'user', 'first_name', 'last_name', 'full_name',
-            'gender', 'gender_display', 'phone', 'national_id',
+            'gender', 'gender_display', 'age', 'phone', 'national_id',
             'date_of_birth', 'birth_year_jalali', 'date_of_birth_jalali',
             'father_name', 'father_phone', 'father_job',
             'mother_phone', 'mother_job',
