@@ -158,6 +158,8 @@ def get_storage_metrics():
             'free_gb': free_gb,
             'percent': percent,
             'media_size_mb': media_mb,
+            'mount_path': base_path,
+            'metric_scope': 'CONTAINER_MOUNT',
             'status': 'WARNING' if percent > 85 else ('CRITICAL' if percent > 95 else 'NORMAL')
         }
     except Exception as e:
@@ -167,40 +169,117 @@ def get_storage_metrics():
             'free_gb': 27.5,
             'percent': 31.2,
             'media_size_mb': 15.0,
+            'mount_path': '/',
+            'metric_scope': 'CONTAINER_MOUNT',
             'status': 'NORMAL',
             'note': str(e)
         }
 
 
-def get_cgroup_memory_limit():
-    """تشخیص سقف حافظه کانتینر داکر از طریق cgroups v1 یا v2 در لینوکس"""
-    # cgroup v2
-    cg2_path = '/sys/fs/cgroup/memory.max'
-    if os.path.exists(cg2_path):
+def get_cgroup_memory_metrics():
+    """
+    تشخیص سقف حافظه و میزان مصرف واقعی کانتینر داکر از طریق cgroups v1 یا v2 در لینوکس (Ubuntu 24.04):
+    بازگرداندن limit_mb, used_mb, version
+    """
+    # 1. cgroup v2 (Ubuntu 24.04 default)
+    cg2_max = '/sys/fs/cgroup/memory.max'
+    cg2_current = '/sys/fs/cgroup/memory.current'
+    if os.path.exists(cg2_max):
         try:
-            with open(cg2_path, 'r') as f:
+            with open(cg2_max, 'r') as f:
                 val = f.read().strip()
-                if val != 'max' and val.isdigit():
-                    return round(int(val) / (1024 ** 2), 1)
+            if val != 'max' and val.isdigit():
+                limit_mb = round(int(val) / (1024 ** 2), 1)
+                used_mb = 0.0
+                if os.path.exists(cg2_current):
+                    try:
+                        with open(cg2_current, 'r') as f:
+                            c_val = f.read().strip()
+                            if c_val.isdigit():
+                                used_mb = round(int(c_val) / (1024 ** 2), 1)
+                    except Exception:
+                        pass
+                return {
+                    'limit_mb': limit_mb,
+                    'used_mb': used_mb,
+                    'version': 'v2'
+                }
         except Exception:
             pass
-    # cgroup v1
-    cg1_path = '/sys/fs/cgroup/memory/memory.limit_in_bytes'
-    if os.path.exists(cg1_path):
+
+    # 2. cgroup v1 (Legacy Docker hosts)
+    cg1_limit = '/sys/fs/cgroup/memory/memory.limit_in_bytes'
+    cg1_usage = '/sys/fs/cgroup/memory/memory.usage_in_bytes'
+    if os.path.exists(cg1_limit):
         try:
-            with open(cg1_path, 'r') as f:
+            with open(cg1_limit, 'r') as f:
                 val = int(f.read().strip())
-                # If limit is > 1 TB, it means no container limit is configured
-                if val < 1099511627776:
-                    return round(val / (1024 ** 2), 1)
+            # If limit is > 1 TB, it means no container limit is configured
+            if val < 1099511627776:
+                limit_mb = round(val / (1024 ** 2), 1)
+                used_mb = 0.0
+                if os.path.exists(cg1_usage):
+                    try:
+                        with open(cg1_usage, 'r') as f:
+                            u_val = f.read().strip()
+                            if u_val.isdigit():
+                                used_mb = round(int(u_val) / (1024 ** 2), 1)
+                    except Exception:
+                        pass
+                return {
+                    'limit_mb': limit_mb,
+                    'used_mb': used_mb,
+                    'version': 'v1'
+                }
         except Exception:
             pass
+
+    return None
+
+
+def get_cgroup_memory_limit():
+    """حفظ سازگاری با کدهای قبلی جهت دریافت سقف حافظه کانتینر"""
+    cg_metrics = get_cgroup_memory_metrics()
+    return cg_metrics['limit_mb'] if cg_metrics else None
+
+
+def get_cgroup_cpu_metrics():
+    """تشخیص محدودیت سهم پردازنده کانتینر داکر در cgroups v1 یا v2"""
+    # cgroup v2
+    cg2_cpu = '/sys/fs/cgroup/cpu.max'
+    if os.path.exists(cg2_cpu):
+        try:
+            with open(cg2_cpu, 'r') as f:
+                parts = f.read().strip().split()
+                if len(parts) == 2 and parts[0] != 'max' and parts[0].isdigit() and parts[1].isdigit():
+                    quota = int(parts[0])
+                    period = int(parts[1])
+                    if period > 0:
+                        return round(quota / period, 2)
+        except Exception:
+            pass
+
+    # cgroup v1
+    cg1_quota = '/sys/fs/cgroup/cpu/cpu.cfs_quota_us'
+    cg1_period = '/sys/fs/cgroup/cpu/cpu.cfs_period_us'
+    if os.path.exists(cg1_quota) and os.path.exists(cg1_period):
+        try:
+            with open(cg1_quota, 'r') as fq, open(cg1_period, 'r') as fp:
+                q = int(fq.read().strip())
+                p = int(fp.read().strip())
+                if q > 0 and p > 0:
+                    return round(q / p, 2)
+        except Exception:
+            pass
+
     return None
 
 
 def get_cpu_and_ram_metrics():
     """Collect CPU load, core count, and RAM metrics with Docker container awareness."""
-    container_ram_limit = get_cgroup_memory_limit()
+    cg_mem = get_cgroup_memory_metrics()
+    cg_cpu = get_cgroup_cpu_metrics()
+    container_ram_limit = cg_mem['limit_mb'] if cg_mem else None
 
     if psutil:
         try:
@@ -213,23 +292,48 @@ def get_cpu_and_ram_metrics():
             else:
                 load_avg = [round(cpu_percent / 100, 2), round(cpu_percent / 100, 2), round(cpu_percent / 100, 2)]
 
-            return {
-                'cpu': {
-                    'usage_percent': cpu_percent,
-                    'cores': cpu_count,
-                    'load_avg': load_avg,
-                    'status': 'WARNING' if cpu_percent > 85 else 'NORMAL',
-                    'metric_scope': 'VPS_HOST'
-                },
-                'ram': {
+            cpu_info = {
+                'usage_percent': cpu_percent,
+                'cores': cpu_count,
+                'load_avg': load_avg,
+                'container_cpu_limit_cores': cg_cpu,
+                'status': 'WARNING' if cpu_percent > 85 else 'NORMAL',
+                'metric_scope': 'VPS_HOST',
+                'note': 'درصد استفاده پردازنده مربوط به کل هاست است؛ محدودیت کانتینر در container_cpu_limit_cores قرار دارد.' if cg_cpu else 'درصد پردازنده کل هاست فیزیکی/VPS.'
+            }
+
+            if cg_mem:
+                c_used = cg_mem['used_mb']
+                c_limit = cg_mem['limit_mb']
+                c_percent = round((c_used / c_limit) * 100, 1) if c_limit > 0 else 0.0
+                ram_info = {
+                    'total_mb': c_limit,
+                    'used_mb': c_used,
+                    'free_mb': max(0.0, round(c_limit - c_used, 1)),
+                    'percent': c_percent,
+                    'container_limit_mb': c_limit,
+                    'cgroup_version': cg_mem['version'],
+                    'host_total_mb': round(mem.total / (1024 ** 2), 1),
+                    'host_used_mb': round(mem.used / (1024 ** 2), 1),
+                    'metric_scope': 'DOCKER_CONTAINER',
+                    'status': 'WARNING' if c_percent > 85 else 'NORMAL',
+                    'note': f"میزان مصرف حافظه مربوط به کانتینر داکر ({cg_mem['version']}) است."
+                }
+            else:
+                ram_info = {
                     'total_mb': round(mem.total / (1024 ** 2), 1),
                     'used_mb': round(mem.used / (1024 ** 2), 1),
                     'free_mb': round(mem.available / (1024 ** 2), 1),
                     'percent': mem.percent,
-                    'container_limit_mb': container_ram_limit,
-                    'metric_scope': 'DOCKER_CONTAINER_LIMITED' if container_ram_limit else 'VPS_HOST',
-                    'status': 'WARNING' if mem.percent > 85 else 'NORMAL'
+                    'container_limit_mb': None,
+                    'metric_scope': 'VPS_HOST',
+                    'status': 'WARNING' if mem.percent > 85 else 'NORMAL',
+                    'note': 'سقف cgroup برای کانتینر فعال نیست؛ متریک‌ها نشان‌دهنده کل حافظه سرور میزبان (Host) است.'
                 }
+
+            return {
+                'cpu': cpu_info,
+                'ram': ram_info
             }
         except Exception:
             pass
@@ -239,8 +343,10 @@ def get_cpu_and_ram_metrics():
             'usage_percent': 14.2,
             'cores': 4,
             'load_avg': [0.25, 0.30, 0.22],
+            'container_cpu_limit_cores': cg_cpu,
             'status': 'NORMAL',
-            'metric_scope': 'VPS_HOST'
+            'metric_scope': 'VPS_HOST',
+            'note': 'درصد پردازنده کل هاست فیزیکی/VPS.'
         },
         'ram': {
             'total_mb': 8192,
@@ -248,8 +354,9 @@ def get_cpu_and_ram_metrics():
             'free_mb': 4772,
             'percent': 41.7,
             'container_limit_mb': container_ram_limit,
-            'metric_scope': 'DOCKER_CONTAINER_LIMITED' if container_ram_limit else 'VPS_HOST',
-            'status': 'NORMAL'
+            'metric_scope': 'DOCKER_CONTAINER' if container_ram_limit else 'VPS_HOST',
+            'status': 'NORMAL',
+            'note': 'داده‌های اولیه سیستم'
         }
     }
 
@@ -1027,26 +1134,61 @@ def resolve_system_alert(alert_id: int, user):
 # LOG RETENTION & CLEANUP POLICIES (Section 10)
 # ==============================================================================
 
-def execute_log_retention_cleanup(retention_days: int = 60, user=None):
+def execute_log_retention_cleanup(retention_days: int = 90, user=None, dry_run: bool = False):
     """
-    پاکسازی لاگ‌های قدیمی و رفع‌شده بر اساس خط‌مشی‌های انقضا
-    جهت آزادسازی فضای دیتابیس و حفظ عملکرد بهینه
+    پاکسازی لاگ‌های رخداد خطای قدیمی و رفع‌شده بر اساس خط‌مشی‌های انقضا
+    الزامات تولید و امنیت:
+    ۱. حفظ کامل حوادث و باگ‌های رفع‌نشده (Unresolved / New / Investigating / Pending Fix)
+    ۲. حفظ رکوردهای تجمیعی ErrorGroup (هیچ گروه خطایی حذف نمی‌شود)
+    ۳. حفظ کامل ردپای حسابرسی و تاریخچه حوادث (AuditLog و IncidentActivity دست‌نخورده باقی می‌مانند)
+    ۴. قابلیت اجرای بدون تغییر (Idempotent)
+    ۵. پشتیبانی از پیش‌نمایش پاکسازی (dry_run)
     """
     cutoff = timezone.now() - timedelta(days=retention_days)
     old_resolved_logs = SystemErrorLog.objects.filter(
         timestamp__lt=cutoff,
         is_resolved=True
+    ).exclude(
+        error_group__status__in=[
+            IncidentStatus.NEW,
+            IncidentStatus.INVESTIGATING,
+            IncidentStatus.PENDING_FIX
+        ]
     )
-    count, _ = old_resolved_logs.delete()
+
+    eligible_count = old_resolved_logs.count()
+    if dry_run:
+        return {
+            'deleted_count': 0,
+            'eligible_count': eligible_count,
+            'dry_run': True,
+            'cutoff_date': cutoff.isoformat(),
+            'retention_days': retention_days
+        }
+
+    deleted_count, _ = old_resolved_logs.delete()
 
     AuditLog.objects.create(
         actor=user,
         action=AuditLog.Action.CONFIG_CHANGE,
         entity_type='SystemErrorLogRetention',
         entity_id=str(retention_days),
-        details={'deleted_records_count': count, 'cutoff_date': cutoff.isoformat()}
+        details={
+            'deleted_records_count': deleted_count,
+            'cutoff_date': cutoff.isoformat(),
+            'retention_days': retention_days,
+            'dry_run': False,
+            'unresolved_incidents_preserved': True,
+            'error_groups_preserved': True
+        }
     )
-    return {'deleted_count': count, 'cutoff_date': cutoff.isoformat()}
+    return {
+        'deleted_count': deleted_count,
+        'eligible_count': eligible_count,
+        'dry_run': False,
+        'cutoff_date': cutoff.isoformat(),
+        'retention_days': retention_days
+    }
 
 
 # ==============================================================================

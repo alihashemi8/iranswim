@@ -5,13 +5,14 @@ import {
   AlertCircle, ShieldCheck, FileText, Image as ImageIcon, School,
   Sparkles, ArrowLeft, ArrowRight, Trash2, Eye, EyeOff, MapPin,
   KeyRound, Shield, Smartphone, Briefcase, Lock, LogOut, AlertTriangle,
-  BadgeCheck, Award, Clock, ChevronLeft
+  BadgeCheck, Award, Clock, ChevronLeft, Camera, ZoomIn
 } from 'lucide-react';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
+import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { MapLocationPicker } from '../../components/common/MapLocationPicker';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
@@ -48,6 +49,9 @@ export const SwimmerProfilePage = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // Document full-size preview modal
+  const [previewDocModal, setPreviewDocModal] = useState(null);
 
   // Coach Assessments State
   const [assessments, setAssessments] = useState([]);
@@ -127,8 +131,8 @@ export const SwimmerProfilePage = () => {
           setMotherPhone(data.mother_phone || '');
           setMotherJob(data.mother_job || '');
           setAddress(data.address || '');
-          setLatitude(data.latitude || 35.6892);
-          setLongitude(data.longitude || 51.3890);
+          setLatitude(data.latitude || 36.2797);
+          setLongitude(data.longitude || 50.0049);
 
           if (data.avatar) setAvatarPreview(getMediaUrl(data.avatar));
           if (data.birth_certificate_image) setBirthCertPreview(getAuthenticatedDocUrl(data.birth_certificate_image));
@@ -286,7 +290,7 @@ export const SwimmerProfilePage = () => {
 
   // Submit 3-Step Profile Form
   const handleSubmitProfile = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     setError('');
 
     if (!validateStep1()) {
@@ -324,7 +328,7 @@ export const SwimmerProfilePage = () => {
 
     setSaving(true);
     try {
-      const res = await api.post('/swimmers/me/complete/', formData, {
+      await api.post('/swimmers/me/complete/', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
 
@@ -390,99 +394,159 @@ export const SwimmerProfilePage = () => {
 
   // Steps definition for Stepper Bar
   const steps = [
-    { number: 1, title: 'مشخصات هویتی و فردی', icon: User, desc: 'نام، کد ملی، تولد و عکس' },
-    { number: 2, title: 'اولیاء، شغل‌ها و نشانی', icon: Home, desc: 'تلفن و شغل والدین، نقشه' },
-    { number: 3, title: 'بارگذاری مدارک هویتی', icon: ShieldCheck, desc: 'شناسنامه، کارت ملی، بیمه' },
+    { number: 1, title: 'مشخصات هویتی و فردی', shortTitle: 'هویتی و فردی', icon: User, desc: 'نام، کد ملی، تولد و عکس' },
+    { number: 2, title: 'اولیاء، شغل‌ها و نشانی', shortTitle: 'والدین و آدرس', icon: Home, desc: 'تلفن و شغل والدین، نقشه' },
+    { number: 3, title: 'بارگذاری مدارک هویتی', shortTitle: 'مدارک هویتی', icon: ShieldCheck, desc: 'شناسنامه، کارت ملی، بیمه' },
   ];
 
   const progressPercentage = currentStep === 1 ? 33 : currentStep === 2 ? 66 : 100;
   const displayName = user?.full_name || `${firstName} ${lastName}`.trim() || user?.phone || 'شناگر محترم';
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6 pb-12">
-      {/* Top Profile Header Card */}
-      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-blue-600 via-sky-600 to-teal-500 text-white flex items-center justify-center font-black text-2xl shrink-0 shadow-md overflow-hidden ring-4 ring-sky-50 dark:ring-sky-950/60">
-            {avatarPreview ? (
-              <img src={getMediaUrl(avatarPreview)} alt={displayName} className="w-full h-full object-cover" />
-            ) : (
-              <span>{displayName.charAt(0)}</span>
-            )}
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap mb-1">
-              <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                {displayName}
-              </h1>
-              <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300">
-                شناگر آکادمی
-              </span>
-              {isCompletedBefore ? (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  پرونده تکمیل‌شده
-                </span>
-              ) : (
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 flex items-center gap-1">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  نیازمند تکمیل مشخصات
-                </span>
-              )}
-            </div>
-            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-mono">
-              شماره همراه: {user?.phone || '—'}
-            </p>
-          </div>
-        </div>
+    <div className="max-w-4xl mx-auto space-y-4 sm:space-y-6 pb-12 px-1 sm:px-0">
+      {/* Top Profile Header Card - Sleek, compact on mobile with discreet logout */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs relative overflow-hidden">
+        {/* Subtle decorative background gradient */}
+        <div className="absolute -top-12 -left-12 w-36 h-36 bg-sky-500/10 dark:bg-sky-500/5 rounded-full blur-2xl pointer-events-none" />
 
-        <button
-          type="button"
-          onClick={() => setShowLogoutModal(true)}
-          className="px-4 py-2.5 text-xs sm:text-sm font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-2xl border border-rose-200 dark:border-rose-900/60 transition-colors flex items-center gap-2 cursor-pointer self-end md:self-auto"
-        >
-          <LogOut className="w-4.5 h-4.5" />
-          <span>خروج از حساب</span>
-        </button>
+        <div className="flex items-start justify-between gap-3 relative z-10">
+          <div className="flex items-center gap-3.5 sm:gap-4.5 min-w-0">
+            {/* Avatar with direct upload camera badge */}
+            <div className="relative shrink-0 group">
+              <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-tr from-sky-600 via-blue-600 to-indigo-600 text-white flex items-center justify-center font-black text-2xl shadow-md overflow-hidden ring-3 ring-sky-100 dark:ring-sky-950/60">
+                {avatarPreview ? (
+                  <img src={getMediaUrl(avatarPreview)} alt={displayName} className="w-full h-full object-cover" />
+                ) : (
+                  <span>{displayName.charAt(0)}</span>
+                )}
+              </div>
+              <label
+                title="تغییر عکس پرسنلی"
+                className="absolute -bottom-1 -left-1 w-7 h-7 bg-sky-600 hover:bg-sky-700 active:scale-90 text-white rounded-full flex items-center justify-center shadow-md cursor-pointer border-2 border-white dark:border-slate-900 transition-all"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={(e) => handleFileChange(e, setAvatar, setAvatarPreview)}
+                />
+              </label>
+            </div>
+
+            {/* Profile Info & Badges */}
+            <div className="min-w-0 space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-base sm:text-2xl font-black text-slate-900 dark:text-white truncate">
+                  {displayName}
+                </h1>
+                <span className="px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-bold bg-sky-100 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 shrink-0">
+                  شناگر
+                </span>
+              </div>
+
+              {/* Status and Meta Pills */}
+              <div className="flex items-center gap-2 flex-wrap pt-0.5">
+                {isCompletedBefore ? (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300">
+                    <CheckCircle2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                    <span>تکمیل‌شده</span>
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] sm:text-xs font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300">
+                    <AlertCircle className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0" />
+                    <span>نیازمند تکمیل</span>
+                  </span>
+                )}
+
+                <span className="inline-flex items-center gap-1 text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 font-mono">
+                  <Phone className="w-3 h-3 text-slate-400 shrink-0" />
+                  <span>{user?.phone || '—'}</span>
+                </span>
+
+                {profileLevelName && (
+                  <span className="hidden xs:inline-flex items-center gap-1 text-[11px] sm:text-xs text-sky-600 dark:text-sky-400 font-bold">
+                    <Award className="w-3 h-3 shrink-0" />
+                    <span>{profileLevelName}</span>
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Discreet logout icon button in corner - safe from accidental clicks on mobile */}
+          <button
+            type="button"
+            onClick={() => setShowLogoutModal(true)}
+            title="خروج از حساب کاربری"
+            aria-label="خروج از حساب کاربری"
+            className="p-2 sm:px-3 sm:py-2 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 rounded-xl sm:rounded-2xl border border-rose-200/80 dark:border-rose-900/60 transition-all flex items-center gap-1.5 cursor-pointer shrink-0 self-start active:scale-95 shadow-2xs group"
+          >
+            <LogOut className="w-4 h-4 sm:w-4.5 sm:h-4.5 transition-transform group-hover:-translate-x-0.5" />
+            <span className="hidden sm:inline text-xs font-bold">خروج از حساب</span>
+          </button>
+        </div>
       </div>
 
-      {/* Main Tabs Header */}
-      <div className="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 overflow-x-auto">
+      {/* Main Tabs Header - Responsive 3-segment bar (fits all mobile screens without overflow) */}
+      <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-slate-100/90 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 select-none">
         <button
           type="button"
           onClick={() => handleTabChange('INFO')}
-          className={`flex-1 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
+          className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
             activeMainTab === 'INFO'
-              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm'
+              ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-300 shadow-xs border border-slate-200/70 dark:border-slate-700/80'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <FileText className="w-4.5 h-4.5" />
-          <span>مشخصات و مدارک (۳ مرحله‌ای)</span>
+          <FileText className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" />
+          <span className="sm:hidden">مشخصات</span>
+          <span className="hidden sm:inline">مشخصات و مدارک</span>
         </button>
+
         <button
           type="button"
           onClick={() => handleTabChange('ASSESSMENTS')}
-          className={`flex-1 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
+          className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer relative ${
             activeMainTab === 'ASSESSMENTS'
-              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm'
+              ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-300 shadow-xs border border-slate-200/70 dark:border-slate-700/80'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <Award className="w-4.5 h-4.5" />
-          <span>ارزیابی‌ها و کارنامه مربی ({assessments.length})</span>
+          <div className="relative">
+            <Award className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" />
+            {assessments.length > 0 && (
+              <span className="sm:hidden absolute -top-1.5 -right-2 px-1 py-0.2 rounded-full text-[9px] font-mono font-black bg-sky-600 text-white">
+                {assessments.length}
+              </span>
+            )}
+          </div>
+          <span className="sm:hidden">کارنامه</span>
+          <span className="hidden sm:inline">کارنامه و ارزیابی</span>
+          {assessments.length > 0 && (
+            <span className="hidden sm:inline-block px-1.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300">
+              {assessments.length}
+            </span>
+          )}
         </button>
+
         <button
           type="button"
           onClick={() => handleTabChange('SECURITY')}
-          className={`flex-1 py-3 px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all flex items-center justify-center gap-2 cursor-pointer whitespace-nowrap ${
+          className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2 sm:py-2.5 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer relative ${
             activeMainTab === 'SECURITY'
-              ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm'
+              ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-300 shadow-xs border border-slate-200/70 dark:border-slate-700/80'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
           }`}
         >
-          <ShieldCheck className="w-4.5 h-4.5" />
-          <span>رمز عبور و امنیت</span>
+          <div className="relative">
+            <ShieldCheck className="w-4 h-4 sm:w-4.5 sm:h-4.5 shrink-0" />
+            {user && !user.is_password_changed && (
+              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-rose-500 animate-ping" />
+            )}
+          </div>
+          <span className="sm:hidden">امنیت</span>
+          <span className="hidden sm:inline">رمز عبور و امنیت</span>
         </button>
       </div>
 
@@ -490,26 +554,27 @@ export const SwimmerProfilePage = () => {
       {/* TAB 1: 3-STEP INFORMATION & DOCUMENTS                               */}
       {/* =================================================================== */}
       {activeMainTab === 'INFO' && (
-        <div className="space-y-6 animate-in fade-in duration-200">
-          {/* Stepper Progress Bar */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between text-sm font-bold text-slate-700 dark:text-slate-300">
+        <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-200">
+          {/* Stepper Progress Bar - Redesigned with visible icons & labels on mobile */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs space-y-3.5">
+            <div className="flex items-center justify-between text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300">
               <span className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-sky-500 animate-ping"></span>
-                <span>گام {currentStep} از ۳: {steps[currentStep - 1].title}</span>
+                <span className="w-2 h-2 rounded-full bg-sky-500 animate-pulse"></span>
+                <span>گام {currentStep} از ۳: <span className="text-sky-600 dark:text-sky-400">{steps[currentStep - 1].shortTitle}</span></span>
               </span>
-              <span className="font-mono font-black text-sm sm:text-base text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-3 py-1 rounded-xl">
-                {progressPercentage}٪ تکمیل شده
+              <span className="font-mono font-black text-xs sm:text-sm text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-2.5 py-0.5 rounded-lg border border-sky-100 dark:border-sky-900/40">
+                {progressPercentage}٪
               </span>
             </div>
 
-            <div className="w-full bg-slate-100 dark:bg-slate-800 h-3 rounded-full overflow-hidden p-0.5">
+            <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 sm:h-2.5 rounded-full overflow-hidden p-0.5">
               <div
-                className="bg-gradient-to-r from-sky-500 via-indigo-500 to-cyan-400 h-full rounded-full transition-all duration-500 ease-out shadow-sm"
+                className="bg-gradient-to-r from-sky-500 via-blue-500 to-emerald-500 h-full rounded-full transition-all duration-500 ease-out shadow-xs"
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
 
+            {/* Step Selection Buttons - Shows Icon and Short Title on mobile */}
             <div className="grid grid-cols-3 gap-2 sm:gap-3.5 pt-1">
               {steps.map((st) => {
                 const Icon = st.icon;
@@ -529,30 +594,31 @@ export const SwimmerProfilePage = () => {
                         if (validateStep2()) setCurrentStep(3);
                       }
                     }}
-                    className={`p-3 sm:p-3.5 rounded-2xl border text-right transition-all cursor-pointer flex items-center gap-2.5 sm:gap-3 ${
+                    className={`p-2 sm:p-3.5 rounded-2xl border transition-all cursor-pointer flex flex-col sm:flex-row items-center sm:items-start gap-1.5 sm:gap-3 text-center sm:text-right ${
                       isCurrent
-                        ? 'bg-sky-50/80 dark:bg-sky-950/50 border-sky-400 dark:border-sky-700 shadow-xs ring-2 ring-sky-500/20'
+                        ? 'bg-sky-50/90 dark:bg-sky-950/50 border-sky-400 dark:border-sky-700 shadow-xs ring-2 ring-sky-500/20'
                         : isPassed
                         ? 'bg-slate-50 dark:bg-slate-800/60 border-emerald-300/80 dark:border-emerald-800 hover:bg-slate-100'
                         : 'bg-slate-50/50 dark:bg-slate-800/30 border-slate-200/60 dark:border-slate-800 opacity-60'
                     }`}
                   >
                     <div
-                      className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-sm font-bold transition-colors ${
+                      className={`w-7 h-7 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center shrink-0 text-xs sm:text-sm font-bold transition-colors ${
                         isPassed
                           ? 'bg-emerald-500 text-white'
                           : isCurrent
-                          ? 'bg-sky-600 text-white shadow-md'
+                          ? 'bg-sky-600 text-white shadow-xs'
                           : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
                       }`}
                     >
-                      {isPassed ? <CheckCircle2 className="w-5 h-5" /> : st.number}
+                      {isPassed ? <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" /> : <Icon className="w-3.5 h-3.5 sm:w-4.5 sm:h-4.5" />}
                     </div>
-                    <div className="hidden sm:block min-w-0">
-                      <span className={`text-xs sm:text-sm font-bold block truncate ${isCurrent ? 'text-sky-900 dark:text-sky-200' : 'text-slate-800 dark:text-slate-300'}`}>
-                        {st.title}
+                    <div className="min-w-0 w-full">
+                      <span className={`text-[11px] sm:text-sm font-bold block truncate ${isCurrent ? 'text-sky-900 dark:text-sky-200' : 'text-slate-800 dark:text-slate-300'}`}>
+                        <span className="sm:hidden">{st.shortTitle}</span>
+                        <span className="hidden sm:inline">{st.title}</span>
                       </span>
-                      <span className="text-xs text-slate-400 truncate block mt-0.5 font-medium">
+                      <span className="hidden sm:block text-xs text-slate-400 truncate mt-0.5 font-medium">
                         {st.desc}
                       </span>
                     </div>
@@ -564,72 +630,85 @@ export const SwimmerProfilePage = () => {
 
           {/* Error alert */}
           {error && (
-            <div className="p-4 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-200 rounded-2xl text-xs sm:text-sm flex items-center gap-2 font-medium animate-in fade-in">
-              <AlertCircle className="w-5 h-5 shrink-0 text-rose-600" />
+            <div className="p-3.5 sm:p-4 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 text-rose-800 dark:text-rose-200 rounded-2xl text-xs sm:text-sm flex items-center gap-2 font-medium animate-in fade-in">
+              <AlertCircle className="w-4.5 h-4.5 shrink-0 text-rose-600" />
               <span>{error}</span>
             </div>
           )}
 
           {/* Form container */}
-          <form onSubmit={handleSubmitProfile} className="space-y-6">
+          <form onSubmit={handleSubmitProfile} className="space-y-4 sm:space-y-6">
             {/* STEP 1: PERSONAL INFORMATION */}
             {currentStep === 1 && (
-              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-6 animate-in fade-in duration-300">
-                <div className="flex items-center gap-2.5 pb-3.5 border-b border-slate-100 dark:border-slate-800">
-                  <User className="w-5 h-5 text-sky-600" />
-                  <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">گام اول: مشخصات هویتی و فردی شناگر</h2>
-                  <span className="text-xs sm:text-sm text-slate-400 mr-auto font-medium">موارد ستاره‌دار (*) الزامی هستند</span>
+              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-7 shadow-xs space-y-4 sm:space-y-6 animate-in fade-in duration-300">
+                <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800">
+                  <User className="w-5 h-5 text-sky-600 shrink-0" />
+                  <h2 className="text-sm sm:text-lg font-bold text-slate-900 dark:text-white">گام اول: مشخصات هویتی و فردی شناگر</h2>
+                  <span className="text-[11px] sm:text-xs text-slate-400 mr-auto font-medium">موارد (*) الزامی هستند</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
+                  {/* First Name */}
                   <div>
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                    <label className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                       نام شناگر <span className="text-rose-500 font-bold">*</span>
                     </label>
-                    <input
-                      type="text"
-                      required
-                      value={firstName}
-                      onChange={(e) => setFirstName(e.target.value)}
-                      placeholder="مثال: آرتین"
-                      className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-3.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
-                    />
+                    <div className="relative">
+                      <User className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        required
+                        value={firstName}
+                        onChange={(e) => setFirstName(e.target.value)}
+                        placeholder="مثال: آرتین"
+                        className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
+                      />
+                    </div>
                   </div>
 
+                  {/* Last Name */}
                   <div>
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                    <label className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                       نام خانوادگی شناگر <span className="text-rose-500 font-bold">*</span>
                     </label>
-                    <input
-                      type="text"
-                      required
-                      value={lastName}
-                      onChange={(e) => setLastName(e.target.value)}
-                      placeholder="مثال: رادمنش"
-                      className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-3.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
-                    />
+                    <div className="relative">
+                      <User className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        required
+                        value={lastName}
+                        onChange={(e) => setLastName(e.target.value)}
+                        placeholder="مثال: رادمنش"
+                        className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
+                      />
+                    </div>
                   </div>
 
+                  {/* Father Name */}
                   <div>
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                    <label className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                       نام پدر <span className="text-rose-500 font-bold">*</span>
                     </label>
-                    <input
-                      type="text"
-                      required
-                      value={fatherName}
-                      onChange={(e) => setFatherName(e.target.value)}
-                      placeholder="مثال: محمد"
-                      className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 px-3.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
-                    />
+                    <div className="relative">
+                      <User className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
+                      <input
+                        type="text"
+                        required
+                        value={fatherName}
+                        onChange={(e) => setFatherName(e.target.value)}
+                        placeholder="مثال: محمد"
+                        className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
+                      />
+                    </div>
                   </div>
 
+                  {/* National ID */}
                   <div>
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                    <label className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                       کد ملی شناگر (۱۰ رقمی) <span className="text-rose-500 font-bold">*</span>
                     </label>
                     <div className="relative">
-                      <CreditCard className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                      <CreditCard className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
                         required
@@ -637,17 +716,18 @@ export const SwimmerProfilePage = () => {
                         value={nationalId}
                         onChange={(e) => setNationalId(e.target.value)}
                         placeholder="0012345678"
-                        className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 font-mono font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                        className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 font-mono font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                       />
                     </div>
                   </div>
 
+                  {/* Date of Birth */}
                   <div>
                     <PersianDatePicker
                       label="تاریخ تولد *"
                       required={true}
                       size="md"
-                      labelClassName="text-sm font-bold block mb-1.5"
+                      labelClassName="text-xs sm:text-sm font-bold block mb-1.5"
                       value={dateOfBirth}
                       onChange={(jalaliStr, gDate, gIso) => {
                         setDateOfBirth(gIso || '');
@@ -659,68 +739,81 @@ export const SwimmerProfilePage = () => {
                     />
                   </div>
 
+                  {/* Gender Selection - Icon buttons */}
                   <div>
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-                      جنسیت <span className="text-rose-500 font-bold">*</span>
+                    <label className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                      جنسیت شناگر <span className="text-rose-500 font-bold">*</span>
                     </label>
-                    <div className="flex gap-2">
+                    <div className="grid grid-cols-2 gap-2">
                       <button
                         type="button"
                         onClick={() => setGender('MALE')}
-                        className={`flex-1 py-2.5 px-3 rounded-xl border text-sm font-bold transition-all cursor-pointer ${
+                        className={`py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                           gender === 'MALE'
-                            ? 'bg-sky-500 text-white border-sky-500 shadow-2xs'
-                            : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                            ? 'bg-sky-500 text-white border-sky-500 shadow-xs ring-2 ring-sky-500/20'
+                            : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
                         }`}
                       >
-                        پسر / آقایان
+                        <User className="w-4 h-4" />
+                        <span>پسر / آقایان</span>
                       </button>
                       <button
                         type="button"
                         onClick={() => setGender('FEMALE')}
-                        className={`flex-1 py-2.5 px-3 rounded-xl border text-sm font-bold transition-all cursor-pointer ${
+                        className={`py-2.5 px-3 rounded-xl border text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                           gender === 'FEMALE'
-                            ? 'bg-pink-500 text-white border-pink-500 shadow-2xs'
-                            : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300'
+                            ? 'bg-pink-500 text-white border-pink-500 shadow-xs ring-2 ring-pink-500/20'
+                            : 'bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100'
                         }`}
                       >
-                        دختر / بانوان
+                        <User className="w-4 h-4" />
+                        <span>دختر / بانوان</span>
                       </button>
                     </div>
                   </div>
 
+                  {/* School Name */}
                   <div className="sm:col-span-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-                      نام مدرسه <span className="text-rose-500 font-bold">*</span>
+                    <label className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                      نام مدرسه یا مقطع تحصیلی <span className="text-rose-500 font-bold">*</span>
                     </label>
                     <div className="relative">
-                      <School className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                      <School className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
                         required
                         value={schoolName}
                         onChange={(e) => setSchoolName(e.target.value)}
                         placeholder="مثال: دبستان و دبیرستان نمونه دولتی رشد"
-                        className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
+                        className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
                       />
                     </div>
                   </div>
 
-                  {/* Photo Upload (Mandatory) */}
+                  {/* Personal Photo Upload Card */}
                   <div>
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                    <label className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                       عکس پرسنلی شناگر <span className="text-rose-500 font-bold">*</span>
                     </label>
-                    <div className="flex items-center gap-3">
-                      <div className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center shrink-0 overflow-hidden">
+                    <div className="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200/80 dark:border-slate-700/60">
+                      <div className="w-11 h-11 rounded-lg bg-slate-200 dark:bg-slate-700 flex items-center justify-center shrink-0 overflow-hidden border border-slate-300 dark:border-slate-600">
                         {avatarPreview ? (
                           <img src={getMediaUrl(avatarPreview)} alt="عکس پرسنلی" className="w-full h-full object-cover" />
                         ) : (
                           <ImageIcon className="w-5 h-5 text-slate-400" />
                         )}
                       </div>
-                      <label className="px-3.5 py-2.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 rounded-xl text-xs sm:text-sm font-bold cursor-pointer border border-slate-200/80 transition-colors">
-                        <span>{avatarPreview ? 'تغییر عکس' : 'انتخاب عکس چهره *'}</span>
+                      <div className="flex-1 min-w-0">
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block truncate">
+                          {avatarPreview ? 'عکس انتخاب شد' : 'عکس پرسنلی'}
+                        </span>
+                        <span className="text-[10px] text-slate-400 block truncate">
+                          حداکثر ۵MB
+                        </span>
+                      </div>
+                      <label className="px-2.5 py-1.5 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-sky-600 dark:text-sky-400 rounded-lg text-xs font-bold cursor-pointer border border-slate-200 dark:border-slate-700 transition-colors flex items-center gap-1 shrink-0 shadow-2xs">
+                        <Camera className="w-3.5 h-3.5" />
+                        <span>انتخاب</span>
                         <input
                           type="file"
                           accept="image/*"
@@ -732,13 +825,14 @@ export const SwimmerProfilePage = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end pt-4 border-t border-slate-100 dark:border-slate-800">
+                {/* Step 1 Actions */}
+                <div className="flex items-center justify-end pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-800">
                   <Button
                     type="button"
                     onClick={handleNextStep}
-                    className="px-7 py-3 text-sm sm:text-base font-bold gap-2 cursor-pointer shadow-sm"
+                    className="w-full sm:w-auto px-6 sm:px-7 py-2.5 sm:py-3 text-xs sm:text-sm font-bold gap-2 cursor-pointer shadow-sm rounded-xl sm:rounded-2xl bg-sky-600 hover:bg-sky-700 text-white"
                   >
-                    <span>مرحله بعدی: اولیاء، شغل‌ها و نشانی</span>
+                    <span>گام بعدی: اولیاء و نشانی</span>
                     <ArrowLeft className="w-4 h-4" />
                   </Button>
                 </div>
@@ -747,105 +841,106 @@ export const SwimmerProfilePage = () => {
 
             {/* STEP 2: PARENTS, JOBS & ADDRESS */}
             {currentStep === 2 && (
-              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-6 animate-in fade-in duration-300">
-                <div className="flex items-center gap-2.5 pb-3.5 border-b border-slate-100 dark:border-slate-800">
-                  <Home className="w-5 h-5 text-sky-600" />
-                  <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">گام دوم: اطلاعات اولیاء، شغل والدین، نشانی منزل و تعیین موقعیت روی نقشه</h2>
+              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-7 shadow-xs space-y-4 sm:space-y-6 animate-in fade-in duration-300">
+                <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800">
+                  <Home className="w-5 h-5 text-sky-600 shrink-0" />
+                  <h2 className="text-sm sm:text-lg font-bold text-slate-900 dark:text-white">گام دوم: اطلاعات والدین و نشانی منزل</h2>
                 </div>
 
-                <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl text-xs sm:text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2.5 font-medium leading-relaxed">
+                <div className="p-3 sm:p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl text-xs sm:text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2 font-medium leading-relaxed">
                   <Phone className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                  <span>ثبت اطلاعات تماس و <strong>شغل هر دو والد (پدر و مادر)</strong> الزامی است (جهت اعزام به مسابقات اصناف و ادارات).</span>
+                  <span>ثبت اطلاعات تماس و <strong>شغل والدین</strong> جهت هماهنگی و اعزام به مسابقات ورزشی اصناف و ادارات است؛ در صورت عدم تمایل به درج نام سازمان، لطفاً عبارت <strong>«آزاد»</strong> را وارد نمایید.</span>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 sm:gap-5">
                   {/* Father Phone */}
                   <div>
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                    <label className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                       شماره تماس پدر <span className="text-rose-500 font-bold">*</span>
                     </label>
                     <div className="relative">
-                      <Phone className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                      <Phone className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="tel"
                         required
                         value={fatherPhone}
                         onChange={(e) => setFatherPhone(e.target.value)}
                         placeholder="09123456789"
-                        className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 font-mono font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                        className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 font-mono font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                       />
                     </div>
                   </div>
 
-                  {/* Father Job (MANDATORY) */}
+                  {/* Father Job */}
                   <div>
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                    <label className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                       شغل پدر <span className="text-rose-500 font-bold">*</span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 font-normal mr-2">(جهت اعزام به مسابقات اصناف و ادارات)</span>
                     </label>
                     <div className="relative">
-                      <Briefcase className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                      <Briefcase className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
                         required
                         value={fatherJob}
                         onChange={(e) => setFatherJob(e.target.value)}
-                        placeholder="مثال: مهندس، پزشک، کارمند، آزاد..."
-                        className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                        placeholder="اداره (آب...)، سازمان...، فرهنگی، پزشک، آزاد..."
+                        className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                       />
                     </div>
                   </div>
 
                   {/* Mother Phone */}
                   <div>
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                    <label className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                       شماره تماس مادر <span className="text-rose-500 font-bold">*</span>
                     </label>
                     <div className="relative">
-                      <Phone className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                      <Phone className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="tel"
                         required
                         value={motherPhone}
                         onChange={(e) => setMotherPhone(e.target.value)}
                         placeholder="09129876543"
-                        className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 font-mono font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                        className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 font-mono font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                       />
                     </div>
                   </div>
 
-                  {/* Mother Job (MANDATORY) */}
+                  {/* Mother Job */}
                   <div>
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-                      شغل مادر <span className="text-rose-500 font-bold">*</span>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 font-normal mr-2">(جهت اعزام به مسابقات اصناف و ادارات)</span>
+                    <label className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                      شغل مادر (یا مخاطب اضطراری) <span className="text-rose-500 font-bold">*</span>
                     </label>
                     <div className="relative">
-                      <Briefcase className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                      <Briefcase className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                       <input
                         type="text"
                         required
                         value={motherJob}
                         onChange={(e) => setMotherJob(e.target.value)}
-                        placeholder="مثال: فرهنگی، پزشک، خانه‌دار، کارمند..."
-                        className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                        placeholder="اداره (آب...)، سازمان...، فرهنگی، پزشک، آزاد..."
+                        className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                       />
                     </div>
                   </div>
 
                   {/* Home Address */}
                   <div className="sm:col-span-2">
-                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
+                    <label className="text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                       آدرس دقیق متنی منزل <span className="text-rose-500 font-bold">*</span>
                     </label>
-                    <textarea
-                      required
-                      rows={2}
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
-                      placeholder="شهر، خیابان، کوچه، پلاک، واحد..."
-                      className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl p-3.5 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
-                    />
+                    <div className="relative">
+                      <MapPin className="w-4 h-4 text-slate-400 absolute right-3 top-3.5" />
+                      <textarea
+                        required
+                        rows={2}
+                        value={address}
+                        onChange={(e) => setAddress(e.target.value)}
+                        placeholder="شهر، خیابان، کوچه، پلاک، واحد..."
+                        className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-3 text-slate-900 dark:text-slate-100 focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all font-medium"
+                      />
+                    </div>
                   </div>
 
                   {/* Interactive Map Picker */}
@@ -853,32 +948,38 @@ export const SwimmerProfilePage = () => {
                     <MapLocationPicker
                       latitude={latitude}
                       longitude={longitude}
-                      onChange={({ lat, lng }) => {
+                      onChange={({ lat, lng, address: selectedAddr }) => {
                         setLatitude(lat);
                         setLongitude(lng);
+                        if (selectedAddr && (!address || address.trim() === '')) {
+                          setAddress(selectedAddr);
+                        }
                       }}
                       label="مشخص کردن موقعیت منزل روی نقشه *"
-                      height="280px"
+                      height="260px"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+                {/* Step 2 Actions */}
+                <div className="flex items-center justify-between gap-2 pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-800">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handlePrevStep}
-                    className="px-5 py-3 text-sm font-bold gap-2 cursor-pointer"
+                    className="px-3.5 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold gap-1 sm:gap-2 cursor-pointer rounded-xl sm:rounded-2xl border-slate-200 dark:border-slate-700"
                   >
                     <ArrowRight className="w-4 h-4" />
-                    <span>بازگشت به گام اول</span>
+                    <span>گام قبل</span>
+                    <span className="hidden sm:inline">: مشخصات فردی</span>
                   </Button>
                   <Button
                     type="button"
                     onClick={handleNextStep}
-                    className="px-7 py-3 text-sm sm:text-base font-bold gap-2 cursor-pointer shadow-sm"
+                    className="px-4 sm:px-7 py-2.5 sm:py-3 text-xs sm:text-sm font-bold gap-1 sm:gap-2 cursor-pointer shadow-sm rounded-xl sm:rounded-2xl bg-sky-600 hover:bg-sky-700 text-white"
                   >
-                    <span>مرحله بعدی: بارگذاری مدارک</span>
+                    <span>گام بعد</span>
+                    <span className="hidden sm:inline">: بارگذاری مدارک</span>
                     <ArrowLeft className="w-4 h-4" />
                   </Button>
                 </div>
@@ -887,137 +988,248 @@ export const SwimmerProfilePage = () => {
 
             {/* STEP 3: DOCUMENTS */}
             {currentStep === 3 && (
-              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-6 animate-in fade-in duration-300">
-                <div className="flex items-center gap-2.5 pb-3.5 border-b border-slate-100 dark:border-slate-800">
-                  <ShieldCheck className="w-5 h-5 text-sky-600" />
-                  <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">گام سوم: بارگذاری مدارک هویتی شناگر</h2>
-                  <span className="text-xs sm:text-sm text-slate-400 mr-auto font-medium">بارگذاری هر ۳ مدرک الزامی است</span>
+              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-7 shadow-xs space-y-4 sm:space-y-6 animate-in fade-in duration-300">
+                <div className="flex items-center gap-2.5 pb-3 border-b border-slate-100 dark:border-slate-800">
+                  <ShieldCheck className="w-5 h-5 text-sky-600 shrink-0" />
+                  <h2 className="text-sm sm:text-lg font-bold text-slate-900 dark:text-white">گام سوم: بارگذاری مدارک هویتی شناگر</h2>
+                  <span className="text-[11px] sm:text-xs text-slate-400 mr-auto font-medium">هر ۳ مدرک الزامی است</span>
                 </div>
 
                 {documentsRejectionReason && (
-                  <div className="p-4 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-2xl text-xs sm:text-sm text-rose-800 dark:text-rose-200 flex items-start gap-3">
-                    <AlertTriangle className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
+                  <div className="p-3.5 sm:p-4 bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-900 rounded-2xl text-xs sm:text-sm text-rose-800 dark:text-rose-200 flex items-start gap-2.5">
+                    <AlertTriangle className="w-4.5 h-4.5 shrink-0 text-rose-600 mt-0.5" />
                     <div>
-                      <h4 className="font-bold mb-1">پیام مدیریت آموزشگاه برای اصلاح مدارک:</h4>
+                      <h4 className="font-bold mb-0.5">پیام مدیریت آموزشگاه برای اصلاح مدارک:</h4>
                       <p className="leading-relaxed font-medium">{documentsRejectionReason}</p>
                     </div>
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                  {/* Birth Certificate */}
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 space-y-3">
+                {/* 3 Responsive Document Upload Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5 sm:gap-5">
+                  {/* Birth Certificate Card */}
+                  <div className="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                      <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
                         صفحه اول شناسنامه <span className="text-rose-500 font-bold">*</span>
                       </span>
-                      {birthCertStatus === 'APPROVED' && (
-                        <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md">تأییدشده</span>
+                      {birthCertStatus === 'APPROVED' ? (
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> تأییدشده
+                        </span>
+                      ) : birthCertPreview ? (
+                        <span className="text-[10px] font-bold text-sky-600 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded-md">
+                          بارگذاری‌شده
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-slate-400 bg-slate-200/60 dark:bg-slate-700/60 px-2 py-0.5 rounded-md">
+                          الزامی
+                        </span>
                       )}
                     </div>
-                    <div className="aspect-4/3 rounded-xl bg-slate-200 dark:bg-slate-700/50 flex items-center justify-center overflow-hidden border border-dashed border-slate-300 dark:border-slate-600 relative group">
+
+                    <div className="h-40 sm:h-44 rounded-xl bg-slate-200 dark:bg-slate-700/50 flex items-center justify-center overflow-hidden border border-dashed border-slate-300 dark:border-slate-600 relative group">
                       {birthCertPreview ? (
-                        <img src={birthCertPreview} alt="شناسنامه" className="w-full h-full object-cover" />
+                        <>
+                          <img src={birthCertPreview} alt="شناسنامه" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-slate-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setPreviewDocModal({ title: 'صفحه اول شناسنامه', url: birthCertPreview })}
+                              title="مشاهده تصویر کامل"
+                              className="p-2 bg-white/90 text-slate-800 rounded-xl hover:bg-white transition-all cursor-pointer shadow-md"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </>
                       ) : (
                         <div className="text-center p-3 text-slate-400">
-                          <Upload className="w-8 h-8 mx-auto mb-1.5 opacity-60" />
+                          <Upload className="w-7 h-7 mx-auto mb-1 opacity-60" />
                           <span className="text-xs font-medium block">تصویر شناسنامه</span>
                         </div>
                       )}
                     </div>
-                    <label className="w-full py-2.5 px-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1.5 cursor-pointer transition-colors">
-                      <Upload className="w-4 h-4 text-sky-600" />
-                      <span>{birthCertPreview ? 'تغییر تصویر' : 'انتخاب تصویر شناسنامه *'}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleFileChange(e, setBirthCertImage, setBirthCertPreview)}
-                      />
-                    </label>
+
+                    <div className="flex items-center gap-2">
+                      <label className="flex-1 py-2 px-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-2xs">
+                        <Upload className="w-3.5 h-3.5 text-sky-600" />
+                        <span>{birthCertPreview ? 'تغییر تصویر' : 'انتخاب تصویر'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleFileChange(e, setBirthCertImage, setBirthCertPreview)}
+                        />
+                      </label>
+                      {birthCertPreview && (
+                        <button
+                          type="button"
+                          onClick={() => setPreviewDocModal({ title: 'صفحه اول شناسنامه', url: birthCertPreview })}
+                          title="مشاهده بزرگنمایی"
+                          className="p-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-600 dark:text-slate-300 cursor-pointer shadow-2xs"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* National Card */}
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 space-y-3">
+                  <div className="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                      <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
                         کارت ملی شناگر <span className="text-rose-500 font-bold">*</span>
                       </span>
-                      {nationalCardStatus === 'APPROVED' && (
-                        <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md">تأییدشده</span>
+                      {nationalCardStatus === 'APPROVED' ? (
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> تأییدشده
+                        </span>
+                      ) : nationalCardPreview ? (
+                        <span className="text-[10px] font-bold text-sky-600 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded-md">
+                          بارگذاری‌شده
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-slate-400 bg-slate-200/60 dark:bg-slate-700/60 px-2 py-0.5 rounded-md">
+                          الزامی
+                        </span>
                       )}
                     </div>
-                    <div className="aspect-4/3 rounded-xl bg-slate-200 dark:bg-slate-700/50 flex items-center justify-center overflow-hidden border border-dashed border-slate-300 dark:border-slate-600 relative group">
+
+                    <div className="h-40 sm:h-44 rounded-xl bg-slate-200 dark:bg-slate-700/50 flex items-center justify-center overflow-hidden border border-dashed border-slate-300 dark:border-slate-600 relative group">
                       {nationalCardPreview ? (
-                        <img src={nationalCardPreview} alt="کارت ملی" className="w-full h-full object-cover" />
+                        <>
+                          <img src={nationalCardPreview} alt="کارت ملی" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-slate-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setPreviewDocModal({ title: 'کارت ملی شناگر', url: nationalCardPreview })}
+                              title="مشاهده تصویر کامل"
+                              className="p-2 bg-white/90 text-slate-800 rounded-xl hover:bg-white transition-all cursor-pointer shadow-md"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </>
                       ) : (
                         <div className="text-center p-3 text-slate-400">
-                          <CreditCard className="w-8 h-8 mx-auto mb-1.5 opacity-60" />
+                          <CreditCard className="w-7 h-7 mx-auto mb-1 opacity-60" />
                           <span className="text-xs font-medium block">تصویر کارت ملی</span>
                         </div>
                       )}
                     </div>
-                    <label className="w-full py-2.5 px-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1.5 cursor-pointer transition-colors">
-                      <Upload className="w-4 h-4 text-sky-600" />
-                      <span>{nationalCardPreview ? 'تغییر تصویر' : 'انتخاب تصویر کارت ملی *'}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleFileChange(e, setNationalCardImage, setNationalCardPreview)}
-                      />
-                    </label>
+
+                    <div className="flex items-center gap-2">
+                      <label className="flex-1 py-2 px-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-2xs">
+                        <Upload className="w-3.5 h-3.5 text-sky-600" />
+                        <span>{nationalCardPreview ? 'تغییر تصویر' : 'انتخاب تصویر'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleFileChange(e, setNationalCardImage, setNationalCardPreview)}
+                        />
+                      </label>
+                      {nationalCardPreview && (
+                        <button
+                          type="button"
+                          onClick={() => setPreviewDocModal({ title: 'کارت ملی شناگر', url: nationalCardPreview })}
+                          title="مشاهده بزرگنمایی"
+                          className="p-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-600 dark:text-slate-300 cursor-pointer shadow-2xs"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Sports Insurance */}
-                  <div className="p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 space-y-3">
+                  <div className="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm font-bold text-slate-800 dark:text-slate-200">
+                      <span className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200">
                         کارت بیمه ورزشی <span className="text-rose-500 font-bold">*</span>
                       </span>
-                      {sportsInsuranceStatus === 'APPROVED' && (
-                        <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md">تأییدشده</span>
+                      {sportsInsuranceStatus === 'APPROVED' ? (
+                        <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-md flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3" /> تأییدشده
+                        </span>
+                      ) : sportsInsurancePreview ? (
+                        <span className="text-[10px] font-bold text-sky-600 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded-md">
+                          بارگذاری‌شده
+                        </span>
+                      ) : (
+                        <span className="text-[10px] font-bold text-slate-400 bg-slate-200/60 dark:bg-slate-700/60 px-2 py-0.5 rounded-md">
+                          الزامی
+                        </span>
                       )}
                     </div>
-                    <div className="aspect-4/3 rounded-xl bg-slate-200 dark:bg-slate-700/50 flex items-center justify-center overflow-hidden border border-dashed border-slate-300 dark:border-slate-600 relative group">
+
+                    <div className="h-40 sm:h-44 rounded-xl bg-slate-200 dark:bg-slate-700/50 flex items-center justify-center overflow-hidden border border-dashed border-slate-300 dark:border-slate-600 relative group">
                       {sportsInsurancePreview ? (
-                        <img src={sportsInsurancePreview} alt="بیمه ورزشی" className="w-full h-full object-cover" />
+                        <>
+                          <img src={sportsInsurancePreview} alt="بیمه ورزشی" className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-slate-950/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setPreviewDocModal({ title: 'کارت بیمه ورزشی', url: sportsInsurancePreview })}
+                              title="مشاهده تصویر کامل"
+                              className="p-2 bg-white/90 text-slate-800 rounded-xl hover:bg-white transition-all cursor-pointer shadow-md"
+                            >
+                              <Eye className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </>
                       ) : (
                         <div className="text-center p-3 text-slate-400">
-                          <ShieldCheck className="w-8 h-8 mx-auto mb-1.5 opacity-60" />
+                          <ShieldCheck className="w-7 h-7 mx-auto mb-1 opacity-60" />
                           <span className="text-xs font-medium block">تصویر بیمه ورزشی</span>
                         </div>
                       )}
                     </div>
-                    <label className="w-full py-2.5 px-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1.5 cursor-pointer transition-colors">
-                      <Upload className="w-4 h-4 text-sky-600" />
-                      <span>{sportsInsurancePreview ? 'تغییر تصویر' : 'انتخاب تصویر بیمه *'}</span>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => handleFileChange(e, setSportsInsuranceImage, setSportsInsurancePreview)}
-                      />
-                    </label>
+
+                    <div className="flex items-center gap-2">
+                      <label className="flex-1 py-2 px-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 flex items-center justify-center gap-1.5 cursor-pointer transition-colors shadow-2xs">
+                        <Upload className="w-3.5 h-3.5 text-sky-600" />
+                        <span>{sportsInsurancePreview ? 'تغییر تصویر' : 'انتخاب تصویر'}</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => handleFileChange(e, setSportsInsuranceImage, setSportsInsurancePreview)}
+                        />
+                      </label>
+                      {sportsInsurancePreview && (
+                        <button
+                          type="button"
+                          onClick={() => setPreviewDocModal({ title: 'کارت بیمه ورزشی', url: sportsInsurancePreview })}
+                          title="مشاهده بزرگنمایی"
+                          className="p-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-600 dark:text-slate-300 cursor-pointer shadow-2xs"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-800">
+                {/* Step 3 Actions */}
+                <div className="flex items-center justify-between gap-2 pt-3 sm:pt-4 border-t border-slate-100 dark:border-slate-800">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={handlePrevStep}
-                    className="px-5 py-3 text-sm font-bold gap-2 cursor-pointer"
+                    className="px-3.5 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold gap-1 sm:gap-2 cursor-pointer rounded-xl sm:rounded-2xl border-slate-200 dark:border-slate-700"
                   >
                     <ArrowRight className="w-4 h-4" />
-                    <span>بازگشت به گام دوم</span>
+                    <span>گام قبل</span>
+                    <span className="hidden sm:inline">: اطلاعات والدین</span>
                   </Button>
                   <Button
                     type="submit"
                     loading={saving}
-                    className="px-8 py-3.5 text-sm sm:text-base font-bold gap-2 cursor-pointer shadow-md shadow-sky-500/20 bg-emerald-600 hover:bg-emerald-700 text-white"
+                    className="px-5 sm:px-8 py-2.5 sm:py-3.5 text-xs sm:text-sm font-bold gap-1.5 sm:gap-2 cursor-pointer shadow-md shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl sm:rounded-2xl"
                   >
-                    <CheckCircle2 className="w-5 h-5" />
+                    <CheckCircle2 className="w-4.5 h-4.5" />
                     <span>ثبت نهایی و ارسال مدارک</span>
                   </Button>
                 </div>
@@ -1031,46 +1243,46 @@ export const SwimmerProfilePage = () => {
       {/* TAB 2: COACH ASSESSMENTS & PERFORMANCE DOSSIER                     */}
       {/* =================================================================== */}
       {activeMainTab === 'ASSESSMENTS' && (
-        <div className="space-y-6 animate-in fade-in duration-200">
+        <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-200">
           {/* Header Summary Card */}
-          <div className="bg-gradient-to-l from-sky-600 via-blue-600 to-indigo-700 rounded-3xl p-6 text-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="bg-gradient-to-l from-sky-600 via-blue-600 to-indigo-700 rounded-3xl p-4 sm:p-6 text-white shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
             <div className="space-y-1">
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-white/15 backdrop-blur-md rounded-full text-xs font-bold text-sky-100">
-                <Sparkles className="w-3.5 h-3.5" />
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-white/15 backdrop-blur-md rounded-full text-[11px] sm:text-xs font-bold text-sky-100">
+                <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                 کارنامه و ارزیابی‌های فنی شناگر
               </div>
-              <h2 className="text-xl sm:text-2xl font-black">
+              <h2 className="text-base sm:text-xl font-black">
                 سطح آموزشی: {profileLevelName || 'سطح پایه / مقدماتی'}
               </h2>
               <p className="text-xs sm:text-sm text-sky-100 max-w-xl">
-                ارزیابی‌های ثبت‌شده، نمرات کسب‌شده و توصیه‌های کادر مربیگری آکادمی
+                ارزیابی‌های ثبت‌شده و توصیه‌های کادر مربیگری آکادمی
               </p>
             </div>
 
             <Link
               to="/swimmer/progress"
-              className="px-4 py-2.5 bg-white text-blue-700 hover:bg-sky-50 rounded-2xl text-xs sm:text-sm font-bold transition-all shadow-sm flex items-center gap-2 shrink-0 self-end sm:self-auto cursor-pointer"
+              className="px-3.5 py-2 sm:px-4 sm:py-2.5 bg-white text-blue-700 hover:bg-sky-50 rounded-xl sm:rounded-2xl text-xs sm:text-sm font-bold transition-all shadow-sm flex items-center gap-1.5 shrink-0 self-end sm:self-auto cursor-pointer"
             >
-              <span>مشاهده ماتریس و زنجیره مهارت‌ها</span>
+              <span>ماتریس مهارت‌ها</span>
               <ChevronLeft className="w-4 h-4" />
             </Link>
           </div>
 
-          {/* KPI Mini-cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-              <span className="text-xs font-bold text-slate-500 block mb-1">کل ارزیابی‌های ثبت‌شده</span>
-              <span className="text-2xl font-black text-slate-900 dark:text-white font-mono">{assessments.length}</span>
+          {/* KPI Mini-cards - 3 column grid on all devices */}
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            <div className="p-3 sm:p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs text-center sm:text-right">
+              <span className="text-[11px] sm:text-xs font-bold text-slate-500 block mb-0.5 sm:mb-1">کل ارزیابی‌ها</span>
+              <span className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white font-mono">{assessments.length}</span>
             </div>
-            <div className="p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-              <span className="text-xs font-bold text-emerald-600 block mb-1">مهارت‌های قبول‌شده</span>
-              <span className="text-2xl font-black text-emerald-600 font-mono">
+            <div className="p-3 sm:p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs text-center sm:text-right">
+              <span className="text-[11px] sm:text-xs font-bold text-emerald-600 block mb-0.5 sm:mb-1">قبول‌شده</span>
+              <span className="text-lg sm:text-2xl font-black text-emerald-600 font-mono">
                 {assessments.filter((a) => a.status === 'PASSED').length}
               </span>
             </div>
-            <div className="col-span-2 sm:col-span-1 p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-              <span className="text-xs font-bold text-amber-600 block mb-1">در حال تمرین / یادگیری</span>
-              <span className="text-2xl font-black text-amber-600 font-mono">
+            <div className="p-3 sm:p-4 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs text-center sm:text-right">
+              <span className="text-[11px] sm:text-xs font-bold text-amber-600 block mb-0.5 sm:mb-1">در حال تمرین</span>
+              <span className="text-lg sm:text-2xl font-black text-amber-600 font-mono">
                 {assessments.filter((a) => a.status !== 'PASSED').length}
               </span>
             </div>
@@ -1078,7 +1290,7 @@ export const SwimmerProfilePage = () => {
 
           {/* Assessments List */}
           {assessments.length > 0 ? (
-            <div className="space-y-3.5">
+            <div className="space-y-3 sm:space-y-3.5">
               {assessments.map((ass) => {
                 const dateStr = (ass.assessed_at || ass.assessment_date)
                   ? toShamsiDate(ass.assessed_at || ass.assessment_date)?.shortNumeric
@@ -1088,12 +1300,12 @@ export const SwimmerProfilePage = () => {
                 return (
                   <div
                     key={ass.id}
-                    className="p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3.5 transition-all hover:border-sky-300 dark:hover:border-sky-800"
+                    className="p-4 sm:p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3 transition-all hover:border-sky-300 dark:hover:border-sky-800"
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2.5 border-b border-slate-100 dark:border-slate-800">
                       <div className="flex items-center gap-3">
                         <div
-                          className={`w-11 h-11 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 border ${
+                          className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center font-black text-sm shrink-0 border ${
                             ass.status === 'PASSED'
                               ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800'
                               : 'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800'
@@ -1102,55 +1314,49 @@ export const SwimmerProfilePage = () => {
                           {ass.score !== undefined && ass.score !== null ? `${Math.round(ass.score)}` : '—'}
                         </div>
                         <div>
-                          <h3 className="text-base font-bold text-slate-900 dark:text-white">
+                          <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white">
                             {ass.skill_name || 'سرفصل مهارتی'}
                           </h3>
-                          <div className="flex items-center gap-2 text-xs text-slate-500 mt-1 flex-wrap">
+                          <div className="flex items-center gap-2 text-[11px] sm:text-xs text-slate-500 mt-0.5 flex-wrap">
                             <span className="flex items-center gap-1">
-                              <User className="w-3.5 h-3.5 text-slate-400" />
-                              <span>مربی ارزیاب: {ass.assessed_by_name || 'کادر فنی آکادمی'}</span>
+                              <User className="w-3 h-3 text-slate-400" />
+                              <span>{ass.assessed_by_name || 'کادر فنی آکادمی'}</span>
                             </span>
                             <span>•</span>
                             <span className="flex items-center gap-1 font-mono">
-                              <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                              <span>تاریخ ارزیابی: {dateStr}</span>
+                              <Calendar className="w-3 h-3 text-slate-400" />
+                              <span>{dateStr}</span>
                             </span>
-                            {ass.level_name && (
-                              <>
-                                <span>•</span>
-                                <span>سطح: {ass.level_name}</span>
-                              </>
-                            )}
                           </div>
                         </div>
                       </div>
 
                       <div className="flex items-center gap-2 self-end sm:self-auto">
                         {ass.score !== undefined && ass.score !== null && (
-                          <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                            امتیاز: {Math.round(ass.score)} / ۱۰۰
+                          <span className="text-[11px] sm:text-xs font-mono font-bold px-2 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                            {Math.round(ass.score)} / ۱۰۰
                           </span>
                         )}
                         <Badge variant={ass.status === 'PASSED' ? 'success' : 'warning'}>
-                          {ass.status_display || (ass.status === 'PASSED' ? 'قبول / کسب مهارت' : 'در حال تمرین')}
+                          {ass.status_display || (ass.status === 'PASSED' ? 'قبول' : 'در حال تمرین')}
                         </Badge>
                       </div>
                     </div>
 
                     {/* Coach Feedback Box */}
                     {hasFeedback ? (
-                      <div className="p-4 rounded-2xl bg-sky-50/60 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/60 text-xs sm:text-sm text-slate-700 dark:text-slate-200 space-y-1">
-                        <span className="font-bold text-sky-800 dark:text-sky-300 block flex items-center gap-1.5">
+                      <div className="p-3 sm:p-4 rounded-2xl bg-sky-50/60 dark:bg-sky-950/30 border border-sky-100 dark:border-sky-900/60 text-xs sm:text-sm text-slate-700 dark:text-slate-200 space-y-1">
+                        <span className="font-bold text-sky-800 dark:text-sky-300 flex items-center gap-1.5 text-xs">
                           <FileText className="w-3.5 h-3.5 text-sky-600" />
-                          بازخورد و نکات آموزشی مربی:
+                          نکات آموزشی مربی:
                         </span>
-                        <p className="leading-relaxed pr-5 font-normal">
+                        <p className="leading-relaxed font-normal">
                           «{ass.feedback || ass.notes}»
                         </p>
                       </div>
                     ) : (
-                      <p className="text-xs text-slate-400 italic">
-                        توضیحات متنی اضافی برای این ارزیابی ثبت نشده است.
+                      <p className="text-[11px] text-slate-400 italic">
+                        توضیحات متنی برای این ارزیابی ثبت نشده است.
                       </p>
                     )}
                   </div>
@@ -1158,20 +1364,20 @@ export const SwimmerProfilePage = () => {
               })}
             </div>
           ) : (
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-10 border border-slate-200/80 dark:border-slate-800 text-center space-y-3">
-              <Award className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto" />
-              <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-200">
-                هنوز ارزیابی یا بازخوردی توسط مربی برای شما ثبت نشده است
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-8 sm:p-10 border border-slate-200/80 dark:border-slate-800 text-center space-y-3">
+              <Award className="w-10 h-10 sm:w-12 sm:h-12 text-slate-300 dark:text-slate-600 mx-auto" />
+              <h3 className="text-sm sm:text-lg font-bold text-slate-800 dark:text-slate-200">
+                هنوز ارزیابی توسط مربی ثبت نشده است
               </h3>
               <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
-                پس از برگزاری جلسات تمرینی یا آزمون‌های تعیین سطح، امتیازات کسب‌شده و توصیه‌های آموزشی مربی در این بخش قابل مشاهده خواهند بود.
+                پس از برگزاری جلسات تمرینی یا آزمون‌های تعیین سطح، نمرات و توصیه‌های مربی در این بخش نمایش داده می‌شوند.
               </p>
               <div className="pt-2">
                 <Link
                   to="/swimmer/progress"
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 text-xs sm:text-sm font-bold hover:bg-sky-100 transition-colors"
                 >
-                  <span>مشاهده نقشه راه مهارت‌های آموزشی</span>
+                  <span>مشاهده نقشه راه مهارت‌ها</span>
                   <ChevronLeft className="w-4 h-4" />
                 </Link>
               </div>
@@ -1184,31 +1390,31 @@ export const SwimmerProfilePage = () => {
       {/* TAB 3: PASSWORD & SECURITY                                          */}
       {/* =================================================================== */}
       {activeMainTab === 'SECURITY' && (
-        <div className="space-y-6 animate-in fade-in duration-200">
+        <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-200">
           {/* Warning for Initial Password */}
           {user && !user.is_password_changed && (
-            <div className="p-5 rounded-3xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 flex items-start gap-3.5">
-              <AlertTriangle className="w-6 h-6 text-rose-600 shrink-0 mt-0.5" />
-              <div className="space-y-1.5">
-                <h4 className="text-sm sm:text-base font-bold text-rose-900 dark:text-rose-100">
+            <div className="p-4 sm:p-5 rounded-3xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+              <div className="space-y-1">
+                <h4 className="text-xs sm:text-sm font-bold text-amber-900 dark:text-amber-100">
                   توجه امنیتی: شما هنوز کلمه عبور اختصاصی تعیین نکرده‌اید!
                 </h4>
-                <p className="text-xs sm:text-sm text-rose-800 dark:text-rose-200/90 leading-relaxed font-medium">
-                  برای ورود بدون پیامک و افزایش امنیت حساب، پیشنهاد می‌شود یک رمز عبور اختصاصی و مطمئن تعیین فرمایید.
+                <p className="text-xs text-amber-800 dark:text-amber-200/90 leading-relaxed font-medium">
+                  برای ورود بدون پیامک و افزایش امنیت، یک رمز عبور اختصاصی تعیین فرمایید.
                 </p>
               </div>
             </div>
           )}
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* Password Form Card */}
-            <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
                 <KeyRound className="w-4.5 h-4.5 text-sky-600" />
                 تعیین یا تغییر کلمه عبور اختصاصی
               </h3>
 
-              <form onSubmit={handlePasswordChange} className="space-y-4">
+              <form onSubmit={handlePasswordChange} className="space-y-3.5 sm:space-y-4">
                 <PasswordRequirementsList password={passwordForm.new_password} showAlways={true} />
 
                 {/* Old password (only if password was previously changed) */}
@@ -1218,19 +1424,19 @@ export const SwimmerProfilePage = () => {
                       کلمه عبور فعلی <span className="text-rose-500 font-bold">*</span>
                     </label>
                     <div className="relative">
-                      <Lock className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                      <Lock className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                       <input
                         type={showOld ? 'text' : 'password'}
                         required
                         value={passwordForm.old_password}
                         onChange={(e) => setPasswordForm({ ...passwordForm, old_password: e.target.value })}
                         placeholder="کلمه عبور فعلی خود را وارد کنید"
-                        className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-10 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                        className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-9 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                       />
                       <button
                         type="button"
                         onClick={() => setShowOld(!showOld)}
-                        className="absolute left-3.5 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                       >
                         {showOld ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
@@ -1244,19 +1450,19 @@ export const SwimmerProfilePage = () => {
                     کلمه عبور جدید <span className="text-rose-500 font-bold">*</span>
                   </label>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                    <Lock className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                     <input
                       type={showNew ? 'text' : 'password'}
                       required
                       value={passwordForm.new_password}
                       onChange={(e) => setPasswordForm({ ...passwordForm, new_password: e.target.value })}
                       placeholder="حداقل ۸ کاراکتر شامل حروف و اعداد"
-                      className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-10 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                      className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-9 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                     />
                     <button
                       type="button"
                       onClick={() => setShowNew(!showNew)}
-                      className="absolute left-3.5 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                     >
                       {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -1269,19 +1475,19 @@ export const SwimmerProfilePage = () => {
                     تکرار کلمه عبور جدید <span className="text-rose-500 font-bold">*</span>
                   </label>
                   <div className="relative">
-                    <Lock className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
+                    <Lock className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                     <input
                       type={showConfirm ? 'text' : 'password'}
                       required
                       value={passwordForm.confirm_password}
                       onChange={(e) => setPasswordForm({ ...passwordForm, confirm_password: e.target.value })}
                       placeholder="تکرار کلمه عبور جدید"
-                      className="w-full text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-10 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
+                      className="w-full text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-9 pl-9 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirm(!showConfirm)}
-                      className="absolute left-3.5 top-3 text-slate-400 hover:text-slate-600 cursor-pointer"
+                      className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                     >
                       {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
@@ -1291,60 +1497,86 @@ export const SwimmerProfilePage = () => {
                 <Button
                   type="submit"
                   loading={changingPassword}
-                  className="w-full py-3 text-sm font-bold rounded-xl cursor-pointer"
+                  className="w-full py-2.5 sm:py-3 text-xs sm:text-sm font-bold rounded-xl cursor-pointer bg-sky-600 hover:bg-sky-700 text-white"
                 >
-                  <ShieldCheck className="w-4.5 h-4.5" />
+                  <ShieldCheck className="w-4 h-4" />
                   <span>ذخیره کلمه عبور جدید</span>
                 </Button>
               </form>
             </div>
 
-            {/* Account & Login Info Card */}
-            <div className="space-y-6">
-              <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
-                <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+            {/* Account & Security Cards */}
+            <div className="space-y-4">
+              <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2 pb-2.5 border-b border-slate-100 dark:border-slate-800">
                   <Smartphone className="w-4.5 h-4.5 text-sky-600" />
                   ورود سریع با پیامک (OTP)
                 </h3>
-                <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                  شماره همراه شما در سامانه تأیید شده است. حتی در صورت فراموشی کلمه عبور، همواره می‌توانید با استفاده از دریافت کد یکبار مصرف پیامکی (OTP) وارد حساب خود شوید.
+                <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+                  شماره همراه شما در سامانه تأیید شده است و همواره می‌توانید با رمز یکبارمصرف پیامکی وارد شوید.
                 </p>
 
-                <div className="p-4 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-100 dark:border-sky-900/60 flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-sky-500 text-white flex items-center justify-center font-bold">
-                      <Phone className="w-5 h-5" />
+                <div className="p-3 rounded-2xl bg-sky-50/70 dark:bg-sky-950/40 border border-sky-100 dark:border-sky-900/60 flex items-center justify-between">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-sky-500 text-white flex items-center justify-center font-bold">
+                      <Phone className="w-4 h-4" />
                     </div>
                     <div>
-                      <span className="text-xs text-slate-500 dark:text-slate-400 block font-medium">شماره موبایل ورود:</span>
-                      <span className="text-sm sm:text-base font-bold font-mono text-slate-900 dark:text-white">
+                      <span className="text-[10px] text-slate-500 dark:text-slate-400 block font-medium">شماره ثبت‌شده:</span>
+                      <span className="text-xs sm:text-sm font-bold font-mono text-slate-900 dark:text-white">
                         {user?.phone || '—'}
                       </span>
                     </div>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
-                    <BadgeCheck className="w-3.5 h-3.5" />
+                  <span className="px-2 py-0.5 rounded-full text-[10px] sm:text-xs font-bold bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 flex items-center gap-1">
+                    <BadgeCheck className="w-3 h-3" />
                     تأییدشده
                   </span>
                 </div>
               </div>
 
-              {/* Security info card */}
-              <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
+              {/* Dedicated Session Management / Logout Card inside Security */}
+              <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 border border-rose-100 dark:border-rose-950/40 shadow-xs space-y-3">
                 <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-emerald-600" />
-                  امنیت و حفاظت از داده‌ها
+                  <LogOut className="w-4 h-4 text-rose-600" />
+                  مدیریت نشست و خروج از حساب
                 </h4>
                 <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
-                  تمامی داده‌های هویتی، آدرس و مدارک بارگذاری‌شده شناگر در سرورهای امن سامانه آکادمی شنا رمزنگاری و محافظت می‌شوند و تنها توسط کادر مجاز آموزشگاه قابل ارزیابی هستند.
+                  در صورت استفاده از دستگاه‌های اشتراکی یا عمومی، جهت حفظ امنیت حتماً از حساب کاربری خود خارج شوید.
                 </p>
+                <button
+                  type="button"
+                  onClick={() => setShowLogoutModal(true)}
+                  className="w-full py-2.5 px-4 bg-rose-50 dark:bg-rose-950/30 hover:bg-rose-100 dark:hover:bg-rose-950/60 text-rose-700 dark:text-rose-300 rounded-xl border border-rose-200 dark:border-rose-900/60 text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  <span>خروج کامل از حساب کاربری</span>
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Logout Modal */}
+      {/* Document Zoom / Preview Modal */}
+      {previewDocModal && (
+        <Modal
+          isOpen={Boolean(previewDocModal)}
+          onClose={() => setPreviewDocModal(null)}
+          title={previewDocModal.title}
+          maxWidth="max-w-2xl"
+        >
+          <div className="flex flex-col items-center justify-center p-2">
+            <img
+              src={previewDocModal.url}
+              alt={previewDocModal.title}
+              className="max-h-[70vh] max-h-[70dvh] w-auto max-w-full rounded-2xl object-contain shadow-md"
+            />
+          </div>
+        </Modal>
+      )}
+
+      {/* Logout Confirmation Modal */}
       <LogoutModal
         isOpen={showLogoutModal}
         onClose={() => setShowLogoutModal(false)}

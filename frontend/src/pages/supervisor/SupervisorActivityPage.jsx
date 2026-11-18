@@ -20,28 +20,28 @@ import { validatePassword, generateStrongPassword, PasswordRequirementsList } fr
 
 const ROLE_DEFINITIONS = {
   ADMIN: {
-    label: 'مدیر آموزشگاه',
+    label: 'مدیریت',
     bg: 'bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
     icon: Shield,
-    description: 'دسترسی کامل مدیریتی و اجرایی',
+    description: 'مدیریت سامانه',
   },
   SUPERVISOR: {
-    label: 'ناظر فنی سامانه',
+    label: 'ناظر فنی',
     bg: 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
     icon: Activity,
-    description: 'پایش زیرساخت، خطاها و حساب‌های امنیتی',
+    description: 'پایش و نظارت فنی',
   },
   COACH: {
-    label: 'مربی آکادمی',
+    label: 'مربی',
     bg: 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
     icon: Award,
-    description: 'کلاس‌ها و ارزیابی شناگران',
+    description: 'مربی',
   },
   SWIMMER: {
-    label: 'شناگر / اولیا',
+    label: 'شناگر',
     bg: 'bg-cyan-50 dark:bg-cyan-950/40 text-cyan-700 dark:text-cyan-300 border-cyan-200 dark:border-cyan-800',
     icon: LifeBuoy,
-    description: 'دسترسی پورتال شناگر',
+    description: 'شناگر',
   },
 };
 
@@ -405,26 +405,27 @@ export const SupervisorActivityPage = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* 1. Header Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs transition-colors">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
             <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">
               نظارت بر نشست‌ها و امنیت حساب‌ها (User Activity & Access)
             </h1>
           </div>
-          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
             پایش نشست‌های فعال، تلاش‌های ناموفق احراز هویت و مدیریت کاربران و دسترسی‌ها (افزودن، تعلیق و حذف)
           </p>
         </div>
-        <div className="flex items-center gap-2.5 shrink-0">
+
+        <div className="flex items-center gap-3 shrink-0">
           <button
             type="button"
             onClick={() => fetchData(true)}
             disabled={refreshing}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
-            title="به‌روزرسانی"
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+            title="به‌روزرسانی اطلاعات"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-sky-600' : ''}`} />
             <span>به‌روزرسانی</span>
@@ -433,7 +434,7 @@ export const SupervisorActivityPage = () => {
           <Button
             variant="primary"
             onClick={handleOpenAddModal}
-            className="gap-1.5 text-xs py-2 px-3.5 shadow-sm"
+            className="gap-2 text-xs py-2.5 px-4 shadow-sm"
           >
             <UserPlus className="w-4 h-4" />
             <span>افزودن کاربر جدید</span>
@@ -441,63 +442,67 @@ export const SupervisorActivityPage = () => {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* 2. Top Stats Cards (Clean Persian typography, no font-mono on words) */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Card 1: Active Online Sessions */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-2 transition-colors">
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
-            <span className="font-medium">کاربران آنلاین (۱۵ دقیقه گذشته):</span>
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
+            <span>کاربران فعال (۱۵ دقیقه گذشته)</span>
             <div className="w-8 h-8 rounded-xl bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
               <Users className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-            {activeCount} کاربر آنلاین
+          <div className="my-3 text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white flex items-baseline gap-2">
+            <span className="font-mono text-3xl font-bold">{activeCount}</span>
+            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">کاربر آنلاین</span>
           </div>
-          <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-ping"></span>
+          <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
             نشست‌های احراز هویت‌شده
           </p>
         </div>
 
         {/* Card 2: Failed Logins */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-2 transition-colors">
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
-            <span className="font-medium">تلاش ناموفق ورود (۲۴ ساعت):</span>
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
+            <span>تلاش‌های ناموفق ورود (۲۴ ساعت)</span>
             <div className="w-8 h-8 rounded-xl bg-amber-50 dark:bg-amber-950/70 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
               <ShieldAlert className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-            {failedCount} تلاش
+          <div className="my-3 text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white flex items-baseline gap-2">
+            <span className="font-mono text-3xl font-bold">{failedCount}</span>
+            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">تلاش</span>
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400">تحت محافظت Rate Limiter</p>
         </div>
 
         {/* Card 3: Privileged Accounts */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-2 transition-colors">
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
-            <span className="font-medium">حساب‌های دسترسی ویژه:</span>
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
+            <span>حساب‌های دسترسی ویژه</span>
             <div className="w-8 h-8 rounded-xl bg-indigo-50 dark:bg-indigo-950/70 text-indigo-600 dark:text-indigo-400 flex items-center justify-center shrink-0">
               <ShieldCheck className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-            {privilegedCount} کاربر ویژه
+          <div className="my-3 text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white flex items-baseline gap-2">
+            <span className="font-mono text-3xl font-bold">{privilegedCount}</span>
+            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">کاربر ویژه</span>
           </div>
           <p className="text-xs text-indigo-600 dark:text-indigo-400 font-medium">شامل مدیران و ناظران فنی</p>
         </div>
 
         {/* Card 4: Total & Status Breakdown */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-2 transition-colors">
-          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
-            <span className="font-medium">کل کاربران سامانه:</span>
+        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
+          <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-medium">
+            <span>کل حساب‌های کاربری</span>
             <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/70 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <UserCheck className="w-4 h-4" />
             </div>
           </div>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-            {totalCount} حساب
+          <div className="my-3 text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white flex items-baseline gap-2">
+            <span className="font-mono text-3xl font-bold">{totalCount}</span>
+            <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">کاربر</span>
           </div>
           <div className="text-xs flex items-center gap-2 font-medium">
             <span className="text-emerald-600 dark:text-emerald-400">{totalActive} فعال</span>
@@ -507,36 +512,25 @@ export const SupervisorActivityPage = () => {
         </div>
       </div>
 
-      {/* Main Card: Users Table & Operations */}
+      {/* 3. Main Users Management Card */}
       <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden transition-colors">
-        {/* Table Title Bar */}
-        <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800/80 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        {/* Card Header */}
+        <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
           <div>
-            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <span>مدیریت کاربران و دسترسی‌ها (User Access & Activity)</span>
-              <span className="px-2 py-0.5 rounded-full text-xs font-semibold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
-                {filteredUsers.length} کاربر
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+              <span>فهرست حساب‌های کاربری و سطوح دسترسی</span>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 border border-sky-200 dark:border-sky-800">
+                {filteredUsers.length} حساب
               </span>
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-              مشاهده سطوح دسترسی، افزودن کاربر، تعلیق و فعال‌سازی مستقیم حساب‌ها و مدیریت جامع کاربران
+              مدیریت مستقیم، افزودن کاربر، معلق‌سازی یا فعال‌سازی آنی حساب‌ها و بازنشانی مشخصات
             </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <Button
-              variant="primary"
-              onClick={handleOpenAddModal}
-              className="gap-1.5 text-xs py-2 px-3.5 shadow-sm w-full sm:w-auto"
-            >
-              <UserPlus className="w-3.5 h-3.5" />
-              <span>افزودن کاربر جدید</span>
-            </Button>
           </div>
         </div>
 
-        {/* Filter & Search Bar */}
-        <div className="p-4 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-100 dark:border-slate-800/80 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        {/* Filter and Search Bar */}
+        <div className="px-6 py-4 bg-slate-50/60 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800/80 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
           {/* Search Box */}
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -547,14 +541,14 @@ export const SupervisorActivityPage = () => {
                 setSearchTerm(e.target.value);
                 setCurrentPage(1);
               }}
-              placeholder="جستجو با نام، نام خانوادگی، شماره تماس یا کد ملی..."
-              className="w-full pl-3 pr-10 py-2 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
+              placeholder="جستجو با نام و نام خانوادگی، شماره همراه..."
+              className="w-full pl-3 pr-10 py-2.5 text-xs bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 transition-all"
             />
           </div>
 
           {/* Filter Dropdowns */}
           <div className="flex flex-wrap items-center gap-2.5">
-            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
+            <div className="flex items-center gap-1.5 bg-white dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
               <Filter className="w-3.5 h-3.5 text-slate-400 shrink-0" />
               <select
                 value={roleFilter}
@@ -565,15 +559,15 @@ export const SupervisorActivityPage = () => {
                 className="bg-transparent text-xs text-slate-700 dark:text-slate-200 focus:outline-hidden cursor-pointer"
               >
                 <option value="">همه نقش‌ها ({users.length})</option>
-                <option value="PRIVILEGED">حساب‌های ویژه و مدیریتی ({privilegedCount})</option>
-                <option value="ADMIN">مدیر آموزشگاه ({users.filter((u) => u.role === 'ADMIN').length})</option>
-                <option value="SUPERVISOR">ناظر فنی سامانه ({users.filter((u) => u.role === 'SUPERVISOR').length})</option>
-                <option value="COACH">مربی آکادمی ({users.filter((u) => u.role === 'COACH').length})</option>
-                <option value="SWIMMER">شناگر / اولیا ({users.filter((u) => u.role === 'SWIMMER').length})</option>
+                <option value="PRIVILEGED">حساب‌های ویژه ({privilegedCount})</option>
+                <option value="ADMIN">مدیریت ({users.filter((u) => u.role === 'ADMIN').length})</option>
+                <option value="SUPERVISOR">ناظر فنی ({users.filter((u) => u.role === 'SUPERVISOR').length})</option>
+                <option value="COACH">مربی ({users.filter((u) => u.role === 'COACH').length})</option>
+                <option value="SWIMMER">شناگر ({users.filter((u) => u.role === 'SWIMMER').length})</option>
               </select>
             </div>
 
-            <div className="bg-white dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
+            <div className="bg-white dark:bg-slate-800 px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 shadow-2xs">
               <select
                 value={statusFilter}
                 onChange={(e) => {
@@ -583,8 +577,8 @@ export const SupervisorActivityPage = () => {
                 className="bg-transparent text-xs text-slate-700 dark:text-slate-200 focus:outline-hidden cursor-pointer"
               >
                 <option value="">همه وضعیت‌ها</option>
-                <option value="active">فقط فعال‌ها ({totalActive})</option>
-                <option value="inactive">فقط معلق‌ها ({totalSuspended})</option>
+                <option value="active">فقط حساب‌های فعال ({totalActive})</option>
+                <option value="inactive">فقط حساب‌های معلق ({totalSuspended})</option>
               </select>
             </div>
 
@@ -605,7 +599,7 @@ export const SupervisorActivityPage = () => {
           </div>
         </div>
 
-        {/* Content: Empty State, Desktop Table, and Mobile Cards */}
+        {/* Content: Empty State, Desktop Table (7 Clean Columns), and Mobile Cards */}
         {filteredUsers.length === 0 ? (
           <div className="py-12">
             <EmptyState
@@ -618,20 +612,18 @@ export const SupervisorActivityPage = () => {
           </div>
         ) : (
           <>
-            {/* 1. DESKTOP & TABLET VIEW (md:block) */}
+            {/* 1. DESKTOP & LAPTOP TABLE (Spacious 7 Columns without National ID or Staff/Superuser) */}
             <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-right text-xs">
-                <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800">
+                <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 font-semibold border-b border-slate-200 dark:border-slate-800 whitespace-nowrap">
                   <tr>
-                    <th className="p-4">نام و نام خانوادگی</th>
-                    <th className="p-4">شماره تلفن (نام کاربری)</th>
-                    <th className="p-4">کد ملی</th>
-                    <th className="p-4">نقش سامانه</th>
-                    <th className="p-4">دسترسی مدیریتی</th>
-                    <th className="p-4 text-center">وضعیت حساب</th>
-                    <th className="p-4">آخرین ورود</th>
-                    <th className="p-4">تاریخ عضویت</th>
-                    <th className="p-4 text-center">عملیات مدیریت</th>
+                    <th className="px-5 py-3.5">نام و نام خانوادگی</th>
+                    <th className="px-4 py-3.5">شماره تلفن</th>
+                    <th className="px-4 py-3.5">نقش</th>
+                    <th className="px-4 py-3.5 text-center">وضعیت</th>
+                    <th className="px-4 py-3.5">آخرین ورود</th>
+                    <th className="px-4 py-3.5">تاریخ عضویت</th>
+                    <th className="px-5 py-3.5 text-center">عملیات</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -644,16 +636,16 @@ export const SupervisorActivityPage = () => {
                     return (
                       <tr
                         key={u.id}
-                        className="hover:bg-slate-50/60 dark:hover:bg-slate-800/40 transition-colors"
+                        className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors"
                       >
-                        {/* Name & Avatar */}
-                        <td className="p-4">
+                        {/* 1. Name & Avatar */}
+                        <td className="px-5 py-3.5">
                           <div className="flex items-center gap-2.5">
                             <div className="w-8 h-8 rounded-xl bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 font-bold flex items-center justify-center text-xs shrink-0 shadow-2xs">
                               {u.first_name ? u.first_name.charAt(0) : 'U'}
                             </div>
                             <div>
-                              <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                              <div className="font-bold text-slate-900 dark:text-white text-xs sm:text-sm flex items-center gap-1.5 whitespace-nowrap">
                                 <span>{u.full_name || 'کاربر بدون نام'}</span>
                                 {isCurrent && (
                                   <span className="text-[10px] bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300 px-1.5 py-0.2 rounded-md font-medium">
@@ -668,10 +660,10 @@ export const SupervisorActivityPage = () => {
                           </div>
                         </td>
 
-                        {/* Phone */}
-                        <td className="p-4 font-mono text-slate-700 dark:text-slate-300">
+                        {/* 2. Phone */}
+                        <td className="px-4 py-3.5 font-mono text-slate-700 dark:text-slate-300 whitespace-nowrap">
                           <div className="flex items-center gap-1.5">
-                            <span>{u.phone}</span>
+                            <span className="text-xs sm:text-sm">{u.phone}</span>
                             <button
                               type="button"
                               onClick={() => handleCopyPhone(u.phone)}
@@ -687,44 +679,24 @@ export const SupervisorActivityPage = () => {
                           </div>
                         </td>
 
-                        {/* National ID */}
-                        <td className="p-4 font-mono text-slate-600 dark:text-slate-400">
-                          {u.national_id || '—'}
-                        </td>
-
-                        {/* Role */}
-                        <td className="p-4">
+                        {/* 3. Role */}
+                        <td className="px-4 py-3.5 whitespace-nowrap">
                           <span
-                            className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${roleDef.bg}`}
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold border ${roleDef.bg}`}
                             title={roleDef.description}
                           >
-                            <RoleIcon className="w-3 h-3 shrink-0" />
+                            <RoleIcon className="w-3.5 h-3.5 shrink-0" />
                             <span>{roleDef.label}</span>
                           </span>
                         </td>
 
-                        {/* Staff / Superuser */}
-                        <td className="p-4 font-mono text-slate-600 dark:text-slate-400">
-                          {u.is_superuser ? (
-                            <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-purple-50 dark:bg-purple-950/60 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800">
-                              Superuser
-                            </span>
-                          ) : u.is_staff ? (
-                            <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
-                              Staff
-                            </span>
-                          ) : (
-                            <span className="text-slate-400 dark:text-slate-500 text-[11px]">Standard</span>
-                          )}
-                        </td>
-
-                        {/* Status Toggle Pill */}
-                        <td className="p-4 text-center">
+                        {/* 4. Status Toggle Pill */}
+                        <td className="px-4 py-3.5 text-center whitespace-nowrap">
                           <button
                             type="button"
                             onClick={() => handleToggleActive(u)}
                             disabled={isCurrent || isToggling}
-                            className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                            className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold transition-all ${
                               u.is_active
                                 ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800'
                                 : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800'
@@ -750,27 +722,27 @@ export const SupervisorActivityPage = () => {
                           </button>
                         </td>
 
-                        {/* Last Login */}
-                        <td className="p-4 text-slate-500 dark:text-slate-400">
+                        {/* 5. Last Login */}
+                        <td className="px-4 py-3.5 text-slate-500 dark:text-slate-400 whitespace-nowrap">
                           {u.last_login ? new Date(u.last_login).toLocaleString('fa-IR') : 'هرگز'}
                         </td>
 
-                        {/* Created At */}
-                        <td className="p-4 text-slate-500 dark:text-slate-400">
+                        {/* 6. Created At */}
+                        <td className="px-4 py-3.5 text-slate-500 dark:text-slate-400 whitespace-nowrap">
                           {u.created_at || u.date_joined
                             ? new Date(u.created_at || u.date_joined).toLocaleDateString('fa-IR')
                             : '—'}
                         </td>
 
-                        {/* Actions */}
-                        <td className="p-4">
-                          <div className="flex items-center justify-center gap-1">
+                        {/* 7. Actions */}
+                        <td className="px-5 py-3.5 whitespace-nowrap">
+                          <div className="flex items-center justify-center gap-1.5">
                             {/* Suspend / Activate Button */}
                             <button
                               type="button"
                               onClick={() => handleToggleActive(u)}
                               disabled={isCurrent || isToggling}
-                              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                              className={`p-2 rounded-xl transition-colors cursor-pointer ${
                                 isCurrent
                                   ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed'
                                   : u.is_active
@@ -792,7 +764,7 @@ export const SupervisorActivityPage = () => {
                             <button
                               type="button"
                               onClick={() => handleOpenEditModal(u)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/50 transition-colors cursor-pointer"
+                              className="p-2 rounded-xl text-slate-500 hover:text-sky-600 dark:hover:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/50 transition-colors cursor-pointer"
                               title="ویرایش مشخصات کاربر"
                             >
                               <Edit3 className="w-4 h-4" />
@@ -802,7 +774,7 @@ export const SupervisorActivityPage = () => {
                             <button
                               type="button"
                               onClick={() => handleOpenPasswordModal(u)}
-                              className="p-1.5 rounded-lg text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-colors cursor-pointer"
+                              className="p-2 rounded-xl text-slate-500 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-colors cursor-pointer"
                               title="تغییر یا بازنشانی کلمه عبور"
                             >
                               <KeyRound className="w-4 h-4" />
@@ -813,7 +785,7 @@ export const SupervisorActivityPage = () => {
                               type="button"
                               onClick={() => handleOpenDeleteModal(u)}
                               disabled={isCurrent}
-                              className={`p-1.5 rounded-lg transition-colors ${
+                              className={`p-2 rounded-xl transition-colors ${
                                 isCurrent
                                   ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed'
                                   : 'text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 cursor-pointer'
@@ -831,8 +803,8 @@ export const SupervisorActivityPage = () => {
               </table>
             </div>
 
-            {/* 2. MOBILE CARD VIEW (block md:hidden) */}
-            <div className="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+            {/* 2. MOBILE CARD VIEW (Standalone Cards with Margin & Separation) */}
+            <div className="block md:hidden p-3.5 space-y-3.5 bg-slate-50/70 dark:bg-slate-950/40">
               {paginatedUsers.map((u) => {
                 const isCurrent = u.id === currentUser?.id;
                 const roleDef = ROLE_DEFINITIONS[u.role] || ROLE_DEFINITIONS.SWIMMER;
@@ -840,15 +812,18 @@ export const SupervisorActivityPage = () => {
                 const isToggling = togglingUserId === u.id;
 
                 return (
-                  <div key={u.id} className="p-4 space-y-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                  <div
+                    key={u.id}
+                    className="bg-white dark:bg-slate-900 rounded-2xl p-4 border border-slate-200/90 dark:border-slate-800 shadow-xs hover:shadow-md transition-all space-y-3"
+                  >
                     {/* Header: Name, Avatar, Role */}
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 font-bold flex items-center justify-center text-xs shrink-0 shadow-2xs">
+                        <div className="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 font-bold flex items-center justify-center text-sm shrink-0 shadow-2xs">
                           {u.first_name ? u.first_name.charAt(0) : 'U'}
                         </div>
                         <div>
-                          <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 text-xs">
+                          <div className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 text-xs sm:text-sm">
                             <span>{u.full_name || 'کاربر بدون نام'}</span>
                             {isCurrent && (
                               <span className="text-[10px] bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300 px-1.5 py-0.2 rounded-md font-medium">
@@ -863,50 +838,37 @@ export const SupervisorActivityPage = () => {
                       </div>
 
                       <span
-                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-semibold border ${roleDef.bg}`}
+                        className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold border ${roleDef.bg}`}
                       >
-                        <RoleIcon className="w-3 h-3 shrink-0" />
+                        <RoleIcon className="w-3.5 h-3.5 shrink-0" />
                         <span>{roleDef.label}</span>
                       </span>
                     </div>
 
-                    {/* Mobile Details Grid */}
-                    <div className="grid grid-cols-2 gap-2 text-[11px] bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+                    {/* Mobile Details: Phone & Last login */}
+                    <div className="flex items-center justify-between text-xs bg-slate-50/80 dark:bg-slate-800/60 px-3.5 py-2.5 rounded-xl border border-slate-200/70 dark:border-slate-700/60">
                       <div>
-                        <span className="text-slate-400 dark:text-slate-500 block text-[10px]">شماره همراه:</span>
-                        <div className="flex items-center gap-1 font-mono text-slate-700 dark:text-slate-200 mt-0.5">
+                        <span className="text-slate-400 dark:text-slate-500 block text-[10px] font-medium">شماره همراه:</span>
+                        <div className="flex items-center gap-1.5 font-mono text-slate-800 dark:text-slate-200 mt-0.5 font-semibold">
                           <span>{u.phone}</span>
                           <button
                             type="button"
                             onClick={() => handleCopyPhone(u.phone)}
                             className="p-0.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 cursor-pointer"
+                            title="کپی شماره"
                           >
                             {copiedPhone === u.phone ? (
-                              <Check className="w-3 h-3 text-emerald-500" />
+                              <Check className="w-3.5 h-3.5 text-emerald-500" />
                             ) : (
-                              <Copy className="w-3 h-3" />
+                              <Copy className="w-3.5 h-3.5" />
                             )}
                           </button>
                         </div>
                       </div>
 
-                      <div>
-                        <span className="text-slate-400 dark:text-slate-500 block text-[10px]">کد ملی:</span>
-                        <span className="font-mono text-slate-700 dark:text-slate-200 mt-0.5 block">
-                          {u.national_id || '—'}
-                        </span>
-                      </div>
-
-                      <div>
-                        <span className="text-slate-400 dark:text-slate-500 block text-[10px]">دسترسی مدیریتی:</span>
-                        <span className="text-slate-700 dark:text-slate-200 font-mono text-[10px] mt-0.5 block">
-                          {u.is_superuser ? 'Superuser' : u.is_staff ? 'Staff' : 'Standard'}
-                        </span>
-                      </div>
-
-                      <div>
-                        <span className="text-slate-400 dark:text-slate-500 block text-[10px]">آخرین ورود:</span>
-                        <span className="text-slate-700 dark:text-slate-200 text-[10px] mt-0.5 block">
+                      <div className="text-left">
+                        <span className="text-slate-400 dark:text-slate-500 block text-[10px] font-medium">آخرین ورود:</span>
+                        <span className="text-slate-700 dark:text-slate-300 text-[11px] mt-0.5 block">
                           {u.last_login ? new Date(u.last_login).toLocaleDateString('fa-IR') : 'هرگز'}
                         </span>
                       </div>
@@ -919,14 +881,14 @@ export const SupervisorActivityPage = () => {
                         type="button"
                         onClick={() => handleToggleActive(u)}
                         disabled={isCurrent || isToggling}
-                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-semibold transition-all ${
+                        className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                           u.is_active
-                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
-                            : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800'
+                            ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 hover:bg-emerald-100'
+                            : 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300 border border-rose-200 dark:border-rose-800 hover:bg-rose-100'
                         } ${isCurrent ? 'opacity-70 cursor-not-allowed' : 'cursor-pointer'}`}
                       >
                         <span
-                          className={`w-1.5 h-1.5 rounded-full ${
+                          className={`w-2 h-2 rounded-full ${
                             isToggling
                               ? 'bg-amber-500 animate-spin'
                               : u.is_active
@@ -938,12 +900,12 @@ export const SupervisorActivityPage = () => {
                       </button>
 
                       {/* Action Icons */}
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center gap-1.5">
                         <button
                           type="button"
                           onClick={() => handleToggleActive(u)}
                           disabled={isCurrent || isToggling}
-                          className={`p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 ${
+                          className={`p-2 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors ${
                             isCurrent
                               ? 'opacity-40 cursor-not-allowed text-slate-400'
                               : u.is_active
@@ -952,39 +914,39 @@ export const SupervisorActivityPage = () => {
                           }`}
                           title={u.is_active ? 'معلق کردن کاربر' : 'فعال‌سازی کاربر'}
                         >
-                          {u.is_active ? <UserX className="w-3.5 h-3.5" /> : <UserCheck className="w-3.5 h-3.5" />}
+                          {u.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />}
                         </button>
 
                         <button
                           type="button"
                           onClick={() => handleOpenEditModal(u)}
-                          className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/50 transition-colors"
-                          title="ویرایش"
+                          className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-sky-600 hover:bg-sky-50 dark:hover:bg-sky-950/50 transition-colors"
+                          title="ویرایش مشخصات"
                         >
-                          <Edit3 className="w-3.5 h-3.5" />
+                          <Edit3 className="w-4 h-4" />
                         </button>
 
                         <button
                           type="button"
                           onClick={() => handleOpenPasswordModal(u)}
-                          className="p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-colors"
+                          className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-950/50 transition-colors"
                           title="تغییر کلمه عبور"
                         >
-                          <KeyRound className="w-3.5 h-3.5" />
+                          <KeyRound className="w-4 h-4" />
                         </button>
 
                         <button
                           type="button"
                           onClick={() => handleOpenDeleteModal(u)}
                           disabled={isCurrent}
-                          className={`p-1.5 rounded-lg border border-slate-200 dark:border-slate-700 ${
+                          className={`p-2 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors ${
                             isCurrent
                               ? 'opacity-40 cursor-not-allowed text-slate-400'
                               : 'text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50'
                           }`}
-                          title="حذف"
+                          title="حذف کاربر"
                         >
-                          <Trash2 className="w-3.5 h-3.5" />
+                          <Trash2 className="w-4 h-4" />
                         </button>
                       </div>
                     </div>
@@ -995,7 +957,7 @@ export const SupervisorActivityPage = () => {
 
             {/* Pagination */}
             {filteredUsers.length > pageSize && (
-              <div className="p-4 border-t border-slate-100 dark:border-slate-800 flex justify-center">
+              <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-center">
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}
@@ -1019,8 +981,8 @@ export const SupervisorActivityPage = () => {
         maxWidth="max-w-xl"
       >
         <form onSubmit={handleCreateUser} className="space-y-4">
-          <div className="p-3 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 rounded-xl text-xs text-sky-800 dark:text-sky-300">
-            با افزودن کاربر جدید، می‌توانید بلافاصله نقش وی را به <strong>مدیر آموزشگاه</strong>، <strong>ناظر فنی</strong>، <strong>مربی</strong> یا <strong>شناگر</strong> تعیین فرمایید.
+          <div className="p-3 bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-800 rounded-xl text-xs text-sky-800 dark:text-sky-300 leading-relaxed">
+            با افزودن کاربر جدید، می‌توانید بلافاصله نقش وی را به <strong>مدیریت</strong>، <strong>ناظر فنی</strong>، <strong>مربی</strong> یا <strong>شناگر</strong> تعیین فرمایید.
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -1051,10 +1013,10 @@ export const SupervisorActivityPage = () => {
                 onChange={(e) => setAddForm({ ...addForm, role: e.target.value })}
                 className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 cursor-pointer"
               >
-                <option value="ADMIN">مدیر آموزشگاه (ADMIN)</option>
-                <option value="SUPERVISOR">ناظر فنی سامانه (SUPERVISOR)</option>
-                <option value="COACH">مربی آکادمی (COACH)</option>
-                <option value="SWIMMER">شناگر / اولیا (SWIMMER)</option>
+                <option value="ADMIN">مدیریت (ADMIN)</option>
+                <option value="SUPERVISOR">ناظر فنی (SUPERVISOR)</option>
+                <option value="COACH">مربی (COACH)</option>
+                <option value="SWIMMER">شناگر (SWIMMER)</option>
               </select>
             </div>
 
@@ -1083,21 +1045,6 @@ export const SupervisorActivityPage = () => {
                 value={addForm.last_name}
                 onChange={(e) => setAddForm({ ...addForm, last_name: e.target.value })}
                 className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
-                کد ملی (اختیاری)
-              </label>
-              <input
-                type="text"
-                dir="ltr"
-                maxLength={10}
-                placeholder="0012345678"
-                value={addForm.national_id}
-                onChange={(e) => setAddForm({ ...addForm, national_id: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
               />
             </div>
 
@@ -1227,20 +1174,6 @@ export const SupervisorActivityPage = () => {
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
-                کد ملی
-              </label>
-              <input
-                type="text"
-                dir="ltr"
-                maxLength={10}
-                value={editForm.national_id}
-                onChange={(e) => setEditForm({ ...editForm, national_id: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl font-mono text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
                 نقش کاربری در سامانه
               </label>
               <select
@@ -1248,14 +1181,14 @@ export const SupervisorActivityPage = () => {
                 onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
                 className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-slate-100 focus:outline-hidden focus:ring-2 focus:ring-sky-500/20 focus:border-sky-500 cursor-pointer"
               >
-                <option value="ADMIN">مدیر آموزشگاه (ADMIN)</option>
-                <option value="SUPERVISOR">ناظر فنی سامانه (SUPERVISOR)</option>
-                <option value="COACH">مربی آکادمی (COACH)</option>
-                <option value="SWIMMER">شناگر / اولیا (SWIMMER)</option>
+                <option value="ADMIN">مدیریت (ADMIN)</option>
+                <option value="SUPERVISOR">ناظر فنی (SUPERVISOR)</option>
+                <option value="COACH">مربی (COACH)</option>
+                <option value="SWIMMER">شناگر (SWIMMER)</option>
               </select>
             </div>
 
-            <div>
+            <div className="sm:col-span-2">
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-200 mb-1">
                 وضعیت حساب
               </label>

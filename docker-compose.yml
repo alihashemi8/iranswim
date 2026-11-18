@@ -58,6 +58,32 @@ services:
     depends_on:
       - backend
 
+  scheduler:
+    image: ghcr.io/alihashemi8/iranswim-backend:latest
+    build: ./backend
+    container_name: iranswim_scheduler
+    restart: unless-stopped
+    command: >
+      sh -c "python manage.py run_scheduler --alert-interval 120 --cleanup-interval 86400 --retention-days 90"
+    environment:
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY:?DJANGO_SECRET_KEY must be set in production environment}
+      DJANGO_DEBUG: ${DJANGO_DEBUG:-False}
+      DJANGO_ENV: ${DJANGO_ENV:-production}
+      ALLOWED_HOSTS: ${ALLOWED_HOSTS:-*}
+      POSTGRES_DB: ${POSTGRES_DB:-iranswim}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_HOST: db
+      POSTGRES_PORT: 5432
+    depends_on:
+      db:
+        condition: service_healthy
+      backend:
+        condition: service_started
+    volumes:
+      - media_data:/app/media:ro
+      - ./backend:/app
+
 volumes:
   postgres_data:
   media_data:

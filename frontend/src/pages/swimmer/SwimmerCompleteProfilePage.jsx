@@ -78,8 +78,8 @@ export const SwimmerCompleteProfilePage = () => {
         setMotherPhone(data.mother_phone || '');
         setMotherJob(data.mother_job || '');
         setAddress(data.address || '');
-        setLatitude(data.latitude || 35.6892);
-        setLongitude(data.longitude || 51.3890);
+        setLatitude(data.latitude || 36.2797);
+        setLongitude(data.longitude || 50.0049);
 
         if (data.avatar) setAvatarPreview(getMediaUrl(data.avatar));
         if (data.birth_certificate_image) setBirthCertPreview(getAuthenticatedDocUrl(data.birth_certificate_image));
@@ -176,7 +176,7 @@ export const SwimmerCompleteProfilePage = () => {
       return false;
     }
     if (!cleanMotherJob) {
-      setError('شغل مادر الزامی است. لطفاً آن را وارد فرمایید.');
+      setError('شغل مادر (یا مخاطب اضطراری) الزامی است. لطفاً آن را وارد فرمایید.');
       return false;
     }
 
@@ -604,7 +604,7 @@ export const SwimmerCompleteProfilePage = () => {
 
             <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 rounded-2xl text-xs sm:text-sm text-amber-800 dark:text-amber-300 flex items-center gap-2.5 font-medium leading-relaxed">
               <Phone className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
-              <span>ثبت اطلاعات تماس و <strong>شغل هر دو والد (پدر و مادر)</strong> الزامی است (جهت اعزام به مسابقات اصناف و ادارات).</span>
+              <span>ثبت اطلاعات تماس و <strong>شغل والدین</strong> جهت هماهنگی و اعزام به مسابقات ورزشی اصناف و ادارات است؛ در صورت عدم تمایل به درج نام سازمان، لطفاً عبارت <strong>«آزاد»</strong> را وارد نمایید.</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
@@ -628,7 +628,6 @@ export const SwimmerCompleteProfilePage = () => {
               <div>
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                   شغل پدر <span className="text-rose-500 font-bold">*</span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-normal mr-2">(جهت اعزام به مسابقات اصناف و ادارات)</span>
                 </label>
                 <div className="relative">
                   <Briefcase className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
@@ -637,7 +636,7 @@ export const SwimmerCompleteProfilePage = () => {
                     required
                     value={fatherJob}
                     onChange={(e) => setFatherJob(e.target.value)}
-                    placeholder="مثال: مهندس، پزشک، کارمند، آزاد..."
+                    placeholder="اداره (آب...)، سازمان...، فرهنگی، پزشک، آزاد..."
                     className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                   />
                 </div>
@@ -662,8 +661,7 @@ export const SwimmerCompleteProfilePage = () => {
 
               <div>
                 <label className="text-sm font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
-                  شغل مادر <span className="text-rose-500 font-bold">*</span>
-                  <span className="text-xs text-slate-500 dark:text-slate-400 font-normal mr-2">(جهت اعزام به مسابقات اصناف و ادارات)</span>
+                  شغل مادر (یا مخاطب اضطراری) <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="relative">
                   <Briefcase className="w-4 h-4 text-slate-400 absolute right-3.5 top-3.5" />
@@ -672,7 +670,7 @@ export const SwimmerCompleteProfilePage = () => {
                     required
                     value={motherJob}
                     onChange={(e) => setMotherJob(e.target.value)}
-                    placeholder="مثال: فرهنگی، پزشک، خانه‌دار، کارمند..."
+                    placeholder="اداره (آب...)، سازمان...، فرهنگی، پزشک، آزاد..."
                     className="w-full text-sm sm:text-base bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl py-2.5 pr-10 pl-3 text-slate-900 dark:text-slate-100 font-medium focus:bg-white dark:focus:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                   />
                 </div>
@@ -697,9 +695,12 @@ export const SwimmerCompleteProfilePage = () => {
                 <MapLocationPicker
                   latitude={latitude}
                   longitude={longitude}
-                  onChange={({ lat, lng }) => {
+                  onChange={({ lat, lng, address: selectedAddr }) => {
                     setLatitude(lat);
                     setLongitude(lng);
+                    if (selectedAddr && (!address || address.trim() === '')) {
+                      setAddress(selectedAddr);
+                    }
                   }}
                   label="مشخص کردن موقعیت منزل روی نقشه *"
                   height="280px"

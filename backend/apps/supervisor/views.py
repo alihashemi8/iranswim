@@ -250,11 +250,21 @@ class SupervisorIncidentActionView(APIView):
 
             old_status = error_group.status
             error_group.status = new_status
-            if new_status == IncidentStatus.RESOLVED:
+            if new_status in [IncidentStatus.RESOLVED, IncidentStatus.CLOSED]:
                 error_group.resolved_at = timezone.now()
                 error_group.resolved_by = actor
                 if note:
                     error_group.resolution_details = note
+                SystemErrorLog.objects.filter(error_group=error_group).update(
+                    is_resolved=True,
+                    resolved_by=actor,
+                    resolved_at=timezone.now()
+                )
+            elif old_status in [IncidentStatus.RESOLVED, IncidentStatus.CLOSED]:
+                # If moving out of resolved/closed, reset occurrences is_resolved flag
+                SystemErrorLog.objects.filter(error_group=error_group).update(
+                    is_resolved=False
+                )
             error_group.save()
 
             # Record Incident Activity
@@ -354,6 +364,11 @@ class SupervisorIncidentActionView(APIView):
             error_group.resolved_at = timezone.now()
             error_group.resolved_by = actor
             error_group.save()
+            SystemErrorLog.objects.filter(error_group=error_group).update(
+                is_resolved=True,
+                resolved_by=actor,
+                resolved_at=timezone.now()
+            )
 
             IncidentActivity.objects.create(
                 error_group=error_group,
@@ -378,6 +393,9 @@ class SupervisorIncidentActionView(APIView):
             error_group.resolved_at = None
             error_group.resolved_by = None
             error_group.save()
+            SystemErrorLog.objects.filter(error_group=error_group).update(
+                is_resolved=False
+            )
 
             IncidentActivity.objects.create(
                 error_group=error_group,

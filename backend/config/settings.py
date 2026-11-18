@@ -222,3 +222,13 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+# ==============================================================================
+# SUPERVISOR ERROR MONITORING & INCIDENT MANAGEMENT CONFIGURATION
+# ==============================================================================
+# AI Error Analysis is strictly disabled until budget and API provider are provisioned
+AI_ERROR_ANALYSIS_ENABLED = False
+
+# Default retention window for resolved error logs (days)
+DEFAULT_ERROR_LOG_RETENTION_DAYS = 90
+

@@ -66,9 +66,9 @@ export const MapLocationPicker = ({
     readOnlyRef.current = readOnly;
   }, [onChange, readOnly]);
 
-  // Default coordinate: Tehran center if none selected
-  const defaultLat = 35.6892;
-  const defaultLng = 51.3890;
+  // Default coordinate: Qazvin city center if none selected
+  const defaultLat = 36.2797;
+  const defaultLng = 50.0049;
   const currentLat = latitude ? Number(latitude) : null;
   const currentLng = longitude ? Number(longitude) : null;
 
@@ -117,7 +117,7 @@ export const MapLocationPicker = ({
 
     const initialLat = currentLat || defaultLat;
     const initialLng = currentLng || defaultLng;
-    const initialZoom = currentLat && currentLng ? 15 : 12;
+    const initialZoom = currentLat && currentLng ? 15 : 13.5;
 
     const map = L.map(mapContainerRef.current, {
       center: [initialLat, initialLng],
@@ -265,7 +265,7 @@ export const MapLocationPicker = ({
               coords={currentLat && currentLng ? { lat: currentLat, lng: currentLng } : null}
               onSelect={handleSearchSelect}
               onOpenChange={setIsSearchOpen}
-              placeholder="جستجوی آدرس (شهر، محله، خیابان...)"
+              placeholder="جستجوی آدرس در قزوین (شهر، محله، خیابان، کوچه...)"
             />
           </div>
         )}
