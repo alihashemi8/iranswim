@@ -840,7 +840,10 @@ def get_error_trend_timeseries(time_range='24h', start_date=None, end_date=None)
 # ==============================================================================
 
 def initialize_default_alert_rules():
-    """ایجاد یا اعتبارسنجی قوانین پیش‌فرض هشدارهای سیستمی"""
+    """ایجاد یا اعتبارسنجی قوانین پیش‌فرض هشدارهای سیستمی (اجرای بهینه فقط در صورت فقدان قوانین)"""
+    if AlertRule.objects.count() >= 5:
+        return
+
     defaults = [
         {
             'name': 'افزایش ناگهانی خطاهای ۵۰۰',
@@ -892,12 +895,14 @@ def evaluate_alert_rules(trigger_type='PERIODIC', context=None):
     - بررسی شرایط بروز
     - یکتاسازی (Deduplication) جهت جلوگیری از ارسال هشدارهای تکراری
     - رعایت دوره استراحت (Cooldown)
+    - بهینه‌سازی دقیق: در رخدادهای خطای HTTP (ERROR_OCCURRENCE) صرفاً قانون ERROR_SPIKE ارزیابی می‌شود
+      تا از پیمایش سنگین دیسک و کوئری‌های غیرضروری در زمان بحران ممانعت گردد.
     """
     initialize_default_alert_rules()
     now = timezone.now()
     triggered_alerts = []
 
-    # 1. Check Error Spike Rule
+    # 1. Check Error Spike Rule (Always evaluated on periodic and on error occurrences)
     rule_spike = AlertRule.objects.filter(alert_type=AlertRule.AlertType.ERROR_SPIKE, is_enabled=True).first()
     if rule_spike:
         five_mins_ago = now - timedelta(minutes=5)
@@ -926,7 +931,11 @@ def evaluate_alert_rules(trigger_type='PERIODIC', context=None):
                 rule_spike.save(update_fields=['last_triggered_at'])
                 triggered_alerts.append(alert)
 
-    # 2. Check Database Failure Rule
+    # If triggered from HTTP exception middleware, avoid expensive disk I/O or full health probes
+    if trigger_type == 'ERROR_OCCURRENCE':
+        return triggered_alerts
+
+    # 2. Check Database Failure Rule (Evaluated on PERIODIC check)
     rule_db = AlertRule.objects.filter(alert_type=AlertRule.AlertType.DATABASE_FAILURE, is_enabled=True).first()
     if rule_db:
         db_stat = get_db_health()
@@ -943,16 +952,19 @@ def evaluate_alert_rules(trigger_type='PERIODIC', context=None):
                     dedup_key=dedup_key,
                     details=db_stat
                 )
+                rule_db.last_triggered_at = now
+                rule_db.save(update_fields=['last_triggered_at'])
                 triggered_alerts.append(alert)
 
-    # 3. Check Disk Space Rule
+    # 3. Check Disk Space Rule (Evaluated on PERIODIC check)
     rule_disk = AlertRule.objects.filter(alert_type=AlertRule.AlertType.DISK_SPACE, is_enabled=True).first()
     if rule_disk:
         storage = get_storage_metrics()
         if storage['percent'] >= rule_disk.threshold_value:
             dedup_key = f"DISK_SPACE_EXCEEDED_{now.strftime('%Y%m%d')}"
             existing = SystemAlert.objects.filter(dedup_key=dedup_key, status=SystemAlert.Status.ACTIVE).first()
-            if not existing:
+            in_cooldown = rule_disk.last_triggered_at and (now - rule_disk.last_triggered_at).total_seconds() < (rule_disk.cooldown_minutes * 60)
+            if not existing and not in_cooldown:
                 alert = SystemAlert.objects.create(
                     rule=rule_disk,
                     title=f"مصرف حافظه دیسک به {storage['percent']}٪ رسید",
@@ -962,6 +974,8 @@ def evaluate_alert_rules(trigger_type='PERIODIC', context=None):
                     dedup_key=dedup_key,
                     details=storage
                 )
+                rule_disk.last_triggered_at = now
+                rule_disk.save(update_fields=['last_triggered_at'])
                 triggered_alerts.append(alert)
 
     return triggered_alerts
