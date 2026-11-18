@@ -214,6 +214,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     {
       groupTitle: 'فعالیت ورزشی',
       items: [
+        { to: '/swimmer/courses', label: 'دوره‌های آموزشی', icon: BookOpen },
         { to: '/swimmer/schedule', label: 'برنامه کلاس‌ها', icon: Calendar },
         { to: '/swimmer/progress', label: 'پیشرفت ورزشی', icon: TrendingUp },
         { to: '/swimmer/league', label: 'لیگ و رتبه‌بندی', icon: Trophy },

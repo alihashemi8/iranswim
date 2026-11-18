@@ -79,6 +79,22 @@ function parsePersianWordNumber(str) {
     if (t !== undefined && o !== undefined) return t + o;
   }
 
+  // Token scan: check if string contains single number or compound number anywhere
+  const tokens = s.split(/\s+/);
+  for (let i = 0; i < tokens.length; i++) {
+    if (i + 2 < tokens.length && tokens[i + 1] === 'و') {
+      const t = PERSIAN_NUMBER_MAP[tokens[i]];
+      const o = PERSIAN_NUMBER_MAP[tokens[i + 2]];
+      if (t !== undefined && o !== undefined) return t + o;
+    }
+    if (PERSIAN_NUMBER_MAP[tokens[i]] !== undefined) {
+      return PERSIAN_NUMBER_MAP[tokens[i]];
+    }
+    if (/^[0-9]+$/.test(tokens[i])) {
+      return parseInt(tokens[i], 10);
+    }
+  }
+
   if (/^[0-9]+$/.test(s)) return parseInt(s, 10);
   return null;
 }
@@ -131,133 +147,6 @@ const KNOWN_NEIGHBORHOODS = [
 const DIGITS_FA = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
 function toPersianDigits(str) {
   return String(str).replace(/[0-9]/g, (d) => DIGITS_FA[d]);
-}
-
-// Smart dynamic numbered alleys along Qazvin main arteries
-const ALLEY_PATTERNS = [
-  {
-    regex: /(?:کوچه\s+)?حکمت\s*(\d+|[۰-۹]+)/i,
-    city: 'قزوین',
-    neighborhood: 'نوروزیان',
-    street: 'بلوار نوروزیان',
-    alleyPrefix: 'کوچه حکمت',
-    baseLat: 36.3000,
-    baseLng: 50.0120,
-    latStep: 0.00035,
-    lngStep: 0.00005,
-  },
-  {
-    regex: /(?:کوچه\s+)?دانش\s*(\d+|[۰-۹]+)/i,
-    city: 'قزوین',
-    neighborhood: 'نوروزیان',
-    street: 'بلوار نوروزیان',
-    alleyPrefix: 'کوچه دانش',
-    baseLat: 36.3060,
-    baseLng: 50.0130,
-    latStep: 0.0004,
-    lngStep: 0.00006,
-  },
-  {
-    regex: /(?:کوچه\s+)?اندیشه\s*(\d+|[۰-۹]+)/i,
-    city: 'قزوین',
-    neighborhood: 'ملاصدرا',
-    street: 'بلوار ملاصدرا',
-    alleyPrefix: 'کوچه اندیشه',
-    baseLat: 36.3020,
-    baseLng: 50.0250,
-    latStep: 0.0003,
-    lngStep: 0.0001,
-  },
-  {
-    regex: /(?:کوچه\s+)?مصلی\s*(\d+|[۰-۹]+)/i,
-    city: 'قزوین',
-    neighborhood: 'پونک',
-    street: 'بلوار امیرکبیر',
-    alleyPrefix: 'کوچه مصلی',
-    baseLat: 36.3100,
-    baseLng: 50.0300,
-    latStep: 0.0003,
-    lngStep: 0.00008,
-  },
-  {
-    regex: /(?:کوچه\s+)?سحر\s*(\d+|[۰-۹]+)/i,
-    city: 'قزوین',
-    neighborhood: 'غیاث‌آباد',
-    street: 'بلوار ارتباطات',
-    alleyPrefix: 'کوچه سحر',
-    baseLat: 36.2980,
-    baseLng: 50.0080,
-    latStep: 0.00025,
-    lngStep: 0.00005,
-  },
-  {
-    regex: /(?:کوچه\s+)?ساحل\s*(\d+|[۰-۹]+)/i,
-    city: 'قزوین',
-    neighborhood: 'غیاث‌آباد',
-    street: 'بلوار ارتباطات',
-    alleyPrefix: 'کوچه ساحل',
-    baseLat: 36.2970,
-    baseLng: 50.0070,
-    latStep: 0.00025,
-    lngStep: 0.00005,
-  },
-  {
-    regex: /(?:کوچه\s+)?شبنم\s*(\d+|[۰-۹]+)/i,
-    city: 'قزوین',
-    neighborhood: 'شهرک کوثر',
-    street: 'بلوار مطهری',
-    alleyPrefix: 'کوچه شبنم',
-    baseLat: 36.3200,
-    baseLng: 50.0180,
-    latStep: 0.0001,
-    lngStep: 0.00005,
-  },
-  {
-    regex: /(?:کوچه\s+)?صبا\s*(\d+|[۰-۹]+)/i,
-    city: 'قزوین',
-    neighborhood: 'شهرک کوثر',
-    street: 'بلوار مطهری',
-    alleyPrefix: 'کوچه صبا',
-    baseLat: 36.3210,
-    baseLng: 50.0185,
-    latStep: 0.0001,
-    lngStep: 0.00005,
-  },
-];
-
-function matchDynamicAlley(rawQuery) {
-  const converted = convertQueryWordsToDigits(rawQuery);
-  for (const pat of ALLEY_PATTERNS) {
-    const m = converted.match(pat.regex);
-    if (m) {
-      const numRaw = m[1];
-      let alleyName = pat.alleyPrefix;
-      let lat = pat.baseLat;
-      let lng = pat.baseLng;
-
-      if (numRaw) {
-        const enNum = parseInt(numRaw.replace(/[۰-۹]/g, (d) => '۰۱۲۳۴۵۶۷۸۹'.indexOf(d)), 10);
-        const faNum = toPersianDigits(enNum);
-        alleyName = `${pat.alleyPrefix} ${faNum}`;
-        lat = Number((pat.baseLat + (enNum * pat.latStep)).toFixed(6));
-        lng = Number((pat.baseLng + (enNum * pat.lngStep)).toFixed(6));
-      }
-
-      return {
-        title: alleyName,
-        city: pat.city,
-        neighborhood: pat.neighborhood,
-        street: pat.street,
-        alley: alleyName,
-        lat,
-        lng,
-        type: 'alley',
-        source: 'smart_alley',
-        score: 300,
-      };
-    }
-  }
-  return null;
 }
 
 /**
@@ -567,26 +456,18 @@ export default function SearchLocation({
 
       if (!tokens.length) return [];
 
+      const queryNum = parsePersianWordNumber(q) || parsePersianWordNumber(withDigits);
       const currentCoords = coordsRef.current;
       const scored = [];
 
-      // Check dynamic numbered alley first (e.g. "حکمت چهل" -> "کوچه حکمت ۴۰")
-      const dynAlley = matchDynamicAlley(q) || (withDigits !== q ? matchDynamicAlley(withDigits) : null);
-      if (dynAlley) {
-        scored.push({
-          score: 300,
-          title: dynAlley.title,
-          hierarchy: buildHierarchyString(dynAlley),
-          subtitle: `${dynAlley.neighborhood}، ${dynAlley.street}`,
-          address: buildHierarchyString(dynAlley),
-          lat: dynAlley.lat,
-          lng: dynAlley.lng,
-          type: 'alley',
-          source: 'smart_alley',
-        });
-      }
-
       for (const p of indexedPlaces) {
+        // If query specifically asks for a numbered alley (e.g. 40 in حکمت چهل),
+        // skip generic unnumbered places or places with a conflicting number
+        const placeNum = parsePersianWordNumber(p._norm_title) || parsePersianWordNumber(p._norm_alley);
+        if (queryNum !== null && placeNum !== queryNum) {
+          continue;
+        }
+
         const s1 = scorePlace(p, tokens, normQ, currentCoords);
         const s2 = normStripped ? scorePlace(p, tokenize(strippedAlley), normStripped, currentCoords) : 0;
         const s = Math.max(s1, s2);
@@ -656,30 +537,29 @@ export default function SearchLocation({
         const biasLat = currentCoords?.lat || 36.2797;
         const biasLng = currentCoords?.lng || 50.0049;
 
+        // Parse numbers if present in query (e.g. "حکمت چهل" -> 40, "اندیشه ۱۲" -> 12)
+        const queryNum = parsePersianWordNumber(trimmed) || parsePersianWordNumber(withDigits);
+        const strippedPrefix = normalizedQ.replace(/^(کوچه|کوچه‌ی|بن\s*بست|بن‌بست|خیابان|بلوار)\s+/, '').trim();
+        const strippedWithDigits = withDigits.replace(/^(کوچه|کوچه‌ی|بن\s*بست|بن‌بست|خیابان|بلوار)\s+/, '').trim();
+
         // Generate smart search variants for remote geocoder
         const rawVariants = new Set();
+        if (strippedPrefix) rawVariants.add(strippedPrefix);
+        if (strippedWithDigits) rawVariants.add(strippedWithDigits);
+        rawVariants.add(normalizedQ);
+        if (withDigits) rawVariants.add(withDigits);
 
-        // 1. Crucial for alleys: stripped without "کوچه"! (e.g. "کوچه شقایق" -> "شقایق")
-        // Because OpenStreetMap streets are tagged as name="شقایق" without the word "کوچه"!
-        const strippedPrefix = normalizedQ.replace(/^(کوچه|کوچه‌ی|بن\s*بست|بن‌بست|خیابان|بلوار)\s+/, '').trim();
-        if (strippedPrefix && strippedPrefix !== normalizedQ) {
-          rawVariants.add(strippedPrefix);
-        }
-
-        // 2. Convert word numbers to digits ("حکمت چهل" -> "حکمت 40")
-        const withDigits = convertQueryWordsToDigits(trimmed);
-        if (withDigits && withDigits !== trimmed) {
-          rawVariants.add(normalizePersian(withDigits));
-          const strippedDigits = withDigits.replace(/^(کوچه|کوچه‌ی|بن\s*بست|بن‌بست|خیابان|بلوار)\s+/, '').trim();
-          if (strippedDigits) {
-            rawVariants.add(normalizePersian(strippedDigits));
+        // If query combines a neighborhood + alley (e.g. "نوروزیان حکمت چهل"), add pure alley variant
+        for (const kn of KNOWN_NEIGHBORHOODS) {
+          if (normalizedQ.includes(kn)) {
+            const pureAlley = strippedWithDigits.replace(kn, '').trim();
+            if (pureAlley.length >= 2) {
+              rawVariants.add(pureAlley);
+            }
           }
         }
 
-        // 3. Base normalized query
-        rawVariants.add(normalizedQ);
-
-        // 4. Stem expansions
+        // Stem expansions
         for (const t of tokens) {
           if (STEM_EXPANSIONS[t]) {
             for (const exp of STEM_EXPANSIONS[t]) {
@@ -697,11 +577,11 @@ export default function SearchLocation({
           finalVariants.push(v);
         }
 
-        const uniqueVariants = Array.from(new Set(finalVariants)).slice(0, 4);
+        const uniqueVariants = Array.from(new Set(finalVariants)).slice(0, 5);
 
         // Fetch Photon with Qazvin proximity bias
         const photonPromises = uniqueVariants.map((v) => {
-          const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(v)}&lat=${biasLat}&lon=${biasLng}&lang=default&limit=8`;
+          const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(v)}&lat=${biasLat}&lon=${biasLng}&lang=default&limit=10`;
           return fetch(url, {
             method: 'GET',
             signal: controller.signal,
@@ -718,7 +598,7 @@ export default function SearchLocation({
             for (const f of data.features) {
               const coords = f.geometry?.coordinates || [];
               if (coords.length < 2) continue;
-              const key = `${coords[1].toFixed(4)},${coords[0].toFixed(4)}`;
+              const key = `${coords[1].toFixed(5)},${coords[0].toFixed(5)}`;
               if (!seenCoords.has(key)) {
                 seenCoords.add(key);
                 allFeatures.push(f);
@@ -726,9 +606,6 @@ export default function SearchLocation({
             }
           }
         }
-
-        // Alley intent detection
-        const hasAlleyIntent = /(?:کوچه|کوچه‌ی|بن\s*بست|بن‌بست|فرعی)/.test(trimmed);
 
         // Format and score remote items strictly into: شهر، محله، خیابان/بلوار، کوچه
         const osmItems = allFeatures
@@ -746,16 +623,42 @@ export default function SearchLocation({
             const isAlley = ['residential', 'service', 'living_street', 'pedestrian'].includes(osmVal);
 
             let score = 100 - distKm * 2;
-            if (hasAlleyIntent) {
-              if (isAlley) score += 150;
-              else if (osmVal === 'tertiary' || osmVal === 'secondary') score += 40;
-              else score -= 50; // Heavily penalize shops/restaurants when looking for an alley
-            }
+            if (isAlley) score += 100;
 
             const name = props.name || props.street || '';
             const normName = normalizePersian(name);
-            if (strippedPrefix && (normName.includes(strippedPrefix) || strippedPrefix.includes(normName))) {
-              score += 80;
+            const normNameWithDigits = convertQueryWordsToDigits(normName);
+            const nameNum = parsePersianWordNumber(normName) || parsePersianWordNumber(normNameWithDigits);
+
+            // EXACT MATCH CHECKS (Massive +650 boost)
+            const isExactName = (normName === strippedPrefix || normName === normalizedQ);
+            const isExactDigits = (normNameWithDigits === strippedWithDigits || normNameWithDigits === withDigits);
+
+            if (isExactName || isExactDigits) {
+              score += 650;
+            } else if (normName.startsWith(strippedPrefix) && !normName.includes(' و ')) {
+              score += 200;
+            } else if (normName.includes(strippedPrefix)) {
+              score += 40;
+            }
+
+            // Conflict penalty: If user asked for specific number (e.g. 40 in حکمت چهل),
+            // and candidate has a different number (e.g. 41 or 43), penalize heavily
+            if (queryNum !== null && nameNum !== null && queryNum !== nameNum) {
+              score -= 250;
+            }
+
+            // Multi-token neighborhood match:
+            // e.g. user typed "نوروزیان حکمت چهل" -> candidate has locality "نوروزیان"
+            const fullCand = `${props.locality || ''} ${props.district || ''} ${props.street || ''} ${props.name || ''}`;
+            for (const kn of KNOWN_NEIGHBORHOODS) {
+              if (normalizedQ.includes(kn) && fullCand.includes(kn)) {
+                score += 150;
+              }
+            }
+
+            if (props.locality && KNOWN_NEIGHBORHOODS.includes(props.locality)) {
+              score += 30;
             }
 
             const hierarchy = buildHierarchyString({ ...props, lat, lng });

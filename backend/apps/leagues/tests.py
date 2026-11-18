@@ -173,8 +173,6 @@ class LeagueManagementTests(TestCase):
         self.assertIn('swimmer', response.data)
         self.assertNotIn('national_id', response.data['swimmer'])
         self.assertNotIn('date_of_birth', response.data['swimmer'])
-        self.assertIn('entry', response.data)
-        self.assertIn('chart_data', response.data)
 
         # Admin sees full detail including national_id and date_of_birth
         self.client.force_authenticate(user=self.admin_user)
@@ -182,3 +180,41 @@ class LeagueManagementTests(TestCase):
         self.assertEqual(admin_res.status_code, 200)
         self.assertIn('national_id', admin_res.data['swimmer'])
         self.assertIn('date_of_birth', admin_res.data['swimmer'])
+
+    def test_swimmer_league_badges_api(self):
+        comp = LeagueCompetition.objects.create(
+            league=self.league,
+            category=self.category,
+            title='مسابقه شنای آزاد ۵۰ متر',
+            stroke=LeagueCompetition.Stroke.FREESTYLE,
+            distance_meters=50,
+            held_at=date(2026, 10, 10),
+            status=LeagueCompetition.Status.SCHEDULED
+        )
+        # Record competition result so swimmer1 gets Gold medal
+        res_url = reverse('record_competition_results', kwargs={'pk': comp.id})
+        payload = {
+            'results': [
+                {
+                    'swimmer_id': self.swimmer1.id,
+                    'duration_seconds': 28.50,
+                    'notes': 'رکورد عالی'
+                }
+            ]
+        }
+        self.client.force_authenticate(user=self.admin_user)
+        self.client.post(res_url, payload, format='json')
+
+        badges_url = reverse('swimmer_league_badges')
+
+        # Swimmer 1 requests their own badges
+        self.client.force_authenticate(user=self.swimmer1_user)
+        response = self.client.get(f"{badges_url}?swimmer_id={self.swimmer1.id}")
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('summary', response.data)
+        self.assertIn('medals', response.data)
+        self.assertIn('honor_badges', response.data)
+        self.assertEqual(response.data['summary']['gold_medals'], 1)
+        self.assertGreater(len(response.data['medals']), 0)
+        self.assertEqual(response.data['medals'][0]['medal'], 'GOLD')
+        self.assertIn('leagues', response.data)

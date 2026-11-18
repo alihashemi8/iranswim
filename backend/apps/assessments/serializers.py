@@ -60,21 +60,29 @@ class SwimmingRecordSerializer(serializers.ModelSerializer):
     stroke_display = serializers.CharField(source='get_stroke_display', read_only=True)
     verification_status_display = serializers.CharField(source='get_verification_status_display', read_only=True)
     formatted_time = serializers.CharField(read_only=True)
+    recorded_by_name = serializers.SerializerMethodField()
 
     class Meta:
         model = SwimmingRecord
         fields = [
             'id', 'swimmer', 'swimmer_name', 'stroke', 'stroke_display',
             'distance_meters', 'duration_seconds', 'formatted_time',
-            'pool_course', 'recorded_at', 'recorded_by', 'verification_status',
+            'pool_course', 'recorded_at', 'recorded_by', 'recorded_by_name', 'verification_status',
             'verification_status_display', 'notes', 'created_at'
         ]
         read_only_fields = ['id', 'created_at']
+
+    def get_recorded_by_name(self, obj):
+        if not obj.recorded_by:
+            return 'مربی آکادمی'
+        name = obj.recorded_by.get_full_name().strip()
+        return name or obj.recorded_by.phone or 'مربی آکادمی'
 
 
 class LevelPromotionProposalSerializer(serializers.ModelSerializer):
     swimmer_name = serializers.CharField(source='swimmer.full_name', read_only=True)
     coach_name = serializers.SerializerMethodField()
+    reviewed_by_name = serializers.SerializerMethodField()
     current_level_name = serializers.CharField(source='current_level.name', read_only=True)
     proposed_level_name = serializers.CharField(source='proposed_level.name', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
@@ -85,7 +93,7 @@ class LevelPromotionProposalSerializer(serializers.ModelSerializer):
             'id', 'swimmer', 'swimmer_name', 'coach', 'coach_name',
             'current_level', 'current_level_name', 'proposed_level',
             'proposed_level_name', 'status', 'status_display',
-            'coach_notes', 'reviewer_notes', 'reviewed_by',
+            'coach_notes', 'reviewer_notes', 'reviewed_by', 'reviewed_by_name',
             'reviewed_at', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'coach', 'status', 'reviewed_by', 'reviewed_at', 'created_at', 'updated_at']
@@ -95,4 +103,10 @@ class LevelPromotionProposalSerializer(serializers.ModelSerializer):
             return None
         name = obj.coach.user.get_full_name().strip() if obj.coach.user and obj.coach.user.get_full_name() else ''
         return name or 'مربی'
+
+    def get_reviewed_by_name(self, obj):
+        if not obj.reviewed_by:
+            return 'مدیریت آموزشگاه'
+        name = obj.reviewed_by.get_full_name().strip() if obj.reviewed_by.get_full_name() else ''
+        return name or obj.reviewed_by.phone or 'مدیریت آموزشگاه'
 

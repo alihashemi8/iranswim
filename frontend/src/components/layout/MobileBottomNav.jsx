@@ -19,7 +19,8 @@ export const MobileBottomNav = () => {
   // Swimmer Mobile Bottom Navigation (5 items)
   if (user.role === 'SWIMMER' && currentPath.startsWith('/swimmer')) {
     const isHome = currentPath === '/swimmer';
-    const isSchedule = currentPath.startsWith('/swimmer/schedule');
+    const isCourses = currentPath.startsWith('/swimmer/courses');
+    const isSchedule = currentPath.startsWith('/swimmer/schedule') || isCourses;
     const isProgress = currentPath.startsWith('/swimmer/progress') || currentPath.startsWith('/swimmer/league');
     const isFinance = currentPath.startsWith('/swimmer/finance');
     const isAccount = currentPath.startsWith('/swimmer/profile') || currentPath.startsWith('/swimmer/documents') || currentPath.startsWith('/swimmer/settings') || currentPath.startsWith('/swimmer/complete-profile');

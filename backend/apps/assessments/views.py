@@ -47,6 +47,10 @@ class LevelPromotionProposalListView(generics.ListCreateAPIView):
         qs = LevelPromotionProposal.objects.all().select_related(
             'swimmer', 'coach__user', 'current_level', 'proposed_level'
         )
+        swimmer_id = self.request.query_params.get('swimmer_id')
+        if swimmer_id:
+            qs = qs.filter(swimmer_id=swimmer_id)
+
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs
         elif user.role == 'COACH':

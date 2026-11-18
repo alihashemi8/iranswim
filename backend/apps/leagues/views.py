@@ -597,3 +597,186 @@ class LeagueEnrollSwimmerView(APIView):
             'entry_id': entry.id,
             'created': created
         })
+
+
+class SwimmerLeagueBadgesView(APIView):
+    """
+    نشان‌ها و مدال‌های دریافتی شناگر از مسابقات لیگ:
+    مدال‌های طلا، نقره و برنز کسب‌شده در رقابت‌ها، نشان‌های افتخار و رتبه‌بندی لیگ
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        swimmer_id = request.query_params.get('swimmer_id')
+
+        if swimmer_id:
+            try:
+                swimmer = SwimmerProfile.objects.get(pk=swimmer_id)
+            except SwimmerProfile.DoesNotExist:
+                return Response({'detail': 'شناگر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+        else:
+            swimmer = getattr(user, 'swimmer_profile', None)
+            if not swimmer:
+                from apps.swimmers.models import SwimmerGuardianRelation
+                child = SwimmerGuardianRelation.objects.filter(guardian=user, is_verified=True).first()
+                if child:
+                    swimmer = child.swimmer
+
+        if not swimmer:
+            return Response({'detail': 'پرونده شناگر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        is_privileged = bool(user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser)
+        if not is_privileged:
+            allowed_ids = get_accessible_swimmer_ids(user, request) or []
+            if swimmer.id not in allowed_ids:
+                return Response({'detail': 'شما مجاز به مشاهده اطلاعات این شناگر نیستید.'}, status=status.HTTP_403_FORBIDDEN)
+
+        entries = LeagueEntry.objects.filter(swimmer=swimmer).select_related('league', 'category').prefetch_related('results__competition')
+
+        medals_list = []
+        gold_count = 0
+        silver_count = 0
+        bronze_count = 0
+        total_points = Decimal('0.00')
+        competitions_set = set()
+        leagues_summary = []
+
+        for entry in entries:
+            total_points += entry.total_points
+            better_count = LeagueEntry.objects.filter(
+                league=entry.league,
+                status=LeagueEntry.Status.ACTIVE,
+                total_points__gt=entry.total_points
+            ).count()
+            current_rank = better_count + 1
+
+            leagues_summary.append({
+                'league_id': entry.league.id,
+                'league_name': entry.league.name,
+                'season': entry.league.season,
+                'category_title': entry.category.title if entry.category else 'عمومی',
+                'rank': current_rank,
+                'total_points': float(entry.total_points),
+                'gold_medals': entry.gold_medals,
+                'silver_medals': entry.silver_medals,
+                'bronze_medals': entry.bronze_medals,
+                'matches_count': entry.matches_count,
+            })
+
+            for res in entry.results.all():
+                if res.competition:
+                    competitions_set.add(res.competition.id)
+
+                if res.medal == LeagueResult.Medal.GOLD:
+                    gold_count += 1
+                elif res.medal == LeagueResult.Medal.SILVER:
+                    silver_count += 1
+                elif res.medal == LeagueResult.Medal.BRONZE:
+                    bronze_count += 1
+
+                if res.medal in [LeagueResult.Medal.GOLD, LeagueResult.Medal.SILVER, LeagueResult.Medal.BRONZE]:
+                    medals_list.append({
+                        'id': res.id,
+                        'medal': res.medal,
+                        'medal_display': res.get_medal_display(),
+                        'event_name': res.event_name,
+                        'competition_title': res.competition.title if res.competition else 'مسابقه لیگ',
+                        'league_name': entry.league.name,
+                        'season': entry.league.season,
+                        'rank': res.rank,
+                        'score_points': float(res.score_points),
+                        'duration_seconds': float(res.duration_seconds) if res.duration_seconds else None,
+                        'formatted_time': res.formatted_time,
+                        'recorded_at': res.recorded_at.isoformat() if res.recorded_at else None,
+                        'notes': res.notes,
+                    })
+
+        medals_list.sort(key=lambda m: m.get('recorded_at') or '', reverse=True)
+
+        honor_badges = []
+        if gold_count > 0:
+            honor_badges.append({
+                'id': 'badge-gold-champion',
+                'title': 'نشان طلایی قهرمانی',
+                'category': 'GOLD',
+                'description': f'کسب {gold_count} مدال طلای ارزشمند در مسابقات رسمی لیگ',
+                'icon': 'Trophy',
+                'tier': 'GOLD',
+            })
+        if silver_count > 0:
+            honor_badges.append({
+                'id': 'badge-silver-podium',
+                'title': 'نشان نقره‌ای نایب‌قهرمانی',
+                'category': 'SILVER',
+                'description': f'کسب {silver_count} مدال نقره و ایستادن بر سکوی دوم رقابت‌های لیگ',
+                'icon': 'Medal',
+                'tier': 'SILVER',
+            })
+        if bronze_count > 0:
+            honor_badges.append({
+                'id': 'badge-bronze-podium',
+                'title': 'نشان برنزی سکونشین',
+                'category': 'BRONZE',
+                'description': f'کسب {bronze_count} مدال برنز در رقابت‌های باشگاهی لیگ',
+                'icon': 'Award',
+                'tier': 'BRONZE',
+            })
+
+        for lq in leagues_summary:
+            if lq['rank'] == 1:
+                honor_badges.append({
+                    'id': f'badge-rank-1-{lq["league_id"]}',
+                    'title': f'صدرنشین {lq["league_name"]}',
+                    'category': 'LEAGUE_LEADER',
+                    'description': f'ایستادن در جایگاه اول رده‌بندی فصل {lq["season"]}',
+                    'icon': 'Crown',
+                    'tier': 'GOLD',
+                })
+            elif lq['rank'] in [2, 3]:
+                honor_badges.append({
+                    'id': f'badge-rank-podium-{lq["league_id"]}',
+                    'title': f'سکوی افتخار {lq["league_name"]}',
+                    'category': 'LEAGUE_PODIUM',
+                    'description': f'کسب رتبه {lq["rank"]} در جدول مسابقات فصل {lq["season"]}',
+                    'icon': 'Medal',
+                    'tier': 'SILVER' if lq['rank'] == 2 else 'BRONZE',
+                })
+
+        if total_points >= 20:
+            honor_badges.append({
+                'id': 'badge-points-star',
+                'title': 'ستاره امتیازی لیگ',
+                'category': 'POINTS',
+                'description': f'کسب مجموع {float(total_points):.0f} امتیاز تیمی و انفرادی در رقابت‌ها',
+                'icon': 'Sparkles',
+                'tier': 'GOLD',
+            })
+
+        if len(competitions_set) >= 3:
+            honor_badges.append({
+                'id': 'badge-active-competitor',
+                'title': 'مبارز پرتلاش لیگ',
+                'category': 'PARTICIPATION',
+                'description': f'شرکت فعال در {len(competitions_set)} مسابقه رسمی لیگ',
+                'icon': 'Flame',
+                'tier': 'BLUE',
+            })
+
+        return Response({
+            'swimmer': {
+                'id': swimmer.id,
+                'full_name': swimmer.full_name,
+            },
+            'summary': {
+                'gold_medals': gold_count,
+                'silver_medals': silver_count,
+                'bronze_medals': bronze_count,
+                'total_medals': gold_count + silver_count + bronze_count,
+                'total_points': float(total_points),
+                'competitions_count': len(competitions_set),
+            },
+            'medals': medals_list,
+            'honor_badges': honor_badges,
+            'leagues': leagues_summary,
+        })

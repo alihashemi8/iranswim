@@ -10,11 +10,14 @@ from .views import (
     LeagueManualScoreView,
     LeagueScoringRulesView,
     SwimmerPerformanceDetailView,
-    LeagueEnrollSwimmerView
+    LeagueEnrollSwimmerView,
+    SwimmerLeagueBadgesView
 )
 
 urlpatterns = [
     path('', LeagueListView.as_view(), name='league_list'),
+    path('swimmer-badges/', SwimmerLeagueBadgesView.as_view(), name='swimmer_league_badges'),
+    path('swimmer-badges/<int:swimmer_id>/', SwimmerLeagueBadgesView.as_view(), name='swimmer_league_badges_id'),
     path('<int:pk>/', LeagueDetailView.as_view(), name='league_detail'),
     path('<int:league_id>/stats/', LeagueStatsView.as_view(), name='league_stats'),
     path('<int:league_id>/leaderboard/', LeagueLeaderboardView.as_view(), name='league_leaderboard'),

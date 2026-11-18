@@ -190,10 +190,17 @@ export const SwimmerDashboardPage = () => {
 
         <div className="flex flex-wrap items-center gap-3 relative z-10 self-stretch sm:self-auto">
           <Link
-            to="/swimmer/schedule"
+            to="/swimmer/courses"
             className="flex-1 sm:flex-none px-5 py-3 bg-white text-blue-700 hover:bg-blue-50 rounded-2xl text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
           >
-            <Calendar className="w-4.5 h-4.5 text-blue-600" />
+            <BookOpen className="w-4.5 h-4.5 text-blue-600" />
+            <span>دوره‌های آموزشی</span>
+          </Link>
+          <Link
+            to="/swimmer/schedule"
+            className="flex-1 sm:flex-none px-5 py-3 bg-white/15 hover:bg-white/25 text-white backdrop-blur-md rounded-2xl text-sm font-bold transition-all border border-white/25 flex items-center justify-center gap-2 cursor-pointer"
+          >
+            <Calendar className="w-4.5 h-4.5 text-cyan-100" />
             <span>برنامه کلاس‌ها</span>
           </Link>
           <Link
@@ -322,7 +329,30 @@ export const SwimmerDashboardPage = () => {
       )}
 
       {/* 3.1. Active Enrolled Course & Dedicated Coach/Class Banner */}
-      {activeEnrollment && (
+      {!activeEnrollment ? (
+        <div className="bg-gradient-to-l from-sky-500/10 via-cyan-500/5 to-transparent dark:from-sky-950/30 dark:to-transparent rounded-3xl p-5 sm:p-6 border border-sky-200/80 dark:border-sky-900/60 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center shadow-md shadow-sky-500/20 shrink-0">
+              <BookOpen className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
+                دوره‌های آموزشی مصوب مدیریت آموزشگاه
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-0.5">
+                دوره‌های جدید شنا متناسب با رده سنی و جنسیت شما تعریف شده و آماده پیش‌ثبت‌نام هستند.
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/swimmer/courses"
+            className="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-xs shrink-0 flex items-center gap-1.5 cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4 text-cyan-200" />
+            <span>مشاهده دوره‌های متناسب با من</span>
+          </Link>
+        </div>
+      ) : (
         <div className="bg-gradient-to-l from-sky-500/10 via-cyan-500/5 to-transparent dark:from-sky-950/30 dark:to-transparent rounded-3xl p-5 sm:p-6 border border-sky-200/80 dark:border-sky-900/60 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-5 transition-all">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center shadow-md shadow-sky-500/20 shrink-0">

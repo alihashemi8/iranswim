@@ -91,6 +91,7 @@ import { CoachCompleteProfilePage } from './pages/coach/CoachCompleteProfilePage
 import { SwimmerPortal } from './pages/swimmer/SwimmerPortal';
 import { SwimmerCompleteProfilePage } from './pages/swimmer/SwimmerCompleteProfilePage';
 import { SwimmerDashboardPage } from './pages/swimmer/SwimmerDashboardPage';
+import { SwimmerCoursesPage } from './pages/swimmer/SwimmerCoursesPage';
 import { SwimmerSchedulePage } from './pages/swimmer/SwimmerSchedulePage';
 import { SwimmerProgressPage } from './pages/swimmer/SwimmerProgressPage';
 import { SwimmerLeaguePage } from './pages/swimmer/SwimmerLeaguePage';
@@ -317,6 +318,7 @@ export default function App() {
                 <Route index element={<SwimmerDashboardPage />} />
 
                 {/* 2. Athletic Activity */}
+                <Route path="courses" element={<SwimmerCoursesPage />} />
                 <Route path="schedule" element={<SwimmerSchedulePage />} />
                 <Route path="progress" element={<SwimmerProgressPage />} />
                 <Route path="league" element={<SwimmerLeaguePage />} />
