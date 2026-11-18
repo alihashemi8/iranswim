@@ -2419,3 +2419,6 @@ export const LOCAL_PLACES = [
     ]
   }
 ];
+
+export default LOCAL_PLACES;
+
