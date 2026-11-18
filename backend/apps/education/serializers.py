@@ -133,9 +133,20 @@ class CourseSerializer(serializers.ModelSerializer):
             return self._target_swimmer_cached
         request = self.context.get('request')
         swimmer = None
-        if request and request.user and request.user.is_authenticated:
+        if request and getattr(request, 'user', None) and request.user.is_authenticated:
             from apps.swimmers.views import get_accessible_swimmer_profile
-            swimmer_id = request.query_params.get('swimmer_id') or request.headers.get('X-Swimmer-Id')
+            params = getattr(request, 'query_params', None)
+            if params is None:
+                params = getattr(request, 'GET', {})
+            swimmer_id = params.get('swimmer_id')
+
+            if not swimmer_id:
+                headers = getattr(request, 'headers', None)
+                if headers and hasattr(headers, 'get'):
+                    swimmer_id = headers.get('X-Swimmer-Id')
+                if not swimmer_id and hasattr(request, 'META'):
+                    swimmer_id = request.META.get('HTTP_X_SWIMMER_ID')
+
             try:
                 swimmer = get_accessible_swimmer_profile(request.user, swimmer_id)
             except Exception:
