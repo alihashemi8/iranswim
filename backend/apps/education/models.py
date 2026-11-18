@@ -1,7 +1,46 @@
+import re
 from django.db import models
 from django.conf import settings
 from django.utils.translation import gettext_lazy as _
 from django.core.exceptions import ValidationError
+
+
+def parse_age_range_string(age_range_str):
+    """
+    Parses Persian or English age range strings such as:
+    'نونهالان و نوجوانان (۸ تا ۱۵ سال)' -> (8, 15)
+    'کودکان و خردسالان (۴ تا ۹ سال)' -> (4, 9)
+    'نوجوانان و جوانان (۱۲ سال به بالا)' -> (12, None)
+    '۵ تا ۱۲ سال' -> (5, 12)
+    '۱۰ سال به بالا' -> (10, None)
+    'تا ۱۰ سال' -> (None, 10)
+    """
+    if not age_range_str:
+        return None, None
+    persian_digits = '۰۱۲۳۴۵۶۷۸۹٠١٢٣٤٥٦٧٨٩'
+    english_digits = '01234567890123456789'
+    trans = str.maketrans(persian_digits, english_digits)
+    norm = str(age_range_str).translate(trans)
+
+    range_match = re.search(r'(\d+)\s*(?:تا|-)\s*(\d+)', norm)
+    if range_match:
+        v1 = int(range_match.group(1))
+        v2 = int(range_match.group(2))
+        return min(v1, v2), max(v1, v2)
+
+    upward_match = re.search(r'(\d+)\s*(?:سال)?\s*(?:به\s*بالا|بالا)', norm)
+    if upward_match:
+        return int(upward_match.group(1)), None
+
+    from_match = re.search(r'از\s*(\d+)', norm)
+    if from_match:
+        return int(from_match.group(1)), None
+
+    under_match = re.search(r'تا\s*(\d+)', norm)
+    if under_match:
+        return None, int(under_match.group(1))
+
+    return None, None
 
 
 class SkillLevel(models.Model):
@@ -62,6 +101,7 @@ class Course(models.Model):
     class GenderTarget(models.TextChoices):
         MALE = 'MALE', _('پسران / آقایان')
         FEMALE = 'FEMALE', _('دختران / بانوان')
+        ALL = 'ALL', _('عمومی (دختران و پسران)')
 
     name = models.CharField(_('عنوان دوره'), max_length=200)
     description = models.TextField(_('توضیحات دوره'), blank=True)
@@ -99,6 +139,18 @@ class Course(models.Model):
         help_text=_('نام صاحب حساب یا کارت بانکی آموزشگاه/مجموعه')
     )
     age_range = models.CharField(_('رده سنی'), max_length=120, blank=True, default='')
+    min_age = models.PositiveSmallIntegerField(
+        _('حداقل سن مجاز (سال)'),
+        null=True,
+        blank=True,
+        help_text=_('حداقل سن شناگر برای شرکت در دوره به سال')
+    )
+    max_age = models.PositiveSmallIntegerField(
+        _('حداکثر سن مجاز (سال)'),
+        null=True,
+        blank=True,
+        help_text=_('حداکثر سن شناگر برای شرکت در دوره به سال')
+    )
     gender = models.CharField(
         _('جنسیت مجاز'),
         max_length=20,
@@ -124,6 +176,35 @@ class Course(models.Model):
 
     def __str__(self):
         return self.name
+
+    def parse_and_sync_age_limits(self):
+        if (self.min_age is None and self.max_age is None) and self.age_range:
+            p_min, p_max = parse_age_range_string(self.age_range)
+            if p_min is not None:
+                self.min_age = p_min
+            if p_max is not None:
+                self.max_age = p_max
+
+    def is_gender_eligible(self, swimmer_gender):
+        if not self.gender or self.gender == 'ALL':
+            return True
+        if not swimmer_gender:
+            return True
+        return str(self.gender).strip().upper() == str(swimmer_gender).strip().upper()
+
+    def is_age_eligible(self, swimmer_age):
+        if swimmer_age is None:
+            return True
+        if self.min_age is not None and swimmer_age < self.min_age:
+            return False
+        if self.max_age is not None and swimmer_age > self.max_age:
+            return False
+        return True
+
+    def save(self, *args, **kwargs):
+        if (self.min_age is None and self.max_age is None) and self.age_range:
+            self.parse_and_sync_age_limits()
+        super().save(*args, **kwargs)
 
     def clean(self):
         if self.start_date and self.end_date and self.end_date < self.start_date:

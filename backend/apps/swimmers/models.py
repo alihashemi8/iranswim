@@ -77,6 +77,15 @@ class SwimmerProfile(models.Model):
         return f"{self.first_name} {self.last_name}".strip()
 
     @property
+    def age(self):
+        if not self.date_of_birth:
+            return None
+        from django.utils import timezone
+        today = timezone.localdate() if hasattr(timezone, 'localdate') else timezone.now().date()
+        born = self.date_of_birth
+        return today.year - born.year - ((today.month, today.day) < (born.month, born.day))
+
+    @property
     def has_required_info(self):
         has_parents_phone = bool(self.father_phone and self.mother_phone)
         has_parents_job = bool(self.father_job and self.mother_job)
