@@ -439,6 +439,8 @@ export const AdminCreateCoursePage = () => {
       const postPayload = {
         ...formData,
         age_range: formData.age_range || (formData.age_min && formData.age_max ? `${formData.age_min} تا ${formData.age_max} سال` : formData.age_min ? `از ${formData.age_min} سال به بالا` : ''),
+        min_age: formData.age_min ? Number(formData.age_min) : null,
+        max_age: formData.age_max ? Number(formData.age_max) : null,
         base_price: Number(formData.base_price),
         sessions_count: Number(formData.sessions_count),
         installments_count: Number(formData.installments_count || 1),
@@ -630,6 +632,12 @@ export const AdminCreateCoursePage = () => {
                       label: 'دختران / بانوان',
                       description: 'دوره ویژه دختران و بانوان',
                       icon: User,
+                    },
+                    {
+                      value: 'ALL',
+                      label: 'عمومی (پسران و دختران)',
+                      description: 'دوره برای عموم شناگران مجاز است',
+                      icon: Users,
                     },
                   ]}
                   placeholder="انتخاب جنسیت مجاز..."
