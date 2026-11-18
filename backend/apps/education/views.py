@@ -261,11 +261,20 @@ class EnrollmentRequestCreateView(generics.CreateAPIView):
     def perform_create(self, serializer):
         user = self.request.user
         swimmer = None
-        if user and user.is_authenticated:
+        if user and user.is_authenticated and getattr(user, 'role', '') == 'SWIMMER':
             from apps.swimmers.views import get_accessible_swimmer_profile
-            swimmer_id = self.request.data.get('swimmer') or self.request.data.get('swimmer_id') or self.request.headers.get('X-Swimmer-Id')
+            swimmer_id = self.request.data.get('swimmer') or self.request.data.get('swimmer_id')
+            if not swimmer_id:
+                headers = getattr(self.request, 'headers', None)
+                if headers and hasattr(headers, 'get'):
+                    swimmer_id = headers.get('X-Swimmer-Id')
+                if not swimmer_id and hasattr(self.request, 'META'):
+                    swimmer_id = self.request.META.get('HTTP_X_SWIMMER_ID')
             try:
-                swimmer = get_accessible_swimmer_profile(user, swimmer_id)
+                if swimmer_id:
+                    swimmer = get_accessible_swimmer_profile(user, swimmer_id)
+                else:
+                    swimmer = getattr(user, 'swimmer_profile', None)
             except Exception:
                 swimmer = getattr(user, 'swimmer_profile', None)
 

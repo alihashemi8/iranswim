@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   Activity, Bug, ShieldCheck, Zap,
-  LayoutDashboard, BookOpen, Users, CreditCard, Calendar,
+  LayoutDashboard, BookOpen, Users, User, CreditCard, Calendar,
   ClipboardCheck, Award, Trophy, Bell,
   X, LogOut, ChevronLeft, ChevronRight,
   TrendingUp, MessageSquareQuote, FileText,
@@ -232,6 +232,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     {
       groupTitle: 'حساب کاربری',
       items: [
+        { to: '/swimmer/profile', label: 'پروفایل و عملکرد', icon: User },
         { to: '/swimmer/documents', label: 'رسید و مدارک', icon: FileText },
       ],
     },

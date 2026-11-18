@@ -5,10 +5,11 @@ import {
   AlertCircle, ShieldCheck, FileText, Image as ImageIcon, School,
   Sparkles, ArrowLeft, ArrowRight, Trash2, Eye, EyeOff, MapPin,
   KeyRound, Shield, Smartphone, Briefcase, Lock, AlertTriangle,
-  BadgeCheck, Award, Clock, ChevronLeft, Camera, ZoomIn, LogOut
+  BadgeCheck, Award, Clock, ChevronLeft, Camera, ZoomIn, LogOut, TrendingUp
 } from 'lucide-react';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import { useSwimmer } from '../../context/SwimmerContext';
 import { useToast } from '../../context/ToastContext';
 import { Button } from '../../components/common/Button';
 import { Badge } from '../../components/common/Badge';
@@ -17,19 +18,22 @@ import { LoadingState } from '../../components/common/LoadingState';
 import { MapLocationPicker } from '../../components/common/MapLocationPicker';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { LogoutModal } from '../../components/common/LogoutModal';
+import { SwimmerPerformanceSection } from '../../components/swimmer/SwimmerPerformanceSection';
 import { validatePassword, PasswordRequirementsList } from '../../utils/passwordValidator';
 import { getMediaUrl, getAuthenticatedDocUrl } from '../../utils/media';
 import { toShamsiDate } from '../../utils/date';
 
 export const SwimmerProfilePage = () => {
   const { user, updateUserData, logout } = useAuth();
+  const { activeSwimmerId } = useSwimmer() || {};
   const navigate = useNavigate();
   const toast = useToast();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Active Main Tab: 'INFO' | 'ASSESSMENTS' | 'SECURITY'
+  // Active Main Tab: 'INFO' | 'PERFORMANCE' | 'ASSESSMENTS' | 'SECURITY'
   const tabParam = searchParams.get('tab')?.toUpperCase();
-  const initialTab = tabParam === 'SECURITY' ? 'SECURITY' : tabParam === 'ASSESSMENTS' ? 'ASSESSMENTS' : 'INFO';
+  const validTabs = ['INFO', 'PERFORMANCE', 'ASSESSMENTS', 'SECURITY'];
+  const initialTab = validTabs.includes(tabParam) ? tabParam : 'INFO';
   const [activeMainTab, setActiveMainTab] = useState(initialTab);
 
   const handleTabChange = (tab) => {
@@ -39,7 +43,7 @@ export const SwimmerProfilePage = () => {
   };
 
   useEffect(() => {
-    if (tabParam === 'SECURITY' || tabParam === 'INFO' || tabParam === 'ASSESSMENTS') {
+    if (validTabs.includes(tabParam)) {
       setActiveMainTab(tabParam);
     }
   }, [tabParam]);
@@ -49,6 +53,9 @@ export const SwimmerProfilePage = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // Swimmer profile ID state
+  const [profileSwimmerId, setProfileSwimmerId] = useState(null);
 
   // Document full-size preview modal
   const [previewDocModal, setPreviewDocModal] = useState(null);
@@ -111,13 +118,15 @@ export const SwimmerProfilePage = () => {
     const fetchProfile = async () => {
       try {
         setLoading(true);
+        const params = activeSwimmerId ? { swimmer_id: activeSwimmerId } : {};
         const [res, assRes] = await Promise.allSettled([
-          api.get('/swimmers/me/'),
-          api.get('/assessments/skills/'),
+          api.get('/swimmers/me/', { params }),
+          api.get('/assessments/skills/', { params }),
         ]);
 
         if (res.status === 'fulfilled') {
           const data = res.value.data;
+          if (data.id) setProfileSwimmerId(data.id);
           setFirstName(data.first_name || user?.first_name || '');
           setLastName(data.last_name || user?.last_name || '');
           setNationalId(data.national_id || user?.national_id || '');
@@ -161,7 +170,7 @@ export const SwimmerProfilePage = () => {
     };
 
     fetchProfile();
-  }, [user]);
+  }, [user, activeSwimmerId]);
 
   // File selection handlers
   const handleFileChange = (e, setFile, setPreview) => {
@@ -497,9 +506,9 @@ export const SwimmerProfilePage = () => {
       </div>
 
       {/* =================================================================== */}
-      {/* 2. MAIN SEGMENTED TABS (Touch-first, 3-column, zero overflow)       */}
+      {/* 2. MAIN SEGMENTED TABS (Touch-first, 4-column responsive, zero overflow) */}
       {/* =================================================================== */}
-      <div className="grid grid-cols-3 gap-1.5 p-1.5 bg-slate-100/90 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 select-none">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1.5 bg-slate-100/90 dark:bg-slate-800/80 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 select-none">
         {/* Tab 1: Info & Dossier */}
         <button
           type="button"
@@ -515,7 +524,25 @@ export const SwimmerProfilePage = () => {
           <span className="hidden sm:inline">پرونده و مدارک</span>
         </button>
 
-        {/* Tab 2: Assessments */}
+        {/* Tab 2: Performance (عملکرد) */}
+        <button
+          type="button"
+          onClick={() => handleTabChange('PERFORMANCE')}
+          className={`flex flex-col sm:flex-row items-center justify-center gap-1 sm:gap-2 py-2.5 sm:py-3 px-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer relative ${
+            activeMainTab === 'PERFORMANCE'
+              ? 'bg-white dark:bg-slate-900 text-sky-600 dark:text-sky-300 shadow-xs border border-slate-200/70 dark:border-slate-700/80'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+          }`}
+        >
+          <div className="relative">
+            <TrendingUp className="w-4.5 h-4.5 shrink-0" />
+            <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-sky-500" />
+          </div>
+          <span className="sm:hidden">عملکرد</span>
+          <span className="hidden sm:inline">عملکرد و رکوردها</span>
+        </button>
+
+        {/* Tab 3: Assessments */}
         <button
           type="button"
           onClick={() => handleTabChange('ASSESSMENTS')}
@@ -542,7 +569,7 @@ export const SwimmerProfilePage = () => {
           )}
         </button>
 
-        {/* Tab 3: Security & Account */}
+        {/* Tab 4: Security & Account */}
         <button
           type="button"
           onClick={() => handleTabChange('SECURITY')}
@@ -1253,7 +1280,19 @@ export const SwimmerProfilePage = () => {
       )}
 
       {/* =================================================================== */}
-      {/* TAB 2: COACH ASSESSMENTS & PERFORMANCE DOSSIER                     */}
+      {/* TAB: SWIMMER PERFORMANCE (Progress Chart, Medals, Comments, Videos) */}
+      {/* =================================================================== */}
+      {activeMainTab === 'PERFORMANCE' && (
+        <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-200">
+          <SwimmerPerformanceSection
+            swimmerId={activeSwimmerId || profileSwimmerId}
+            swimmerName={firstName && lastName ? `${firstName} ${lastName}` : ''}
+          />
+        </div>
+      )}
+
+      {/* =================================================================== */}
+      {/* TAB: COACH ASSESSMENTS & PERFORMANCE DOSSIER                        */}
       {/* =================================================================== */}
       {activeMainTab === 'ASSESSMENTS' && (
         <div className="space-y-4 sm:space-y-6 animate-in fade-in duration-200">
