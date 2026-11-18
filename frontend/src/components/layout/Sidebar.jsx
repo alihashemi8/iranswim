@@ -6,7 +6,7 @@ import {
   LayoutDashboard, BookOpen, Users, CreditCard, Calendar,
   ClipboardCheck, Award, Trophy, Bell,
   X, LogOut, ChevronLeft, ChevronRight,
-  TrendingUp, MessageSquareQuote, FileText, Settings,
+  TrendingUp, MessageSquareQuote, FileText,
   Globe, Server, Radio, GitBranch, Database, Sliders, Whistle,
   FolderCheck
 } from 'lucide-react';
@@ -231,7 +231,6 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     {
       groupTitle: 'حساب کاربری',
       items: [
-        { to: '/swimmer/profile', label: 'پروفایل و امنیت', icon: Settings },
         { to: '/swimmer/documents', label: 'رسید و مدارک', icon: FileText },
       ],
     },
@@ -277,7 +276,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
               to={profilePath}
               onClick={onClose}
               className={({ isActive }) =>
-                `flex items-center gap-3 min-w-0 flex-1 p-1 -m-1 rounded-xl transition-all group ${
+                `flex items-center gap-3 min-w-0 flex-1 p-1 -m-1 rounded-xl transition-all group cursor-pointer ${
                   isActive
                     ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-bold'
                     : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
@@ -339,7 +338,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
           <NavLink
             to={profilePath}
             className={({ isActive }) =>
-              `flex items-center gap-3 min-w-0 flex-1 p-1.5 -m-1.5 rounded-xl transition-all group ${
+              `flex items-center gap-3 min-w-0 flex-1 p-1.5 -m-1.5 rounded-xl transition-all group cursor-pointer ${
                 isActive
                   ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-bold border-r-3 border-blue-600 shadow-2xs'
                   : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
@@ -394,7 +393,11 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
         >
           <NavLink
             to={profilePath}
-            className="relative group flex justify-center cursor-pointer"
+            className={({ isActive }) =>
+              `relative group flex justify-center cursor-pointer p-0.5 rounded-xl transition-all ${
+                isActive ? 'ring-2 ring-blue-600 bg-blue-50 dark:bg-blue-950/70' : ''
+              }`
+            }
             title={`${displayName} (${roleTitles[user.role] || ''})`}
           >
             <div className={`w-12 h-12 rounded-xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-lg shrink-0 shadow-2xs ring-2 ring-slate-100 dark:ring-slate-800 hover:ring-sky-400 dark:hover:ring-sky-400 transition-all overflow-hidden relative`}>
