@@ -378,7 +378,7 @@ export const HomePage = () => {
   const [coursesLoading, setCoursesLoading] = useState(false);
   const [courseFilter, setCourseFilter] = useState('ALL'); // 'ALL' | 'KIDS' | 'TEENS' | 'INSTALLMENTS'
   const [coaches, setCoaches] = useState(INITIAL_COACHES);
-  const [coachCategoryTab, setCoachCategoryTab] = useState('FOUNDERS'); // 'FOUNDERS' | 'MALE' | 'FEMALE' | 'ALL_COACHES'
+  const [coachCategoryTab, setCoachCategoryTab] = useState('ALL'); // 'ALL' | 'FOUNDERS' | 'MALE' | 'FEMALE'
   const [news, setNews] = useState(INITIAL_NEWS);
   const [selectedNews, setSelectedNews] = useState(null);
   const [showRaybanModal, setShowRaybanModal] = useState(false);
@@ -713,8 +713,7 @@ export const HomePage = () => {
       if (coachCategoryTab === 'FOUNDERS') return isManagerCoach(c);
       if (coachCategoryTab === 'MALE') return !isManagerCoach(c) && isMaleCoach(c);
       if (coachCategoryTab === 'FEMALE') return !isManagerCoach(c) && isFemaleCoach(c);
-      if (coachCategoryTab === 'ALL_COACHES') return !isManagerCoach(c);
-      return true;
+      return true; // 'ALL': کادر اجرایی (شامل همه مدیر و موسسین و مربیان)
     })
     .sort((a, b) => (a.display_order ?? 999) - (b.display_order ?? 999));
 
@@ -1399,6 +1398,23 @@ export const HomePage = () => {
           <div className="flex flex-wrap items-center gap-2 p-1.5 bg-white/90 dark:bg-slate-900/90 rounded-2xl border border-cyan-200/80 shadow-xs w-fit">
             <button
               type="button"
+              onClick={() => setCoachCategoryTab('ALL')}
+              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                coachCategoryTab === 'ALL'
+                  ? 'bg-teal-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
+              }`}
+            >
+              <span>کادر اجرایی</span>
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-black ${
+                coachCategoryTab === 'ALL' ? 'bg-white/20 text-white' : 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300'
+              }`}>
+                {coaches.length}
+              </span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => setCoachCategoryTab('FOUNDERS')}
               className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
                 coachCategoryTab === 'FOUNDERS'
@@ -1445,23 +1461,6 @@ export const HomePage = () => {
                 coachCategoryTab === 'FEMALE' ? 'bg-white/20 text-white' : 'bg-pink-100 text-pink-800 dark:bg-pink-950 dark:text-pink-300'
               }`}>
                 {coaches.filter((c) => !isManagerCoach(c) && isFemaleCoach(c)).length}
-              </span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setCoachCategoryTab('ALL_COACHES')}
-              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                coachCategoryTab === 'ALL_COACHES'
-                  ? 'bg-teal-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
-              }`}
-            >
-              <span>کادر مربیان</span>
-              <span className={`px-2 py-0.5 rounded-full text-[11px] font-black ${
-                coachCategoryTab === 'ALL_COACHES' ? 'bg-white/20 text-white' : 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300'
-              }`}>
-                {coaches.filter((c) => !isManagerCoach(c)).length}
               </span>
             </button>
           </div>
