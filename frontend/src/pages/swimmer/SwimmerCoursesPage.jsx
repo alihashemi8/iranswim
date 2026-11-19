@@ -3,9 +3,9 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   BookOpen, Calendar, Clock, MapPin, Users, User, CheckCircle2,
   AlertCircle, Search, DollarSign, CreditCard, ArrowRight,
-  Sparkles, ChevronDown, ChevronUp, Check, Info, X, UserCheck,
+  Sparkles, ChevronDown, ChevronUp, Check, Info, X,
   GraduationCap, ArrowLeft, RefreshCw, Eye,
-  ArrowRightLeft, CheckCircle, AlertTriangle
+  ArrowRightLeft, CheckCircle
 } from 'lucide-react';
 import { SwimCourseSpecsIcon, CourseLogoIcon } from '../../components/common/AquaticIcons';
 import api from '../../api/client';
@@ -21,11 +21,10 @@ import { CustomSelect } from '../../components/common/CustomSelect';
 import { ProgressBar } from '../../components/common/Charts';
 import { toShamsiDate } from '../../utils/date';
 import { formatCardNumberWithDashes, copyCardToClipboard } from '../../utils/bankCard';
-import { getMediaUrl } from '../../utils/media';
 
 export const SwimmerCoursesPage = () => {
   const { user } = useAuth();
-  const { activeSwimmer, activeSwimmerId, childrenList, selectChild } = useSwimmer();
+  const { activeSwimmer, activeSwimmerId } = useSwimmer();
   const toast = useToast();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -144,9 +143,6 @@ export const SwimmerCoursesPage = () => {
   const swimmerGender = currentSwimmer?.gender || null;
   const swimmerAge = typeof currentSwimmer?.age === 'number' ? currentSwimmer.age : null;
   const swimmerName = currentSwimmer?.full_name || currentSwimmer?.first_name || 'شناگر محترم';
-  const swimmerLevel = currentSwimmer?.level_name || 'سطح پایه';
-  const hasBirthDate = Boolean(currentSwimmer?.date_of_birth);
-  const hasGender = Boolean(swimmerGender);
 
   // Helper: check if a course strictly matches this swimmer's gender and age
   const checkCourseEligibility = useCallback((course) => {
@@ -335,91 +331,22 @@ export const SwimmerCoursesPage = () => {
 
   return (
     <div className="space-y-6 pb-16" dir="rtl">
-      {/* 1. HERO & ACTIVE SWIMMER BANNER */}
+      {/* 1. HERO BANNER */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-blue-700 via-sky-700 to-teal-600 text-white p-5 sm:p-7 shadow-lg">
         <div className="absolute top-0 left-0 w-72 h-72 bg-white/10 rounded-full blur-3xl pointer-events-none -translate-x-1/2 -translate-y-1/2" />
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-teal-400/15 rounded-full blur-2xl pointer-events-none translate-x-1/3 translate-y-1/3" />
 
-        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-5">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-semibold text-sky-100 border border-white/20">
-              <CourseLogoIcon className="w-4 h-4 text-cyan-200" />
-              <span>پرتال آموزشی و برنامه کلاس‌های شنا</span>
-            </div>
-            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight flex items-center gap-3">
-              <span>دوره‌ها و برنامه کلاس‌های آموزشی</span>
-            </h1>
-            <p className="text-xs sm:text-sm text-sky-100/90 max-w-2xl leading-relaxed">
-              مشاهده دوره‌های فعال، زمان‌بندی جلسات استخر و ثبت‌نام در دوره‌های متناسب با شرایط سنی و مهارتی شما
-            </p>
+        <div className="relative z-10 space-y-2">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-xs font-semibold text-sky-100 border border-white/20">
+            <CourseLogoIcon className="w-4 h-4 text-cyan-200" />
+            <span>پرتال آموزشی و برنامه کلاس‌های شنا</span>
           </div>
-
-          {/* Active Swimmer Profile Chip */}
-          <div className="shrink-0 bg-white/15 backdrop-blur-md border border-white/25 rounded-2xl p-3.5 sm:p-4 text-white shadow-xs max-w-md w-full lg:w-auto">
-            <div className="flex items-center justify-between gap-3 mb-2.5">
-              <span className="text-[11px] font-semibold text-sky-200 flex items-center gap-1.5">
-                <UserCheck className="w-3.5 h-3.5 text-cyan-300" />
-                <span>شناگر جاری:</span>
-              </span>
-              {childrenList && childrenList.length > 1 && (
-                <div
-                  className="text-[11px] text-cyan-200 font-bold underline cursor-pointer hover:text-white transition-colors"
-                  onClick={() => {
-                    const nextChild = childrenList.find(
-                      (c) => String(c.swimmer || c.swimmer_detail?.id) !== String(activeSwimmerId)
-                    );
-                    if (nextChild) selectChild(nextChild.swimmer || nextChild.swimmer_detail?.id);
-                  }}
-                >
-                  تعویض فرزند
-                </div>
-              )}
-            </div>
-
-            <div className="flex items-center gap-3">
-              <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-400 to-sky-300 text-sky-900 font-black text-base flex items-center justify-center shrink-0 shadow-xs overflow-hidden">
-                {currentSwimmer?.avatar ? (
-                  <img src={getMediaUrl(currentSwimmer.avatar)} alt={swimmerName} className="w-full h-full object-cover" />
-                ) : (
-                  <span>{swimmerName.charAt(0)}</span>
-                )}
-              </div>
-
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-bold text-white truncate flex items-center gap-2">
-                  <span>{swimmerName}</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-full bg-cyan-400/25 text-cyan-100 border border-cyan-300/30">
-                    {swimmerLevel}
-                  </span>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 mt-1 text-xs text-sky-100">
-                  <span className="inline-flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-md font-mono text-[11px]">
-                    <User className="w-3 h-3 text-cyan-300" />
-                    <span>{swimmerGender === 'FEMALE' ? 'دختر / بانو' : 'پسر / آقا'}</span>
-                  </span>
-
-                  <span className="inline-flex items-center gap-1 bg-white/10 px-2 py-0.5 rounded-md font-mono text-[11px]">
-                    <Calendar className="w-3 h-3 text-cyan-300" />
-                    <span>{swimmerAge !== null ? `${swimmerAge} سال` : 'سن نامشخص'}</span>
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Profile Completion Warning */}
-            {(!hasBirthDate || !hasGender) && (
-              <div className="mt-2.5 pt-2.5 border-t border-white/15 text-[11px] text-amber-200 flex items-center justify-between gap-2">
-                <span className="flex items-center gap-1">
-                  <AlertTriangle className="w-3.5 h-3.5 text-amber-300 shrink-0" />
-                  <span>اطلاعات سن یا جنسیت تکمیل نیست.</span>
-                </span>
-                <Link to="/swimmer/profile" className="font-bold underline text-white hover:text-cyan-200">
-                  تکمیل پرونده
-                </Link>
-              </div>
-            )}
-          </div>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight flex items-center gap-3">
+            <span>دوره‌ها و برنامه کلاس‌های آموزشی</span>
+          </h1>
+          <p className="text-xs sm:text-sm text-sky-100/90 max-w-2xl leading-relaxed">
+            مشاهده دوره‌های فعال، زمان‌بندی جلسات استخر و ثبت‌نام در دوره‌های متناسب با شرایط سنی و مهارتی شما
+          </p>
         </div>
       </div>
 

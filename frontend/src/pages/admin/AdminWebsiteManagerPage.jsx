@@ -112,7 +112,7 @@ export const AdminWebsiteManagerPage = () => {
   // 2. COACHES & EXECUTIVE STAFF STATE
   // =========================================================================
   const [coaches, setCoaches] = useState([]);
-  const [coachCategoryTab, setCoachCategoryTab] = useState('FOUNDERS'); // 'FOUNDERS' | 'MALE' | 'FEMALE' | 'ALL_COACHES'
+  const [coachCategoryTab, setCoachCategoryTab] = useState('ALL'); // 'ALL' | 'FOUNDERS' | 'MALE' | 'FEMALE'
   const [coachOrderList, setCoachOrderList] = useState([]);
   const [coachSavingOrder, setCoachSavingOrder] = useState(false);
   const [coachModalOpen, setCoachModalOpen] = useState(false);
@@ -375,8 +375,7 @@ export const AdminWebsiteManagerPage = () => {
     if (coachCategoryTab === 'FOUNDERS') return isManagerCoach(c);
     if (coachCategoryTab === 'MALE') return !isManagerCoach(c) && isMaleCoach(c);
     if (coachCategoryTab === 'FEMALE') return !isManagerCoach(c) && isFemaleCoach(c);
-    if (coachCategoryTab === 'ALL_COACHES') return !isManagerCoach(c);
-    return true;
+    return true; // 'ALL': کادر اجرایی (شامل همه مدیر و موسسین و مربیان)
   });
 
   const handleMoveCoach = (index, direction) => {
@@ -1567,8 +1566,28 @@ export const AdminWebsiteManagerPage = () => {
                 </div>
               </div>
 
-              {/* 4 Tabs: مدیر و موسسین / کادر آقایان / کادر بانوان / کادر مربیان */}
+              {/* 4 Tabs: کادر اجرایی / مدیر و موسسین / کادر آقایان / کادر بانوان */}
               <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl w-fit">
+                <button
+                  type="button"
+                  onClick={() => setCoachCategoryTab('ALL')}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                    coachCategoryTab === 'ALL'
+                      ? 'bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                >
+                  <Award className="w-4 h-4 text-teal-500" />
+                  <span>کادر اجرایی</span>
+                  <span className={`mr-1 px-2 py-0.5 rounded-full text-xs font-black ${
+                    coachCategoryTab === 'ALL'
+                      ? 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300'
+                      : 'bg-slate-200 text-slate-700 dark:bg-slate-900 dark:text-slate-300'
+                  }`}>
+                    {coachOrderList.length}
+                  </span>
+                </button>
+
                 <button
                   type="button"
                   onClick={() => setCoachCategoryTab('FOUNDERS')}
@@ -1626,26 +1645,6 @@ export const AdminWebsiteManagerPage = () => {
                       : 'bg-slate-200 text-slate-700 dark:bg-slate-900 dark:text-slate-300'
                   }`}>
                     {coachOrderList.filter((c) => !isManagerCoach(c) && isFemaleCoach(c)).length}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setCoachCategoryTab('ALL_COACHES')}
-                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
-                    coachCategoryTab === 'ALL_COACHES'
-                      ? 'bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-xs'
-                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
-                  }`}
-                >
-                  <Award className="w-4 h-4 text-teal-500" />
-                  <span>کادر مربیان</span>
-                  <span className={`mr-1 px-2 py-0.5 rounded-full text-xs font-black ${
-                    coachCategoryTab === 'ALL_COACHES'
-                      ? 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300'
-                      : 'bg-slate-200 text-slate-700 dark:bg-slate-900 dark:text-slate-300'
-                  }`}>
-                    {coachOrderList.filter((c) => !isManagerCoach(c)).length}
                   </span>
                 </button>
               </div>
