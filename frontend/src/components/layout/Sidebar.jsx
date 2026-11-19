@@ -87,6 +87,13 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     SWIMMER: 'from-blue-600 via-sky-600 to-teal-500',
   };
 
+  const roleActiveStyles = {
+    ADMIN: 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-black border-r-3 border-sky-600 shadow-2xs',
+    COACH: 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 font-black border-r-3 border-emerald-600 shadow-2xs',
+    SUPERVISOR: 'bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 font-black border-r-3 border-amber-500 shadow-2xs',
+    SWIMMER: 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-black border-r-3 border-blue-600 shadow-2xs',
+  };
+
   // Admin Grouped Navigation
   const adminGroups = [
     {
@@ -217,7 +224,6 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       groupTitle: 'فعالیت ورزشی',
       items: [
         { to: '/swimmer/courses', label: 'دوره‌های آموزشی', icon: BookOpen },
-        { to: '/swimmer/schedule', label: 'برنامه کلاس‌ها', icon: Calendar },
         { to: '/swimmer/progress', label: 'پیشرفت ورزشی', icon: TrendingUp },
         { to: '/swimmer/league', label: 'لیگ و رتبه‌بندی', icon: Trophy },
         { to: '/swimmer/attendance', label: 'حضور و غیاب', icon: ClipboardCheck },
@@ -234,7 +240,6 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     {
       groupTitle: 'حساب کاربری',
       items: [
-        { to: '/swimmer/profile', label: 'پروفایل و عملکرد', icon: User },
         { to: '/swimmer/documents', label: 'رسید و مدارک', icon: FileText },
       ],
     },
@@ -284,11 +289,11 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
               className={({ isActive }) =>
                 `flex items-center gap-3 min-w-0 flex-1 p-1 -m-1 rounded-xl transition-all group cursor-pointer ${
                   isActive
-                    ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-bold'
+                    ? (roleActiveStyles[user.role] || 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-bold')
                     : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
                 }`
               }
-              title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'SWIMMER' ? 'مشاهده صفحه پروفایل شناگر' : user.role === 'SUPERVISOR' ? 'مشاهده صفحه پروفایل ناظر فنی' : 'مشاهده پروفایل'}
+              title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'SWIMMER' ? 'مشاهده پروفایل و عملکرد شناگر' : user.role === 'SUPERVISOR' ? 'مشاهده صفحه پروفایل ناظر فنی' : 'مشاهده پروفایل'}
             >
               <div className={`w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-lg sm:text-xl shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800 relative`}>
                 {getMediaUrl(user.avatar) && (
@@ -312,10 +317,16 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                 <span className="text-base font-black text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                   {displayName}
                 </span>
-                <span className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-bold truncate">
-                  {user.role === 'SWIMMER' && activeSwimmer?.level_name ? activeSwimmer.level_name : (roleTitles[user.role] || 'کاربر سیستم')}
+                <span className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-bold truncate flex items-center gap-1">
+                  <span>{user.role === 'SWIMMER' && activeSwimmer?.level_name ? activeSwimmer.level_name : (roleTitles[user.role] || 'کاربر سیستم')}</span>
+                  {user.role === 'SWIMMER' && (
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500 font-normal">
+                      (پروفایل و عملکرد)
+                    </span>
+                  )}
                 </span>
               </div>
+              <ChevronLeft className="w-4 h-4 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors shrink-0" />
             </NavLink>
 
             <button
@@ -380,11 +391,11 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
             className={({ isActive }) =>
               `flex items-center gap-3 min-w-0 flex-1 p-1.5 -m-1.5 rounded-xl transition-all group cursor-pointer ${
                 isActive
-                  ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-bold border-r-3 border-blue-600 shadow-2xs'
+                  ? (roleActiveStyles[user.role] || 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-bold border-r-3 border-blue-600 shadow-2xs')
                   : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
               }`
             }
-            title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'SWIMMER' ? 'مشاهده صفحه پروفایل شناگر' : user.role === 'SUPERVISOR' ? 'مشاهده صفحه پروفایل ناظر فنی' : 'مشاهده پروفایل'}
+            title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'SWIMMER' ? 'مشاهده پروفایل و عملکرد شناگر' : user.role === 'SUPERVISOR' ? 'مشاهده صفحه پروفایل ناظر فنی' : 'مشاهده پروفایل'}
           >
             <div className={`w-14 h-14 rounded-2xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-xl shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800 relative`}>
               {getMediaUrl(user.avatar) && (
@@ -408,10 +419,16 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
               <span className="text-sm xl:text-[15px] font-black text-slate-800 dark:text-slate-100 truncate group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 {displayName}
               </span>
-              <span className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-bold truncate">
-                {user.role === 'SWIMMER' && activeSwimmer?.level_name ? activeSwimmer.level_name : (roleTitles[user.role] || 'کاربر سیستم')}
+              <span className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-bold truncate flex items-center gap-1.5">
+                <span>{user.role === 'SWIMMER' && activeSwimmer?.level_name ? activeSwimmer.level_name : (roleTitles[user.role] || 'کاربر سیستم')}</span>
+                {user.role === 'SWIMMER' && (
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-normal">
+                    (پروفایل و عملکرد)
+                  </span>
+                )}
               </span>
             </div>
+            <ChevronLeft className="w-4 h-4 text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors shrink-0" />
           </NavLink>
 
           <button
@@ -435,7 +452,13 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
             to={profilePath}
             className={({ isActive }) =>
               `relative group flex justify-center cursor-pointer p-0.5 rounded-xl transition-all ${
-                isActive ? 'ring-2 ring-blue-600 bg-blue-50 dark:bg-blue-950/70' : ''
+                isActive
+                  ? user.role === 'SUPERVISOR'
+                    ? 'ring-2 ring-amber-500 bg-amber-50 dark:bg-amber-950/70'
+                    : user.role === 'COACH'
+                    ? 'ring-2 ring-emerald-600 bg-emerald-50 dark:bg-emerald-950/70'
+                    : 'ring-2 ring-blue-600 bg-blue-50 dark:bg-blue-950/70'
+                  : ''
               }`
             }
             title={`${displayName} (${roleTitles[user.role] || ''})`}
@@ -468,7 +491,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
               <div className="text-xs font-bold text-sky-400 mt-0.5">{roleTitles[user.role] || 'کاربر سیستم'}</div>
               {user.phone && <div className="text-xs text-slate-300 font-mono mt-0.5">{user.phone}</div>}
               <div className="text-xs text-slate-300 border-t border-slate-700/60 mt-1 pt-1 font-medium">
-                {user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'SWIMMER' ? 'مشاهده صفحه پروفایل شناگر' : user.role === 'SUPERVISOR' ? 'مشاهده صفحه پروفایل ناظر فنی' : 'کلیک برای ورود به صفحه'}
+                {user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'SWIMMER' ? 'مشاهده پروفایل و عملکرد شناگر' : user.role === 'SUPERVISOR' ? 'مشاهده صفحه پروفایل ناظر فنی' : 'کلیک برای ورود به صفحه'}
               </div>
               <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-y-4 border-y-transparent border-l-4 border-l-slate-900/95 dark:border-l-slate-800/95" />
             </div>
@@ -531,7 +554,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                 className={({ isActive }) =>
                   `relative flex items-center rounded-xl text-sm xl:text-base font-bold transition-all group ${
                     isActive
-                      ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-black border-r-3 border-blue-600 shadow-2xs'
+                      ? (roleActiveStyles[user.role] || 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-black border-r-3 border-blue-600 shadow-2xs')
                       : 'text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60 hover:text-slate-900 dark:hover:text-slate-100'
                   } ${
                     isMobile

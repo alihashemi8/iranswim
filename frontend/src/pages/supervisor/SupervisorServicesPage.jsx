@@ -63,75 +63,77 @@ export const SupervisorServicesPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white dark:bg-slate-900 p-4 sm:p-5 md:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
         <div>
           <div className="flex items-center gap-2">
-            <span className={`w-2.5 h-2.5 rounded-full ${allHealthy ? 'bg-emerald-500' : 'bg-amber-500'} animate-pulse`}></span>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-white">وضعیت و پایش سرویس‌های داخلی و خارجی (Services)</h1>
+            <span className={`w-2.5 h-2.5 rounded-full ${allHealthy ? 'bg-emerald-500' : 'bg-amber-500'} animate-pulse shrink-0`}></span>
+            <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">وضعیت و پایش سرویس‌های داخلی و خارجی (Services)</h1>
           </div>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
             بررسی زنده اتصال به PostgreSQL، وب‌سرور Nginx، گواهی SSL، وب‌سرویس پیامک و درگاه بانکی شاپرک
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 self-start sm:self-auto">
           <button
             type="button"
             onClick={() => fetchServices(true)}
             disabled={probing}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-xs transition-colors"
+            className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs font-semibold text-white bg-sky-600 hover:bg-sky-700 rounded-xl shadow-xs transition-colors cursor-pointer w-full sm:w-auto"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${probing ? 'animate-spin' : ''}`} />
-            <span>سنجش مجدد لحظه‌ای (Instant Probe)</span>
+            <span>سنجش لحظه‌ای (Probe)</span>
           </button>
         </div>
       </div>
 
       {/* Services Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-4 md:gap-5">
         {services.map((svc) => {
           const isOk = svc.status === 'ONLINE' || svc.status === 'CONNECTED' || svc.status === 'VALID';
           return (
             <div
               key={svc.id}
-              className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4 hover:border-slate-300 dark:hover:border-slate-700 transition-all"
+              className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4 hover:border-slate-300 dark:hover:border-slate-700 transition-all flex flex-col justify-between"
             >
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60">
-                    {getServiceIcon(svc.id)}
+              <div className="space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="p-2 sm:p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700/60 shrink-0">
+                      {getServiceIcon(svc.id)}
+                    </div>
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">{svc.name}</h3>
+                      <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">Port: {svc.port || 'API'}</span>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">{svc.name}</h3>
-                    <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">Port: {svc.port || 'API'}</span>
-                  </div>
+
+                  <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold shrink-0 ${
+                    isOk
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
+                      : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800'
+                  }`}>
+                    {isOk ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                    {svc.status}
+                  </span>
                 </div>
 
-                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${
-                  isOk
-                    ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800'
-                    : 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border border-rose-200 dark:border-rose-800'
-                }`}>
-                  {isOk ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
-                  {svc.status}
-                </span>
+                <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50/70 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
+                  {svc.details}
+                </p>
               </div>
 
-              <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed bg-slate-50/50 dark:bg-slate-800/40 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
-                {svc.details}
-              </p>
-
-              <div className="flex items-center justify-between text-xs pt-2 border-t border-slate-100 dark:border-slate-800/80 text-slate-500 dark:text-slate-400">
+              <div className="flex items-center justify-between text-xs pt-2.5 border-t border-slate-100 dark:border-slate-800/80 text-slate-500 dark:text-slate-400">
                 {svc.latency_ms !== undefined && (
                   <div>
-                    <span>زمان پاسخ (Latency): </span>
-                    <strong className="text-slate-700 dark:text-slate-200 font-mono">{svc.latency_ms} ms</strong>
+                    <span>زمان پاسخ: </span>
+                    <strong className="text-slate-700 dark:text-slate-200 font-mono font-bold">{svc.latency_ms} ms</strong>
                   </div>
                 )}
                 {svc.days_remaining !== undefined && (
                   <div className="flex items-center gap-1">
-                    <Clock className="w-3.5 h-3.5 text-amber-500" />
+                    <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                     <span>اعتبار گواهی: </span>
                     <strong className="text-slate-800 dark:text-slate-100 font-bold">{svc.days_remaining} روز</strong>
                   </div>

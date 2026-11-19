@@ -4,7 +4,7 @@ import {
   Calendar, CreditCard, Award, Trophy, Sparkles, Bell, Pin,
   CheckCircle2, FileText, Clock, MapPin, User, ChevronLeft,
   AlertTriangle, TrendingUp, HelpCircle, Waves, Medal, Timer,
-  AlertCircle, Check, BookOpen, GraduationCap
+  AlertCircle, Check, BookOpen, GraduationCap, ClipboardCheck
 } from 'lucide-react';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
@@ -205,14 +205,14 @@ export const SwimmerDashboardPage = () => {
             className="flex-1 sm:flex-none px-5 py-3 bg-white text-blue-700 hover:bg-blue-50 rounded-2xl text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
           >
             <BookOpen className="w-4.5 h-4.5 text-blue-600" />
-            <span>دوره‌های آموزشی</span>
+            <span>دوره‌های آموزشی و برنامه</span>
           </Link>
           <Link
-            to="/swimmer/schedule"
+            to="/swimmer/attendance"
             className="flex-1 sm:flex-none px-5 py-3 bg-white/15 hover:bg-white/25 text-white backdrop-blur-md rounded-2xl text-sm font-bold transition-all border border-white/25 flex items-center justify-center gap-2 cursor-pointer"
           >
-            <Calendar className="w-4.5 h-4.5 text-cyan-100" />
-            <span>برنامه کلاس‌ها</span>
+            <ClipboardCheck className="w-4.5 h-4.5 text-cyan-100" />
+            <span>حضور و غیاب</span>
           </Link>
           <Link
             to="/swimmer/documents"
@@ -308,7 +308,7 @@ export const SwimmerDashboardPage = () => {
             </div>
           </div>
           <Link
-            to="/swimmer/schedule"
+            to="/swimmer/courses?tab=my-courses"
             className="px-4 py-2.5 text-sm font-bold text-teal-900 dark:text-teal-100 bg-white dark:bg-slate-800 hover:bg-teal-50 dark:hover:bg-teal-950/60 rounded-xl border border-teal-200 dark:border-teal-800 transition-colors shadow-2xs flex items-center gap-1.5 self-end md:self-center shrink-0 cursor-pointer"
           >
             <span>مشاهده جزئیات برنامه</span>
@@ -331,7 +331,7 @@ export const SwimmerDashboardPage = () => {
             </div>
           </div>
           <Link
-            to="/swimmer/schedule"
+            to="/swimmer/courses?tab=my-courses"
             className="text-sm font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 shrink-0"
           >
             تقویم هفتگی
@@ -421,7 +421,7 @@ export const SwimmerDashboardPage = () => {
               </span>
             </div>
             <Link
-              to="/swimmer/schedule"
+              to="/swimmer/courses?tab=my-courses"
               className="text-xs font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400 inline-flex items-center gap-1 hover:underline cursor-pointer"
             >
               <span>مشاهده برنامه جلسات و تقویم</span>

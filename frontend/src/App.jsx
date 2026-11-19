@@ -317,7 +317,7 @@ export default function App() {
 
                 {/* 2. Athletic Activity */}
                 <Route path="courses" element={<SwimmerCoursesPage />} />
-                <Route path="schedule" element={<SwimmerSchedulePage />} />
+                <Route path="schedule" element={<Navigate to="/swimmer/courses?tab=my-courses" replace />} />
                 <Route path="progress" element={<SwimmerProgressPage />} />
                 <Route path="league" element={<SwimmerLeaguePage />} />
                 <Route path="attendance" element={<SwimmerAttendancePage />} />

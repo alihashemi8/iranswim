@@ -4,7 +4,7 @@ import { Link, useLocation } from 'react-router-dom';
 import {
   LogIn, Menu, X,
   Users2, Award, Building2, Newspaper, PhoneCall, ChevronLeft, BookOpen,
-  Sun, Moon, Waves, Trophy
+  Sun, Moon, Waves, Trophy, ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
@@ -179,6 +179,15 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                     title="مشاهده پروفایل مربی"
                   >
                     <span>{user.full_name || 'مربی'}</span>
+                  </Link>
+                ) : user.role === 'SUPERVISOR' ? (
+                  <Link
+                    to="/supervisor/profile"
+                    className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs sm:text-sm font-bold bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 border border-amber-200/70 dark:border-amber-800/80 hover:bg-amber-100 dark:hover:bg-amber-900/60 transition-colors"
+                    title="مشاهده پروفایل ناظر فنی"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                    <span>{user.full_name || 'ناظر فنی'}</span>
                   </Link>
                 ) : (
                   <span className="hidden sm:inline-block px-3 py-1 rounded-lg text-xs sm:text-sm font-bold bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200/70 dark:border-sky-800/80">
