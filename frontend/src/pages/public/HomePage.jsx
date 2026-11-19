@@ -39,6 +39,7 @@ import { useLandingSections } from '../../context/LandingSectionsContext';
 import TopSwimmersSection from '../../components/landing/TopSwimmersSection';
 import { SEOHead } from '../../components/common/SEOHead';
 import { LandingFaqSection, FAQ_ITEMS } from '../../components/landing/LandingFaqSection';
+import { trackPhoneCallClick, trackBeginRegistration, trackCompleteRegistration, trackPoolView } from '../../utils/analytics';
 import './HomePage.css';
 
 const HOMEPAGE_FAQ_SCHEMA = {
@@ -415,6 +416,7 @@ export const HomePage = () => {
 
   const handleOpenEnroll = (course) => {
     setEnrollingCourse(course);
+    trackBeginRegistration(course?.name, course?.id, course?.base_price);
     const initialPrice = Number(course?.base_price || 0);
     setEnrollForm({
       applicant_name: user?.full_name || '',
@@ -1424,16 +1426,13 @@ export const HomePage = () => {
             <button
               type="button"
               onClick={() => setCoachCategoryTab('ALL')}
-              className={`w-full justify-between sm:justify-center lg:justify-start px-3 sm:px-2.5 lg:px-4 py-2.5 rounded-xl text-xs sm:text-xs lg:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 sm:gap-2 active:scale-98 ${
+              className={`w-full justify-between sm:justify-center lg:justify-start px-3 sm:px-3 lg:px-4 py-2.5 rounded-xl text-xs sm:text-xs lg:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 active:scale-98 ${
                 coachCategoryTab === 'ALL'
                   ? 'bg-teal-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-teal-50/60 dark:hover:bg-slate-800/60'
               }`}
             >
-              <div className="flex items-center gap-1.5 min-w-0">
-                <Users className={`w-4 h-4 shrink-0 ${coachCategoryTab === 'ALL' ? 'text-white' : 'text-teal-600 dark:text-teal-400'}`} />
-                <span className="truncate">کادر اجرایی</span>
-              </div>
+              <span>کادر اجرایی</span>
               <span className={`px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
                 coachCategoryTab === 'ALL' ? 'bg-white/20 text-white' : 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300'
               }`}>
@@ -1444,16 +1443,13 @@ export const HomePage = () => {
             <button
               type="button"
               onClick={() => setCoachCategoryTab('FOUNDERS')}
-              className={`w-full justify-between sm:justify-center lg:justify-start px-3 sm:px-2.5 lg:px-4 py-2.5 rounded-xl text-xs sm:text-xs lg:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 sm:gap-2 active:scale-98 ${
+              className={`w-full justify-between sm:justify-center lg:justify-start px-3 sm:px-3 lg:px-4 py-2.5 rounded-xl text-xs sm:text-xs lg:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 active:scale-98 ${
                 coachCategoryTab === 'FOUNDERS'
                   ? 'bg-purple-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-purple-50/60 dark:hover:bg-slate-800/60'
               }`}
             >
-              <div className="flex items-center gap-1.5 min-w-0">
-                <Briefcase className={`w-4 h-4 shrink-0 ${coachCategoryTab === 'FOUNDERS' ? 'text-white' : 'text-purple-600 dark:text-purple-400'}`} />
-                <span className="truncate">مدیر و موسسین</span>
-              </div>
+              <span>مدیر و موسسین</span>
               <span className={`px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
                 coachCategoryTab === 'FOUNDERS' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
               }`}>
@@ -1464,16 +1460,13 @@ export const HomePage = () => {
             <button
               type="button"
               onClick={() => setCoachCategoryTab('MALE')}
-              className={`w-full justify-between sm:justify-center lg:justify-start px-3 sm:px-2.5 lg:px-4 py-2.5 rounded-xl text-xs sm:text-xs lg:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 sm:gap-2 active:scale-98 ${
+              className={`w-full justify-between sm:justify-center lg:justify-start px-3 sm:px-3 lg:px-4 py-2.5 rounded-xl text-xs sm:text-xs lg:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 active:scale-98 ${
                 coachCategoryTab === 'MALE'
                   ? 'bg-cyan-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-cyan-50/60 dark:hover:bg-slate-800/60'
               }`}
             >
-              <div className="flex items-center gap-1.5 min-w-0">
-                <Mars className={`w-4 h-4 shrink-0 ${coachCategoryTab === 'MALE' ? 'text-white' : 'text-cyan-600 dark:text-cyan-400'}`} />
-                <span className="truncate">کادر آقایان</span>
-              </div>
+              <span>کادر آقایان</span>
               <span className={`px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
                 coachCategoryTab === 'MALE' ? 'bg-white/20 text-white' : 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300'
               }`}>
@@ -1484,16 +1477,13 @@ export const HomePage = () => {
             <button
               type="button"
               onClick={() => setCoachCategoryTab('FEMALE')}
-              className={`w-full justify-between sm:justify-center lg:justify-start px-3 sm:px-2.5 lg:px-4 py-2.5 rounded-xl text-xs sm:text-xs lg:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 sm:gap-2 active:scale-98 ${
+              className={`w-full justify-between sm:justify-center lg:justify-start px-3 sm:px-3 lg:px-4 py-2.5 rounded-xl text-xs sm:text-xs lg:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 active:scale-98 ${
                 coachCategoryTab === 'FEMALE'
                   ? 'bg-pink-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-pink-50/60 dark:hover:bg-slate-800/60'
               }`}
             >
-              <div className="flex items-center gap-1.5 min-w-0">
-                <Venus className={`w-4 h-4 shrink-0 ${coachCategoryTab === 'FEMALE' ? 'text-white' : 'text-pink-600 dark:text-pink-400'}`} />
-                <span className="truncate">کادر بانوان</span>
-              </div>
+              <span>کادر بانوان</span>
               <span className={`px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
                 coachCategoryTab === 'FEMALE' ? 'bg-white/20 text-white' : 'bg-pink-100 text-pink-800 dark:bg-pink-950 dark:text-pink-300'
               }`}>
