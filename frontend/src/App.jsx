@@ -8,9 +8,16 @@ import { ToastProvider } from './context/ToastContext';
 import { Navbar } from './components/layout/Navbar';
 import { DashboardShell } from './components/layout/DashboardShell';
 
-// Pages
+// Public Pages
 import { HomePage } from './pages/public/HomePage';
 import { LoginPage } from './pages/public/LoginPage';
+import { CoursesPage } from './pages/public/CoursesPage';
+import { CoachesPage } from './pages/public/CoachesPage';
+import { PricingPage } from './pages/public/PricingPage';
+import { SchedulePage } from './pages/public/SchedulePage';
+import { ContactPage } from './pages/public/ContactPage';
+import { BlogPage } from './pages/public/BlogPage';
+import { NotFoundPage } from './pages/public/NotFoundPage';
 import { SupervisorDashboard } from './pages/supervisor/SupervisorDashboard';
 import { SupervisorInfrastructurePage } from './pages/supervisor/SupervisorInfrastructurePage';
 import { SupervisorServicesPage } from './pages/supervisor/SupervisorServicesPage';
@@ -113,6 +120,15 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   return children;
 };
 
+const PublicPageWrapper = ({ children }) => (
+  <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-[#163247] dark:text-slate-100 flex flex-col transition-colors selection:bg-cyan-100 selection:text-cyan-900 w-full overflow-x-clip">
+    <Navbar />
+    <main className="flex-1 w-full overflow-x-clip">
+      {children}
+    </main>
+  </div>
+);
+
 export default function App() {
   return (
     <ThemeProvider>
@@ -156,6 +172,19 @@ export default function App() {
                   </div>
                 }
               />
+
+              {/* Public Subpages & Dedicated SEO Landing Pages */}
+              <Route path="/swimming-classes" element={<PublicPageWrapper><CoursesPage /></PublicPageWrapper>} />
+              <Route path="/courses" element={<PublicPageWrapper><CoursesPage /></PublicPageWrapper>} />
+              <Route path="/courses/kids-swimming" element={<PublicPageWrapper><CoursesPage categoryFilter="KIDS" /></PublicPageWrapper>} />
+              <Route path="/courses/adults-swimming" element={<PublicPageWrapper><CoursesPage categoryFilter="ADULTS" /></PublicPageWrapper>} />
+              <Route path="/courses/beginner-swimming" element={<PublicPageWrapper><CoursesPage categoryFilter="BEGINNER" /></PublicPageWrapper>} />
+              <Route path="/coaches" element={<PublicPageWrapper><CoachesPage /></PublicPageWrapper>} />
+              <Route path="/pricing" element={<PublicPageWrapper><PricingPage /></PublicPageWrapper>} />
+              <Route path="/schedule" element={<PublicPageWrapper><SchedulePage /></PublicPageWrapper>} />
+              <Route path="/contact" element={<PublicPageWrapper><ContactPage /></PublicPageWrapper>} />
+              <Route path="/blog" element={<PublicPageWrapper><BlogPage /></PublicPageWrapper>} />
+              <Route path="/blog/:slug" element={<PublicPageWrapper><BlogPage /></PublicPageWrapper>} />
 
               {/* Supervisor Protected Routes - Technical Operations Hub */}
               <Route
@@ -336,8 +365,18 @@ export default function App() {
                 <Route path="complete-profile" element={<Navigate to="/swimmer/profile" replace />} />
               </Route>
 
-              {/* Fallback */}
-              <Route path="*" element={<Navigate to="/" replace />} />
+              {/* 404 Not Found Handling */}
+              <Route
+                path="*"
+                element={
+                  <div className="min-h-screen text-[#163247] dark:text-slate-100 flex flex-col transition-colors selection:bg-cyan-100 selection:text-cyan-900 w-full overflow-x-clip">
+                    <Navbar />
+                    <main className="flex-1 w-full overflow-x-clip">
+                      <NotFoundPage />
+                    </main>
+                  </div>
+                }
+              />
             </Routes>
           </BrowserRouter>
         </LandingSectionsProvider>

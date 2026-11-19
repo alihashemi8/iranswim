@@ -10,6 +10,23 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (id.includes('node_modules/three')) {
+            return 'vendor-three';
+          }
+          if (id.includes('node_modules/lucide-react')) {
+            return 'vendor-icons';
+          }
+          if (id.includes('node_modules/gsap') || id.includes('node_modules/swiper')) {
+            return 'vendor-animation';
+          }
+        }
+      }
+    }
+  },
   server: {
     port: 5173,
     proxy: {

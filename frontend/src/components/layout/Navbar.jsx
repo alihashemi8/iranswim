@@ -210,20 +210,23 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               >
                 {publicNavLinks.map((item) => {
                   const isCurrent =
-                    location.pathname === '/' &&
-                    location.hash === item.href.replace('/', '');
-                  return (
-                    <a
-                      key={item.href}
-                      href={item.href}
-                      className={`px-1.5 md:px-1.5 lg:px-2.5 xl:px-3 py-1 md:py-1.5 rounded-lg transition-all duration-150 whitespace-nowrap shrink-0 ${
-                        isCurrent
-                          ? 'text-[#087EA4] dark:text-cyan-400 bg-sky-50 dark:bg-sky-950/60 font-bold'
-                          : 'text-[#163247] dark:text-slate-200 hover:text-[#087EA4] dark:hover:text-cyan-400 hover:bg-sky-50/80 dark:hover:bg-slate-800/60'
-                      }`}
-                    >
+                    location.pathname === item.href ||
+                    (item.href !== '/' && location.pathname.startsWith(item.href));
+                  const isHash = item.href.includes('#');
+                  const classes = `px-1.5 md:px-1.5 lg:px-2.5 xl:px-3 py-1 md:py-1.5 rounded-lg transition-all duration-150 whitespace-nowrap shrink-0 ${
+                    isCurrent
+                      ? 'text-[#087EA4] dark:text-cyan-400 bg-sky-50 dark:bg-sky-950/60 font-bold'
+                      : 'text-[#163247] dark:text-slate-200 hover:text-[#087EA4] dark:hover:text-cyan-400 hover:bg-sky-50/80 dark:hover:bg-slate-800/60'
+                  }`;
+
+                  return isHash ? (
+                    <a key={item.href} href={item.href} className={classes}>
                       {item.label}
                     </a>
+                  ) : (
+                    <Link key={item.href} to={item.href} className={classes}>
+                      {item.label}
+                    </Link>
                   );
                 })}
               </nav>
@@ -434,7 +437,21 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 <nav className="flex flex-col space-y-1">
                   {publicNavLinks.map((item) => {
                     const Icon = item.icon;
-                    return (
+                    const isHash = item.href.includes('#');
+                    const linkClasses = "flex items-center justify-between p-3 rounded-xl hover:bg-sky-50 dark:hover:bg-slate-800/70 text-[#163247] dark:text-slate-200 text-sm font-semibold transition-colors group";
+                    const innerContent = (
+                      <>
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="w-8 h-8 rounded-lg bg-[#EAF5FC] dark:bg-slate-800 text-[#087EA4] dark:text-cyan-400 flex items-center justify-center group-hover:bg-[#087EA4] group-hover:text-white transition-colors shrink-0">
+                            <Icon className="w-4 h-4" />
+                          </div>
+                          <span className="truncate">{item.label}</span>
+                        </div>
+                        <ChevronLeft className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-[#087EA4] dark:group-hover:text-cyan-400 group-hover:-translate-x-0.5 transition-all shrink-0" />
+                      </>
+                    );
+
+                    return isHash ? (
                       <a
                         key={item.href}
                         href={item.href}
@@ -450,16 +467,19 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                             }, 80);
                           }
                         }}
-                        className="flex items-center justify-between p-3 rounded-xl hover:bg-sky-50 dark:hover:bg-slate-800/70 text-[#163247] dark:text-slate-200 text-sm font-semibold transition-colors group"
+                        className={linkClasses}
                       >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <div className="w-8 h-8 rounded-lg bg-[#EAF5FC] dark:bg-slate-800 text-[#087EA4] dark:text-cyan-400 flex items-center justify-center group-hover:bg-[#087EA4] group-hover:text-white transition-colors shrink-0">
-                            <Icon className="w-4 h-4" />
-                          </div>
-                          <span className="truncate">{item.label}</span>
-                        </div>
-                        <ChevronLeft className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-[#087EA4] dark:group-hover:text-cyan-400 group-hover:-translate-x-0.5 transition-all shrink-0" />
+                        {innerContent}
                       </a>
+                    ) : (
+                      <Link
+                        key={item.href}
+                        to={item.href}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={linkClasses}
+                      >
+                        {innerContent}
+                      </Link>
                     );
                   })}
                 </nav>

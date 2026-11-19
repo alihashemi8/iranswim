@@ -39,6 +39,7 @@ import { useLandingSections } from '../../context/LandingSectionsContext';
 import TopSwimmersSection from '../../components/landing/TopSwimmersSection';
 import { SEOHead } from '../../components/common/SEOHead';
 import { LandingFaqSection, FAQ_ITEMS } from '../../components/landing/LandingFaqSection';
+import { PublicFooter } from '../../components/layout/PublicFooter';
 import { trackPhoneCallClick, trackBeginRegistration, trackCompleteRegistration, trackPoolView } from '../../utils/analytics';
 import './HomePage.css';
 
@@ -500,6 +501,12 @@ export const HomePage = () => {
       });
       toast.success(
         `درخواست ثبت‌نام شما در دوره ${enrollingCourse.name} با شیوه پرداخت (${enrollForm.selected_installments > 1 ? `${enrollForm.selected_installments} قسط توافقی` : 'یکجا'}) با موفقیت ثبت شد.`
+      );
+      trackCompleteRegistration(
+        enrollingCourse.name,
+        enrollingCourse.id,
+        enrollForm.selected_installments,
+        total
       );
       setEnrollingCourse(null);
     } catch (err) {
@@ -1421,19 +1428,19 @@ export const HomePage = () => {
             </span>
           </div>
 
-          {/* Executive & Coaching Staff Tabs (4 Tabs) - Fully Responsive for Mobile (2x2 grid), Tablet (4 cols), Desktop (inline-flex) */}
-          <div className="w-full grid grid-cols-2 sm:grid-cols-4 lg:w-fit lg:flex lg:flex-row items-center gap-2 p-1.5 sm:p-2 lg:p-1.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl border border-cyan-200/80 dark:border-slate-800 shadow-xs">
+          {/* Executive & Coaching Staff Tabs (4 Tabs) - Fully Responsive & Strictly Equal Height */}
+          <div className="w-full grid grid-cols-2 sm:grid-cols-4 lg:w-fit lg:flex lg:flex-row items-center gap-1.5 sm:gap-2 p-1 sm:p-1.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md rounded-2xl border border-cyan-200/80 dark:border-slate-800 shadow-xs">
             <button
               type="button"
               onClick={() => setCoachCategoryTab('ALL')}
-              className={`w-full justify-between sm:justify-center lg:justify-start px-3 sm:px-3 lg:px-4 py-2.5 rounded-xl text-xs sm:text-xs lg:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 active:scale-98 ${
+              className={`h-10 w-full justify-between sm:justify-center px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap active:scale-98 ${
                 coachCategoryTab === 'ALL'
                   ? 'bg-teal-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-teal-50/60 dark:hover:bg-slate-800/60'
               }`}
             >
               <span>کادر اجرایی</span>
-              <span className={`px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
+              <span className={`h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full text-[11px] font-black shrink-0 ${
                 coachCategoryTab === 'ALL' ? 'bg-white/20 text-white' : 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300'
               }`}>
                 {coaches.length}
@@ -1443,14 +1450,14 @@ export const HomePage = () => {
             <button
               type="button"
               onClick={() => setCoachCategoryTab('FOUNDERS')}
-              className={`w-full justify-between sm:justify-center lg:justify-start px-3 sm:px-3 lg:px-4 py-2.5 rounded-xl text-xs sm:text-xs lg:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 active:scale-98 ${
+              className={`h-10 w-full justify-between sm:justify-center px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap active:scale-98 ${
                 coachCategoryTab === 'FOUNDERS'
                   ? 'bg-purple-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-purple-50/60 dark:hover:bg-slate-800/60'
               }`}
             >
               <span>مدیر و موسسین</span>
-              <span className={`px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
+              <span className={`h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full text-[11px] font-black shrink-0 ${
                 coachCategoryTab === 'FOUNDERS' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
               }`}>
                 {coaches.filter(isManagerCoach).length}
@@ -1460,14 +1467,14 @@ export const HomePage = () => {
             <button
               type="button"
               onClick={() => setCoachCategoryTab('MALE')}
-              className={`w-full justify-between sm:justify-center lg:justify-start px-3 sm:px-3 lg:px-4 py-2.5 rounded-xl text-xs sm:text-xs lg:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 active:scale-98 ${
+              className={`h-10 w-full justify-between sm:justify-center px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap active:scale-98 ${
                 coachCategoryTab === 'MALE'
                   ? 'bg-cyan-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-cyan-50/60 dark:hover:bg-slate-800/60'
               }`}
             >
               <span>کادر آقایان</span>
-              <span className={`px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
+              <span className={`h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full text-[11px] font-black shrink-0 ${
                 coachCategoryTab === 'MALE' ? 'bg-white/20 text-white' : 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300'
               }`}>
                 {coaches.filter((c) => !isManagerCoach(c) && isMaleCoach(c)).length}
@@ -1477,14 +1484,14 @@ export const HomePage = () => {
             <button
               type="button"
               onClick={() => setCoachCategoryTab('FEMALE')}
-              className={`w-full justify-between sm:justify-center lg:justify-start px-3 sm:px-3 lg:px-4 py-2.5 rounded-xl text-xs sm:text-xs lg:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 active:scale-98 ${
+              className={`h-10 w-full justify-between sm:justify-center px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap active:scale-98 ${
                 coachCategoryTab === 'FEMALE'
                   ? 'bg-pink-600 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white hover:bg-pink-50/60 dark:hover:bg-slate-800/60'
               }`}
             >
               <span>کادر بانوان</span>
-              <span className={`px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
+              <span className={`h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full text-[11px] font-black shrink-0 ${
                 coachCategoryTab === 'FEMALE' ? 'bg-white/20 text-white' : 'bg-pink-100 text-pink-800 dark:bg-pink-950 dark:text-pink-300'
               }`}>
                 {coaches.filter((c) => !isManagerCoach(c) && isFemaleCoach(c)).length}
@@ -1637,6 +1644,7 @@ export const HomePage = () => {
 
                 <a
                   href="tel:02833650000"
+                  onClick={() => trackPhoneCallClick('02833650000', 'landing_cta')}
                   className="px-7 sm:px-9 py-3.5 sm:py-4 bg-white hover:bg-cyan-50 text-slate-950 font-black rounded-2xl border-2 border-cyan-200/90 transition-all text-base sm:text-lg inline-flex items-center gap-2.5 shadow-md active:scale-95"
                 >
                   <PhoneCall className="w-5 h-5 text-cyan-600" />
@@ -1672,199 +1680,7 @@ export const HomePage = () => {
       {/* =========================================================================
           SECTION 8: ACCESSIBLE FOOTER
           ========================================================================= */}
-      <footer className="landing-footer w-full bg-gradient-to-b from-[#0d3849] to-[#061e29] pt-12 sm:pt-14 pb-8 min-w-0 relative">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-8 lg:gap-8 xl:gap-10">
-            
-            {/* Identity & About */}
-            <div className="sm:col-span-1 lg:col-span-4 space-y-4">
-              <div className="flex items-center gap-2.5 text-cyan-300 font-extrabold text-lg">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-600 to-teal-400 text-white flex items-center justify-center shadow-md shrink-0">
-                  <SwimmerCrawlIcon className="w-5 h-5" />
-                </div>
-                <span className="text-white font-black text-lg">مدرسه شنای ایران - قزوین</span>
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed text-justify sm:text-right">
-                مرکز تخصصی آموزش، اصلاح تکنیک و استعدادیابی شنا در استان قزوین؛ برگزارکننده دوره‌های عمومی، نیمه‌خصوصی و خصوصی ۴ شنا ویژه کودکان، نوجوانان و بزرگسالان.
-              </p>
-              <div className="pt-1 flex items-center gap-2 text-[11px] text-emerald-300 bg-emerald-950/60 px-3 py-1.5 rounded-xl border border-emerald-500/30 w-fit">
-                <ShieldCheck className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
-                <span>زیر نظر مربیان رسمی فدراسیون شنا</span>
-              </div>
-            </div>
-
-            {/* Quick Links */}
-            <div className="sm:col-span-1 lg:col-span-2 space-y-3.5">
-              <h4 className="font-bold text-sm text-white flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-                <span>بخش‌های وبسایت</span>
-              </h4>
-              <ul className="grid grid-cols-2 gap-x-2 gap-y-2.5 sm:grid-cols-1 sm:gap-2.5 text-xs text-slate-300">
-                {isSectionEnabled('about') && (
-                  <li>
-                    <a href="#about" className="hover:text-cyan-300 transition-colors flex items-center gap-1.5 py-0.5 group">
-                      <span className="text-cyan-400/60 group-hover:text-cyan-300 text-[10px] transition-colors">‹</span>
-                      <span>ویژگی‌ها و مزایا</span>
-                    </a>
-                  </li>
-                )}
-                {isSectionEnabled('courses') && (
-                  <li>
-                    <a href="#courses" className="hover:text-cyan-300 transition-colors flex items-center gap-1.5 py-0.5 group">
-                      <span className="text-cyan-400/60 group-hover:text-cyan-300 text-[10px] transition-colors">‹</span>
-                      <span>برنامه دوره‌ها</span>
-                    </a>
-                  </li>
-                )}
-                {isSectionEnabled('pools') && (
-                  <li>
-                    <a href="#pools" className="hover:text-cyan-300 transition-colors flex items-center gap-1.5 py-0.5 group">
-                      <span className="text-cyan-400/60 group-hover:text-cyan-300 text-[10px] transition-colors">‹</span>
-                      <span>استخرهای طرف قرارداد</span>
-                    </a>
-                  </li>
-                )}
-                {(isSectionEnabled('top_swimmers') || isSectionEnabled('facilities')) && (
-                  <li>
-                    <a href="#top-swimmers" className="hover:text-cyan-300 transition-colors flex items-center gap-1.5 py-0.5 group">
-                      <span className="text-cyan-400/60 group-hover:text-cyan-300 text-[10px] transition-colors">‹</span>
-                      <span>شناگران برتر</span>
-                    </a>
-                  </li>
-                )}
-                {isSectionEnabled('coaches') && (
-                  <li>
-                    <a href="#coaches" className="hover:text-cyan-300 transition-colors flex items-center gap-1.5 py-0.5 group">
-                      <span className="text-cyan-400/60 group-hover:text-cyan-300 text-[10px] transition-colors">‹</span>
-                      <span>کادر مربیان</span>
-                    </a>
-                  </li>
-                )}
-                {isSectionEnabled('news') && (
-                  <li>
-                    <a href="#news" className="hover:text-cyan-300 transition-colors flex items-center gap-1.5 py-0.5 group">
-                      <span className="text-cyan-400/60 group-hover:text-cyan-300 text-[10px] transition-colors">‹</span>
-                      <span>اخبار و اطلاعیه‌ها</span>
-                    </a>
-                  </li>
-                )}
-              </ul>
-            </div>
-
-            {/* Contact */}
-            <div className="sm:col-span-1 lg:col-span-3 space-y-3.5">
-              <h4 className="font-bold text-sm text-white flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-                <span>اطلاعات تماس و استخرها</span>
-              </h4>
-              <div className="space-y-3 text-xs text-slate-300 leading-relaxed">
-                <p className="flex items-start gap-2.5">
-                  <MapPin className="w-4 h-4 text-teal-400 shrink-0 mt-0.5" />
-                  <span>قزوین، استخرها و مجموعه‌های ورزشی طرف قرارداد مدرسه شنای ایران</span>
-                </p>
-                <div className="flex items-center gap-2.5">
-                  <PhoneCall className="w-4 h-4 text-teal-400 shrink-0" />
-                  <a
-                    href="tel:02833650000"
-                    className="hover:text-cyan-300 transition-colors flex items-center gap-2 font-medium group"
-                  >
-                    <span>تلفن هماهنگی:</span>
-                    <span dir="ltr" className="inline-block font-bold text-cyan-300 group-hover:underline tracking-wider">۰۲۸-۳۳۶۵۰۰۰۰</span>
-                    <span className="text-[10px] text-cyan-400/80 bg-cyan-950/80 px-1.5 py-0.5 rounded border border-cyan-800/50">تماس مستقیم</span>
-                  </a>
-                </div>
-                <p className="flex items-center gap-2.5">
-                  <Clock className="w-4 h-4 text-teal-400 shrink-0" />
-                  <span>پاسخگویی: شنبه تا پنج‌شنبه ۹ الی ۲۰</span>
-                </p>
-              </div>
-            </div>
-
-            {/* Trust Seal (Enamad) */}
-            <div className="sm:col-span-1 lg:col-span-3 flex flex-col items-start sm:items-center lg:items-start space-y-3.5">
-              <h4 className="font-bold text-sm text-white flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
-                <span>نماد اعتماد</span>
-              </h4>
-              <a
-                referrerPolicy="origin"
-                target="_blank"
-                href="https://trustseal.enamad.ir/?id=8412006&Code=JQjDkp1A7Vlcx7g8vFbifdbIAGnkdkJm"
-                aria-label="نماد اعتماد الکترونیکی"
-                className="inline-flex items-center justify-center rounded-2xl bg-white/95 hover:bg-white p-2.5 shadow-lg border border-cyan-200/30 transition-transform duration-200 hover:-translate-y-0.5 cursor-pointer"
-              >
-                <img
-                  referrerPolicy="origin"
-                  src="https://trustseal.enamad.ir/logo.aspx?id=8412006&Code=JQjDkp1A7Vlcx7g8vFbifdbIAGnkdkJm"
-                  alt="نماد اعتماد الکترونیکی"
-                  style={{ cursor: 'pointer' }}
-                  code="JQjDkp1A7Vlcx7g8vFbifdbIAGnkdkJm"
-                  className="w-24 h-24 sm:w-28 sm:h-28 object-contain"
-                />
-              </a>
-            </div>
-          </div>
-
-          {/* About Rayban Team & Creator Banner */}
-          <div className="mt-10 pt-8 border-t border-cyan-900/40">
-            <div className="rounded-2xl bg-gradient-to-r from-slate-900/90 via-cyan-950/40 to-slate-900/90 border border-cyan-500/20 p-4 sm:p-5 backdrop-blur-sm shadow-xl">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div className="flex items-start sm:items-center gap-3.5">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-teal-400 flex items-center justify-center text-white font-black text-lg shadow-md shadow-cyan-500/20 shrink-0">
-                    ر
-                  </div>
-                  <div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <h4 className="text-white font-extrabold text-sm sm:text-base">
-                        تیم نرم‌افزاری رایبان
-                      </h4>
-                      <span className="text-[10px] text-cyan-300 bg-cyan-950/90 border border-cyan-600/40 px-2 py-0.5 rounded-full font-bold">
-                        طراح و سازنده سامانه
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-300 leading-relaxed mt-1">
-                      طراحی، پیاده‌سازی و ساخت اختصاصی این سامانه جامع توسط <strong className="text-cyan-300 font-bold">تیم رایبان</strong> انجام شده است.
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setShowRaybanModal(true)}
-                  className="shrink-0 px-3.5 py-1.5 rounded-xl bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-300 hover:text-white border border-cyan-500/30 transition-all text-xs font-bold cursor-pointer inline-flex items-center gap-1.5 active:scale-95"
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
-                  <span>درباره رایبان</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Bottom Divider & Copyright */}
-          <div className="border-t border-slate-800/80 pt-6 mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
-            <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-center sm:text-right leading-relaxed">
-              <p>
-                کلیه حقوق مادی و معنوی این سامانه متعلق به <span className="text-cyan-300 font-bold">تیم رایبان</span> می‌باشد © ۱۴۰۵
-              </p>
-              <span className="hidden sm:inline text-slate-600">•</span>
-              <p className="text-slate-400 flex items-center gap-1.5">
-                <span>سازنده سامانه:</span>
-                <span className="text-slate-200 font-medium">تیم نرم‌افزاری رایبان</span>
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-              className="inline-flex items-center gap-1.5 text-[11px] text-slate-400 hover:text-cyan-300 transition-colors cursor-pointer group py-1.5 px-3 rounded-xl hover:bg-white/5 border border-transparent hover:border-cyan-800/40"
-              aria-label="بازگشت به ابتدای صفحه"
-            >
-              <span>بازگشت به بالا</span>
-              <ArrowUp className="w-3.5 h-3.5 group-hover:-translate-y-0.5 transition-transform" />
-            </button>
-          </div>
-        </div>
-      </footer>
+      <PublicFooter />
 
       </div>
 
