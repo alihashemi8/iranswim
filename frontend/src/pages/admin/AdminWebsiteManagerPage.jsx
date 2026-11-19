@@ -1697,7 +1697,7 @@ export const AdminWebsiteManagerPage = () => {
                             </h3>
                             {isManagerCoach(coach) ? (
                               <Badge variant="purple" className="flex items-center gap-1 bg-purple-100 text-purple-900 dark:bg-purple-950 dark:text-purple-300 border-purple-200">
-                                <Crown className="w-3 h-3 text-purple-600" />
+                                <Briefcase className="w-3 h-3 text-purple-600" />
                                 <span>مدیر و موسسین</span>
                               </Badge>
                             ) : isFemaleCoach(coach) ? (

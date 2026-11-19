@@ -207,3 +207,115 @@ def test_swimmer_matched_only_courses_endpoint():
     assert target_c['is_matched'] is True
     assert target_c['match_details']['gender_matched'] is True
     assert target_c['match_details']['age_matched'] is True
+
+
+@pytest.mark.django_db
+def test_course_serializer_complete_manager_fields_for_swimmer():
+    """
+    Verifies that all 16+ attributes defined by the manager when creating a course
+    are serialized completely and without data loss for the swimmer portal.
+    """
+    from apps.coaches.models import CoachProfile
+    from apps.education.models import SwimmerGroup, Enrollment
+    from apps.education.serializers import CourseSerializer, EnrollmentSerializer
+
+    coach_user = User.objects.create_user(
+        phone='09121112233',
+        first_name='کاوه',
+        last_name='رضایی',
+        role='COACH'
+    )
+    coach = CoachProfile.objects.create(
+        user=coach_user,
+        first_name='کاوه',
+        last_name='رضایی',
+        coaching_degree='GRADE_1',
+        years_of_experience=8
+    )
+
+    start_d = datetime.date(2026, 12, 1)
+    end_d = datetime.date(2027, 2, 28)
+    course = Course.objects.create(
+        name='دوره تخصصی شنای کرال سینه و پروانه',
+        description='آموزش جامع پایه‌ای و پیشرفته',
+        pool_location='استخر شهید رئیسی - سالن اصلی',
+        days_of_week='سه‌شنبه و پنج‌شنبه',
+        start_time=datetime.time(17, 30),
+        end_time=datetime.time(19, 0),
+        start_date=start_d,
+        end_date=end_d,
+        base_price=Decimal('2400000.00'),
+        sessions_count=12,
+        installments_count=3,
+        card_number='6037997512345678',
+        card_holder='مدرسه شنای ایران',
+        age_range='۱۰ تا ۱۸ سال',
+        gender='MALE',
+        what_you_learn='سرفصل اول: پای دوچرخه\nسرفصل دوم: تنفس در کرال سینه',
+        status=Course.Status.ACTIVE
+    )
+    course.coaches.add(coach)
+    course.sync_coach_classes()
+
+    serializer = CourseSerializer(instance=course)
+    data = serializer.data
+
+    # 1. General Specs
+    assert data['name'] == 'دوره تخصصی شنای کرال سینه و پروانه'
+    assert data['description'] == 'آموزش جامع پایه‌ای و پیشرفته'
+    assert data['gender'] == 'MALE'
+    assert data['gender_display'] == 'پسران / آقایان'
+    assert data['age_range'] == '۱۰ تا ۱۸ سال'
+    assert data['min_age'] == 10
+    assert data['max_age'] == 18
+    assert 'سرفصل اول' in data['what_you_learn']
+
+    # 2. Timing & Location
+    assert data['pool_location'] == 'استخر شهید رئیسی - سالن اصلی'
+    assert data['days_of_week'] == 'سه‌شنبه و پنج‌شنبه'
+    assert '17:30' in data['time_display']
+    assert '19:00' in data['time_display']
+    assert str(data['start_date']) == '2026-12-01'
+    assert str(data['end_date']) == '2027-02-28'
+
+    # 3. Financials & Installments
+    assert Decimal(str(data['base_price'])) == Decimal('2400000.00')
+    assert data['sessions_count'] == 12
+    assert data['session_price'] == 200000
+    assert data['installments_count'] == 3
+    assert data['card_number'] == '6037997512345678'
+    assert data['card_holder'] == 'مدرسه شنای ایران'
+
+    # 4. Coaches
+    assert len(data['coaches']) == 1
+    c_info = data['coaches'][0]
+    assert c_info['full_name'] == 'کاوه رضایی'
+    assert c_info['coaching_degree'] == 'مربیگری درجه ۱'
+    assert c_info['years_of_experience'] == 8
+
+    # 5. Enrollment representation
+    swimmer_user = User.objects.create_user(phone='09128889900', first_name='آرتین', last_name='راد', role='SWIMMER')
+    swimmer_profile = SwimmerProfile.objects.create(user=swimmer_user, first_name='آرتین', last_name='راد', gender='MALE')
+    enr = Enrollment.objects.create(
+        swimmer=swimmer_profile,
+        course=course,
+        coach=coach,
+        status=Enrollment.Status.ACTIVE,
+        sessions_purchased=12,
+        sessions_attended=3,
+        selected_installments=3
+    )
+
+    enr_data = EnrollmentSerializer(instance=enr).data
+    assert enr_data['course_name'] == 'دوره تخصصی شنای کرال سینه و پروانه'
+    assert enr_data['course_pool'] == 'استخر شهید رئیسی - سالن اصلی'
+    assert enr_data['course_days'] == 'سه‌شنبه و پنج‌شنبه'
+    assert '17:30' in enr_data['course_time']
+    assert str(enr_data['course_start_date']) == '2026-12-01'
+    assert str(enr_data['course_end_date']) == '2027-02-28'
+    assert enr_data['course_gender_display'] == 'پسران / آقایان'
+    assert enr_data['course_sessions_count'] == 12
+    assert Decimal(str(enr_data['course_base_price'])) == Decimal('2400000.00')
+    assert enr_data['course_card_number'] == '6037997512345678'
+    assert enr_data['course_card_holder'] == 'مدرسه شنای ایران'
+

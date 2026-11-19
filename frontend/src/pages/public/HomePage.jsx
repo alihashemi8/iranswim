@@ -1603,10 +1603,15 @@ export const HomePage = () => {
         </div>
         </section>
 
-        {/* Organic Wave Transition: News to Call to Action */}
-        <AquaticWaveDivider topColor="#9cdfee" bottomColor="#8ad4e8" flip={true} />
+        {/* Organic Wave Transition: News to FAQ */}
+        <AquaticWaveDivider topColor="#9cdfee" bottomColor="#ffffff" flip={true} />
       </>
     )}
+
+      {/* =========================================================================
+          SECTION 6.5: FREQUENTLY ASKED QUESTIONS (GEO & SEARCH SNIPPETS)
+          ========================================================================= */}
+      <LandingFaqSection />
 
       {/* =========================================================================
           SECTION 7: FINAL REGISTRATION CALL TO ACTION

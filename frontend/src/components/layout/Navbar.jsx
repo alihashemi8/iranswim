@@ -85,19 +85,24 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
   const { isSectionEnabled } = useLandingSections();
 
   const allPublicNavLinks = [
-    { label: 'اصول و مزایا', href: '/#about', icon: Award, sectionKey: 'about' },
-    { label: 'دوره‌ها و کلاس‌ها', href: '/#courses', icon: BookOpen, sectionKey: 'courses' },
-    { label: 'استخرهای قزوین', href: '/#pools', icon: Waves, sectionKey: 'pools' },
-    { label: 'شناگران برتر', href: '/#top-swimmers', icon: Trophy, sectionKey: 'top_swimmers' },
-    { label: 'کادر اجرایی', href: '/#coaches', icon: Users2, sectionKey: 'coaches' },
-    { label: 'اخبار و رویدادها', href: '/#news', icon: Newspaper, sectionKey: 'news' },
+    { label: 'کلاس‌های شنا', href: '/swimming-classes/', icon: BookOpen, sectionKey: 'courses' },
+    { label: 'کادر مربیان', href: '/coaches/', icon: Users2, sectionKey: 'coaches' },
+    { label: 'تعرفه‌ها و اقساط', href: '/pricing/', icon: Award, sectionKey: 'courses' },
+    { label: 'برنامه استخرها', href: '/schedule/', icon: Waves, sectionKey: 'pools' },
+    { label: 'اخبار و مقالات', href: '/blog/', icon: Newspaper, sectionKey: 'news' },
+    { label: 'تماس با ما', href: '/contact/', icon: PhoneCall, sectionKey: 'pools' },
   ];
 
   const publicNavLinks = allPublicNavLinks.filter(
     (link) => !link.sectionKey || isSectionEnabled(link.sectionKey)
   );
 
-  const isPublicPage = !isFullWidth && (location.pathname === '/' || location.pathname === '/login' || location.pathname === '/register');
+  const isPublicPage =
+    !isFullWidth &&
+    !location.pathname.startsWith('/admin') &&
+    !location.pathname.startsWith('/coach') &&
+    !location.pathname.startsWith('/swimmer') &&
+    !location.pathname.startsWith('/supervisor');
 
   return (
     <>
