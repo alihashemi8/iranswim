@@ -567,3 +567,548 @@ export const ProgressBar = ({
     </div>
   );
 };
+
+/**
+ * Modern SVG Radar / Spider Web Chart
+ * Ideal for Multi-dimensional Biomechanics, Video Technique Analysis, and Coach/Management Evaluations
+ */
+export const RadarChart = ({
+  data = [],
+  comparisonData = null,
+  size = 320,
+  maxVal = 100,
+  title,
+  subtitle,
+  primaryLabel = 'جلسه فعلی',
+  comparisonLabel = 'جلسه قبل / استاندارد',
+  color = 'sky',
+}) => {
+  const [hoverIndex, setHoverIndex] = useState(null);
+  const chartId = useId().replace(/:/g, '');
+
+  if (!data || data.length < 3) {
+    return (
+      <div className="flex items-center justify-center h-48 text-xs text-slate-400 dark:text-slate-500 bg-slate-50/50 dark:bg-slate-800/20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+        برای نمایش نمودار راداری حداقل ۳ شاخص ارزیابی مورد نیاز است.
+      </div>
+    );
+  }
+
+  const cx = size / 2;
+  const cy = size / 2;
+  const padding = 54;
+  const radius = (size - padding * 2) / 2;
+  const count = data.length;
+  const levels = [0.25, 0.5, 0.75, 1.0];
+
+  const colorThemes = {
+    sky: {
+      stroke: '#0284c7',
+      fill: 'rgba(14, 165, 233, 0.35)',
+      dot: '#0284c7',
+      glow: 'rgba(56, 189, 248, 0.6)',
+      badge: 'bg-sky-50 dark:bg-sky-950/80 text-sky-700 dark:text-sky-300 border-sky-200 dark:border-sky-800',
+    },
+    emerald: {
+      stroke: '#059669',
+      fill: 'rgba(16, 185, 129, 0.35)',
+      dot: '#059669',
+      glow: 'rgba(52, 211, 153, 0.6)',
+      badge: 'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800',
+    },
+    violet: {
+      stroke: '#7c3aed',
+      fill: 'rgba(139, 92, 246, 0.35)',
+      dot: '#7c3aed',
+      glow: 'rgba(167, 139, 250, 0.6)',
+      badge: 'bg-violet-50 dark:bg-violet-950/80 text-violet-700 dark:text-violet-300 border-violet-200 dark:border-violet-800',
+    },
+    amber: {
+      stroke: '#d97706',
+      fill: 'rgba(245, 158, 11, 0.35)',
+      dot: '#d97706',
+      glow: 'rgba(251, 191, 36, 0.6)',
+      badge: 'bg-amber-50 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800',
+    },
+  };
+
+  const theme = colorThemes[color] || colorThemes.sky;
+
+  // Calculate coordinates for an index and ratio
+  const getCoordinates = (index, ratio) => {
+    const angle = (2 * Math.PI * index) / count - Math.PI / 2;
+    const r = radius * Math.min(Math.max(ratio, 0), 1);
+    return {
+      x: cx + r * Math.cos(angle),
+      y: cy + r * Math.sin(angle),
+      angle,
+    };
+  };
+
+  // Primary data points
+  const primaryPoints = data.map((d, i) => {
+    const val = Number(d.value || 0);
+    const coords = getCoordinates(i, val / maxVal);
+    return { ...d, val, ...coords, index: i };
+  });
+
+  const primaryPath = primaryPoints.map((pt) => `${pt.x},${pt.y}`).join(' ');
+
+  // Comparison data points
+  let comparisonPath = null;
+  let comparisonPoints = [];
+  if (comparisonData && comparisonData.length === count) {
+    comparisonPoints = comparisonData.map((d, i) => {
+      const val = Number(d.value || 0);
+      const coords = getCoordinates(i, val / maxVal);
+      return { ...d, val, ...coords, index: i };
+    });
+    comparisonPath = comparisonPoints.map((pt) => `${pt.x},${pt.y}`).join(' ');
+  }
+
+  const activePoint = hoverIndex !== null ? primaryPoints[hoverIndex] : null;
+
+  return (
+    <div className="space-y-3 w-full">
+      {(title || subtitle) && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            {title && <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">{title}</h4>}
+            {subtitle && <p className="text-xs text-slate-400 dark:text-slate-500">{subtitle}</p>}
+          </div>
+
+          <div className="flex items-center gap-3 text-xs">
+            <div className="flex items-center gap-1.5 font-medium text-slate-600 dark:text-slate-300">
+              <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: theme.stroke }} />
+              <span>{primaryLabel}</span>
+            </div>
+            {comparisonData && (
+              <div className="flex items-center gap-1.5 font-medium text-slate-400 dark:text-slate-400">
+                <span className="w-2.5 h-2.5 rounded-full border border-dashed border-slate-400" />
+                <span>{comparisonLabel}</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="relative flex flex-col items-center justify-center p-3 sm:p-5 bg-slate-50/70 dark:bg-slate-800/40 rounded-2xl border border-slate-200/70 dark:border-slate-800">
+        <svg
+          viewBox={`0 0 ${size} ${size}`}
+          className="w-full max-w-[340px] h-auto select-none overflow-visible"
+        >
+          <defs>
+            <radialGradient id={`radarGrad-${chartId}`} cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor={theme.stroke} stopOpacity="0.45" />
+              <stop offset="100%" stopColor={theme.stroke} stopOpacity="0.1" />
+            </radialGradient>
+          </defs>
+
+          {/* Web grid levels */}
+          {levels.map((level, lvlIdx) => {
+            const polygonPoints = Array.from({ length: count }, (_, i) => {
+              const { x, y } = getCoordinates(i, level);
+              return `${x},${y}`;
+            }).join(' ');
+
+            return (
+              <g key={lvlIdx}>
+                <polygon
+                  points={polygonPoints}
+                  fill={lvlIdx === levels.length - 1 ? 'currentColor' : 'transparent'}
+                  className={lvlIdx === levels.length - 1 ? 'text-slate-100/50 dark:text-slate-800/30' : ''}
+                  stroke="currentColor"
+                  className="text-slate-200 dark:text-slate-700/60"
+                  strokeWidth="1"
+                  strokeDasharray={lvlIdx < levels.length - 1 ? '3 3' : 'none'}
+                />
+                {/* Level scale label */}
+                <text
+                  x={cx + 4}
+                  y={cy - radius * level - 2}
+                  fontSize="8"
+                  className="fill-slate-400 dark:fill-slate-500 font-mono select-none"
+                >
+                  {Math.round(level * maxVal)}
+                </text>
+              </g>
+            );
+          })}
+
+          {/* Axis lines */}
+          {Array.from({ length: count }, (_, i) => {
+            const { x, y } = getCoordinates(i, 1.0);
+            return (
+              <line
+                key={i}
+                x1={cx}
+                y1={cy}
+                x2={x}
+                y2={y}
+                stroke="currentColor"
+                className="text-slate-200 dark:text-slate-700/60"
+                strokeWidth="1"
+              />
+            );
+          })}
+
+          {/* Comparison Polygon (if present) */}
+          {comparisonPath && (
+            <polygon
+              points={comparisonPath}
+              fill="rgba(148, 163, 184, 0.12)"
+              stroke="#94a3b8"
+              strokeWidth="1.5"
+              strokeDasharray="4 4"
+            />
+          )}
+
+          {/* Primary Polygon */}
+          <polygon
+            points={primaryPath}
+            fill={`url(#radarGrad-${chartId})`}
+            stroke={theme.stroke}
+            strokeWidth="2.5"
+            strokeLinejoin="round"
+            className="transition-all duration-300"
+          />
+
+          {/* Data Points */}
+          {primaryPoints.map((pt, i) => {
+            const isHovered = hoverIndex === i;
+            return (
+              <g key={i}>
+                <circle
+                  cx={pt.x}
+                  cy={pt.y}
+                  r={isHovered ? 6 : 4}
+                  fill={theme.dot}
+                  stroke="#ffffff"
+                  strokeWidth="2"
+                  className="cursor-pointer transition-all duration-200 shadow-md"
+                  onMouseEnter={() => setHoverIndex(i)}
+                  onMouseLeave={() => setHoverIndex(null)}
+                />
+              </g>
+            );
+          })}
+
+          {/* Metric Labels */}
+          {primaryPoints.map((pt, i) => {
+            const angle = (2 * Math.PI * i) / count - Math.PI / 2;
+            const labelR = radius + 22;
+            const lx = cx + labelR * Math.cos(angle);
+            const ly = cy + labelR * Math.sin(angle);
+            const isHovered = hoverIndex === i;
+
+            let textAnchor = 'middle';
+            if (Math.cos(angle) > 0.3) textAnchor = 'start';
+            else if (Math.cos(angle) < -0.3) textAnchor = 'end';
+
+            return (
+              <text
+                key={i}
+                x={lx}
+                y={ly + 4}
+                textAnchor={textAnchor}
+                fontSize="10"
+                className={`font-semibold cursor-pointer transition-colors duration-150 ${
+                  isHovered
+                    ? 'fill-sky-600 dark:fill-sky-400 font-bold'
+                    : 'fill-slate-700 dark:fill-slate-300'
+                }`}
+                onMouseEnter={() => setHoverIndex(i)}
+                onMouseLeave={() => setHoverIndex(null)}
+              >
+                {pt.label}
+              </text>
+            );
+          })}
+        </svg>
+
+        {/* Hover details badge */}
+        <div className="h-7 min-h-[28px] mt-2 flex items-center justify-center">
+          {activePoint ? (
+            <span className={`text-xs font-mono font-bold px-3 py-1 rounded-xl border shadow-xs transition-all ${theme.badge}`}>
+              {activePoint.label}: {activePoint.val} از {maxVal}
+              {activePoint.note ? ` — «${activePoint.note}»` : ''}
+            </span>
+          ) : (
+            <span className="text-[11px] text-slate-400 dark:text-slate-500">
+              روی شاخص‌های نمودار اشاره کنید تا جزئیات نمایش یابد
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Swimming Record & Time Progression Chart
+ * Specifically customized for lap times and personal best drops (lower duration = faster = higher score)
+ */
+export const TimeProgressionChart = ({
+  data = [],
+  title,
+  subtitle,
+  unit = 'ثانیه',
+  targetTime = null,
+  targetLabel = 'حد نصاب ورودی مسابقات استانی',
+  color = 'emerald',
+}) => {
+  const [hoverIndex, setHoverIndex] = useState(null);
+  const chartId = useId().replace(/:/g, '');
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-40 text-xs text-slate-400 dark:text-slate-500 bg-slate-50/50 dark:bg-slate-800/20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
+        داده‌ای برای ترسیم مسیر پیشرفت زمانی ثبت نشده است.
+      </div>
+    );
+  }
+
+  const times = data.map((d) => Number(d.time || d.duration || d.value || 0));
+  const rawMin = Math.min(...times);
+  const rawMax = Math.max(...times);
+  const targetVal = targetTime ? Number(targetTime) : null;
+
+  // For scaling: in swimming, lower time is faster!
+  // We compute bounds with buffer
+  const globalMin = targetVal ? Math.min(rawMin, targetVal) : rawMin;
+  const globalMax = targetVal ? Math.max(rawMax, targetVal) : rawMax;
+  const paddingBuffer = Math.max((globalMax - globalMin) * 0.2, 1.5);
+  const minBound = Math.max(0, globalMin - paddingBuffer);
+  const maxBound = globalMax + paddingBuffer;
+  const range = maxBound - minBound || 1;
+
+  const width = 560;
+  const height = 180;
+  const padX = 36;
+  const padY = 24;
+  const effW = width - padX * 2;
+  const effH = height - padY * 2;
+
+  // We display lower times near the TOP (as an achievement curve) OR standard time axis:
+  // In sports analytics, representing time drop as an upward ascending progression is motivating.
+  // normalizedY: (maxBound - time) / range => lower time has higher Y (near top)
+  const points = data.map((d, i) => {
+    const t = Number(d.time || d.duration || d.value || 0);
+    const x = padX + (i / Math.max(data.length - 1, 1)) * effW;
+    const norm = (maxBound - t) / range;
+    const y = padY + (1 - norm) * effH; // standard: y from padY to height-padY
+    return { ...d, time: t, x, y, index: i };
+  });
+
+  const linePath = points.reduce((acc, pt, i) => {
+    return i === 0 ? `M ${pt.x} ${pt.y}` : `${acc} L ${pt.x} ${pt.y}`;
+  }, '');
+
+  const areaPath = `${linePath} L ${points[points.length - 1].x} ${height - padY} L ${points[0].x} ${height - padY} Z`;
+
+  // Target line Y
+  let targetY = null;
+  if (targetVal) {
+    const norm = (maxBound - targetVal) / range;
+    targetY = padY + (1 - norm) * effH;
+  }
+
+  const activePoint = hoverIndex !== null ? points[hoverIndex] : null;
+
+  return (
+    <div className="space-y-3 w-full">
+      {(title || subtitle) && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            {title && <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">{title}</h4>}
+            {subtitle && <p className="text-xs text-slate-400 dark:text-slate-500">{subtitle}</p>}
+          </div>
+
+          <div className="flex items-center gap-3 text-xs font-medium">
+            <span className="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 font-mono font-bold">
+              ⚡ بهترین رکورد (PB): {rawMin.toFixed(2)} {unit}
+            </span>
+            {targetVal && (
+              <span className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 font-mono">
+                🎯 حد نصاب: {targetVal.toFixed(2)} {unit}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="w-full overflow-hidden rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 p-3 sm:p-4 border border-slate-200/70 dark:border-slate-800">
+        <svg
+          viewBox={`0 0 ${width} ${height}`}
+          className="w-full h-auto select-none overflow-visible"
+        >
+          <defs>
+            <linearGradient id={`progGrad-${chartId}`} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+            </linearGradient>
+          </defs>
+
+          {/* Grid lines */}
+          <line
+            x1={padX}
+            y1={padY}
+            x2={width - padX}
+            y2={padY}
+            stroke="currentColor"
+            className="text-slate-200 dark:text-slate-700/50"
+            strokeDasharray="4 4"
+            strokeWidth="1"
+          />
+          <line
+            x1={padX}
+            y1={height / 2}
+            x2={width - padX}
+            y2={height / 2}
+            stroke="currentColor"
+            className="text-slate-200 dark:text-slate-700/50"
+            strokeDasharray="4 4"
+            strokeWidth="1"
+          />
+          <line
+            x1={padX}
+            y1={height - padY}
+            x2={width - padX}
+            y2={height - padY}
+            stroke="currentColor"
+            className="text-slate-300 dark:text-slate-700"
+            strokeWidth="1"
+          />
+
+          {/* Target Line */}
+          {targetY !== null && (
+            <g>
+              <line
+                x1={padX}
+                y1={targetY}
+                x2={width - padX}
+                y2={targetY}
+                stroke="#f59e0b"
+                strokeDasharray="5 5"
+                strokeWidth="1.5"
+              />
+              <text
+                x={width - padX - 4}
+                y={targetY - 5}
+                textAnchor="end"
+                fontSize="9"
+                fill="#f59e0b"
+                className="font-bold"
+              >
+                {targetLabel} ({targetVal.toFixed(2)}s)
+              </text>
+            </g>
+          )}
+
+          {/* Area under progression */}
+          <path d={areaPath} fill={`url(#progGrad-${chartId})`} />
+
+          {/* Line stroke */}
+          <path
+            d={linePath}
+            fill="none"
+            stroke="#059669"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+
+          {/* Points */}
+          {points.map((pt, i) => {
+            const isBest = pt.time === rawMin;
+            const isHovered = hoverIndex === i;
+
+            return (
+              <g key={i}>
+                {isBest && (
+                  <circle
+                    cx={pt.x}
+                    cy={pt.y}
+                    r="8"
+                    fill="none"
+                    stroke="#10b981"
+                    strokeWidth="1.5"
+                    strokeOpacity="0.4"
+                    className="animate-ping"
+                  />
+                )}
+                <circle
+                  cx={pt.x}
+                  cy={pt.y}
+                  r={isHovered ? 6 : isBest ? 5 : 4}
+                  fill={isBest ? '#10b981' : '#059669'}
+                  stroke="#ffffff"
+                  strokeWidth="2"
+                  className="transition-all cursor-pointer shadow-sm"
+                />
+                <rect
+                  x={pt.x - 18}
+                  y={0}
+                  width={36}
+                  height={height}
+                  fill="transparent"
+                  onMouseEnter={() => setHoverIndex(i)}
+                  onMouseLeave={() => setHoverIndex(null)}
+                  className="cursor-pointer"
+                />
+              </g>
+            );
+          })}
+        </svg>
+
+        {/* X-axis dates & summary */}
+        <div className="flex justify-between items-center px-2 pt-2 text-[10px] sm:text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+          <span>{data[0]?.label || data[0]?.date}</span>
+          {data.length > 2 && <span>{data[Math.floor(data.length / 2)]?.label || data[Math.floor(data.length / 2)]?.date}</span>}
+          <span>{data[data.length - 1]?.label || data[data.length - 1]?.date}</span>
+        </div>
+
+        {/* Hover point card */}
+        <div className="mt-2.5 pt-2 border-t border-slate-200/60 dark:border-slate-800 flex items-center justify-between text-xs">
+          {activePoint ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="font-bold text-slate-800 dark:text-slate-100">
+                {activePoint.event || activePoint.label || `تست ${activePoint.index + 1}`}:
+              </span>
+              <span className="font-mono font-black text-emerald-600 dark:text-emerald-400 text-sm">
+                {activePoint.time.toFixed(2)} {unit}
+              </span>
+              {activePoint.delta !== undefined && (
+                <span
+                  className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded-md ${
+                    activePoint.delta < 0
+                      ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300'
+                      : activePoint.delta > 0
+                      ? 'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
+                  }`}
+                >
+                  {activePoint.delta < 0
+                    ? `⬇ ${Math.abs(activePoint.delta).toFixed(2)}s بهبود زمان`
+                    : activePoint.delta > 0
+                    ? `⬆ +${activePoint.delta.toFixed(2)}s`
+                    : 'بدون تغییر'}
+                </span>
+              )}
+              {activePoint.date && (
+                <span className="text-slate-400 dark:text-slate-500 text-[11px]">
+                  ({activePoint.date})
+                </span>
+              )}
+            </div>
+          ) : (
+            <span className="text-[11px] text-slate-400 dark:text-slate-500">
+              روی نقاط رکورد بایستید تا زمان دقیق و میزان بهبود ثبت‌شده را مشاهده کنید.
+            </span>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+

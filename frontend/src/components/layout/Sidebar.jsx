@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
+import { useSwimmer } from '../../context/SwimmerContext';
 import { useToast } from '../../context/ToastContext';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import api from '../../api/client';
@@ -21,6 +22,7 @@ import { getMediaUrl } from '../../utils/media';
 
 export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const { user, logout } = useAuth();
+  const { activeSwimmer, childrenList, selectChild, activeSwimmerId } = useSwimmer() || {};
   const navigate = useNavigate();
   const toast = useToast();
   const [collapsed, setCollapsed] = useState(false);
@@ -268,7 +270,9 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       user.role === 'SWIMMER' ? '/swimmer/profile' :
       user.role === 'SUPERVISOR' ? '/supervisor/profile' : '/';
 
-    const displayName = user.full_name || user.phone || 'شناگر محترم';
+    const displayName = (user.role === 'SWIMMER' && activeSwimmer?.full_name)
+      ? activeSwimmer.full_name
+      : user.full_name || user.phone || 'شناگر محترم';
 
     if (isMobile) {
       return (
@@ -309,7 +313,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                   {displayName}
                 </span>
                 <span className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-bold truncate">
-                  {roleTitles[user.role] || 'کاربر سیستم'}
+                  {user.role === 'SWIMMER' && activeSwimmer?.level_name ? activeSwimmer.level_name : (roleTitles[user.role] || 'کاربر سیستم')}
                 </span>
               </div>
             </NavLink>
@@ -324,6 +328,40 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
               <X className="w-5 h-5" />
             </button>
           </div>
+
+          {/* Quick Child Switcher in Mobile Drawer */}
+          {user.role === 'SWIMMER' && childrenList && childrenList.length > 1 && (
+            <div className="mt-2.5 pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-1 text-xs">
+              <span className="text-slate-400 font-semibold flex items-center gap-1">
+                <Users className="w-3.5 h-3.5 text-blue-500" />
+                <span>فرزند فعال:</span>
+              </span>
+              <div className="flex items-center gap-1 flex-wrap">
+                {childrenList.map((item) => {
+                  const id = String(item.swimmer || item.swimmer_detail?.id);
+                  const name = item.swimmer_detail?.first_name || item.first_name || 'فرزند';
+                  const isSelected = id === String(activeSwimmerId);
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        selectChild(id);
+                      }}
+                      className={`px-2 py-0.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-blue-600 text-white shadow-2xs'
+                          : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                      }`}
+                    >
+                      {name}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       );
     }
@@ -371,7 +409,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                 {displayName}
               </span>
               <span className="text-xs sm:text-sm text-blue-600 dark:text-blue-400 font-bold truncate">
-                {roleTitles[user.role] || 'کاربر سیستم'}
+                {user.role === 'SWIMMER' && activeSwimmer?.level_name ? activeSwimmer.level_name : (roleTitles[user.role] || 'کاربر سیستم')}
               </span>
             </div>
           </NavLink>

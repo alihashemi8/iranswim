@@ -8,6 +8,7 @@ import { useSwimmer } from '../../context/SwimmerContext';
 import { Badge } from '../../components/common/Badge';
 import { LoadingState } from '../../components/common/LoadingState';
 import { CustomSelect } from '../../components/common/CustomSelect';
+import { toShamsiDate } from '../../utils/date';
 
 export const SwimmerLeaguePage = () => {
   const { activeSwimmer, activeSwimmerId } = useSwimmer();
@@ -127,10 +128,10 @@ export const SwimmerLeaguePage = () => {
                   </Badge>
                 </div>
                 <div className="text-2xl sm:text-3xl font-black text-blue-600 dark:text-blue-400 font-mono tracking-tight">
-                  {rec.time_seconds ? `${rec.time_seconds} ثانیه` : rec.formatted_time || `${rec.duration_seconds}s`}
+                  {rec.time_seconds ? `${rec.time_seconds} ثانیه` : rec.formatted_time?.replace('s', ' ثانیه') || (rec.duration_seconds ? `${rec.duration_seconds} ثانیه` : '—')}
                 </div>
                 <div className="text-xs text-slate-500 dark:text-slate-400 font-medium">
-                  ثبت: {rec.recorded_at?.slice(0, 10)} · استخر: ۵۰ متر
+                  ثبت: {rec.recorded_at ? toShamsiDate(rec.recorded_at).shortNumeric : '—'} · {rec.pool_course === 'LONG_50M' ? 'استخر ۵۰ متر (کورس بلند)' : 'استخر ۲۵ متر (کورس کوتاه)'}
                 </div>
               </div>
             ))}
@@ -151,7 +152,7 @@ export const SwimmerLeaguePage = () => {
               جدول رده‌بندی رسمی لیگ
             </h3>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              رده‌بندی عمومی صرفاً با نام ورزشی شناگران (بدون اطلاعات هویتی و محرمانه)
+              جدول رده‌بندی فصلی باشگاه بر اساس امتیازات کسب‌شده در لیگ و مسابقات
             </p>
           </div>
 

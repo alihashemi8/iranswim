@@ -88,8 +88,6 @@ import { CoachCompleteProfilePage } from './pages/coach/CoachCompleteProfilePage
 
 
 // Swimmer Pages
-import { SwimmerPortal } from './pages/swimmer/SwimmerPortal';
-import { SwimmerCompleteProfilePage } from './pages/swimmer/SwimmerCompleteProfilePage';
 import { SwimmerDashboardPage } from './pages/swimmer/SwimmerDashboardPage';
 import { SwimmerCoursesPage } from './pages/swimmer/SwimmerCoursesPage';
 import { SwimmerSchedulePage } from './pages/swimmer/SwimmerSchedulePage';

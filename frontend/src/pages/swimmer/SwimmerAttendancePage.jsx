@@ -1,17 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import {
   ClipboardCheck, CheckCircle2, XCircle, Clock, AlertCircle,
-  Calendar, ShieldAlert, Sparkles, HelpCircle
+  Calendar, ShieldAlert, Sparkles, HelpCircle, Send, FileText,
+  ArrowRightLeft, AlertTriangle
 } from 'lucide-react';
 import api from '../../api/client';
 import { useSwimmer } from '../../context/SwimmerContext';
+import { useToast } from '../../context/ToastContext';
 import { Badge } from '../../components/common/Badge';
+import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
+import { toShamsiDate } from '../../utils/date';
 
 export const SwimmerAttendancePage = () => {
   const { activeSwimmer, activeSwimmerId } = useSwimmer();
+  const toast = useToast();
   const [attendance, setAttendance] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Excuse Request Modal State
+  const [excuseModalTarget, setExcuseModalTarget] = useState(null);
+  const [excuseReason, setExcuseReason] = useState('');
+  const [isSubmittingExcuse, setIsSubmittingExcuse] = useState(false);
 
   const fetchAttendance = async () => {
     try {
@@ -30,6 +40,33 @@ export const SwimmerAttendancePage = () => {
   useEffect(() => {
     fetchAttendance();
   }, [activeSwimmerId]);
+
+  const handleSubmitExcuse = async (e) => {
+    e.preventDefault();
+    if (!excuseReason.trim()) {
+      toast.error('لطفاً دلیل غیبت یا توضیحات گواهی را وارد فرمایید.');
+      return;
+    }
+
+    try {
+      setIsSubmittingExcuse(true);
+      const dateText = toShamsiDate(excuseModalTarget?.session_date).fullText || excuseModalTarget?.session_date;
+      await api.post('/content/tickets/', {
+        category: 'SCHEDULE',
+        subject: `درخواست موجه‌سازی غیبت جلسه ${dateText}`,
+        description: `علت غیبت در جلسه ${dateText}: ${excuseReason.trim()}`,
+        swimmer: activeSwimmerId || activeSwimmer?.id,
+      });
+
+      toast.success('درخواست موجه‌سازی غیبت با موفقیت برای مدیریت ارسال شد و در نوبت بررسی قرار گرفت.');
+      setExcuseModalTarget(null);
+      setExcuseReason('');
+    } catch (err) {
+      toast.error(err.response?.data?.detail || 'خطا در ارسال درخواست موجه‌سازی غیبت.');
+    } finally {
+      setIsSubmittingExcuse(false);
+    }
+  };
 
   if (loading) {
     return <LoadingState type="table" message="در حال محاسبه دفترچه حضور و غیاب شناگر..." />;
@@ -54,14 +91,14 @@ export const SwimmerAttendancePage = () => {
       return (
         <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-3 py-1 rounded-xl border border-amber-200 dark:border-amber-800">
           <Clock className="w-4 h-4" />
-          غیبت موجه (بدون کسر سهمیه)
+          غیبت موجه (حفظ سهمیه)
         </span>
       );
     }
     return (
       <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/60 px-3 py-1 rounded-xl border border-rose-200 dark:border-rose-800">
         <XCircle className="w-4 h-4" />
-        غایب غیرموجه
+        غایب
       </span>
     );
   };
@@ -154,29 +191,52 @@ export const SwimmerAttendancePage = () => {
                   <th className="py-3 px-3">سانس و ساعت</th>
                   <th className="py-3 px-3">مربی ثبت‌کننده</th>
                   <th className="py-3 px-3">وضعیت حضور</th>
-                  <th className="py-3 px-3">توضیحات و علت غیبت</th>
+                  <th className="py-3 px-3">توضیحات و بازخورد</th>
+                  <th className="py-3 px-3 text-left">اقدام</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {attendance.map((att) => (
-                  <tr key={att.id} className="text-slate-700 dark:text-slate-300">
-                    <td className="py-3.5 px-3 font-mono font-black text-slate-900 dark:text-white text-sm sm:text-base">
-                      {att.session_date || '—'}
-                    </td>
-                    <td className="py-3.5 px-3 font-mono text-slate-600 dark:text-slate-400 font-medium">
-                      {att.session_time || 'ساعت مقرر'}
-                    </td>
-                    <td className="py-3.5 px-3 font-semibold">
-                      {att.recorded_by_name || 'کادر مربیان'}
-                    </td>
-                    <td className="py-3.5 px-3">
-                      {getAttendanceStatusBadge(att)}
-                    </td>
-                    <td className="py-3.5 px-3 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
-                      {att.notes || (att.status === 'PRESENT' ? 'حضور کامل و فعال در آب' : '—')}
-                    </td>
-                  </tr>
-                ))}
+                {attendance.map((att) => {
+                  const shamsi = toShamsiDate(att.session_date);
+                  const displayDate = shamsi.fullText || att.session_date || '—';
+
+                  return (
+                    <tr key={att.id} className="text-slate-700 dark:text-slate-300">
+                      <td className="py-3.5 px-3 font-black text-slate-900 dark:text-white text-sm sm:text-base">
+                        {displayDate}
+                      </td>
+                      <td className="py-3.5 px-3 font-mono text-slate-600 dark:text-slate-400 font-medium">
+                        {att.session_time || 'ساعت مقرر کلاس'}
+                      </td>
+                      <td className="py-3.5 px-3 font-semibold">
+                        {att.recorded_by_name || 'کادر مربیان'}
+                      </td>
+                      <td className="py-3.5 px-3">
+                        {getAttendanceStatusBadge(att)}
+                      </td>
+                      <td className="py-3.5 px-3 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
+                        {att.notes || (att.status === 'PRESENT' ? 'حضور کامل و فعال در آب' : '—')}
+                      </td>
+                      <td className="py-3.5 px-3 text-left">
+                        {att.status === 'ABSENT' ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setExcuseModalTarget(att);
+                              setExcuseReason('');
+                            }}
+                            className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/70 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold transition-all inline-flex items-center gap-1 cursor-pointer"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            <span>ثبت غیبت موجه</span>
+                          </button>
+                        ) : (
+                          <span className="text-xs text-slate-400">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -186,6 +246,61 @@ export const SwimmerAttendancePage = () => {
           </div>
         )}
       </div>
+
+      {/* Excuse Request Modal */}
+      {excuseModalTarget && (
+        <Modal
+          isOpen={!!excuseModalTarget}
+          onClose={() => setExcuseModalTarget(null)}
+          title="ثبت درخواست غیبت موجه"
+          maxWidth="max-w-lg"
+        >
+          <form onSubmit={handleSubmitExcuse} className="space-y-4 text-right" dir="rtl">
+            <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200/80 dark:border-amber-900/60 text-xs sm:text-sm text-amber-900 dark:text-amber-200 space-y-1">
+              <span className="font-bold block">مشخصات جلسه غیبت:</span>
+              <p>
+                تاریخ: <strong>{toShamsiDate(excuseModalTarget.session_date).fullText || excuseModalTarget.session_date}</strong> · ساعت: {excuseModalTarget.session_time || 'مقرر'}
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                علت غیبت یا توضیحات گواهی پزشکی <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                rows={3}
+                value={excuseReason}
+                onChange={(e) => setExcuseReason(e.target.value)}
+                placeholder="مثلاً: سرماخوردگی شناگر و استراحت پزشکی طبق دستور پزشک..."
+                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-amber-500 leading-relaxed"
+                required
+              />
+            </div>
+
+            <p className="text-xs text-slate-500 leading-relaxed">
+              پس از ارسال، درخواست به مدیریت آموزشگاه ارجاع داده شده و در صورت موجه شناخته شدن، جلسه از سهمیه دوره کسر نخواهد شد.
+            </p>
+
+            <div className="pt-2 flex items-center justify-end gap-2 border-t border-slate-100 dark:border-slate-800">
+              <button
+                type="button"
+                onClick={() => setExcuseModalTarget(null)}
+                className="px-4 py-2 text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 cursor-pointer"
+              >
+                انصراف
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmittingExcuse}
+                className="px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl transition-all shadow-xs disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+              >
+                <Send className="w-4 h-4" />
+                <span>{isSubmittingExcuse ? 'در حال ارسال...' : 'ارسال درخواست به مدیریت'}</span>
+              </button>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 };

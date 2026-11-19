@@ -244,9 +244,15 @@ export const SwimmerDocumentsPage = () => {
                 />
               </div>
             ) : (
-              <div className="h-36 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-sm font-semibold text-slate-400 gap-1.5">
-                <Upload className="w-7 h-7" />
-                <span>مدرک بارگذاری نشده</span>
+              <div className="h-36 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-sm font-semibold text-slate-400 gap-2 p-3">
+                <Upload className="w-6 h-6 text-slate-400" />
+                <span className="text-xs">مدرک شناسنامه بارگذاری نشده</span>
+                <Link
+                  to="/swimmer/profile"
+                  className="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-colors cursor-pointer"
+                >
+                  بارگذاری مدرک
+                </Link>
               </div>
             )}
           </div>
@@ -268,9 +274,15 @@ export const SwimmerDocumentsPage = () => {
                 />
               </div>
             ) : (
-              <div className="h-36 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-sm font-semibold text-slate-400 gap-1.5">
-                <Upload className="w-7 h-7" />
-                <span>مدرک بارگذاری نشده</span>
+              <div className="h-36 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-sm font-semibold text-slate-400 gap-2 p-3">
+                <Upload className="w-6 h-6 text-slate-400" />
+                <span className="text-xs">کارت ملی بارگذاری نشده</span>
+                <Link
+                  to="/swimmer/profile"
+                  className="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-colors cursor-pointer"
+                >
+                  بارگذاری مدرک
+                </Link>
               </div>
             )}
           </div>
@@ -292,9 +304,15 @@ export const SwimmerDocumentsPage = () => {
                 />
               </div>
             ) : (
-              <div className="h-36 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-sm font-semibold text-slate-400 gap-1.5">
-                <Upload className="w-7 h-7" />
-                <span>مدرک بارگذاری نشده</span>
+              <div className="h-36 rounded-xl border border-dashed border-slate-300 dark:border-slate-700 flex flex-col items-center justify-center text-sm font-semibold text-slate-400 gap-2 p-3">
+                <Upload className="w-6 h-6 text-slate-400" />
+                <span className="text-xs">بیمه ورزشی بارگذاری نشده</span>
+                <Link
+                  to="/swimmer/profile"
+                  className="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold transition-colors cursor-pointer"
+                >
+                  بارگذاری بیمه
+                </Link>
               </div>
             )}
             <div className="text-xs sm:text-sm text-slate-500 font-mono">

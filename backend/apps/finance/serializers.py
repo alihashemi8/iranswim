@@ -130,6 +130,7 @@ class FinancialAdjustmentSerializer(serializers.ModelSerializer):
 class InvoiceSerializer(serializers.ModelSerializer):
     swimmer_name = serializers.CharField(source='swimmer.full_name', read_only=True)
     swimmer_phone = serializers.CharField(source='swimmer.phone', read_only=True)
+    course_title = serializers.SerializerMethodField()
     items = InvoiceItemSerializer(many=True, read_only=True)
     installments = InstallmentSerializer(many=True, read_only=True)
     adjustments = FinancialAdjustmentSerializer(many=True, read_only=True)
@@ -149,6 +150,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
         model = Invoice
         fields = [
             'id', 'invoice_number', 'swimmer', 'swimmer_name', 'swimmer_phone', 'enrollment',
+            'course_title',
             'total_amount', 'currency', 'status', 'status_display', 'issue_date',
             'due_date', 'notes', 'items', 'installments', 'adjustments',
             'total_paid', 'total_discount', 'total_refund', 'remaining_balance',
@@ -177,6 +179,15 @@ class InvoiceSerializer(serializers.ModelSerializer):
 
     def get_coach_name(self, obj):
         return self._meta(obj)['coach_name']
+
+    def get_course_title(self, obj):
+        if obj.enrollment and getattr(obj.enrollment, 'course', None):
+            course = obj.enrollment.course
+            return getattr(course, 'name', None) or getattr(course, 'title', None) or "شهریه دوره آموزش شنا"
+        first_item = obj.items.first()
+        if first_item and first_item.description:
+            return first_item.description
+        return "شهریه دوره آموزش شنا"
 
 
 class PaymentAllocationSerializer(serializers.ModelSerializer):

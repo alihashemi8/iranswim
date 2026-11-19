@@ -3,12 +3,14 @@ import { Link } from 'react-router-dom';
 import {
   Calendar, Clock, User, MapPin, AlertCircle, CheckCircle2,
   XCircle, ArrowRightLeft, ShieldAlert, Sparkles, PlusCircle,
-  Dumbbell, Utensils, Download, Printer, Users
+  Dumbbell, Utensils, Download, Printer, Users, Eye, FileText, Check
 } from 'lucide-react';
 import api from '../../api/client';
 import { useSwimmer } from '../../context/SwimmerContext';
 import { Badge } from '../../components/common/Badge';
+import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
+import { toShamsiDate } from '../../utils/date';
 import { exportPlanToWord, printPlanToPdf } from '../../utils/planExport';
 
 export const SwimmerSchedulePage = () => {
@@ -20,6 +22,7 @@ export const SwimmerSchedulePage = () => {
   const [mainTab, setMainTab] = useState('SCHEDULE'); // 'SCHEDULE' | 'PLANS'
   const [filter, setFilter] = useState('ALL'); // ALL, UPCOMING, PAST
   const [planFilter, setPlanFilter] = useState('ALL'); // ALL, TRAINING, DIET
+  const [selectedPlanForView, setSelectedPlanForView] = useState(null);
 
   const fetchSchedule = async () => {
     try {
@@ -223,49 +226,64 @@ export const SwimmerSchedulePage = () => {
           {/* Sessions List */}
           {filteredSessions.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredSessions.map((sess) => (
-                <div
-                  key={sess.id}
-                  className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-sky-300 dark:hover:border-sky-800 transition-all flex flex-col justify-between gap-3"
-                >
-                  <div>
-                    <div className="flex items-center justify-between gap-2 mb-2.5">
-                      <span className="text-sm font-black text-sky-700 dark:text-sky-300 font-mono flex items-center gap-1.5">
-                        <Calendar className="w-4 h-4" />
-                        {sess.session_date}
-                      </span>
-                      {getStatusBadge(sess.status)}
+              {filteredSessions.map((sess) => {
+                const shamsi = toShamsiDate(sess.session_date);
+                const displayDate = shamsi.fullText || sess.session_date;
+
+                return (
+                  <div
+                    key={sess.id}
+                    className="bg-white dark:bg-slate-900 rounded-2xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs hover:border-sky-300 dark:hover:border-sky-800 transition-all flex flex-col justify-between gap-4"
+                  >
+                    <div>
+                      <div className="flex items-center justify-between gap-2 mb-2.5">
+                        <span className="text-sm font-black text-sky-700 dark:text-sky-300 flex items-center gap-1.5">
+                          <Calendar className="w-4 h-4 text-sky-600 dark:text-sky-400" />
+                          <span>{displayDate}</span>
+                        </span>
+                        {getStatusBadge(sess.status)}
+                      </div>
+
+                      <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">
+                        {sess.group_name || 'کلاس تمرینی شنا'}
+                      </h3>
+
+                      <div className="mt-3 space-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium">
+                        <div className="flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-sky-600 shrink-0" />
+                          <span>
+                            ساعت {sess.start_time?.slice(0, 5)} الی {sess.end_time?.slice(0, 5)}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <User className="w-4 h-4 text-sky-600 shrink-0" />
+                          <span>مربی مسئول: {sess.coach_name || 'کادر فنی آکادمی'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-sky-600 shrink-0" />
+                          <span>محل استخر: {sess.pool_name || sess.pool_location || 'مجموعه آبی آکادمی ایران‌سویم'}</span>
+                        </div>
+                      </div>
                     </div>
 
-                    <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">
-                      {sess.group_name || 'کلاس تمرینی شنا'}
-                    </h3>
+                    <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
+                      <Link
+                        to={`/swimmer/support?category=SCHEDULE&subject=${encodeURIComponent(`درخواست در رابطه با جلسه ${displayDate}`)}`}
+                        className="text-xs font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400 inline-flex items-center gap-1 hover:underline cursor-pointer"
+                      >
+                        <ArrowRightLeft className="w-3.5 h-3.5" />
+                        <span>درخواست جابه‌جایی یا ثبت غیبت</span>
+                      </Link>
 
-                    <div className="mt-3 space-y-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300 font-medium">
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-sky-600" />
-                        <span>
-                          ساعت {sess.start_time?.slice(0, 5)} الی {sess.end_time?.slice(0, 5)}
+                      {sess.status === 'CANCELLED' && (
+                        <span className="text-[11px] font-bold text-rose-600 dark:text-rose-400">
+                          لغو توسط آموزشگاه (حفظ سهمیه)
                         </span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <User className="w-4 h-4 text-sky-600" />
-                        <span>مربی مسئول: {sess.coach_name || 'کادر فنی آکادمی'}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <MapPin className="w-4 h-4 text-sky-600" />
-                        <span>محل استخر: مجموعه آبی سرپوشیده ایران‌سویم (خط ۱ و ۲)</span>
-                      </div>
+                      )}
                     </div>
                   </div>
-
-                  {sess.status === 'CANCELLED' && (
-                    <div className="p-3 bg-rose-50 dark:bg-rose-950/40 rounded-xl border border-rose-200 dark:border-rose-900/60 text-xs sm:text-sm text-rose-700 dark:text-rose-300 font-medium">
-                      ⚠️ این جلسه به دلیل هماهنگی یا مسابقات لغو شده است و سهمیه‌ای از شناگر کسر نمی‌گردد.
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
           ) : (
             <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
@@ -360,7 +378,7 @@ export const SwimmerSchedulePage = () => {
                           </div>
 
                           <span className="text-xs text-slate-400 font-mono">
-                            {p.created_at?.slice(0, 10)}
+                            {toShamsiDate(p.created_at).shortNumeric || p.created_at?.slice(0, 10)}
                           </span>
                         </div>
 
@@ -368,37 +386,32 @@ export const SwimmerSchedulePage = () => {
                           {p.title}
                         </h3>
 
-                        <p className="text-xs sm:text-sm text-slate-500">
+                        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
                           مربی طراح: {p.coach_name || 'کادر فنی آکادمی'}
                         </p>
 
                         {isDiet ? (
                           <div className="space-y-2 text-xs sm:text-sm">
                             {p.diet_goal && (
-                              <div className="p-2.5 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/30 text-emerald-900 dark:text-emerald-200">
+                              <div className="p-2.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 border border-emerald-200/50 dark:border-emerald-900/40">
                                 <strong>هدف: </strong> {p.diet_goal}
                               </div>
                             )}
                             {p.breakfast && (
-                              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50">
+                              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
                                 <strong>صبحانه: </strong> {p.breakfast}
-                              </div>
-                            )}
-                            {p.lunch && (
-                              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50">
-                                <strong>ناهار: </strong> {p.lunch}
                               </div>
                             )}
                           </div>
                         ) : (
                           <div className="space-y-2 text-xs sm:text-sm">
                             {p.focus_skills && (
-                              <div className="p-2.5 rounded-xl bg-blue-50/60 dark:bg-blue-950/30 text-blue-900 dark:text-blue-200">
+                              <div className="p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 border border-blue-200/50 dark:border-blue-900/40">
                                 <strong>تمرکز: </strong> {p.focus_skills}
                               </div>
                             )}
                             {p.main_section && (
-                              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 font-mono text-xs">
+                              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 font-mono text-xs border border-slate-100 dark:border-slate-800">
                                 <strong>تمرین اصلی: </strong>
                                 <p className="line-clamp-2 mt-1">{p.main_section}</p>
                               </div>
@@ -407,25 +420,36 @@ export const SwimmerSchedulePage = () => {
                         )}
                       </div>
 
-                      {/* Download Buttons for Swimmer */}
-                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center gap-2">
+                      {/* Action Buttons: View Full Details + Download */}
+                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
                         <button
                           type="button"
-                          onClick={() => exportPlanToWord(p)}
-                          className="flex-1 py-2 px-3 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          onClick={() => setSelectedPlanForView(p)}
+                          className="w-full py-2.5 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
                         >
-                          <Download className="w-4 h-4" />
-                          <span>دانلود فایل Word</span>
+                          <Eye className="w-4 h-4" />
+                          <span>مشاهده کامل آیتم‌های برنامه</span>
                         </button>
 
-                        <button
-                          type="button"
-                          onClick={() => printPlanToPdf(p)}
-                          className="flex-1 py-2 px-3 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                        >
-                          <Printer className="w-4 h-4" />
-                          <span>چاپ / ذخیره PDF</span>
-                        </button>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => exportPlanToWord(p)}
+                            className="flex-1 py-2 px-3 rounded-xl bg-blue-50 dark:bg-blue-950/70 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/60 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>دانلود Word</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => printPlanToPdf(p)}
+                            className="flex-1 py-2 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/70 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200/50 dark:border-rose-800/60 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
+                          >
+                            <Printer className="w-3.5 h-3.5" />
+                            <span>چاپ PDF</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );
@@ -443,6 +467,146 @@ export const SwimmerSchedulePage = () => {
             </div>
           )}
         </div>
+      )}
+
+      {/* Plan Details Modal */}
+      {selectedPlanForView && (
+        <Modal
+          isOpen={!!selectedPlanForView}
+          onClose={() => setSelectedPlanForView(null)}
+          title={selectedPlanForView.title || 'جزئیات برنامه'}
+          maxWidth="max-w-2xl"
+        >
+          <div className="space-y-4 text-right" dir="rtl">
+            <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 text-xs">
+              <div className="flex items-center gap-2">
+                <span className={`px-2.5 py-0.5 rounded-lg font-black ${
+                  selectedPlanForView.plan_type === 'DIET'
+                    ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
+                    : 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
+                }`}>
+                  {selectedPlanForView.plan_type === 'DIET' ? 'برنامه تغذیه' : 'برنامه تمرین شنا'}
+                </span>
+                <span className="font-semibold text-slate-600 dark:text-slate-300">
+                  مربی: {selectedPlanForView.coach_name || 'کادر فنی آکادمی'}
+                </span>
+              </div>
+              <span className="font-mono text-slate-400">
+                تاریخ تدوین: {toShamsiDate(selectedPlanForView.created_at).fullText || selectedPlanForView.created_at?.slice(0, 10)}
+              </span>
+            </div>
+
+            {selectedPlanForView.plan_type === 'DIET' ? (
+              /* Diet Details */
+              <div className="space-y-3 text-sm">
+                {selectedPlanForView.diet_goal && (
+                  <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60">
+                    <span className="font-bold text-emerald-900 dark:text-emerald-200 block mb-1">🎯 هدف رژیم غذایی:</span>
+                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{selectedPlanForView.diet_goal}</p>
+                  </div>
+                )}
+                {selectedPlanForView.breakfast && (
+                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/50">
+                    <span className="font-bold text-slate-800 dark:text-slate-200 block mb-1">🍳 وعده صبحانه:</span>
+                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{selectedPlanForView.breakfast}</p>
+                  </div>
+                )}
+                {selectedPlanForView.lunch && (
+                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/50">
+                    <span className="font-bold text-slate-800 dark:text-slate-200 block mb-1">🥗 وعده ناهار:</span>
+                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{selectedPlanForView.lunch}</p>
+                  </div>
+                )}
+                {selectedPlanForView.dinner && (
+                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/50">
+                    <span className="font-bold text-slate-800 dark:text-slate-200 block mb-1">🍲 وعده شام:</span>
+                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{selectedPlanForView.dinner}</p>
+                  </div>
+                )}
+                {selectedPlanForView.snacks && (
+                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/50">
+                    <span className="font-bold text-slate-800 dark:text-slate-200 block mb-1">🍎 میان‌وعده‌ها و مکمل‌ها:</span>
+                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{selectedPlanForView.snacks}</p>
+                  </div>
+                )}
+                {selectedPlanForView.hydration && (
+                  <div className="p-3 rounded-2xl bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-900/60">
+                    <span className="font-bold text-cyan-900 dark:text-cyan-200 block mb-1">💧 آبرسانی و نوشیدنی‌های قبل و حین تمرین:</span>
+                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{selectedPlanForView.hydration}</p>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Training Details */
+              <div className="space-y-3 text-sm">
+                {selectedPlanForView.focus_skills && (
+                  <div className="p-3 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60">
+                    <span className="font-bold text-sky-900 dark:text-sky-200 block mb-1">🎯 تمرکز مهارتی و تکنیکی:</span>
+                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{selectedPlanForView.focus_skills}</p>
+                  </div>
+                )}
+                {selectedPlanForView.warmup && (
+                  <div className="p-3 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50">
+                    <span className="font-bold text-amber-900 dark:text-amber-200 block mb-1">🔥 گرم‌کردن و استارت در خشکی/آب:</span>
+                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{selectedPlanForView.warmup}</p>
+                  </div>
+                )}
+                {selectedPlanForView.main_section && (
+                  <div className="p-3.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60">
+                    <span className="font-bold text-blue-900 dark:text-blue-200 block mb-1.5">🏊 ست تمرین اصلی (Main Set):</span>
+                    <p className="text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line font-mono text-xs sm:text-sm">
+                      {selectedPlanForView.main_section}
+                    </p>
+                  </div>
+                )}
+                {selectedPlanForView.drills && (
+                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/50">
+                    <span className="font-bold text-slate-800 dark:text-slate-200 block mb-1">⚙️ تمرینات اصلاح تکنیک (Drills):</span>
+                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{selectedPlanForView.drills}</p>
+                  </div>
+                )}
+                {selectedPlanForView.cooldown && (
+                  <div className="p-3 rounded-2xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-900/50">
+                    <span className="font-bold text-teal-900 dark:text-teal-200 block mb-1">❄️ سرد کردن و کشش پایانی:</span>
+                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{selectedPlanForView.cooldown}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {selectedPlanForView.notes && (
+              <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800/80 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                <strong>یادداشت مربی: </strong> {selectedPlanForView.notes}
+              </div>
+            )}
+
+            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
+              <button
+                type="button"
+                onClick={() => exportPlanToWord(selectedPlanForView)}
+                className="px-4 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>دریافت فایل Word</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => printPlanToPdf(selectedPlanForView)}
+                className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Printer className="w-3.5 h-3.5" />
+                <span>چاپ یا PDF</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setSelectedPlanForView(null)}
+                className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold cursor-pointer"
+              >
+                بستن
+              </button>
+            </div>
+          </div>
+        </Modal>
       )}
     </div>
   );

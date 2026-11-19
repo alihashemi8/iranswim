@@ -13,6 +13,7 @@ import { Badge } from '../../components/common/Badge';
 import { LoadingState } from '../../components/common/LoadingState';
 import { StatsCard } from '../../components/common/StatsCard';
 import { ProgressBar } from '../../components/common/Charts';
+import { toShamsiDate } from '../../utils/date';
 
 export const SwimmerDashboardPage = () => {
   const { user } = useAuth();
@@ -98,6 +99,16 @@ export const SwimmerDashboardPage = () => {
   const activeEnrollment = enrollments.find((e) => e.status === 'ACTIVE') || enrollments[0];
   const totalRemainingSessions = enrollments.reduce((acc, curr) => acc + (curr.remaining_sessions || 0), 0);
   const totalDebt = invoices.reduce((acc, curr) => acc + Number(curr.remaining_balance || 0), 0);
+  const totalDirectDiscount = invoices.reduce((acc, curr) => acc + Number(curr.total_discount || 0), 0);
+  const totalNextCourseDiscount = invoices.reduce(
+    (acc, inv) =>
+      acc +
+      (inv.adjustments || [])
+        .filter((a) => a.type === 'CREDIT_MEMO' || (a.reason && a.reason.includes('تخفیف دوره بعد')))
+        .reduce((sum, a) => sum + Number(a.amount || 0), 0),
+    0
+  );
+  const allDiscountsTotal = totalDirectDiscount + totalNextCourseDiscount;
   const formatPrice = (val) => Number(val || 0).toLocaleString('fa-IR');
 
   // Next Upcoming Session
@@ -123,11 +134,11 @@ export const SwimmerDashboardPage = () => {
   if (profile && !profile.is_profile_completed) {
     actionItems.push({
       id: 'incomplete_profile',
-      title: 'تکمیل مدارک و مشخصات فردی',
-      desc: 'جهت صدور کارت تردد استخر و عضویت فدراسیون، پرونده نیازمند بارگذاری مدارک است.',
+      title: 'تکمیل مدارک و مشخصات فردی (اقدام ویژه اولیا)',
+      desc: 'جهت صدور کارت تردد استخر و عضویت فدراسیون، پرونده نیازمند بارگذاری مدارک هویتی توسط ولی شناگر است.',
       link: '/swimmer/profile',
       level: 'warning',
-      actionText: 'تکمیل مدارک و پروفایل',
+      actionText: 'تکمیل مدارک و پرونده',
     });
   }
   if (user && !user.is_password_changed) {
@@ -143,11 +154,11 @@ export const SwimmerDashboardPage = () => {
   if (totalDebt > 0) {
     actionItems.push({
       id: 'debt_payment',
-      title: 'تسویه شهریه یا قسط سررسیدشده',
-      desc: `مبلغ ${formatPrice(totalDebt)} تومان از شهریه دوره سررسید شده و آماده پرداخت آنلاین است.`,
+      title: 'تسویه شهریه یا قسط سررسیدشده (اقدام ویژه اولیا)',
+      desc: `مبلغ ${formatPrice(totalDebt)} تومان از شهریه دوره سررسید شده و آماده پرداخت آنلاین توسط ولی محترم است.`,
       link: '/swimmer/finance',
       level: 'finance',
-      actionText: 'پرداخت آنلاین',
+      actionText: 'پرداخت آنلاین شهریه',
     });
   }
 
@@ -273,8 +284,8 @@ export const SwimmerDashboardPage = () => {
                   <Waves className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                   جلسه تمرینی بعدی در استخر
                 </span>
-                <span className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400 font-mono">
-                  {nextSession.session_date}
+                <span className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400">
+                  {toShamsiDate(nextSession.session_date).fullText || nextSession.session_date}
                 </span>
               </div>
               <h3 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white">
@@ -424,7 +435,7 @@ export const SwimmerDashboardPage = () => {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
         {/* Teal for Swimming Pool Session Quota */}
         <StatsCard
-          title="سهمیه ورود به آب"
+          title="سهمیه جلسات استخر"
           value={`${totalRemainingSessions} جلسه`}
           subtitle="سهمیه معتبر ورود به استخر"
           icon={Waves}
@@ -453,7 +464,13 @@ export const SwimmerDashboardPage = () => {
         <StatsCard
           title="وضعیت مالی شهریه"
           value={totalDebt > 0 ? `${formatPrice(totalDebt)} ت` : 'تسویه کامل'}
-          subtitle={totalDebt > 0 ? 'دارای قسط سررسیدشده' : 'تمامی اقساط پرداخت‌شده'}
+          subtitle={
+            allDiscountsTotal > 0
+              ? `شامل ${formatPrice(allDiscountsTotal)} ت تخفیف مدیریت`
+              : totalDebt > 0
+              ? 'دارای قسط سررسیدشده'
+              : 'تمامی اقساط پرداخت‌شده'
+          }
           icon={CreditCard}
           color={totalDebt > 0 ? 'coral' : 'emerald'}
         />
@@ -561,11 +578,11 @@ export const SwimmerDashboardPage = () => {
                     {primaryRecord.distance_meters} متر {primaryRecord.stroke_display || 'کرال سینه'}
                   </span>
                   <span className="text-sm sm:text-base font-black font-mono text-blue-700 dark:text-blue-300">
-                    {primaryRecord.formatted_time || `${primaryRecord.duration_seconds}s`}
+                    {primaryRecord.time_seconds ? `${primaryRecord.time_seconds} ثانیه` : (primaryRecord.formatted_time?.replace('s', ' ثانیه') || `${primaryRecord.duration_seconds} ثانیه`)}
                   </span>
                 </div>
                 <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                  <span>تاریخ: {primaryRecord.recorded_at}</span>
+                  <span>تاریخ: {toShamsiDate(primaryRecord.recorded_at).shortNumeric || primaryRecord.recorded_at}</span>
                   <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1">
                     <Check className="w-3.5 h-3.5" />
                     تأیید رسمی کادر داوری
@@ -631,7 +648,7 @@ export const SwimmerDashboardPage = () => {
                         {ass.skill_name || 'مهارت فنی شنا'}
                       </h4>
                       <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
-                        مربی ارزیاب: {ass.assessed_by_name || 'کادر فنی'} · تاریخ: {ass.assessed_at || ass.assessment_date}
+                        مربی ارزیاب: {ass.assessed_by_name || 'کادر فنی'} · تاریخ: {toShamsiDate(ass.assessed_at || ass.assessment_date).shortNumeric || ass.assessed_at || ass.assessment_date}
                       </p>
                     </div>
                   </div>

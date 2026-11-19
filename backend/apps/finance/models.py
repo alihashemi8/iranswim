@@ -301,8 +301,71 @@ class FinancialAdjustment(models.Model):
         ordering = ['-created_at']
 
     def save(self, *args, **kwargs):
+        is_new = self.pk is None
         super().save(*args, **kwargs)
         self.invoice.recalculate_status()
+        if is_new:
+            self._notify_swimmer_of_adjustment()
+
+    def _notify_swimmer_of_adjustment(self):
+        try:
+            from apps.content.models import Notification
+            from apps.accounts.models import User
+
+            swimmer = getattr(self.invoice, 'swimmer', None)
+            if not swimmer:
+                return
+
+            recipient_users = set()
+            if swimmer.user:
+                recipient_users.add(swimmer.user)
+            if hasattr(swimmer, 'guardian_relations'):
+                for rel in swimmer.guardian_relations.select_related('guardian').all():
+                    if rel.guardian:
+                        recipient_users.add(rel.guardian)
+
+            if not recipient_users and swimmer.phone:
+                user_by_phone = User.objects.filter(phone=swimmer.phone).first()
+                if user_by_phone:
+                    recipient_users.add(user_by_phone)
+
+            if not recipient_users:
+                return
+
+            amount_formatted = f"{int(self.amount):,}"
+            reason_suffix = f" (علت: {self.reason})" if self.reason else ""
+
+            if self.type == self.AdjustmentType.CREDIT_MEMO:
+                title = f"ثبت تخفیف دوره بعدی ({amount_formatted} تومان)"
+                message = (
+                    f"مبلغ {amount_formatted} تومان تخفیف و اعتبار برای ثبت‌نام دوره بعدی شناگر «{swimmer.full_name}» توسط مدیریت ثبت گردید.{reason_suffix}"
+                )
+            elif self.type == self.AdjustmentType.DISCOUNT:
+                title = f"ثبت تخفیف شهریه ({amount_formatted} تومان)"
+                message = (
+                    f"مبلغ {amount_formatted} تومان تخفیف توسط مدیریت برای شناگر «{swimmer.full_name}» بر روی صورتحساب شهریه شماره {self.invoice.invoice_number} اعمال و از مانده بدهی کسر گردید.{reason_suffix}"
+                )
+            elif self.type == self.AdjustmentType.REFUND:
+                title = f"ثبت استرداد وجه شهریه ({amount_formatted} تومان)"
+                message = (
+                    f"سند استرداد وجه به مبلغ {amount_formatted} تومان برای صورتحساب شماره {self.invoice.invoice_number} شناگر «{swimmer.full_name}» توسط مدیریت ثبت شد.{reason_suffix}"
+                )
+            else:
+                title = f"ثبت تعدیل مالی شهریه ({amount_formatted} تومان)"
+                message = f"سند تعدیل مالی به مبلغ {amount_formatted} تومان برای صورتحساب شماره {self.invoice.invoice_number} شناگر «{swimmer.full_name}» ثبت گردید.{reason_suffix}"
+
+            for u in recipient_users:
+                Notification.objects.create(
+                    recipient=u,
+                    category=Notification.Category.PAYMENT,
+                    title=title,
+                    message=message,
+                    link='/swimmer/finance',
+                    is_read=False,
+                )
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).exception("Failed to send adjustment notification to swimmer: %s", e)
 
 
 class PaymentReceipt(models.Model):

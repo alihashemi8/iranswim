@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
   CreditCard, CheckCircle2, Clock, AlertTriangle, ArrowRightLeft,
   FileText, ShieldCheck, Download, ExternalLink, HelpCircle, Copy,
-  Upload, Receipt, ZoomIn, Eye, X, Check, XCircle
+  Upload, Receipt, ZoomIn, Eye, X, Check, XCircle, Gift, Tag, BadgePercent, Sparkles
 } from 'lucide-react';
 import api from '../../api/client';
 import { useSwimmer } from '../../context/SwimmerContext';
@@ -12,9 +12,9 @@ import { Badge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
-import { copyCardToClipboard } from '../../utils/bankCard';
+import { copyCardToClipboard, getBankNameFromCard, formatCardNumberWithDashes } from '../../utils/bankCard';
 import { getAuthenticatedDocUrl } from '../../utils/media';
-import { toEnglishDigits, formatPersianDateEn } from '../../utils/date';
+import { toEnglishDigits, formatPersianDateEn, toShamsiDate } from '../../utils/date';
 
 const FALLBACK_RECEIPT_IMAGE = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300' viewBox='0 0 400 300'%3E%3Crect width='400' height='300' fill='%23f1f5f9'/%3E%3Cpath d='M160 110h80v70h-80z' fill='%23cbd5e1'/%3E%3Ccircle cx='180' cy='130' r='10' fill='%2394a3b8'/%3E%3Cpath d='M165 170l20-25 15 15 20-30 20 40z' fill='%2394a3b8'/%3E%3Ctext x='50%25' y='215' dominant-baseline='middle' text-anchor='middle' fill='%2364748b' font-family='sans-serif' font-size='15' font-weight='600'%3E%D8%AA%D8%B5%D9%88%DB%8C%D8%B1 %D9%81%DB%8C%D8%B4 %D8%AF%D8%B1 %D8%AF%D8%B3%D8%AA%D8%B1%D8%B3 %D9%86%DB%8C%D8%B3%D8%AA%3C/text%3E%3C/svg%3E";
 
@@ -25,6 +25,7 @@ export const SwimmerFinancePage = () => {
   const [installments, setInstallments] = useState([]);
   const [payments, setPayments] = useState([]);
   const [receipts, setReceipts] = useState([]);
+  const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [payingInstallmentId, setPayingInstallmentId] = useState(null);
 
@@ -80,11 +81,12 @@ export const SwimmerFinancePage = () => {
     try {
       setLoading(true);
       const params = activeSwimmerId ? { swimmer_id: activeSwimmerId } : {};
-      const [invRes, insRes, payRes, recRes] = await Promise.allSettled([
+      const [invRes, insRes, payRes, recRes, courseRes] = await Promise.allSettled([
         api.get('/finance/invoices/', { params }),
         api.get('/finance/installments/', { params }),
         api.get('/finance/payments/', { params }),
         api.get('/finance/receipts/', { params }),
+        api.get('/education/courses/'),
       ]);
 
       if (invRes.status === 'fulfilled') {
@@ -102,6 +104,10 @@ export const SwimmerFinancePage = () => {
       if (recRes.status === 'fulfilled') {
         const d = recRes.value.data;
         setReceipts(Array.isArray(d) ? d : d.results || []);
+      }
+      if (courseRes.status === 'fulfilled') {
+        const d = courseRes.value.data;
+        setCourses(Array.isArray(d) ? d : d.results || []);
       }
     } catch (err) {
       console.error(err);
@@ -217,15 +223,32 @@ export const SwimmerFinancePage = () => {
     return <LoadingState type="table" message="در حال محاسبه حسابداری و اقساط شناگر..." />;
   }
 
-  const formatPrice = (val) => Number(val || 0).toLocaleString('en-US');
+  const formatPrice = (val) => Number(val || 0).toLocaleString('fa-IR');
 
-  const totalInvoiceAmount = invoices.reduce((acc, curr) => acc + Number(curr.final_amount || 0), 0);
-  const totalPaid = invoices.reduce((acc, curr) => acc + Number(curr.paid_amount || 0), 0);
+  const totalInvoiceAmount = invoices.reduce((acc, curr) => acc + Number(curr.total_amount || 0), 0);
+  const totalDirectDiscount = invoices.reduce((acc, curr) => acc + Number(curr.total_discount || 0), 0);
+  const totalNextCourseDiscount = invoices.reduce(
+    (acc, inv) =>
+      acc +
+      (inv.adjustments || [])
+        .filter((a) => a.type === 'CREDIT_MEMO' || (a.reason && a.reason.includes('تخفیف دوره بعد')))
+        .reduce((sum, a) => sum + Number(a.amount || 0), 0),
+    0
+  );
+  const totalAllDiscounts = totalDirectDiscount + totalNextCourseDiscount;
+  const totalPaid = invoices.reduce((acc, curr) => acc + Number(curr.total_paid || 0), 0);
   const totalDebt = invoices.reduce((acc, curr) => acc + Number(curr.remaining_balance || 0), 0);
 
   // Next due installment
   const pendingInstallments = installments.filter((i) => i.status !== 'PAID');
   const nextInstallment = pendingInstallments.length > 0 ? pendingInstallments[0] : null;
+
+  // Dynamic Academy / Course Card Details
+  const courseWithCard = courses.find((c) => c.card_number) || null;
+  const rawCardNumber = courseWithCard?.card_number || '6037997512345678';
+  const cardHolderName = courseWithCard?.card_holder || 'مدرسه شنای ایران (مدیریت)';
+  const bankName = getBankNameFromCard(rawCardNumber) || 'بانک ملی ایران';
+  const formattedCardNumber = formatCardNumberWithDashes(rawCardNumber);
 
   return (
     <div className="space-y-6">
@@ -241,7 +264,7 @@ export const SwimmerFinancePage = () => {
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            مشاهده صورتحساب‌های رسمی، برنامه سررسید اقساط، رسیدهای بانکی و پرداخت آنلاین
+            مشاهده صورتحساب‌های رسمی، مبالغ تخفیف مدیریت، برنامه سررسید اقساط، رسیدهای بانکی و پرداخت آنلاین
           </p>
         </div>
 
@@ -255,41 +278,269 @@ export const SwimmerFinancePage = () => {
       </div>
 
       {/* Financial Overview Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+        {/* Total Tuition */}
         <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
           <span className="text-xs sm:text-sm font-bold text-slate-500 block mb-1.5">شهریه کل دوره‌ها</span>
-          <span className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white font-mono block">
-            {formatPrice(totalInvoiceAmount)} <span className="text-xs sm:text-sm font-normal text-slate-500">تومان</span>
+          <span className="text-lg sm:text-xl font-black text-slate-900 dark:text-white font-mono block">
+            {formatPrice(totalInvoiceAmount)} <span className="text-xs font-normal text-slate-500">تومان</span>
+          </span>
+          <span className="text-[11px] text-slate-400 block mt-1">مجموع شهریه مصوب</span>
+        </div>
+
+        {/* Management Discount Card */}
+        <div className={`p-5 rounded-3xl border shadow-xs transition-all ${
+          totalAllDiscounts > 0
+            ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800/80 shadow-emerald-500/5'
+            : 'bg-white dark:bg-slate-900 border-slate-200/80 dark:border-slate-800'
+        }`}>
+          <div className="flex items-center justify-between mb-1.5">
+            <span className={`text-xs sm:text-sm font-bold block ${totalAllDiscounts > 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-500'}`}>
+              تخفیف اعطایی مدیریت
+            </span>
+            {totalAllDiscounts > 0 && (
+              <span className="p-1 rounded-lg bg-emerald-100 dark:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400">
+                <Gift className="w-3.5 h-3.5" />
+              </span>
+            )}
+          </div>
+          <span className={`text-lg sm:text-xl font-black font-mono block ${
+            totalAllDiscounts > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'
+          }`}>
+            {formatPrice(totalAllDiscounts)} <span className="text-xs font-normal text-slate-500">تومان</span>
+          </span>
+          <span className={`text-[11px] block mt-1 ${totalAllDiscounts > 0 ? 'text-emerald-600 dark:text-emerald-400 font-medium' : 'text-slate-400'}`}>
+            {totalAllDiscounts > 0
+              ? totalNextCourseDiscount > 0 && totalDirectDiscount > 0
+                ? `${formatPrice(totalDirectDiscount)} کسر + ${formatPrice(totalNextCourseDiscount)} دوره بعد`
+                : totalNextCourseDiscount > 0
+                ? 'اعتبار دوره بعدی'
+                : 'کسر شده از بدهی شهریه'
+              : 'بدون تخفیف ثبت‌شده'}
           </span>
         </div>
+
+        {/* Total Paid */}
         <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
           <span className="text-xs sm:text-sm font-bold text-emerald-600 block mb-1.5">مبلغ تسویه‌شده</span>
-          <span className="text-xl sm:text-2xl font-black text-emerald-600 font-mono block">
-            {formatPrice(totalPaid)} <span className="text-xs sm:text-sm font-normal text-slate-500">تومان</span>
+          <span className="text-lg sm:text-xl font-black text-emerald-600 font-mono block">
+            {formatPrice(totalPaid)} <span className="text-xs font-normal text-slate-500">تومان</span>
           </span>
+          <span className="text-[11px] text-slate-400 block mt-1">واریزی‌های تأییدشده</span>
         </div>
+
+        {/* Remaining Debt */}
         <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
           <span className={`text-xs sm:text-sm font-bold block mb-1.5 ${totalDebt > 0 ? 'text-orange-600' : 'text-slate-500'}`}>
-            مانده بدهی سررسیددار
+            مانده بدهی قابل پرداخت
           </span>
-          <span className={`text-xl sm:text-2xl font-black font-mono block ${totalDebt > 0 ? 'text-orange-600' : 'text-slate-700 dark:text-slate-300'}`}>
-            {formatPrice(totalDebt)} <span className="text-xs sm:text-sm font-normal text-slate-500">تومان</span>
+          <span className={`text-lg sm:text-xl font-black font-mono block ${totalDebt > 0 ? 'text-orange-600' : 'text-slate-700 dark:text-slate-300'}`}>
+            {formatPrice(totalDebt)} <span className="text-xs font-normal text-slate-500">تومان</span>
           </span>
+          <span className="text-[11px] text-slate-400 block mt-1">پس از اعمال تخفیف‌ها</span>
         </div>
-        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs">
+
+        {/* Accounting Status */}
+        <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-xs col-span-2 md:col-span-1">
           <span className="text-xs sm:text-sm font-bold text-slate-500 block mb-1.5">وضعیت کلی حسابداری</span>
-          <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-100 block mt-1">
+          <span className="text-sm font-bold text-slate-800 dark:text-slate-100 block mt-1">
             {totalDebt === 0 ? (
-              <span className="text-emerald-600 flex items-center gap-1.5 font-bold text-sm">
-                <CheckCircle2 className="w-4.5 h-4.5" /> تسویه کامل دوره
+              <span className="text-emerald-600 flex items-center gap-1.5 font-bold text-xs sm:text-sm">
+                <CheckCircle2 className="w-4 h-4 shrink-0" /> تسویه کامل دوره
               </span>
             ) : (
-              <span className="text-orange-600 flex items-center gap-1.5 font-bold text-sm">
-                <AlertTriangle className="w-4.5 h-4.5" /> دارای قسط سررسیدشده
+              <span className="text-orange-600 flex items-center gap-1.5 font-bold text-xs sm:text-sm">
+                <AlertTriangle className="w-4 h-4 shrink-0" /> دارای مانده بدهی
               </span>
             )}
           </span>
+          <span className="text-[11px] text-slate-400 block mt-1">وضعیت رسمی پرونده</span>
         </div>
+      </div>
+
+      {/* Active Discount Celebration Banner */}
+      {totalAllDiscounts > 0 && (
+        <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-sky-500/10 border border-emerald-500/30 dark:border-emerald-500/20 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shrink-0 shadow-xs">
+              <Gift className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2 flex-wrap">
+                <h4 className="text-sm sm:text-base font-black text-emerald-900 dark:text-emerald-200">
+                  تخفیف ویژه مدیریت به مبلغ {formatPrice(totalAllDiscounts)} تومان برای شما منظور گردیده است
+                </h4>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-100 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300">
+                  تأییدشده مدیریت
+                </span>
+              </div>
+              <p className="text-xs text-emerald-700 dark:text-emerald-400 mt-1 leading-relaxed">
+                {totalDirectDiscount > 0 && `مبلغ ${formatPrice(totalDirectDiscount)} تومان تخفیف مستقیم بر روی صورتحساب دوره اعمال و از بدهی کسر شده است. `}
+                {totalNextCourseDiscount > 0 && `مبلغ ${formatPrice(totalNextCourseDiscount)} تومان نیز به عنوان اعتبار و تخفیف وفاداری جهت ثبت‌نام دوره آینده شناگر نزد آموزشگاه محفوظ است.`}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tuition Invoices & Management Discount Breakdown */}
+      <div className="bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 gap-2">
+          <div>
+            <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <Receipt className="w-4.5 h-4.5 text-sky-600" />
+              صورتحساب‌های شهریه و جزئیات تخفیف‌های مدیریت
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+              ریز محاسبه شهریه هر دوره، مبالغ تخفیف اعطایی مدیریت، پرداختی‌ها و مانده خالص بدهی
+            </p>
+          </div>
+          {invoices.length > 0 && (
+            <span className="text-xs font-bold text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl self-start sm:self-auto font-mono">
+              تعداد دوره‌ها: {invoices.length}
+            </span>
+          )}
+        </div>
+
+        {invoices.length > 0 ? (
+          <div className="space-y-4">
+            {invoices.map((inv) => {
+              const invDiscount = Number(inv.total_discount || 0);
+              const invAdjustments = inv.adjustments || [];
+              const discountAdjustments = invAdjustments.filter(
+                (a) => a.type === 'DISCOUNT' || a.type === 'CREDIT_MEMO'
+              );
+              const totalNextForInv = invAdjustments
+                .filter((a) => a.type === 'CREDIT_MEMO' || (a.reason && a.reason.includes('تخفیف دوره بعد')))
+                .reduce((sum, a) => sum + Number(a.amount || 0), 0);
+
+              return (
+                <div
+                  key={inv.id}
+                  className="p-5 rounded-2xl bg-slate-50/70 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 space-y-4"
+                >
+                  {/* Top Bar: Course Title, Invoice Number, Status Badge */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/60 dark:border-slate-700/40">
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-base font-bold text-slate-900 dark:text-white">
+                          {inv.course_title || (inv.items && inv.items[0]?.description) || 'شهریه دوره آموزش شنا'}
+                        </h4>
+                        <Badge
+                          variant={
+                            inv.status === 'PAID'
+                              ? 'success'
+                              : inv.status === 'PARTIALLY_PAID'
+                              ? 'warning'
+                              : 'danger'
+                          }
+                        >
+                          {inv.status_display || (inv.status === 'PAID' ? 'تسویه‌شده کامل' : inv.status === 'PARTIALLY_PAID' ? 'بخشی پرداخت‌شده' : 'پرداخت نشده')}
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-3 text-xs text-slate-500 mt-1 font-mono flex-wrap">
+                        <span>شماره فاکتور: <strong className="text-slate-700 dark:text-slate-300">{inv.invoice_number}</strong></span>
+                        {inv.issue_date && <span>تاریخ صدور: {toShamsiDate(inv.issue_date).shortNumeric || inv.issue_date}</span>}
+                        {inv.due_date && <span>سررسید تسویه: {toShamsiDate(inv.due_date).shortNumeric || inv.due_date}</span>}
+                      </div>
+                    </div>
+
+                    {(invDiscount > 0 || totalNextForInv > 0) && (
+                      <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-100/90 dark:bg-emerald-950/70 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold self-start sm:self-auto">
+                        <BadgePercent className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <span>
+                          {invDiscount > 0 && `تخفیف فاکتور: ${formatPrice(invDiscount)} ت`}
+                          {invDiscount > 0 && totalNextForInv > 0 && ' + '}
+                          {totalNextForInv > 0 && `تخفیف دوره بعد: ${formatPrice(totalNextForInv)} ت`}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Financial Breakdown Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                    <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800">
+                      <span className="text-slate-500 block mb-1">شهریه مصوب دوره:</span>
+                      <span className="text-sm sm:text-base font-black font-mono text-slate-800 dark:text-slate-200 block">
+                        {formatPrice(inv.total_amount)} تومان
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800">
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold block mb-1">
+                        تخفیف اعمال‌شده مدیریت:
+                      </span>
+                      <span className="text-sm sm:text-base font-black font-mono text-emerald-600 dark:text-emerald-400 block">
+                        {invDiscount > 0 ? `-${formatPrice(invDiscount)} تومان` : '۰ تومان'}
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800">
+                      <span className="text-slate-500 block mb-1">مبلغ پرداخت‌شده تاکنون:</span>
+                      <span className="text-sm sm:text-base font-black font-mono text-slate-800 dark:text-slate-200 block">
+                        {formatPrice(inv.total_paid)} تومان
+                      </span>
+                    </div>
+
+                    <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/70 dark:border-slate-800">
+                      <span className={`font-bold block mb-1 ${Number(inv.remaining_balance) > 0 ? 'text-orange-600' : 'text-emerald-600'}`}>
+                        مانده بدهی قابل پرداخت:
+                      </span>
+                      <span className={`text-sm sm:text-base font-black font-mono block ${Number(inv.remaining_balance) > 0 ? 'text-orange-600' : 'text-emerald-600'}`}>
+                        {formatPrice(inv.remaining_balance)} تومان
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Discount / Adjustments Detail Box */}
+                  {discountAdjustments.length > 0 && (
+                    <div className="p-3.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-800/40 space-y-2">
+                      <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-800 dark:text-emerald-300">
+                        <Tag className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>جزئیات تخفیف‌های ثبت‌شده توسط مدیریت برای این شناگر:</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {discountAdjustments.map((adj) => (
+                          <div
+                            key={adj.id}
+                            className="p-2.5 rounded-lg bg-white dark:bg-slate-900 border border-emerald-100 dark:border-emerald-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className={`font-bold px-2 py-0.5 rounded-md text-[11px] ${
+                                adj.type === 'CREDIT_MEMO'
+                                  ? 'bg-purple-100 dark:bg-purple-950 text-purple-700 dark:text-purple-300'
+                                  : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
+                              }`}>
+                                {adj.type === 'CREDIT_MEMO' ? 'تخفیف دوره بعد' : 'تخفیف شهریه'}
+                              </span>
+                              <span className="text-slate-700 dark:text-slate-300">
+                                {adj.reason || 'تخفیف ویژه مدیریت'}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3 self-end sm:self-auto font-mono">
+                              <span className="font-black text-emerald-600 dark:text-emerald-400 text-sm">
+                                {formatPrice(adj.amount)} تومان
+                              </span>
+                              {adj.created_at && (
+                                <span className="text-[11px] text-slate-400">
+                                  {formatPersianDateEn(adj.created_at)}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="p-8 text-center text-sm text-slate-400">
+            هنوز صورتحساب شهریه‌ای برای این شناگر صادر نشده است.
+          </div>
+        )}
       </div>
 
       {/* Card-to-Card Payment Details for Swimmer */}
@@ -303,10 +554,10 @@ export const SwimmerFinancePage = () => {
               شماره کارت بانکی آموزشگاه (جهت واریز و کارت‌به‌کارت اقساط)
             </span>
             <span className="text-sm sm:text-base font-mono font-black tracking-wider text-emerald-300 block mt-0.5" dir="ltr">
-              6037 - 9975 - 1234 - 5678
+              {formattedCardNumber}
             </span>
             <span className="text-[11px] text-slate-300 block">
-              بانک ملی ایران · به نام علی هاشمی (مدیریت مدرسه شنا)
+              {bankName} · به نام {cardHolderName}
             </span>
           </div>
         </div>
@@ -314,7 +565,7 @@ export const SwimmerFinancePage = () => {
         <div className="flex items-center gap-2 self-start md:self-auto flex-wrap">
           <button
             type="button"
-            onClick={() => copyCardToClipboard('6037997512345678', 'شماره کارت آموزشگاه', toast)}
+            onClick={() => copyCardToClipboard(rawCardNumber, 'شماره کارت آموزشگاه', toast)}
             className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-emerald-300 border border-emerald-500/30 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer active:scale-95 shrink-0"
           >
             <Copy className="w-3.5 h-3.5" />
@@ -367,7 +618,7 @@ export const SwimmerFinancePage = () => {
                     </Badge>
                   </div>
                   <span className="text-xs sm:text-sm text-slate-500 font-mono">
-                    تاریخ سررسید: {inst.due_date}
+                    تاریخ سررسید: {inst.due_date ? (toShamsiDate(inst.due_date).fullText || inst.due_date) : 'نامشخص'}
                   </span>
                 </div>
 
@@ -601,16 +852,16 @@ export const SwimmerFinancePage = () => {
             <div className="p-4 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200/80 dark:border-sky-900/60 text-sky-900 dark:text-sky-200 space-y-1 text-xs">
               <span className="font-bold block">شماره کارت آموزشگاه جهت واریز:</span>
               <div className="flex items-center justify-between font-mono font-black text-sm text-sky-700 dark:text-sky-300" dir="ltr">
-                <span>6037 - 9975 - 1234 - 5678</span>
+                <span>{formattedCardNumber}</span>
                 <button
                   type="button"
-                  onClick={() => copyCardToClipboard('6037997512345678', 'شماره کارت آموزشگاه', toast)}
+                  onClick={() => copyCardToClipboard(rawCardNumber, 'شماره کارت آموزشگاه', toast)}
                   className="text-xs font-bold text-sky-600 hover:text-sky-800 dark:text-sky-400 flex items-center gap-1 cursor-pointer font-sans"
                 >
                   <Copy className="w-3 h-3" /> کپی
                 </button>
               </div>
-              <span className="text-[11px] text-slate-500 block">بانک ملی ایران · به نام علی هاشمی</span>
+              <span className="text-[11px] text-slate-500 block">{bankName} · به نام {cardHolderName}</span>
             </div>
 
             {/* Course / Invoice Selector */}
