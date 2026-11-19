@@ -181,7 +181,8 @@ export const SwimmerCoursesPage = () => {
         const d = enrRes.value.data;
         const list = Array.isArray(d) ? d : d.results || [];
         setMyEnrollments(list);
-        if (!tabParam && list.length === 0) {
+        const currentUrlTab = new URLSearchParams(window.location.search).get('tab');
+        if (!currentUrlTab && list.length === 0) {
           setActiveTab('REGISTER');
         }
       }
@@ -200,7 +201,7 @@ export const SwimmerCoursesPage = () => {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [activeSwimmerId, tabParam, toast]);
+  }, [activeSwimmerId, toast]);
 
   useEffect(() => {
     loadData();
@@ -584,7 +585,7 @@ export const SwimmerCoursesPage = () => {
               </Link>
             </div>
 
-            {loading || refreshing ? (
+            {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <EnrolledCourseSkeleton />
                 <EnrolledCourseSkeleton />
@@ -806,7 +807,7 @@ export const SwimmerCoursesPage = () => {
               </div>
             </div>
 
-            {loading || refreshing ? (
+            {loading ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <SessionCardSkeleton />
                 <SessionCardSkeleton />
