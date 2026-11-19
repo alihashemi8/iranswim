@@ -82,11 +82,11 @@ export const SEOHead = ({
     setMetaTag('name', 'twitter:description', description);
     setMetaTag('name', 'twitter:image', ogImage);
 
-    // 8. Structured Data JSON-LD
-    let scriptTag = document.querySelector('#seo-structured-data');
+    // 8. Structured Data JSON-LD (Page-level schemas)
+    let scriptTag = document.querySelector('#page-structured-data');
     if (!scriptTag) {
       scriptTag = document.createElement('script');
-      scriptTag.id = 'seo-structured-data';
+      scriptTag.id = 'page-structured-data';
       scriptTag.type = 'application/ld+json';
       document.head.appendChild(scriptTag);
     }

@@ -17,7 +17,6 @@ import { Button } from '../../components/common/Button';
 import { LoadingState, Skeleton } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { Modal } from '../../components/common/Modal';
-import { CustomSelect } from '../../components/common/CustomSelect';
 import { ProgressBar } from '../../components/common/Charts';
 import { toShamsiDate } from '../../utils/date';
 import { formatCardNumberWithDashes, copyCardToClipboard, getBankNameFromCard } from '../../utils/bankCard';
@@ -143,16 +142,7 @@ export const SwimmerCoursesPage = () => {
 
   // Modals & Interactivity
   const [selectedCourseForDetail, setSelectedCourseForDetail] = useState(null);
-  const [selectedCourseForEnroll, setSelectedCourseForEnroll] = useState(null);
   const [expandedSyllabusId, setExpandedSyllabusId] = useState(null);
-
-  // Enrollment Form State
-  const [enrollSubmitting, setEnrollSubmitting] = useState(false);
-  const [enrollForm, setEnrollForm] = useState({
-    selectedCoachId: null,
-    selectedInstallments: 1,
-    notes: '',
-  });
 
   // Fetch all necessary data concurrently
   const loadData = useCallback(async (isRefresh = false) => {
@@ -334,46 +324,6 @@ export const SwimmerCoursesPage = () => {
       totalRemainingQuota,
     };
   }, [courses, myEnrollments, myRequests, checkCourseEligibility]);
-
-  // Open enrollment modal for a course
-  const handleOpenEnrollModal = (course) => {
-    const defaultCoachId = course.coaches && course.coaches.length > 0 ? course.coaches[0].id : null;
-    setEnrollForm({
-      selectedCoachId: defaultCoachId,
-      selectedInstallments: 1,
-      notes: '',
-    });
-    setSelectedCourseForEnroll(course);
-  };
-
-  // Submit enrollment request
-  const handleSubmitEnrollment = async (e) => {
-    if (e) e.preventDefault();
-    if (!selectedCourseForEnroll) return;
-
-    try {
-      setEnrollSubmitting(true);
-      const payload = {
-        course: selectedCourseForEnroll.id,
-        coach: enrollForm.selectedCoachId || undefined,
-        selected_installments: Number(enrollForm.selectedInstallments || 1),
-        notes: enrollForm.notes || '',
-        swimmer: activeSwimmerId || undefined,
-      };
-
-      await api.post('/education/requests/submit/', payload);
-      toast.success(
-        `درخواست پیش‌ثبت‌نام شما برای دوره «${selectedCourseForEnroll.name}» با موفقیت ثبت گردید.`
-      );
-      setSelectedCourseForEnroll(null);
-      await loadData(true);
-    } catch (err) {
-      console.error(err);
-      toast.error(err.response?.data?.detail || 'خطا در ارسال درخواست ثبت‌نام.');
-    } finally {
-      setEnrollSubmitting(false);
-    }
-  };
 
   // Format currency helper
   const formatTomans = (val) => {
@@ -1202,7 +1152,7 @@ export const SwimmerCoursesPage = () => {
                         <Button
                           variant="primary"
                           className="flex-1 text-xs font-bold"
-                          onClick={() => handleOpenEnrollModal(course)}
+                          onClick={() => navigate(`/swimmer/courses/${course.id}/enroll`)}
                         >
                           <span>پیش‌ثبت‌نام در این دوره</span>
                           <ArrowLeft className="w-3.5 h-3.5 mr-1" />
@@ -1419,196 +1369,13 @@ export const SwimmerCoursesPage = () => {
                 onClick={() => {
                   const c = selectedCourseForDetail;
                   setSelectedCourseForDetail(null);
-                  handleOpenEnrollModal(c);
+                  navigate(`/swimmer/courses/${c.id}/enroll`);
                 }}
               >
                 پیش‌ثبت‌نام در این دوره
               </Button>
             </div>
           </div>
-        </Modal>
-      )}
-
-      {/* 7. ENROLLMENT REQUEST MODAL */}
-      {selectedCourseForEnroll && (
-        <Modal
-          isOpen={Boolean(selectedCourseForEnroll)}
-          onClose={() => setSelectedCourseForEnroll(null)}
-          title={`درخواست پیش‌ثبت‌نام در دوره: ${selectedCourseForEnroll.name}`}
-          size="md"
-        >
-          <form onSubmit={handleSubmitEnrollment} className="space-y-4 text-slate-800 dark:text-slate-100" dir="rtl">
-            <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-2xl border border-slate-200/80 dark:border-slate-700 flex items-center justify-between text-xs">
-              <div>
-                <span className="text-slate-400 block text-[11px]">متقاضی دوره:</span>
-                <span className="font-bold text-slate-900 dark:text-slate-100">{swimmerName}</span>
-              </div>
-              <div className="text-left font-mono">
-                <span className="text-slate-400 block text-[11px]">سن و جنسیت:</span>
-                <span className="font-bold">
-                  {swimmerAge !== null ? `${swimmerAge} سال` : 'سن نامشخص'} | {swimmerGender === 'FEMALE' ? 'دختران' : 'پسران'}
-                </span>
-              </div>
-            </div>
-
-            {/* Course Summary Banner */}
-            <div className="bg-gradient-to-r from-sky-50 to-teal-50 dark:from-slate-800 dark:to-slate-800/80 p-3.5 rounded-2xl border border-sky-100 dark:border-slate-700 space-y-2">
-              <div className="flex items-center justify-between">
-                <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 truncate">
-                  <BookOpen className="w-4 h-4 text-sky-600 shrink-0" />
-                  <span className="truncate">{selectedCourseForEnroll.name}</span>
-                </h4>
-                <span className="text-xs font-black text-sky-700 dark:text-sky-300 font-mono shrink-0">
-                  {formatTomans(selectedCourseForEnroll.base_price)} تومان
-                </span>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-600 dark:text-slate-300">
-                <div className="flex items-center gap-1">
-                  <MapPin className="w-3.5 h-3.5 text-sky-500 shrink-0" />
-                  <span className="truncate">{selectedCourseForEnroll.pool_location || 'استخر مرکزی'}</span>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Clock className="w-3.5 h-3.5 text-sky-500 shrink-0" />
-                  <span className="truncate">{selectedCourseForEnroll.days_of_week} ({selectedCourseForEnroll.time_display || 'ساعات مصوب'})</span>
-                </div>
-                <div className="flex items-center gap-1 col-span-1 sm:col-span-2">
-                  <Calendar className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  <span className="truncate">
-                    دوره: از <strong>{toShamsiDate(selectedCourseForEnroll.start_date).shortNumeric || selectedCourseForEnroll.start_date}</strong> تا <strong>{toShamsiDate(selectedCourseForEnroll.end_date).shortNumeric || selectedCourseForEnroll.end_date}</strong> ({selectedCourseForEnroll.sessions_count || 12} جلسه)
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {selectedCourseForEnroll.coaches && selectedCourseForEnroll.coaches.length > 0 && (
-              <div>
-                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                  انتخاب مربی / کلاس آموزشی *
-                </label>
-                <CustomSelect
-                  value={enrollForm.selectedCoachId}
-                  onChange={(val) => setEnrollForm({ ...enrollForm, selectedCoachId: val })}
-                  options={selectedCourseForEnroll.coaches.map((c) => ({
-                    value: c.id,
-                    label: `${c.full_name} (${c.class_name || 'کلاس اختصاصی'}${c.coaching_degree ? ` - ${c.coaching_degree}` : ''})`,
-                    icon: User,
-                  }))}
-                  placeholder="مربی مورد نظر خود را انتخاب کنید..."
-                />
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                تعداد اقساط توافقی شهریه
-              </label>
-
-              {selectedCourseForEnroll.installments_count && selectedCourseForEnroll.installments_count > 1 ? (
-                <div className="space-y-2">
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {Array.from({ length: selectedCourseForEnroll.installments_count }, (_, i) => i + 1).map((num) => (
-                      <button
-                        key={num}
-                        type="button"
-                        onClick={() => setEnrollForm({ ...enrollForm, selectedInstallments: num })}
-                        className={`p-2 rounded-xl border text-xs font-bold transition-all cursor-pointer ${
-                          enrollForm.selectedInstallments === num
-                            ? 'bg-sky-600 text-white border-sky-600 shadow-2xs'
-                            : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
-                        }`}
-                      >
-                        {num === 1 ? 'یکجا (نقدی)' : `${num} قسط`}
-                      </button>
-                    ))}
-                  </div>
-
-                  {enrollForm.selectedInstallments > 1 && (
-                    <div className="p-2.5 bg-sky-50 dark:bg-sky-950/60 rounded-xl text-xs text-sky-800 dark:text-sky-300 flex items-center justify-between font-semibold">
-                      <span>مبلغ تقریبی هر قسط:</span>
-                      <span className="font-mono font-bold text-sm">
-                        {formatTomans(
-                          Math.round(Number(selectedCourseForEnroll.base_price) / enrollForm.selectedInstallments)
-                        )}{' '}
-                        تومان
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="p-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs text-slate-600 dark:text-slate-300 flex items-center justify-between">
-                  <span>شرایط پرداخت:</span>
-                  <span className="font-bold">پرداخت یکجا (نقدی)</span>
-                </div>
-              )}
-            </div>
-
-            {selectedCourseForEnroll.card_number && (
-              <div className="bg-sky-50/90 dark:bg-sky-950/40 border border-sky-200/80 dark:border-sky-800 rounded-2xl p-3.5 space-y-1.5">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="font-bold text-sky-800 dark:text-sky-300 flex items-center gap-1">
-                    <CreditCard className="w-3.5 h-3.5 text-sky-600" />
-                    <span>حساب بانکی واریز شهریه / پیش‌پرداخت دوره:</span>
-                  </span>
-                  <span className="text-[11px] text-slate-500">
-                    {getBankNameFromCard(selectedCourseForEnroll.card_number)}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between gap-2 pt-0.5">
-                  <span className="font-mono font-bold text-sm text-sky-900 dark:text-sky-200 tracking-wider">
-                    {formatCardNumberWithDashes(selectedCourseForEnroll.card_number)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => copyCardToClipboard(selectedCourseForEnroll.card_number, 'شماره کارت', toast)}
-                    className="p-1.5 rounded-lg bg-sky-200/60 dark:bg-sky-800 hover:bg-sky-300 text-sky-800 dark:text-sky-100 text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
-                  >
-                    <Copy className="w-3 h-3" />
-                    <span>کپی کارت</span>
-                  </button>
-                </div>
-                {selectedCourseForEnroll.card_holder && (
-                  <div className="text-[11px] text-slate-600 dark:text-slate-400">
-                    به نام: <strong>{selectedCourseForEnroll.card_holder}</strong>
-                  </div>
-                )}
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
-                یادداشت یا توضیحات برای مدیریت / مربی (اختیاری)
-              </label>
-              <textarea
-                rows={3}
-                placeholder="توضیحات تکمیلی یا درخواست زمان‌بندی ویژه..."
-                value={enrollForm.notes}
-                onChange={(e) => setEnrollForm({ ...enrollForm, notes: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
-              />
-            </div>
-
-            <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl border border-slate-200/80 dark:border-slate-700 text-[11px] text-slate-500 space-y-1">
-              <span className="font-bold block text-slate-700 dark:text-slate-300">مراحل بعدی:</span>
-              <p>
-                پس از ارسال، درخواست توسط مدیریت بررسی شده و با تأیید ظرفیت، وضعیت دوره در پنل شما فعال می‌گردد.
-              </p>
-            </div>
-
-            <div className="pt-2 flex items-center justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={enrollSubmitting}
-                onClick={() => setSelectedCourseForEnroll(null)}
-              >
-                انصراف
-              </Button>
-              <Button type="submit" variant="primary" disabled={enrollSubmitting} loading={enrollSubmitting}>
-                تأیید و ارسال درخواست ثبت‌نام
-              </Button>
-            </div>
-          </form>
         </Modal>
       )}
     </div>

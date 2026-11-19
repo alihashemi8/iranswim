@@ -51,32 +51,17 @@ export const ContactPage = () => {
 
   const contactSchema = {
     '@context': 'https://schema.org',
-    '@type': 'SportsActivityLocation',
-    '@id': 'https://iran-swim.ir/contact/#location',
-    'name': 'مدرسه شنای ایران - دفتر مرکزی و پذیرش قزوین',
-    'telephone': '+98-28-33650000',
+    '@type': 'ContactPage',
+    '@id': 'https://iran-swim.ir/contact/#webpage',
     'url': 'https://iran-swim.ir/contact/',
-    'address': {
-      '@type': 'PostalAddress',
-      'streetAddress': 'شهرک کوثر، مجتمع ورزشی المپیک',
-      'addressLocality': 'قزوین',
-      'addressRegion': 'استان قزوین',
-      'postalCode': '34156',
-      'addressCountry': 'IR'
-    },
-    'geo': {
-      '@type': 'GeoCoordinates',
-      'latitude': 36.2797,
-      'longitude': 50.0049
-    },
-    'openingHoursSpecification': [
-      {
-        '@type': 'OpeningHoursSpecification',
-        'dayOfWeek': ['Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday'],
-        'opens': '09:00',
-        'closes': '20:00'
-      }
-    ]
+    'name': 'تماس با مدرسه شنای ایران و استخرهای طرف قرارداد در قزوین',
+    'description': 'اطلاعات تماس، مشاوره ثبت‌نام و آدرس استخرهای همکار و طرف قرارداد مدرسه شنای ایران در شهر قزوین.',
+    'mainEntity': {
+      '@type': 'SportsClub',
+      '@id': 'https://iran-swim.ir/#organization',
+      'name': 'مدرسه شنای ایران',
+      'url': 'https://iran-swim.ir'
+    }
   };
 
   return (

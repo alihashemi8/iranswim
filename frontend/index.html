@@ -42,41 +42,70 @@
     <!-- Trust Seal & Legal Verification -->
     <meta name="enamad" content="9573328" />
 
-    <!-- Base JSON-LD Structured Data (Organization, SportsActivityLocation, WebSite) -->
-    <script type="application/ld+json">
+    <!-- Base JSON-LD Structured Data (Organization, Venues, WebSite) -->
+    <script type="application/ld+json" id="base-organization-schema">
     {
       "@context": "https://schema.org",
       "@graph": [
         {
-          "@type": "SportsActivityLocation",
-          "@id": "https://iran-swim.ir/#location",
+          "@type": ["SportsClub", "EducationalOrganization"],
+          "@id": "https://iran-swim.ir/#organization",
           "name": "مدرسه شنای ایران",
           "alternateName": ["IranSwim", "آموزشگاه شنای ایران", "Iran Swim Academy"],
           "url": "https://iran-swim.ir",
           "logo": "https://iran-swim.ir/images/logo.png",
           "image": "https://iran-swim.ir/images/swimmer-boy.webp",
-          "description": "مدرسه شنای ایران؛ مرکز تخصصی آموزش شنا و استعدادیابی شناگران در شهر قزوین با مربیان رسمی فدراسیون شنا.",
-          "telephone": "+98-28-33650000",
-          "priceRange": "$$",
+          "description": "مدرسه شنای ایران؛ ارائه خدمات تخصصی آموزش شنا و دوره‌های آموزشی در استخرهای طرف قرارداد در شهر قزوین.",
           "address": {
             "@type": "PostalAddress",
-            "streetAddress": "شهرک کوثر، مجتمع ورزشی المپیک و استخرهای منتخب",
             "addressLocality": "قزوین",
             "addressRegion": "استان قزوین",
-            "postalCode": "34156",
             "addressCountry": "IR"
           },
-          "geo": {
-            "@type": "GeoCoordinates",
-            "latitude": 36.2797,
-            "longitude": 50.0049
-          },
-          "openingHoursSpecification": [
+          "location": [
             {
-              "@type": "OpeningHoursSpecification",
-              "dayOfWeek": ["Saturday", "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday"],
-              "opens": "09:00",
-              "closes": "20:00"
+              "@type": "Place",
+              "name": "استخر ۵۰ متری المپیک قزوین (مجموعه طرف قرارداد)",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "شهرک کوثر، مجتمع ورزشی المپیک",
+                "addressLocality": "قزوین",
+                "addressCountry": "IR"
+              },
+              "telephone": "+98-28-33652001"
+            },
+            {
+              "@type": "Place",
+              "name": "استخر نیلگون انقلاب (مجموعه طرف قرارداد)",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "میدان میرعماد، خیابان نادری شمالی",
+                "addressLocality": "قزوین",
+                "addressCountry": "IR"
+              },
+              "telephone": "+98-28-33341002"
+            },
+            {
+              "@type": "Place",
+              "name": "استخر قهرمانی آزادی (مجموعه طرف قرارداد)",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "سبزه میدان، مجموعه ورزشی جهان پهلوان تختی",
+                "addressLocality": "قزوین",
+                "addressCountry": "IR"
+              },
+              "telephone": "+98-28-33223344"
+            },
+            {
+              "@type": "Place",
+              "name": "استخر آموزشی سرپوشیده نونهالان آب‌پری (مجموعه طرف قرارداد)",
+              "address": {
+                "@type": "PostalAddress",
+                "streetAddress": "بلوار دانشگاه، مجتمع آموزشی ورزشی دانشگاه",
+                "addressLocality": "قزوین",
+                "addressCountry": "IR"
+              },
+              "telephone": "+98-28-33556677"
             }
           ]
         },
@@ -86,9 +115,9 @@
           "url": "https://iran-swim.ir",
           "name": "مدرسه شنای ایران",
           "alternateName": "IranSwim",
-          "description": "سامانه جامع و رسمی مدرسه شنای ایران در قزوین",
+          "description": "سامانه جامع و اطلاع‌رسانی مدرسه شنای ایران در قزوین",
           "publisher": {
-            "@id": "https://iran-swim.ir/#location"
+            "@id": "https://iran-swim.ir/#organization"
           },
           "inLanguage": "fa-IR"
         }

@@ -15,6 +15,12 @@ Allow: /assets/
 Allow: /images/
 Allow: /fonts/
 
+# Allow public read-only API endpoints required for client-side rendering
+Allow: /api/education/courses/
+Allow: /api/coaches/
+Allow: /api/content/
+Allow: /api/leagues/public/
+
 # Disallow authenticated private panels and system operations
 Disallow: /admin/
 Disallow: /coach/

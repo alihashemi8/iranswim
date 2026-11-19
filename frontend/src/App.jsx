@@ -108,6 +108,7 @@ import { SwimmerAnnouncementsPage } from './pages/swimmer/SwimmerAnnouncementsPa
 import { SwimmerSupportPage } from './pages/swimmer/SwimmerSupportPage';
 import { SwimmerProfilePage } from './pages/swimmer/SwimmerProfilePage';
 import { SwimmerSettingsPage } from './pages/swimmer/SwimmerSettingsPage';
+import { SwimmerCourseEnrollPage } from './pages/swimmer/SwimmerCourseEnrollPage';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user } = useAuth();
@@ -347,6 +348,8 @@ export default function App() {
 
                 {/* 2. Athletic Activity */}
                 <Route path="courses" element={<SwimmerCoursesPage />} />
+                <Route path="courses/:id/enroll" element={<SwimmerCourseEnrollPage />} />
+                <Route path="courses/enroll/:id" element={<Navigate to="/swimmer/courses/:id/enroll" replace />} />
                 <Route path="plans" element={<SwimmerPlansPage />} />
                 <Route path="schedule" element={<Navigate to="/swimmer/courses?tab=my-courses" replace />} />
                 <Route path="progress" element={<SwimmerProgressPage />} />

@@ -23,40 +23,40 @@ const VERIFIED_COACHES = [
     bio: 'مدیر و مؤسس مدرسه شنای ایران، پیشکسوت ورزش‌های آبی استان با بیش از ۱۵ سال سابقه مدیریت و توسعه شنای قهرمانی و پایه‌ای در قزوین'
   },
   {
-    id: 1,
-    full_name: 'محمد رضایی',
-    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=500&q=80',
-    coaching_degree: 'درجه ۱ فدراسیون شنا',
-    is_manager: false,
-    gender: 'MALE',
-    display_order: 2,
-    bio: 'مربی رسمی فدراسیون شنا با ۱۰ سال سابقه آموزش تیم‌های پایه و استعدادیابی شناگران در شهر قزوین'
-  },
-  {
     id: 2,
     full_name: 'علیرضا مرادی',
     avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=500&q=80',
     coaching_degree: 'درجه ۱ فدراسیون شنا',
     is_manager: false,
     gender: 'MALE',
-    display_order: 3,
+    display_order: 2,
     bio: 'مربی رسمی فدراسیون شنا با ۱۲ سال سابقه تدریس شنای مبتدی و پیشرفته برای کودکان و بزرگسالان'
+  },
+  {
+    id: 1,
+    full_name: 'محمد رضایی',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=500&q=80',
+    coaching_degree: 'مربی رسمی فدراسیون',
+    is_manager: false,
+    gender: 'MALE',
+    display_order: 3,
+    bio: 'مربی رسمی فدراسیون شنا با سابقه آموزش تیم‌های پایه و استعدادیابی شناگران در شهر قزوین'
   },
   {
     id: 3,
     full_name: 'سارا کاظمی',
     avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=500&q=80',
-    coaching_degree: 'درجه ۱ فدراسیون شنا',
+    coaching_degree: 'مربی رسمی فدراسیون',
     is_manager: false,
     gender: 'FEMALE',
     display_order: 4,
-    bio: 'مدرس رسمی فدراسیون و کارشناس ارشد تربیت بدنی با ۱۰ سال سابقه برگزاری کلاس‌های آموزش شنای بانوان و نونهالان'
+    bio: 'مربی رسمی فدراسیون و کارشناس ارشد فیزیولوژی با سابقه برگزاری کلاس‌های آموزش شنای بانوان و نونهالان'
   },
   {
     id: 4,
     full_name: 'نیما سعادتی',
     avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=500&q=80',
-    coaching_degree: 'درجه ۲ فدراسیون شنا',
+    coaching_degree: 'مربی رسمی فدراسیون',
     is_manager: false,
     gender: 'MALE',
     display_order: 5,
@@ -66,7 +66,7 @@ const VERIFIED_COACHES = [
     id: 5,
     full_name: 'مهدی یزدانی',
     avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=500&q=80',
-    coaching_degree: 'درجه ۳ فدراسیون شنا',
+    coaching_degree: 'مربی رسمی فدراسیون',
     is_manager: false,
     gender: 'MALE',
     display_order: 6,
@@ -105,10 +105,10 @@ export const CoachesPage = () => {
     '@type': 'Person',
     '@id': `https://iran-swim.ir/coaches/#coach-${c.id}`,
     'name': c.full_name,
-    'jobTitle': c.coaching_degree || 'مربی شنا',
+    'jobTitle': c.role_title || c.coaching_degree || 'مربی شنا',
     'description': c.bio,
     'worksFor': {
-      '@type': 'SportsActivityLocation',
+      '@type': 'SportsClub',
       'name': 'مدرسه شنای ایران',
       'url': 'https://iran-swim.ir'
     }

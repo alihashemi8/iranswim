@@ -827,7 +827,7 @@ class DynamicSitemapXmlView(APIView):
 
 class DynamicRobotsTxtView(APIView):
     """
-    سرویس robots.txt استاندارد به همراه آدرس سایت‌مپ رسمی و مسدودسازی پنل‌ها
+    سرویس robots.txt استاندارد به همراه آدرس سایت‌مپ رسمی و دسترسی کرالرها به APIهای عمومی
     """
     permission_classes = [permissions.AllowAny]
 
@@ -849,6 +849,11 @@ class DynamicRobotsTxtView(APIView):
             "Allow: /assets/\n"
             "Allow: /images/\n"
             "Allow: /fonts/\n\n"
+            "# Allow public read-only API endpoints required for client-side rendering\n"
+            "Allow: /api/education/courses/\n"
+            "Allow: /api/coaches/\n"
+            "Allow: /api/content/\n"
+            "Allow: /api/leagues/public/\n\n"
             "# Disallow authenticated private panels and system operations\n"
             "Disallow: /admin/\n"
             "Disallow: /coach/\n"

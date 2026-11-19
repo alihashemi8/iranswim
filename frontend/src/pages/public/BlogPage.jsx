@@ -268,6 +268,37 @@ export const BlogPage = () => {
     );
   }
 
+  // If slug was provided in URL but no article matches
+  if (slug && !selectedArticle) {
+    return (
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 flex flex-col font-sans text-right" dir="rtl">
+        <SEOHead
+          title="مقاله مورد نظر یافت نشد (خطای ۴۰۴)"
+          description="مقاله یا خبر درخواستی در وبسایت مدرسه شنای ایران وجود ندارد یا حذف شده است."
+          robots="noindex, nofollow"
+        />
+        <main className="flex-1 flex items-center justify-center py-20 px-4">
+          <div className="max-w-md w-full text-center space-y-6">
+            <span className="text-5xl font-mono font-black text-cyan-600 block">۴۰۴</span>
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white">مقاله مورد نظر پیدا نشد!</h1>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              مقاله‌ای که به دنبال آن هستید ممکن است حذف شده باشد یا آدرس آن تغییر کرده باشد.
+            </p>
+            <div className="pt-4 flex justify-center gap-3">
+              <Link to="/blog/" className="py-2.5 px-5 rounded-xl bg-cyan-600 hover:bg-cyan-700 text-white font-bold text-xs">
+                مشاهده لیست مقالات
+              </Link>
+              <Link to="/" className="py-2.5 px-5 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200 font-bold text-xs">
+                بازگشت به صفحه اصلی
+              </Link>
+            </div>
+          </div>
+        </main>
+        <PublicFooter />
+      </div>
+    );
+  }
+
   // Articles List View (/blog/)
   const breadcrumbs = [
     { name: 'صفحه اصلی', url: '/' },

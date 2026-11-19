@@ -193,9 +193,9 @@ export const CoursesPage = ({ categoryFilter = 'ALL' }) => {
     '@type': 'Course',
     '@id': `https://iran-swim.ir/swimming-classes/#course-${c.id}`,
     'name': c.name,
-    'description': c.what_you_learn || c.description || 'آموزش تکنیک‌های شنا زیر نظر مربیان فدراسیون',
+    'description': c.what_you_learn || c.description || 'آموزش تکنیک‌های شنا در قزوین زیر نظر مربیان فدراسیون',
     'provider': {
-      '@type': 'SportsActivityLocation',
+      '@type': 'SportsClub',
       'name': 'مدرسه شنای ایران',
       'url': 'https://iran-swim.ir'
     },
@@ -208,7 +208,10 @@ export const CoursesPage = ({ categoryFilter = 'ALL' }) => {
     'hasCourseInstance': {
       '@type': 'CourseInstance',
       'courseMode': 'OnSite',
-      'location': c.pool_location || 'استخرهای منتخب قزوین'
+      'location': {
+        '@type': 'Place',
+        'name': c.pool_location || 'استخرهای طرف قرارداد قزوین'
+      }
     }
   }));
 
