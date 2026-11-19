@@ -31,22 +31,22 @@ export const SupervisorTestTriggerPage = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs transition-colors">
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <Zap className="w-5 h-5 text-amber-500" />
-          شبیه‌ساز و آزمون زنده سیستم پایش باگ ناظر
+    <div className="space-y-4 sm:space-y-6 max-w-4xl">
+      <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 md:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs transition-colors">
+        <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <Zap className="w-5 h-5 text-amber-500 shrink-0" />
+          <span>شبیه‌ساز و آزمون زنده سیستم پایش باگ ناظر</span>
         </h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
           جهت اطمینان از عملکرد صد درصدی سیستم مانیتورینگ، با فشردن دکمه‌های زیر می‌توانید یک خطای آزمایشی کنترل‌شده در سرور جنگو ایجاد کنید تا ضبط استک‌ترس و ثبت در پایگاه داده را به صورت زنده آزمایش کنید.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 sm:gap-4">
         {/* Test 1: Division by zero */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
+        <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
           <div>
-            <div className="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center font-mono font-bold text-sm mb-3 border border-rose-100 dark:border-rose-900">
+            <div className="w-9 h-9 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center font-mono font-bold text-sm mb-3 border border-rose-100 dark:border-rose-900 shrink-0">
               1/0
             </div>
             <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm">خطای تقسیم بر صفر (ZeroDivisionError)</h3>
@@ -60,7 +60,7 @@ export const SupervisorTestTriggerPage = () => {
               size="sm"
               loading={triggering}
               onClick={() => handleTrigger('division_by_zero')}
-              className="w-full"
+              className="w-full justify-center cursor-pointer"
             >
               ایجاد خطای 1/0
             </Button>
@@ -68,9 +68,9 @@ export const SupervisorTestTriggerPage = () => {
         </div>
 
         {/* Test 2: ValueError */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
+        <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
           <div>
-            <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center font-mono font-bold text-sm mb-3 border border-amber-100 dark:border-amber-900">
+            <div className="w-9 h-9 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 flex items-center justify-center font-mono font-bold text-sm mb-3 border border-amber-100 dark:border-amber-900 shrink-0">
               Val
             </div>
             <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm">خطای مقدار نامعتبر (ValueError)</h3>
@@ -84,7 +84,7 @@ export const SupervisorTestTriggerPage = () => {
               size="sm"
               loading={triggering}
               onClick={() => handleTrigger('value_error')}
-              className="w-full text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800 hover:bg-amber-50 dark:hover:bg-amber-950/50"
+              className="w-full justify-center text-amber-700 dark:text-amber-300 border-amber-300 dark:border-amber-800 hover:bg-amber-50 dark:hover:bg-amber-950/50 cursor-pointer"
             >
               ایجاد خطای ValueError
             </Button>
@@ -92,9 +92,9 @@ export const SupervisorTestTriggerPage = () => {
         </div>
 
         {/* Test 3: RuntimeError */}
-        <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors">
+        <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col justify-between transition-colors col-span-1 sm:col-span-2 md:col-span-1">
           <div>
-            <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center font-mono font-bold text-sm mb-3 border border-sky-100 dark:border-sky-900">
+            <div className="w-9 h-9 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400 flex items-center justify-center font-mono font-bold text-sm mb-3 border border-sky-100 dark:border-sky-900 shrink-0">
               Run
             </div>
             <h3 className="font-bold text-slate-800 dark:text-slate-200 text-sm">خطای زمان اجرا (RuntimeError)</h3>
@@ -108,7 +108,7 @@ export const SupervisorTestTriggerPage = () => {
               size="sm"
               loading={triggering}
               onClick={() => handleTrigger('runtime_error')}
-              className="w-full"
+              className="w-full justify-center cursor-pointer"
             >
               ایجاد خطای RuntimeError
             </Button>
@@ -118,17 +118,17 @@ export const SupervisorTestTriggerPage = () => {
 
       {/* Result feedback */}
       {result && (
-        <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 rounded-2xl p-6 shadow-xs animate-in fade-in transition-colors">
-          <div className="flex items-start gap-3">
+        <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 rounded-2xl p-4 sm:p-5 md:p-6 shadow-xs animate-in fade-in transition-colors">
+          <div className="flex flex-col sm:flex-row items-start gap-3">
             <CheckCircle2 className="w-6 h-6 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
             <div className="flex-1">
-              <h4 className="text-base font-bold text-emerald-900 dark:text-emerald-200">
+              <h4 className="text-sm sm:text-base font-bold text-emerald-900 dark:text-emerald-200">
                 استثنا با موفقیت در سرور ایجاد و توسط Middleware ناظر ضبط گردید!
               </h4>
-              <p className="text-sm text-emerald-800 dark:text-emerald-300 mt-1 leading-relaxed">
+              <p className="text-xs sm:text-sm text-emerald-800 dark:text-emerald-300 mt-1 leading-relaxed">
                 {result.detail}
               </p>
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-xs font-mono">
+              <div className="mt-3 flex flex-wrap items-center gap-2 sm:gap-3 text-xs font-mono">
                 <span className="bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-emerald-200 dark:border-emerald-800 text-slate-800 dark:text-slate-200">
                   شناسه رهگیری خطا: <strong>#{result.errorId}</strong>
                 </span>

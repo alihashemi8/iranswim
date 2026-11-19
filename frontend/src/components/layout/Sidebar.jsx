@@ -8,7 +8,7 @@ import {
   X, LogOut, ChevronLeft, ChevronRight,
   TrendingUp, MessageSquareQuote, FileText,
   Globe, Server, Radio, GitBranch, Database, Sliders, Whistle,
-  FolderCheck
+  FolderCheck, Dumbbell
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -224,6 +224,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       groupTitle: 'فعالیت ورزشی',
       items: [
         { to: '/swimmer/courses', label: 'دوره‌های آموزشی', icon: BookOpen },
+        { to: '/swimmer/plans', label: 'برنامه غذایی و تمرینی', icon: Dumbbell },
         { to: '/swimmer/progress', label: 'پیشرفت ورزشی', icon: TrendingUp },
         { to: '/swimmer/league', label: 'لیگ و رتبه‌بندی', icon: Trophy },
         { to: '/swimmer/attendance', label: 'حضور و غیاب', icon: ClipboardCheck },

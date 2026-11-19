@@ -90,6 +90,7 @@ import { CoachCompleteProfilePage } from './pages/coach/CoachCompleteProfilePage
 // Swimmer Pages
 import { SwimmerDashboardPage } from './pages/swimmer/SwimmerDashboardPage';
 import { SwimmerCoursesPage } from './pages/swimmer/SwimmerCoursesPage';
+import { SwimmerPlansPage } from './pages/swimmer/SwimmerPlansPage';
 import { SwimmerSchedulePage } from './pages/swimmer/SwimmerSchedulePage';
 import { SwimmerProgressPage } from './pages/swimmer/SwimmerProgressPage';
 import { SwimmerLeaguePage } from './pages/swimmer/SwimmerLeaguePage';
@@ -317,6 +318,7 @@ export default function App() {
 
                 {/* 2. Athletic Activity */}
                 <Route path="courses" element={<SwimmerCoursesPage />} />
+                <Route path="plans" element={<SwimmerPlansPage />} />
                 <Route path="schedule" element={<Navigate to="/swimmer/courses?tab=my-courses" replace />} />
                 <Route path="progress" element={<SwimmerProgressPage />} />
                 <Route path="league" element={<SwimmerLeaguePage />} />

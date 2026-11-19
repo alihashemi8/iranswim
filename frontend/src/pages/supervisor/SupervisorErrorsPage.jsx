@@ -159,29 +159,29 @@ export const SupervisorErrorsPage = () => {
   const totalPages = Math.ceil(totalItems / pageSize) || 1;
 
   return (
-    <div className="space-y-6 select-auto">
+    <div className="space-y-4 sm:space-y-6 select-auto">
       {/* Top Banner & Hub Title */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
+      <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 md:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
         <div>
           <div className="flex items-center gap-2.5">
-            <span className="p-2.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-900/80 shadow-2xs">
+            <span className="p-2.5 rounded-2xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200/80 dark:border-rose-900/80 shadow-2xs shrink-0">
               <Bug className="w-5 h-5" />
             </span>
             <div>
-              <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 flex-wrap">
                 <span>مرکز جامع پایش خطاها و مدیریت رخدادها</span>
-                <span className="text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                <span className="text-[11px] sm:text-xs font-mono font-medium px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                   Incident Center
                 </span>
               </h1>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
                 تجمیع خطاهای تکراری بر مبنای Fingerprint پایدار، پایش سلامت سرویس‌های زیرساخت و چرخه حیات پیگیری باگ‌ها
               </p>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto">
+        <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -190,7 +190,7 @@ export const SupervisorErrorsPage = () => {
               else if (activeTab === 'infrastructure') fetchInfrastructure();
               toast.info('داده‌ها به‌روزرسانی شدند.');
             }}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer w-full sm:w-auto"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             <span>تازه‌سازی سریع</span>
@@ -199,83 +199,83 @@ export const SupervisorErrorsPage = () => {
       </div>
 
       {/* Main Navigation Tabs Bar */}
-      <div className="bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-1 overflow-x-auto text-xs">
+      <div className="bg-white dark:bg-slate-900 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-1 overflow-x-auto text-xs no-scrollbar scroll-smooth">
         <button
           type="button"
           onClick={() => setActiveTab('overview')}
-          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+          className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === 'overview'
               ? 'bg-sky-600 text-white shadow-xs'
               : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
-          <Activity className="w-4 h-4" />
-          <span>۱. نمای کلی و آمار (Overview)</span>
+          <Activity className="w-4 h-4 shrink-0" />
+          <span>۱. نمای کلی و آمار</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('issues')}
-          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+          className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === 'issues'
               ? 'bg-sky-600 text-white shadow-xs'
               : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
-          <Bug className="w-4 h-4" />
-          <span>۲. مدیریت باگ‌ها و خطاها (Issues)</span>
+          <Bug className="w-4 h-4 shrink-0" />
+          <span>۲. باگ‌ها و خطاها</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('infrastructure')}
-          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+          className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === 'infrastructure'
               ? 'bg-sky-600 text-white shadow-xs'
               : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
-          <Server className="w-4 h-4" />
-          <span>۳. پایش زیرساخت (Infrastructure)</span>
+          <Server className="w-4 h-4 shrink-0" />
+          <span>۳. پایش زیرساخت</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('alerts')}
-          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+          className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === 'alerts'
               ? 'bg-sky-600 text-white shadow-xs'
               : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
-          <Bell className="w-4 h-4" />
-          <span>۴. هشدارها و وقایع (Alerts)</span>
+          <Bell className="w-4 h-4 shrink-0" />
+          <span>۴. هشدارها و وقایع</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('history')}
-          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+          className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === 'history'
               ? 'bg-sky-600 text-white shadow-xs'
               : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
-          <History className="w-4 h-4" />
-          <span>۵. تاریخچه و پیگیری (History)</span>
+          <History className="w-4 h-4 shrink-0" />
+          <span>۵. تاریخچه پیگیری</span>
         </button>
 
         <button
           type="button"
           onClick={() => setActiveTab('settings')}
-          className={`inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
+          className={`inline-flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold transition-all cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === 'settings'
               ? 'bg-sky-600 text-white shadow-xs'
               : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
-          <Sliders className="w-4 h-4" />
-          <span>۶. تنظیمات و آستانه‌ها (Settings)</span>
+          <Sliders className="w-4 h-4 shrink-0" />
+          <span>۶. تنظیمات و آستانه‌ها</span>
         </button>
       </div>
 

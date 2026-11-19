@@ -120,7 +120,7 @@ export const ErrorIssuesTab = ({
             <button
               type="button"
               onClick={onRefresh}
-              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 transition-colors shrink-0"
+              className="p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors shrink-0 cursor-pointer"
               title="تازه‌سازی لیست"
             >
               <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-sky-600' : ''}`} />
@@ -245,8 +245,9 @@ export const ErrorIssuesTab = ({
           description="با توجه به فیلترهای انتخابی، موردی ثبت نگردیده است."
         />
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs transition-colors">
-          <div className="overflow-x-auto">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-xs transition-colors space-y-4">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-right text-xs">
               <thead className="bg-slate-50 dark:bg-slate-800/60 font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                 <tr>
@@ -352,7 +353,7 @@ export const ErrorIssuesTab = ({
                           e.stopPropagation();
                           onSelectIssue(issue.id);
                         }}
-                        className="px-2.5 py-1 text-[11px] font-semibold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 rounded-lg border border-sky-200 dark:border-sky-800 transition-colors shrink-0"
+                        className="px-2.5 py-1 text-[11px] font-semibold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/60 rounded-lg border border-sky-200 dark:border-sky-800 transition-colors shrink-0 cursor-pointer"
                       >
                         بررسی و استک
                       </button>
@@ -361,6 +362,62 @@ export const ErrorIssuesTab = ({
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+            {issues.map((issue) => (
+              <div
+                key={issue.id}
+                onClick={() => onSelectIssue(issue.id)}
+                className="py-3.5 space-y-2.5 cursor-pointer hover:bg-slate-50/50 dark:hover:bg-slate-800/40 rounded-xl px-1 transition-colors"
+              >
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-1.5 font-mono">
+                    <span className="font-bold text-slate-500 dark:text-slate-400 text-xs">#{issue.id}</span>
+                    <span className="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-100 dark:border-rose-900">
+                      {issue.status_code}
+                    </span>
+                    <span className="font-mono font-bold text-slate-900 dark:text-white text-xs truncate max-w-[140px]">
+                      {issue.exception_type}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {getSeverityBadge(issue.severity)}
+                  </div>
+                </div>
+
+                <p className="text-xs text-slate-600 dark:text-slate-300 line-clamp-2 leading-relaxed">
+                  {issue.error_message}
+                </p>
+
+                <div className="flex items-center justify-between text-xs font-mono bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                  <span className="text-slate-700 dark:text-slate-300 truncate max-w-[200px]" dir="ltr">
+                    [{issue.http_method}] {issue.endpoint}
+                  </span>
+                  <span className="font-mono font-bold text-rose-600 dark:text-rose-400 shrink-0">
+                    {issue.occurrence_count}× وقوع
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 pt-1">
+                  <div className="flex items-center gap-2">
+                    {getStatusBadge(issue.status)}
+                    <span>{issue.assigned_to_name ? issue.assigned_to_name : 'تخصیص‌نیافته'}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectIssue(issue.id);
+                    }}
+                    className="px-2.5 py-1 text-xs font-semibold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/60 rounded-lg border border-sky-200 dark:border-sky-800 transition-colors cursor-pointer"
+                  >
+                    بررسی استک
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
 
           <Pagination

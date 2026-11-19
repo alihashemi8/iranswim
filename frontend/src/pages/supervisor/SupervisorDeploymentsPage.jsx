@@ -215,6 +215,5 @@ export const SupervisorDeploymentsPage = () => {
         )}
       </div>
     </div>
-    </div>
   );
 };

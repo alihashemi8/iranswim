@@ -2,11 +2,10 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   BookOpen, Calendar, Clock, MapPin, Users, User, CheckCircle2,
-  AlertCircle, Search, Filter, DollarSign, CreditCard, ArrowRight,
-  Sparkles, ChevronDown, ChevronUp, Layers, Award, ShieldCheck,
-  AlertTriangle, Copy, Check, Info, X, SlidersHorizontal, UserCheck,
-  GraduationCap, ArrowLeft, RefreshCw, Eye, Dumbbell, Utensils,
-  Download, Printer, ArrowRightLeft, CheckCircle
+  AlertCircle, Search, DollarSign, CreditCard, ArrowRight,
+  Sparkles, ChevronDown, ChevronUp, Check, Info, X, UserCheck,
+  GraduationCap, ArrowLeft, RefreshCw, Eye, Dumbbell,
+  ArrowRightLeft, CheckCircle, AlertTriangle
 } from 'lucide-react';
 import { SwimCourseSpecsIcon, CourseLogoIcon } from '../../components/common/AquaticIcons';
 import api from '../../api/client';
@@ -23,16 +22,6 @@ import { ProgressBar } from '../../components/common/Charts';
 import { toShamsiDate } from '../../utils/date';
 import { formatCardNumberWithDashes, copyCardToClipboard } from '../../utils/bankCard';
 import { getMediaUrl } from '../../utils/media';
-import { exportPlanToWord, printPlanToPdf } from '../../utils/planExport';
-
-// Quick age category presets for easy filtering
-const AGE_CATEGORY_PRESETS = [
-  { id: 'ALL', label: 'همه رده‌ها', min: null, max: null },
-  { id: 'KIDS', label: 'کودکان و خردسالان (۴ تا ۹ سال)', min: 4, max: 9 },
-  { id: 'PRE_TEEN', label: 'نونهالان (۶ تا ۱۲ سال)', min: 6, max: 12 },
-  { id: 'TEEN', label: 'نوجوانان (۸ تا ۱۵ سال)', min: 8, max: 15 },
-  { id: 'YOUTH', label: 'نوجوانان و بزرگسالان (۱۲ سال به بالا)', min: 12, max: null },
-];
 
 export const SwimmerCoursesPage = () => {
   const { user } = useAuth();
@@ -46,57 +35,45 @@ export const SwimmerCoursesPage = () => {
   const [myEnrollments, setMyEnrollments] = useState([]);
   const [myRequests, setMyRequests] = useState([]);
   const [sessions, setSessions] = useState([]);
-  const [plans, setPlans] = useState([]);
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Top-level View Tabs: 'MY_COURSES' (دوره‌ها و جلسات من) | 'CATALOG' (کاتالوگ و ثبت‌نام) | 'PLANS' (برنامه‌های تمرینی و غذایی)
+  // Top-level View Tabs: 'MY_COURSES' (دوره‌ها و برنامه جلسات من) | 'REGISTER' (ثبت‌نام دوره‌ها)
   const tabParam = searchParams.get('tab');
   const initialTab =
-    tabParam === 'catalog' || tabParam === 'courses'
-      ? 'CATALOG'
-      : tabParam === 'plans'
-      ? 'PLANS'
+    tabParam === 'register' || tabParam === 'catalog' || tabParam === 'courses'
+      ? 'REGISTER'
       : 'MY_COURSES';
 
   const [activeTab, setActiveTab] = useState(initialTab);
 
   // Sync tab with URL search parameter
   useEffect(() => {
-    if (tabParam === 'catalog' || tabParam === 'courses') {
-      setActiveTab('CATALOG');
-    } else if (tabParam === 'plans') {
-      setActiveTab('PLANS');
+    if (tabParam === 'plans') {
+      navigate('/swimmer/plans', { replace: true });
+    } else if (tabParam === 'register' || tabParam === 'catalog' || tabParam === 'courses') {
+      setActiveTab('REGISTER');
     } else if (tabParam === 'schedule' || tabParam === 'my-courses' || tabParam === 'sessions') {
       setActiveTab('MY_COURSES');
     }
-  }, [tabParam]);
+  }, [tabParam, navigate]);
 
   const handleTabChange = (newTab) => {
     setActiveTab(newTab);
-    const tabUrlVal = newTab === 'MY_COURSES' ? 'my-courses' : newTab === 'CATALOG' ? 'catalog' : 'plans';
+    const tabUrlVal = newTab === 'MY_COURSES' ? 'my-courses' : 'register';
     setSearchParams({ tab: tabUrlVal }, { replace: true });
   };
 
-  // Catalog Sub-filter States
-  // 'MATCHED' = متناسب با من (پیش‌فرض) | 'ALL' = همه دوره‌ها
-  const [catalogSubFilter, setCatalogSubFilter] = useState('MATCHED');
+  // Search Query for matched courses
   const [searchQuery, setSearchQuery] = useState('');
-  const [genderFilter, setGenderFilter] = useState('ALL'); // 'ALL' | 'MALE' | 'FEMALE'
-  const [ageCategory, setAgeCategory] = useState('ALL');
-  const [statusFilter, setStatusFilter] = useState('ALL'); // 'ALL' | 'UPCOMING' | 'ACTIVE'
 
   // Sessions Filter: 'ALL' | 'UPCOMING' | 'PAST'
   const [sessionsFilter, setSessionsFilter] = useState('ALL');
 
-  // Plans Filter: 'ALL' | 'TRAINING' | 'DIET'
-  const [plansFilter, setPlansFilter] = useState('ALL');
-
   // Modals & Interactivity
   const [selectedCourseForDetail, setSelectedCourseForDetail] = useState(null);
   const [selectedCourseForEnroll, setSelectedCourseForEnroll] = useState(null);
-  const [selectedPlanForView, setSelectedPlanForView] = useState(null);
   const [expandedSyllabusId, setExpandedSyllabusId] = useState(null);
 
   // Enrollment Form State
@@ -115,13 +92,12 @@ export const SwimmerCoursesPage = () => {
 
       const params = activeSwimmerId ? { swimmer_id: activeSwimmerId } : {};
 
-      const [courseRes, profileRes, enrRes, reqRes, sessRes, plansRes] = await Promise.allSettled([
+      const [courseRes, profileRes, enrRes, reqRes, sessRes] = await Promise.allSettled([
         api.get('/education/courses/', { params }),
         api.get('/swimmers/me/', { params }),
         api.get('/education/enrollments/', { params }),
         api.get('/education/requests/', { params }),
         api.get('/scheduling/sessions/', { params }),
-        api.get('/swimmers/my-plans/', { params }),
       ]);
 
       if (courseRes.status === 'fulfilled') {
@@ -135,9 +111,8 @@ export const SwimmerCoursesPage = () => {
         const d = enrRes.value.data;
         const list = Array.isArray(d) ? d : d.results || [];
         setMyEnrollments(list);
-        // If user didn't specify a tab in url and has no enrollments, show catalog by default
         if (!tabParam && list.length === 0) {
-          setActiveTab('CATALOG');
+          setActiveTab('REGISTER');
         }
       }
       if (reqRes.status === 'fulfilled') {
@@ -147,10 +122,6 @@ export const SwimmerCoursesPage = () => {
       if (sessRes.status === 'fulfilled') {
         const d = sessRes.value.data;
         setSessions(Array.isArray(d) ? d : d.results || []);
-      }
-      if (plansRes.status === 'fulfilled') {
-        const d = plansRes.value.data;
-        setPlans(Array.isArray(d) ? d : d.results || []);
       }
     } catch (err) {
       console.error('Error fetching courses data:', err);
@@ -177,48 +148,35 @@ export const SwimmerCoursesPage = () => {
   const hasBirthDate = Boolean(currentSwimmer?.date_of_birth);
   const hasGender = Boolean(swimmerGender);
 
-  // Helper: check if a course matches this swimmer's gender and age
+  // Helper: check if a course strictly matches this swimmer's gender and age
   const checkCourseEligibility = useCallback((course) => {
-    if (!course) return { isEligible: true, genderOk: true, ageOk: true, reason: '' };
+    if (!course) return { isEligible: true, genderOk: true, ageOk: true };
 
     // 1. Gender check
     const courseGender = course.gender || 'ALL';
     let genderOk = true;
-    let genderReason = '';
 
     if (courseGender !== 'ALL' && swimmerGender) {
       genderOk = courseGender.toUpperCase() === swimmerGender.toUpperCase();
-      if (!genderOk) {
-        genderReason = courseGender === 'MALE' ? 'مخصوص پسران / آقایان' : 'مخصوص دختران / بانوان';
-      }
     }
 
     // 2. Age check
     let ageOk = true;
-    let ageReason = '';
     const minA = course.min_age !== null && course.min_age !== undefined ? Number(course.min_age) : null;
     const maxA = course.max_age !== null && course.max_age !== undefined ? Number(course.max_age) : null;
 
     if (swimmerAge !== null) {
       if (minA !== null && swimmerAge < minA) {
         ageOk = false;
-        ageReason = `حداقل سن ${minA} سال (سن شناگر: ${swimmerAge} سال)`;
       } else if (maxA !== null && swimmerAge > maxA) {
         ageOk = false;
-        ageReason = `حداکثر سن ${maxA} سال (سن شناگر: ${swimmerAge} سال)`;
       }
-    } else if (minA !== null || maxA !== null) {
-      ageReason = 'نیاز به ثبت تاریخ تولد';
     }
 
     return {
       isEligible: genderOk && ageOk,
       genderOk,
       ageOk,
-      genderReason,
-      ageReason,
-      minA,
-      maxA,
     };
   }, [swimmerGender, swimmerAge]);
 
@@ -250,17 +208,14 @@ export const SwimmerCoursesPage = () => {
     return { isEnrolled: false, hasPendingRequest: false };
   }, [myEnrollments, myRequests]);
 
-  // Filtered courses for catalog
-  const filteredCatalogCourses = useMemo(() => {
+  // Filtered strictly to MATCHED courses without requiring the swimmer to choose categories
+  const filteredRegistrationCourses = useMemo(() => {
     return courses.filter((course) => {
+      // Must be eligible for this swimmer!
       const eligibility = checkCourseEligibility(course);
+      if (!eligibility.isEligible) return false;
 
-      // 1. Sub filter: Matched vs All
-      if (catalogSubFilter === 'MATCHED') {
-        if (!eligibility.isEligible) return false;
-      }
-
-      // 2. Search Query (name, pool, coach, description)
+      // Search Query (name, pool, coach, description)
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase();
         const nameMatch = course.name?.toLowerCase().includes(q);
@@ -272,32 +227,9 @@ export const SwimmerCoursesPage = () => {
         if (!nameMatch && !poolMatch && !descMatch && !coachMatch) return false;
       }
 
-      // 3. Gender Filter
-      if (genderFilter !== 'ALL') {
-        if (course.gender && course.gender !== 'ALL' && course.gender !== genderFilter) {
-          return false;
-        }
-      }
-
-      // 4. Age Category Preset Filter
-      if (ageCategory !== 'ALL') {
-        const preset = AGE_CATEGORY_PRESETS.find((p) => p.id === ageCategory);
-        if (preset) {
-          const cMin = course.min_age !== null && course.min_age !== undefined ? Number(course.min_age) : null;
-          const cMax = course.max_age !== null && course.max_age !== undefined ? Number(course.max_age) : null;
-          if (preset.min !== null && cMax !== null && cMax < preset.min) return false;
-          if (preset.max !== null && cMin !== null && cMin > preset.max) return false;
-        }
-      }
-
-      // 5. Status Filter
-      if (statusFilter !== 'ALL') {
-        if (course.status !== statusFilter) return false;
-      }
-
       return true;
     });
-  }, [courses, catalogSubFilter, searchQuery, genderFilter, ageCategory, statusFilter, checkCourseEligibility]);
+  }, [courses, searchQuery, checkCourseEligibility]);
 
   // Filtered sessions
   const nowStr = new Date().toISOString().split('T')[0];
@@ -332,9 +264,8 @@ export const SwimmerCoursesPage = () => {
       enrolledCount: myEnrollments.length,
       pendingRequestsCount: myRequests.filter((r) => r.status === 'PENDING').length,
       totalRemainingQuota,
-      plansCount: plans.length,
     };
-  }, [courses, myEnrollments, myRequests, plans, checkCourseEligibility]);
+  }, [courses, myEnrollments, myRequests, checkCourseEligibility]);
 
   // Open enrollment modal for a course
   const handleOpenEnrollModal = (course) => {
@@ -419,7 +350,7 @@ export const SwimmerCoursesPage = () => {
               <span>دوره‌ها و برنامه کلاس‌های آموزشی</span>
             </h1>
             <p className="text-xs sm:text-sm text-sky-100/90 max-w-2xl leading-relaxed">
-              مشاهده دوره‌های فعال، زمان‌بندی جلسات استخر، کاتالوگ دوره‌های مصوب آموزشگاه و برنامه‌های تمرینی و تغذیه
+              مشاهده دوره‌های فعال، زمان‌بندی جلسات استخر و ثبت‌نام در دوره‌های متناسب با شرایط سنی و مهارتی شما
             </p>
           </div>
 
@@ -430,7 +361,7 @@ export const SwimmerCoursesPage = () => {
                 <UserCheck className="w-3.5 h-3.5 text-cyan-300" />
                 <span>شناگر جاری:</span>
               </span>
-              {childrenList.length > 1 && (
+              {childrenList && childrenList.length > 1 && (
                 <div
                   className="text-[11px] text-cyan-200 font-bold underline cursor-pointer hover:text-white transition-colors"
                   onClick={() => {
@@ -540,10 +471,10 @@ export const SwimmerCoursesPage = () => {
           <div>
             <div className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 mb-1 flex items-center gap-1">
               <Sparkles className="w-3 h-3" />
-              <span>پیشنهاد انطباق هوشمند</span>
+              <span>دوره‌های متناسب قابل ثبت‌نام</span>
             </div>
             <div className="text-xl sm:text-2xl font-black text-emerald-600 dark:text-emerald-400 font-mono">
-              {stats.matchedCount} <span className="text-xs font-normal text-slate-400">دوره</span>
+              {filteredRegistrationCourses.length} <span className="text-xs font-normal text-slate-400">دوره</span>
             </div>
           </div>
           <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
@@ -552,7 +483,7 @@ export const SwimmerCoursesPage = () => {
         </div>
       </div>
 
-      {/* 3. UNIFIED NAVIGATION TABS */}
+      {/* 3. NAVIGATION TABS */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-3 sm:p-4 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -581,53 +512,37 @@ export const SwimmerCoursesPage = () => {
               )}
             </button>
 
-            {/* Tab 2: Catalog & Pre-registration */}
+            {/* Tab 2: Course Registration (ثبت‌نام دوره‌ها) */}
             <button
               type="button"
-              onClick={() => handleTabChange('CATALOG')}
+              onClick={() => handleTabChange('REGISTER')}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
-                activeTab === 'CATALOG'
+                activeTab === 'REGISTER'
                   ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-xs scale-102 ring-2 ring-blue-500/20'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               <BookOpen className="w-4 h-4" />
-              <span>کاتالوگ و ثبت‌نام دوره‌ها</span>
+              <span>ثبت‌نام دوره‌ها</span>
               <span
                 className={`text-[11px] px-1.5 py-0.2 rounded-full font-mono ${
-                  activeTab === 'CATALOG'
+                  activeTab === 'REGISTER'
                     ? 'bg-white/20 text-white'
                     : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
                 }`}
               >
-                {courses.length}
+                {filteredRegistrationCourses.length}
               </span>
             </button>
 
-            {/* Tab 3: Training & Nutrition Plans */}
-            <button
-              type="button"
-              onClick={() => handleTabChange('PLANS')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
-                activeTab === 'PLANS'
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-xs scale-102 ring-2 ring-emerald-500/20'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
-              }`}
+            {/* Direct Link to Dedicated Workout & Diet Plans Page */}
+            <Link
+              to="/swimmer/plans"
+              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
             >
-              <Dumbbell className="w-4 h-4" />
-              <span>برنامه‌های تمرینی و غذایی</span>
-              {plans.length > 0 && (
-                <span
-                  className={`text-[11px] px-1.5 py-0.2 rounded-full font-mono ${
-                    activeTab === 'PLANS'
-                      ? 'bg-white/20 text-white'
-                      : 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300'
-                  }`}
-                >
-                  {plans.length}
-                </span>
-              )}
-            </button>
+              <Dumbbell className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span>برنامه غذایی و تمرینی</span>
+            </Link>
           </div>
 
           {/* Refresh Button */}
@@ -764,11 +679,11 @@ export const SwimmerCoursesPage = () => {
                 در حال حاضر در هیچ دوره‌ای ثبت‌نام فعال ندارید
               </h3>
               <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
-                می‌توانید دوره‌های متناسب با شرایط سنی و سطح مهارتی خود را در کاتالوگ دوره‌ها مشاهده و پیش‌ثبت‌نام نمایید.
+                می‌توانید دوره‌های متناسب با شرایط سنی و سطح مهارتی خود را در بخش ثبت‌نام دوره‌ها مشاهده و انتخاب نمایید.
               </p>
               <div className="pt-2">
-                <Button variant="primary" onClick={() => handleTabChange('CATALOG')}>
-                  مشاهده کاتالوگ و ثبت‌نام در دوره‌ها
+                <Button variant="primary" onClick={() => handleTabChange('REGISTER')}>
+                  مشاهده و ثبت‌نام در دوره‌ها
                 </Button>
               </div>
             </div>
@@ -933,203 +848,81 @@ export const SwimmerCoursesPage = () => {
         </div>
       )}
 
-      {/* 5. TAB 2 CONTENT: COURSE CATALOG & ENROLLMENT */}
-      {activeTab === 'CATALOG' && (
+      {/* 5. TAB 2 CONTENT: COURSE REGISTRATION (ثبت‌نام دوره‌ها) */}
+      {activeTab === 'REGISTER' && (
         <div className="space-y-6">
-          {/* Catalog Controls Card */}
-          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-xs space-y-4">
-            {/* Sub-mode switch: Matched vs All */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
-              <div className="flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setCatalogSubFilter('MATCHED')}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold text-xs transition-all cursor-pointer ${
-                    catalogSubFilter === 'MATCHED'
-                      ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-2xs'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                  }`}
-                >
-                  <Sparkles className="w-3.5 h-3.5 text-emerald-200" />
-                  <span>دوره‌های متناسب با شرایط من</span>
-                  <span className="text-[11px] px-1.5 py-0.2 rounded-full font-mono bg-white/20 text-white">
-                    {stats.matchedCount}
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setCatalogSubFilter('ALL')}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl font-bold text-xs transition-all cursor-pointer ${
-                    catalogSubFilter === 'ALL'
-                      ? 'bg-sky-600 text-white shadow-2xs'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400'
-                  }`}
-                >
-                  <BookOpen className="w-3.5 h-3.5" />
-                  <span>همه دوره‌های آموزشگاه</span>
-                  <span className="text-[11px] px-1.5 py-0.2 rounded-full font-mono bg-white/20 text-white">
-                    {stats.totalCourses}
-                  </span>
-                </button>
-              </div>
-
-              <span className="text-xs text-slate-400">
-                نمایش <strong>{filteredCatalogCourses.length}</strong> دوره
-              </span>
+          {/* Header & Search Bar - Strictly Matched Courses without Category Selector */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
+                <span>ثبت‌نام دوره‌ها</span>
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                دوره‌های آموزشی متناسب با شرایط سنی ({swimmerAge !== null ? `${swimmerAge} سال` : 'سن شناگر'}) و جنسیت ({swimmerGender === 'FEMALE' ? 'دختران / بانوان' : 'پسران / آقایان'}) شما
+              </p>
             </div>
 
-            {/* Smart Matching Alert */}
-            {catalogSubFilter === 'MATCHED' && (
-              <div className="bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-800/60 rounded-2xl p-3 sm:p-3.5 flex items-start gap-2.5 text-xs text-emerald-800 dark:text-emerald-300">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                <div>
-                  <span className="font-bold">فیلتر هوشمند انطباق فعال است:</span>
-                  <p className="text-emerald-700 dark:text-emerald-400/90 leading-relaxed text-[11px] mt-0.5">
-                    دوره‌ها بر اساس جنسیت <strong>({swimmerGender === 'FEMALE' ? 'دختران' : 'پسران'})</strong> و سن شناگر <strong>({swimmerAge !== null ? `${swimmerAge} سال` : 'نامشخص'})</strong> فیلتر شده‌اند. برای مشاهده تمام دوره‌های آموزشگاه، تب «همه دوره‌ها» را انتخاب فرمایید.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {/* Search and Filters */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-1">
-              <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input
-                  type="text"
-                  placeholder="جستجوی دوره، مربی یا استخر..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pr-9 pl-8 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
-                />
-                {searchQuery && (
-                  <button
-                    type="button"
-                    onClick={() => setSearchQuery('')}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
-                  >
-                    <X className="w-3.5 h-3.5" />
-                  </button>
-                )}
-              </div>
-
-              <div>
-                <CustomSelect
-                  value={genderFilter}
-                  onChange={(val) => setGenderFilter(val)}
-                  options={[
-                    { value: 'ALL', label: 'همه جنسیت‌ها', icon: Users },
-                    { value: 'MALE', label: 'پسران / آقایان', icon: User },
-                    { value: 'FEMALE', label: 'دختران / بانوان', icon: User },
-                  ]}
-                  placeholder="فیلتر جنسیت..."
-                />
-              </div>
-
-              <div>
-                <CustomSelect
-                  value={ageCategory}
-                  onChange={(val) => setAgeCategory(val)}
-                  options={AGE_CATEGORY_PRESETS.map((p) => ({
-                    value: p.id,
-                    label: p.label,
-                    icon: Calendar,
-                  }))}
-                  placeholder="فیلتر رده سنی..."
-                />
-              </div>
-
-              <div>
-                <CustomSelect
-                  value={statusFilter}
-                  onChange={(val) => setStatusFilter(val)}
-                  options={[
-                    { value: 'ALL', label: 'همه وضعیت‌ها' },
-                    { value: 'UPCOMING', label: 'پیش‌ثبت‌نام (آتی)' },
-                    { value: 'ACTIVE', label: 'در حال برگزاری' },
-                  ]}
-                  placeholder="وضعیت دوره..."
-                />
-              </div>
-            </div>
-
-            {(searchQuery || genderFilter !== 'ALL' || ageCategory !== 'ALL' || statusFilter !== 'ALL') && (
-              <div className="flex items-center justify-between text-xs text-slate-500 pt-1">
-                <span>فیلترهای سفارشی اعمال شده‌اند</span>
+            {/* Quick Search */}
+            <div className="relative w-full sm:w-72">
+              <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <input
+                type="text"
+                placeholder="جستجو در دوره‌ها یا مربیان..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pr-9 pl-8 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100"
+              />
+              {searchQuery && (
                 <button
                   type="button"
-                  onClick={() => {
-                    setSearchQuery('');
-                    setGenderFilter('ALL');
-                    setAgeCategory('ALL');
-                    setStatusFilter('ALL');
-                  }}
-                  className="font-bold text-sky-600 hover:underline cursor-pointer"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer"
                 >
-                  پاک‌سازی فیلترها
+                  <X className="w-3.5 h-3.5" />
                 </button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
 
-          {/* Catalog Courses Grid */}
-          {filteredCatalogCourses.length === 0 ? (
+          {/* Courses Grid */}
+          {filteredRegistrationCourses.length === 0 ? (
             <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-8 shadow-xs">
               <EmptyState
                 title="دوره‌ای با این مشخصات یافت نشد"
                 description={
-                  catalogSubFilter === 'MATCHED'
-                    ? 'در حال حاضر دوره‌ای متناسب با سن و جنسیت تعیین‌شده ثبت نشده است. می‌توانید با جابجایی به تب «همه دوره‌ها»، کلیه دوره‌های آموزشگاه را بررسی کنید.'
-                    : 'با تغییر عبارات جستجو یا فیلترهای انتخابی، دوباره تلاش کنید.'
+                  searchQuery
+                    ? 'نتیجه‌ای برای عبارت جستجوی شما یافت نشد.'
+                    : 'در حال حاضر دوره جدیدی متناسب با سن و جنسیت شما ثبت نشده است. به محض تعریف دوره جدید توسط آموزشگاه، در این بخش قابل مشاهده خواهد بود.'
                 }
                 action={
-                  catalogSubFilter === 'MATCHED' ? (
-                    <Button variant="primary" onClick={() => setCatalogSubFilter('ALL')}>
-                      مشاهده همه دوره‌های آموزشگاه
+                  searchQuery ? (
+                    <Button variant="outline" onClick={() => setSearchQuery('')}>
+                      پاک‌سازی جستجو
                     </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        setSearchQuery('');
-                        setGenderFilter('ALL');
-                        setAgeCategory('ALL');
-                        setStatusFilter('ALL');
-                      }}
-                    >
-                      حذف فیلترها
-                    </Button>
-                  )
+                  ) : null
                 }
               />
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-              {filteredCatalogCourses.map((course) => {
-                const eligibility = checkCourseEligibility(course);
+              {filteredRegistrationCourses.map((course) => {
                 const enrInfo = getEnrollmentInfo(course.id);
                 const isSyllabusExpanded = expandedSyllabusId === course.id;
 
                 return (
                   <div
                     key={course.id}
-                    className={`group relative bg-white dark:bg-slate-900 rounded-3xl border transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-xs hover:shadow-md ${
-                      eligibility.isEligible
-                        ? 'border-slate-200/90 dark:border-slate-800 hover:border-sky-400/80 dark:hover:border-sky-600'
-                        : 'border-slate-200/60 dark:border-slate-800/60 opacity-90'
-                    }`}
+                    className="group relative bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/90 dark:border-slate-800 hover:border-sky-400/80 dark:hover:border-sky-600 transition-all duration-300 flex flex-col justify-between overflow-hidden shadow-xs hover:shadow-md"
                   >
-                    {/* Top Colored Stripe */}
+                    {/* Top Accent Stripe */}
                     <div
                       className={`h-1.5 w-full ${
                         enrInfo.isEnrolled
                           ? 'bg-emerald-500'
                           : enrInfo.hasPendingRequest
                           ? 'bg-amber-500'
-                          : eligibility.isEligible
-                          ? 'bg-gradient-to-r from-sky-500 via-cyan-400 to-teal-400'
-                          : 'bg-slate-300 dark:bg-slate-700'
+                          : 'bg-gradient-to-r from-sky-500 via-cyan-400 to-teal-400'
                       }`}
                     />
 
@@ -1165,17 +958,10 @@ export const SwimmerCoursesPage = () => {
                           )}
                         </div>
 
-                        {eligibility.isEligible ? (
-                          <span className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1.5">
-                            <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 stroke-[3]" />
-                            <span>متناسب با شما</span>
-                          </span>
-                        ) : (
-                          <span className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60 flex items-center gap-1.5">
-                            <Info className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
-                            <span>شرایط متفاوت</span>
-                          </span>
-                        )}
+                        <span className="text-[11px] font-bold px-2.5 py-1 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60 flex items-center gap-1.5">
+                          <Check className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 stroke-[3]" />
+                          <span>متناسب با شما</span>
+                        </span>
                       </div>
 
                       {/* Course Title & Description */}
@@ -1190,40 +976,8 @@ export const SwimmerCoursesPage = () => {
                         )}
                       </div>
 
-                      {/* Ineligibility Reason Alert */}
-                      {!eligibility.isEligible && (
-                        <div className="bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/60 dark:border-amber-800/40 rounded-xl p-2.5 text-[11px] text-amber-800 dark:text-amber-300 space-y-1">
-                          {!eligibility.genderOk && (
-                            <div className="flex items-center gap-1 font-semibold">
-                              <AlertTriangle className="w-3 h-3 text-amber-600" />
-                              <span>جنسیت مجاز: {course.gender === 'MALE' ? 'فقط پسران / آقایان' : 'فقط دختران / بانوان'}</span>
-                            </div>
-                          )}
-                          {!eligibility.ageOk && (
-                            <div className="flex items-center gap-1 font-semibold">
-                              <AlertTriangle className="w-3 h-3 text-amber-600" />
-                              <span>رده سنی: {course.age_range || (course.min_age && course.max_age ? `${course.min_age} تا ${course.max_age} سال` : '')} (سن شما: {swimmerAge} سال)</span>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
                       {/* Specifications Grid */}
                       <div className="grid grid-cols-2 gap-2 text-xs">
-                        <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-100 dark:border-slate-800/80">
-                          <span className="text-[10px] text-slate-400 block mb-0.5">جنسیت مجاز:</span>
-                          <div className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 truncate">
-                            <Users className="w-3.5 h-3.5 text-sky-500 shrink-0" />
-                            <span className="truncate">
-                              {course.gender === 'MALE'
-                                ? 'پسران / آقایان'
-                                : course.gender === 'FEMALE'
-                                ? 'دختران / بانوان'
-                                : 'عمومی (پسران و دختران)'}
-                            </span>
-                          </div>
-                        </div>
-
                         <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-100 dark:border-slate-800/80">
                           <span className="text-[10px] text-slate-400 block mb-0.5">رده سنی:</span>
                           <div className="font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5 truncate">
@@ -1247,8 +1001,8 @@ export const SwimmerCoursesPage = () => {
                           </div>
                         </div>
 
-                        <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-100 dark:border-slate-800/80">
-                          <span className="text-[10px] text-slate-400 block mb-0.5">روزها و ساعات:</span>
+                        <div className="col-span-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-100 dark:border-slate-800/80">
+                          <span className="text-[10px] text-slate-400 block mb-0.5">روزها و ساعات برگزاری:</span>
                           <div className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 truncate">
                             <Clock className="w-3.5 h-3.5 text-sky-500 shrink-0" />
                             <span className="truncate">
@@ -1362,10 +1116,8 @@ export const SwimmerCoursesPage = () => {
                         </div>
                       ) : (
                         <Button
-                          variant={eligibility.isEligible ? 'primary' : 'outline'}
-                          className={`flex-1 text-xs font-bold ${
-                            !eligibility.isEligible ? 'border-amber-300 text-amber-700 dark:text-amber-400' : ''
-                          }`}
+                          variant="primary"
+                          className="flex-1 text-xs font-bold"
                           onClick={() => handleOpenEnrollModal(course)}
                         >
                           <span>پیش‌ثبت‌نام در این دوره</span>
@@ -1381,192 +1133,7 @@ export const SwimmerCoursesPage = () => {
         </div>
       )}
 
-      {/* 6. TAB 3 CONTENT: TRAINING & DIET PLANS */}
-      {activeTab === 'PLANS' && (
-        <div className="space-y-4">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div>
-              <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <Dumbbell className="w-5 h-5 text-emerald-600" />
-                <span>برنامه‌های تمرینی تخصصی و تغذیه ورزشی</span>
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                برنامه‌های تدوین‌شده توسط کادر مربیان اختصاصی با امکان دانلود فایل Word و پرینت PDF
-              </p>
-            </div>
-
-            {/* Plan Filter Pills */}
-            <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl w-fit">
-              <button
-                type="button"
-                onClick={() => setPlansFilter('ALL')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  plansFilter === 'ALL'
-                    ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400'
-                }`}
-              >
-                همه ({plans.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setPlansFilter('TRAINING')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                  plansFilter === 'TRAINING'
-                    ? 'bg-blue-600 text-white shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400'
-                }`}
-              >
-                <Dumbbell className="w-3.5 h-3.5" />
-                <span>تمرینی</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setPlansFilter('DIET')}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1 ${
-                  plansFilter === 'DIET'
-                    ? 'bg-emerald-600 text-white shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400'
-                }`}
-              >
-                <Utensils className="w-3.5 h-3.5" />
-                <span>غذایی</span>
-              </button>
-            </div>
-          </div>
-
-          {plans.filter((p) => plansFilter === 'ALL' || p.plan_type === plansFilter).length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {plans
-                .filter((p) => plansFilter === 'ALL' || p.plan_type === plansFilter)
-                .map((p) => {
-                  const isDiet = p.plan_type === 'DIET';
-
-                  return (
-                    <div
-                      key={p.id}
-                      className={`bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border shadow-xs flex flex-col justify-between gap-4 ${
-                        isDiet
-                          ? 'border-emerald-200 dark:border-emerald-900/60'
-                          : 'border-blue-200 dark:border-blue-900/60'
-                      }`}
-                    >
-                      <div className="space-y-3">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span
-                              className={`text-xs font-black px-2.5 py-0.5 rounded-md ${
-                                isDiet
-                                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                                  : 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
-                              }`}
-                            >
-                              {isDiet ? 'برنامه غذایی' : 'برنامه تمرینی'}
-                            </span>
-                            {p.target_type === 'INDIVIDUAL' ? (
-                              <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300">
-                                اختصاصی برای شما
-                              </span>
-                            ) : p.group_name ? (
-                              <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300">
-                                کلاس: {p.group_name}
-                              </span>
-                            ) : null}
-                          </div>
-
-                          <span className="text-xs text-slate-400 font-mono">
-                            {toShamsiDate(p.created_at).shortNumeric || p.created_at?.slice(0, 10)}
-                          </span>
-                        </div>
-
-                        <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
-                          {p.title}
-                        </h3>
-
-                        <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
-                          مربی طراح: {p.coach_name || 'کادر فنی آکادمی'}
-                        </p>
-
-                        {isDiet ? (
-                          <div className="space-y-2 text-xs sm:text-sm">
-                            {p.diet_goal && (
-                              <div className="p-2.5 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 border border-emerald-200/50 dark:border-emerald-900/40">
-                                <strong>هدف: </strong> {p.diet_goal}
-                              </div>
-                            )}
-                            {p.breakfast && (
-                              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-                                <strong>صبحانه: </strong> {p.breakfast}
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="space-y-2 text-xs sm:text-sm">
-                            {p.focus_skills && (
-                              <div className="p-2.5 rounded-xl bg-blue-50/70 dark:bg-blue-950/40 text-blue-900 dark:text-blue-200 border border-blue-200/50 dark:border-blue-900/40">
-                                <strong>تمرکز: </strong> {p.focus_skills}
-                              </div>
-                            )}
-                            {p.main_section && (
-                              <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 font-mono text-xs border border-slate-100 dark:border-slate-800">
-                                <strong>تمرین اصلی: </strong>
-                                <p className="line-clamp-2 mt-1">{p.main_section}</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Action Buttons: View Full Details + Download */}
-                      <div className="pt-3 border-t border-slate-100 dark:border-slate-800 space-y-2">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedPlanForView(p)}
-                          className="w-full py-2.5 px-3 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer shadow-2xs"
-                        >
-                          <Eye className="w-4 h-4" />
-                          <span>مشاهده کامل آیتم‌های برنامه</span>
-                        </button>
-
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => exportPlanToWord(p)}
-                            className="flex-1 py-2 px-3 rounded-xl bg-blue-50 dark:bg-blue-950/70 hover:bg-blue-100 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200/50 dark:border-blue-800/60 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>دانلود Word</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => printPlanToPdf(p)}
-                            className="flex-1 py-2 px-3 rounded-xl bg-rose-50 dark:bg-rose-950/70 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200/50 dark:border-rose-800/60 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                          >
-                            <Printer className="w-3.5 h-3.5" />
-                            <span>چاپ PDF</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-            </div>
-          ) : (
-            <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
-              <Dumbbell className="w-12 h-12 text-slate-300 dark:text-slate-600 mx-auto mb-3" />
-              <h3 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-200">
-                هنوز برنامه تمرینی یا غذایی برای شما ثبت نشده است
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                به محض اینکه مربی شما برنامه‌ای ثبت و ارسال نماید، در این بخش قابل مشاهده و دانلود خواهد بود.
-              </p>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 7. COURSE DETAIL MODAL */}
+      {/* 6. COURSE DETAIL MODAL */}
       {selectedCourseForDetail && (
         <Modal
           isOpen={Boolean(selectedCourseForDetail)}
@@ -1694,8 +1261,7 @@ export const SwimmerCoursesPage = () => {
                     onClick={() => copyCardToClipboard(selectedCourseForDetail.card_number, toast)}
                     className="p-1.5 rounded-lg bg-sky-200/60 dark:bg-sky-800 hover:bg-sky-300 text-sky-800 dark:text-sky-100 text-xs font-semibold flex items-center gap-1 cursor-pointer"
                   >
-                    <Copy className="w-3 h-3" />
-                    <span>کپی کارت</span>
+                    <span>کپی شماره کارت</span>
                   </button>
                 </div>
                 {selectedCourseForDetail.card_holder && (
@@ -1725,7 +1291,7 @@ export const SwimmerCoursesPage = () => {
         </Modal>
       )}
 
-      {/* 8. ENROLLMENT REQUEST MODAL */}
+      {/* 7. ENROLLMENT REQUEST MODAL */}
       {selectedCourseForEnroll && (
         <Modal
           isOpen={Boolean(selectedCourseForEnroll)}
@@ -1843,146 +1409,6 @@ export const SwimmerCoursesPage = () => {
               </Button>
             </div>
           </form>
-        </Modal>
-      )}
-
-      {/* 9. PLAN DETAILS MODAL */}
-      {selectedPlanForView && (
-        <Modal
-          isOpen={Boolean(selectedPlanForView)}
-          onClose={() => setSelectedPlanForView(null)}
-          title={selectedPlanForView.title || 'جزئیات کامل برنامه'}
-          maxWidth="max-w-2xl"
-        >
-          <div className="space-y-4 text-right" dir="rtl">
-            <div className="flex flex-wrap items-center justify-between gap-2 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/70 dark:border-slate-700/60 text-xs">
-              <div className="flex items-center gap-2">
-                <span
-                  className={`px-2.5 py-0.5 rounded-lg font-black ${
-                    selectedPlanForView.plan_type === 'DIET'
-                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
-                      : 'bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300'
-                  }`}
-                >
-                  {selectedPlanForView.plan_type === 'DIET' ? 'برنامه تغذیه' : 'برنامه تمرین شنا'}
-                </span>
-                <span className="font-semibold text-slate-600 dark:text-slate-300">
-                  مربی: {selectedPlanForView.coach_name || 'کادر فنی آکادمی'}
-                </span>
-              </div>
-              <span className="font-mono text-slate-400">
-                تاریخ تدوین: {toShamsiDate(selectedPlanForView.created_at).fullText || selectedPlanForView.created_at?.slice(0, 10)}
-              </span>
-            </div>
-
-            {selectedPlanForView.plan_type === 'DIET' ? (
-              <div className="space-y-3 text-sm">
-                {selectedPlanForView.diet_goal && (
-                  <div className="p-3 rounded-2xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900/60">
-                    <span className="font-bold text-emerald-900 dark:text-emerald-200 block mb-1">🎯 هدف رژیم غذایی:</span>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{selectedPlanForView.diet_goal}</p>
-                  </div>
-                )}
-                {selectedPlanForView.breakfast && (
-                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/50">
-                    <span className="font-bold text-slate-800 dark:text-slate-200 block mb-1">🍳 وعده صبحانه:</span>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{selectedPlanForView.breakfast}</p>
-                  </div>
-                )}
-                {selectedPlanForView.lunch && (
-                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/50">
-                    <span className="font-bold text-slate-800 dark:text-slate-200 block mb-1">🥗 وعده ناهار:</span>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{selectedPlanForView.lunch}</p>
-                  </div>
-                )}
-                {selectedPlanForView.dinner && (
-                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/50">
-                    <span className="font-bold text-slate-800 dark:text-slate-200 block mb-1">🍲 وعده شام:</span>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{selectedPlanForView.dinner}</p>
-                  </div>
-                )}
-                {selectedPlanForView.snacks && (
-                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/50">
-                    <span className="font-bold text-slate-800 dark:text-slate-200 block mb-1">🍎 میان‌وعده‌ها و مکمل‌ها:</span>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{selectedPlanForView.snacks}</p>
-                  </div>
-                )}
-                {selectedPlanForView.hydration && (
-                  <div className="p-3 rounded-2xl bg-cyan-50 dark:bg-cyan-950/40 border border-cyan-200 dark:border-cyan-900/60">
-                    <span className="font-bold text-cyan-900 dark:text-cyan-200 block mb-1">💧 آبرسانی و نوشیدنی‌های قبل و حین تمرین:</span>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{selectedPlanForView.hydration}</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="space-y-3 text-sm">
-                {selectedPlanForView.focus_skills && (
-                  <div className="p-3 rounded-2xl bg-sky-50 dark:bg-sky-950/40 border border-sky-200 dark:border-sky-900/60">
-                    <span className="font-bold text-sky-900 dark:text-sky-200 block mb-1">🎯 تمرکز مهارتی و تکنیکی:</span>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed">{selectedPlanForView.focus_skills}</p>
-                  </div>
-                )}
-                {selectedPlanForView.warmup && (
-                  <div className="p-3 rounded-2xl bg-amber-50/60 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50">
-                    <span className="font-bold text-amber-900 dark:text-amber-200 block mb-1">🔥 گرم‌کردن و کشش:</span>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{selectedPlanForView.warmup}</p>
-                  </div>
-                )}
-                {selectedPlanForView.main_section && (
-                  <div className="p-3.5 rounded-2xl bg-blue-50/80 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-900/60">
-                    <span className="font-bold text-blue-900 dark:text-blue-200 block mb-1.5">🏊 ست تمرین اصلی (Main Set):</span>
-                    <p className="text-slate-800 dark:text-slate-200 leading-relaxed whitespace-pre-line font-mono text-xs sm:text-sm">
-                      {selectedPlanForView.main_section}
-                    </p>
-                  </div>
-                )}
-                {selectedPlanForView.drills && (
-                  <div className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/60 dark:border-slate-700/50">
-                    <span className="font-bold text-slate-800 dark:text-slate-200 block mb-1">⚙️ تمرینات اصلاح تکنیک (Drills):</span>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{selectedPlanForView.drills}</p>
-                  </div>
-                )}
-                {selectedPlanForView.cooldown && (
-                  <div className="p-3 rounded-2xl bg-teal-50/60 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-900/50">
-                    <span className="font-bold text-teal-900 dark:text-teal-200 block mb-1">❄️ سرد کردن و کشش پایانی:</span>
-                    <p className="text-slate-700 dark:text-slate-300 leading-relaxed whitespace-pre-line">{selectedPlanForView.cooldown}</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {selectedPlanForView.notes && (
-              <div className="p-3 rounded-2xl bg-slate-100 dark:bg-slate-800/80 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                <strong>یادداشت مربی: </strong> {selectedPlanForView.notes}
-              </div>
-            )}
-
-            <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-end gap-2.5">
-              <button
-                type="button"
-                onClick={() => exportPlanToWord(selectedPlanForView)}
-                className="px-4 py-2 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <Download className="w-3.5 h-3.5" />
-                <span>دریافت فایل Word</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => printPlanToPdf(selectedPlanForView)}
-                className="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
-              >
-                <Printer className="w-3.5 h-3.5" />
-                <span>چاپ یا PDF</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setSelectedPlanForView(null)}
-                className="px-4 py-2 rounded-xl bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold cursor-pointer"
-              >
-                بستن
-              </button>
-            </div>
-          </div>
         </Modal>
       )}
     </div>

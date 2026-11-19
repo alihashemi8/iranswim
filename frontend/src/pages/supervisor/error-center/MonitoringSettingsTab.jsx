@@ -81,9 +81,9 @@ export const MonitoringSettingsTab = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
+      <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
         <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-          <Sliders className="w-5 h-5 text-sky-500" />
+          <Sliders className="w-5 h-5 text-sky-500 shrink-0" />
           <span>تنظیمات مرکز مانیتورینگ، سیاست‌های نگهداری و خط‌مشی‌های امنیتی</span>
         </h2>
         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -117,13 +117,13 @@ export const MonitoringSettingsTab = () => {
             </select>
           </div>
 
-          <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5 pt-3 border-t border-slate-100 dark:border-slate-800">
             <Button
               variant="secondary"
               size="sm"
               loading={cleaning}
               onClick={handleCleanupLogs}
-              className="text-rose-600 hover:text-rose-700"
+              className="text-rose-600 dark:text-rose-400 hover:text-rose-700 justify-center"
             >
               <Trash2 className="w-3.5 h-3.5 ml-1 text-rose-500" />
               اجرای پاکسازی دستی اکنون
@@ -133,6 +133,7 @@ export const MonitoringSettingsTab = () => {
               size="sm"
               loading={saving}
               onClick={handleSaveRetention}
+              className="justify-center"
             >
               <Save className="w-3.5 h-3.5 ml-1" />
               ذخیره تنظیمات

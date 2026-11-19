@@ -101,42 +101,42 @@ export const OverviewTab = ({
       </div>
 
       {/* Primary KPI Stats Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         {/* Total Errors 24h */}
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs">
             <span>کل خطاها (۲۴س)</span>
-            <Bug className="w-4 h-4 text-rose-500" />
+            <Bug className="w-4 h-4 text-rose-500 shrink-0" />
           </div>
-          <div className="text-2xl font-black font-mono text-slate-900 dark:text-white">
+          <div className="text-xl sm:text-2xl font-black font-mono text-slate-900 dark:text-white">
             {stats.total_errors_24h ?? 0}
           </div>
           <div className="text-[11px] text-slate-400 truncate">
-            {stats.total_errors_window ?? 0} رخداد در بازه انتخابی
+            {stats.total_errors_window ?? 0} رخداد در بازه
           </div>
         </div>
 
         {/* Critical Errors */}
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-rose-100 dark:border-rose-950/60 shadow-xs space-y-1">
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-rose-100 dark:border-rose-950/60 shadow-xs space-y-1">
           <div className="flex items-center justify-between text-rose-600 dark:text-rose-400 text-xs font-semibold">
             <span>خطاهای بحرانی</span>
-            <ShieldAlert className="w-4 h-4 text-rose-600" />
+            <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0" />
           </div>
-          <div className="text-2xl font-black font-mono text-rose-600 dark:text-rose-400">
+          <div className="text-xl sm:text-2xl font-black font-mono text-rose-600 dark:text-rose-400">
             {stats.critical_errors_24h ?? 0}
           </div>
           <div className="text-[11px] text-rose-500/80 truncate">
-            Crash یا خطاهای ۵۰۰ سیستمی
+            Crash یا خطاهای ۵۰۰
           </div>
         </div>
 
         {/* Unresolved Issues */}
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-amber-100 dark:border-amber-950/60 shadow-xs space-y-1 cursor-pointer hover:border-amber-300 transition-colors" onClick={() => onViewIssues('NEW')}>
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-amber-100 dark:border-amber-950/60 shadow-xs space-y-1 cursor-pointer hover:border-amber-300 dark:hover:border-amber-700 transition-colors" onClick={() => onViewIssues('NEW')}>
           <div className="flex items-center justify-between text-amber-600 dark:text-amber-400 text-xs font-semibold">
             <span>در انتظار اقدام</span>
-            <AlertTriangle className="w-4 h-4 text-amber-500" />
+            <AlertTriangle className="w-4 h-4 text-amber-500 shrink-0" />
           </div>
-          <div className="text-2xl font-black font-mono text-amber-600 dark:text-amber-400">
+          <div className="text-xl sm:text-2xl font-black font-mono text-amber-600 dark:text-amber-400">
             {stats.unresolved_errors ?? 0}
           </div>
           <div className="text-[11px] text-amber-600/80 truncate">
@@ -145,12 +145,12 @@ export const OverviewTab = ({
         </div>
 
         {/* Under Investigation */}
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-sky-100 dark:border-sky-950/60 shadow-xs space-y-1 cursor-pointer hover:border-sky-300 transition-colors" onClick={() => onViewIssues('INVESTIGATING')}>
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-sky-100 dark:border-sky-950/60 shadow-xs space-y-1 cursor-pointer hover:border-sky-300 dark:hover:border-sky-700 transition-colors" onClick={() => onViewIssues('INVESTIGATING')}>
           <div className="flex items-center justify-between text-sky-600 dark:text-sky-400 text-xs font-semibold">
             <span>در حال بررسی</span>
-            <Clock className="w-4 h-4 text-sky-500" />
+            <Clock className="w-4 h-4 text-sky-500 shrink-0" />
           </div>
-          <div className="text-2xl font-black font-mono text-sky-600 dark:text-sky-400">
+          <div className="text-xl sm:text-2xl font-black font-mono text-sky-600 dark:text-sky-400">
             {stats.investigating_errors ?? 0}
           </div>
           <div className="text-[11px] text-sky-600/80 truncate">
@@ -159,12 +159,12 @@ export const OverviewTab = ({
         </div>
 
         {/* Resolved Errors */}
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-emerald-100 dark:border-emerald-950/60 shadow-xs space-y-1 cursor-pointer hover:border-emerald-300 transition-colors" onClick={() => onViewIssues('RESOLVED')}>
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-emerald-100 dark:border-emerald-950/60 shadow-xs space-y-1 cursor-pointer hover:border-emerald-300 dark:hover:border-emerald-700 transition-colors" onClick={() => onViewIssues('RESOLVED')}>
           <div className="flex items-center justify-between text-emerald-600 dark:text-emerald-400 text-xs font-semibold">
             <span>رفع‌شده</span>
-            <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+            <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
           </div>
-          <div className="text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">
+          <div className="text-xl sm:text-2xl font-black font-mono text-emerald-600 dark:text-emerald-400">
             {stats.resolved_errors ?? 0}
           </div>
           <div className="text-[11px] text-emerald-600/80 truncate">
@@ -173,12 +173,12 @@ export const OverviewTab = ({
         </div>
 
         {/* Error Rate */}
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
+        <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-1">
           <div className="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold">
-            <span>نرخ خطا (Error Rate)</span>
-            <Activity className="w-4 h-4 text-indigo-500" />
+            <span>نرخ خطا</span>
+            <Activity className="w-4 h-4 text-indigo-500 shrink-0" />
           </div>
-          <div className="text-2xl font-black font-mono text-indigo-600 dark:text-indigo-400">
+          <div className="text-xl sm:text-2xl font-black font-mono text-indigo-600 dark:text-indigo-400">
             {stats.error_rate_percent ?? 0}٪
           </div>
           <div className="text-[11px]">

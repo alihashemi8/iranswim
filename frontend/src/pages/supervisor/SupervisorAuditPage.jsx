@@ -54,22 +54,22 @@ export const SupervisorAuditPage = () => {
   const paginatedLogs = logs.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 md:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
         <div>
-          <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-            لاگ‌های حسابرسی امنیتی و عملیات حساس (Audit Trail)
+          <h1 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+            <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <span>لاگ‌های حسابرسی امنیتی و عملیات حساس (Audit Trail)</span>
           </h1>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
             ثبت غیرقابل‌دستکاری تمامی رخدادهای مالی، تغییر وضعیت ثبت‌نام‌ها، تأیید رکوردها و اصلاحات سیستمی
           </p>
         </div>
-        <div>
+        <div className="self-start sm:self-auto w-full sm:w-auto">
           <select
             value={actionFilter}
             onChange={(e) => setActionFilter(e.target.value)}
-            className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-sky-500"
+            className="w-full sm:w-auto text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-slate-700 dark:text-slate-200 focus:outline-hidden focus:ring-2 focus:ring-sky-500 cursor-pointer"
           >
             <option value="">تمام عملیات حساس</option>
             <option value="PAYMENT_RECORD">ثبت پرداخت مالی</option>
@@ -86,8 +86,9 @@ export const SupervisorAuditPage = () => {
       ) : logs.length === 0 ? (
         <EmptyState title="هیچ لاگ حسابرسی یافت نشد" description="هنوز رخداد حساسی با این مشخصات ثبت نشده است." />
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs transition-colors">
-          <div className="overflow-x-auto">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-5 md:p-6 shadow-xs transition-colors space-y-4">
+          {/* Desktop Table View */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full text-sm text-right">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                 <tr>
@@ -127,6 +128,38 @@ export const SupervisorAuditPage = () => {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="block md:hidden divide-y divide-slate-100 dark:divide-slate-800">
+            {paginatedLogs.map((log) => {
+              const meta = actionLabels[log.action] || { label: log.action, variant: 'neutral' };
+              return (
+                <div key={log.id} className="py-3.5 space-y-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white">
+                      {log.actor_name}
+                    </span>
+                    <Badge variant={meta.variant}>{meta.label}</Badge>
+                  </div>
+
+                  <div className="flex items-center justify-between text-xs font-mono text-slate-500 dark:text-slate-400">
+                    <span>{log.entity_type} #{log.entity_id}</span>
+                    <span>IP: {log.ip_address || '127.0.0.1'}</span>
+                  </div>
+
+                  {log.details && (
+                    <div className="p-2.5 bg-slate-50 dark:bg-slate-800/60 rounded-xl text-[11px] font-mono text-slate-700 dark:text-slate-300 overflow-x-auto max-h-24 border border-slate-100 dark:border-slate-800" dir="ltr">
+                      {JSON.stringify(log.details)}
+                    </div>
+                  )}
+
+                  <div className="text-[10px] text-slate-400 font-mono text-left">
+                    {new Date(log.timestamp).toLocaleString('fa-IR')}
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           <Pagination

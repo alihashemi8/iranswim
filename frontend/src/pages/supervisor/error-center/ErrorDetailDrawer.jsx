@@ -125,22 +125,22 @@ export const ErrorDetailDrawer = ({
 
   return (
     <div
-      className="fixed inset-0 top-0 right-0 bottom-0 left-0 w-screen h-[100dvh] z-[9999] overflow-hidden bg-slate-950/65 backdrop-blur-xs flex justify-end select-none"
+      className="fixed inset-0 top-0 right-0 bottom-0 left-0 w-screen h-[100dvh] z-[9999] overflow-hidden bg-slate-950/65 backdrop-blur-xs flex justify-start select-none"
       dir="rtl"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-4xl h-full bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col select-auto animate-in slide-in-from-right duration-200"
+        className="relative w-full max-w-4xl h-full bg-white dark:bg-slate-900 border-l border-slate-200 dark:border-slate-800 shadow-2xl flex flex-col select-auto animate-in slide-in-from-right duration-200"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Drawer Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 shrink-0">
+        <div className="flex items-center justify-between px-4 sm:px-6 py-3.5 sm:py-4 border-b border-slate-200/80 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 shrink-0">
           <div className="flex items-center gap-2.5 min-w-0">
             <span className="p-2 rounded-xl bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 border border-rose-200 dark:border-rose-900 shrink-0">
               <Bug className="w-5 h-5" />
             </span>
             <div className="truncate">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <span className="font-mono text-xs font-bold text-slate-500 dark:text-slate-400">
                   #{data?.id || issueId}
                 </span>
@@ -160,7 +160,7 @@ export const ErrorDetailDrawer = ({
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={copyStackTrace}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 rounded-xl border border-sky-200 dark:border-sky-800 transition-colors"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 dark:hover:bg-sky-900/60 rounded-xl border border-sky-200 dark:border-sky-800 transition-colors cursor-pointer"
               title="کپی متن کامل استک‌ترس"
             >
               {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
@@ -168,7 +168,7 @@ export const ErrorDetailDrawer = ({
             </button>
             <button
               onClick={onClose}
-              className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
               aria-label="بستن"
             >
               <X className="w-5 h-5" />
@@ -177,10 +177,10 @@ export const ErrorDetailDrawer = ({
         </div>
 
         {/* Drawer Tabs Bar */}
-        <div className="flex items-center gap-1 px-6 pt-2 border-b border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 overflow-x-auto text-xs">
+        <div className="flex items-center gap-1 px-4 sm:px-6 pt-2 border-b border-slate-200/80 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 overflow-x-auto text-xs no-scrollbar">
           <button
             onClick={() => setActiveTab('trace')}
-            className={`px-3.5 py-2.5 font-bold transition-all border-b-2 cursor-pointer ${
+            className={`px-3.5 py-2.5 font-bold transition-all border-b-2 cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === 'trace'
                 ? 'border-sky-600 text-sky-600 dark:text-sky-400'
                 : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
@@ -190,7 +190,7 @@ export const ErrorDetailDrawer = ({
           </button>
           <button
             onClick={() => setActiveTab('request')}
-            className={`px-3.5 py-2.5 font-bold transition-all border-b-2 cursor-pointer ${
+            className={`px-3.5 py-2.5 font-bold transition-all border-b-2 cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === 'request'
                 ? 'border-sky-600 text-sky-600 dark:text-sky-400'
                 : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
@@ -200,7 +200,7 @@ export const ErrorDetailDrawer = ({
           </button>
           <button
             onClick={() => setActiveTab('user')}
-            className={`px-3.5 py-2.5 font-bold transition-all border-b-2 cursor-pointer ${
+            className={`px-3.5 py-2.5 font-bold transition-all border-b-2 cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === 'user'
                 ? 'border-sky-600 text-sky-600 dark:text-sky-400'
                 : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
@@ -210,7 +210,7 @@ export const ErrorDetailDrawer = ({
           </button>
           <button
             onClick={() => setActiveTab('occurrences')}
-            className={`px-3.5 py-2.5 font-bold transition-all border-b-2 cursor-pointer ${
+            className={`px-3.5 py-2.5 font-bold transition-all border-b-2 cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === 'occurrences'
                 ? 'border-sky-600 text-sky-600 dark:text-sky-400'
                 : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
@@ -220,7 +220,7 @@ export const ErrorDetailDrawer = ({
           </button>
           <button
             onClick={() => setActiveTab('workflow')}
-            className={`px-3.5 py-2.5 font-bold transition-all border-b-2 cursor-pointer ${
+            className={`px-3.5 py-2.5 font-bold transition-all border-b-2 cursor-pointer whitespace-nowrap shrink-0 ${
               activeTab === 'workflow'
                 ? 'border-sky-600 text-sky-600 dark:text-sky-400'
                 : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
@@ -231,7 +231,7 @@ export const ErrorDetailDrawer = ({
         </div>
 
         {/* Drawer Body Scroll Area */}
-        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-4 sm:space-y-6">
           {loading ? (
             <LoadingState type="card" message="در حال واکشی اطلاعات عمیق استک‌ترس و رخداد باگ..." />
           ) : (
@@ -470,7 +470,7 @@ export const ErrorDetailDrawer = ({
                   {occurrencesLoading ? (
                     <LoadingState type="table" rows={4} message="در حال دریافت رخدادها..." />
                   ) : occurrences.length === 0 ? (
-                    <div className="p-6 text-center text-xs text-slate-400 bg-slate-50 rounded-2xl">
+                    <div className="p-6 text-center text-xs text-slate-400 dark:text-slate-500 bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-2xl">
                       رخداد دیگری ثبت نشده است.
                     </div>
                   ) : (
@@ -600,12 +600,12 @@ export const ErrorDetailDrawer = ({
                         <span className="text-[11px] text-slate-400">
                           {data?.resolved_at && `رفع شده در ${new Date(data.resolved_at).toLocaleDateString('fa-IR')} توسط ${data.resolved_by_name || 'ناظر'}`}
                         </span>
-                        <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           {data?.status === 'RESOLVED' && (
                             <button
                               type="button"
                               onClick={() => handleExecuteAction('reopen', { note: 'بازگشایی مجدد' })}
-                              className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 rounded-lg text-[11px] font-semibold"
+                              className="px-3 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-lg text-[11px] font-semibold hover:bg-slate-200 dark:hover:bg-slate-700 transition"
                             >
                               بازگشایی خطا
                             </button>
@@ -613,7 +613,7 @@ export const ErrorDetailDrawer = ({
                           <button
                             type="button"
                             onClick={() => handleExecuteAction('record_resolution', { resolution_details: resolutionDetails })}
-                            className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-[11px] font-semibold hover:bg-emerald-700"
+                            className="px-3 py-1 bg-emerald-600 text-white rounded-lg text-[11px] font-semibold hover:bg-emerald-700 transition"
                           >
                             ثبت رفع و خاتمه باگ
                           </button>

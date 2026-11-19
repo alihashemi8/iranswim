@@ -42,10 +42,10 @@ export const InvestigationHistoryTab = ({ onSelectIssue }) => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
+      <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <History className="w-5 h-5 text-emerald-500" />
+            <History className="w-5 h-5 text-emerald-500 shrink-0" />
             <span>تاریخچه بررسی‌ها، اقدامات تکنسین‌ها و باگ‌های رفع‌شده</span>
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
@@ -55,7 +55,8 @@ export const InvestigationHistoryTab = ({ onSelectIssue }) => {
         <button
           type="button"
           onClick={fetchHistory}
-          className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200 transition-colors"
+          aria-label="تازه‌سازی"
+          className="self-end sm:self-auto p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors shrink-0"
         >
           <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
         </button>

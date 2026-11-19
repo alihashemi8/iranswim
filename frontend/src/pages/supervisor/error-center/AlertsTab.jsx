@@ -82,11 +82,11 @@ export const AlertsTab = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200"
+            className="flex-1 sm:flex-initial text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-slate-700 dark:text-slate-200"
           >
             <option value="">همه وضعیت‌ها</option>
             <option value="ACTIVE">فقط هشدارهای فعال</option>
@@ -96,7 +96,8 @@ export const AlertsTab = () => {
           <button
             type="button"
             onClick={fetchAlerts}
-            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 hover:bg-slate-200 transition-colors"
+            aria-label="تازه‌سازی"
+            className="p-2 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors shrink-0"
           >
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin text-sky-600' : ''}`} />
           </button>
@@ -177,7 +178,7 @@ export const AlertsTab = () => {
           <span>قوانین، آستانه‌ها و دوره‌های استراحت هشدار (Alert Rules & Thresholds)</span>
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {rules.map((r) => (
             <div
               key={r.id}
