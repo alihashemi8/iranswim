@@ -50,6 +50,17 @@ export const CoachProfileCard = ({
   const avatarUrl = getResolvedAvatar();
   const hasValidPhoto = avatarUrl && !imgError;
 
+  const isManager = Boolean(
+    coach.is_manager ||
+    coach.user_role === 'ADMIN' ||
+    coach.role === 'ADMIN' ||
+    (coach.coaching_degree || '').includes('مدیر') ||
+    (coach.coaching_degree || '').includes('موسس') ||
+    (coach.coaching_degree || '').includes('مؤسس') ||
+    (coach.bio || '').includes('مدیر و مؤسس') ||
+    (coach.bio || '').includes('موسس آموزشگاه')
+  );
+
   // Extract experience from bio if present, else fallback
   const getExperienceText = () => {
     const bio = coach.bio || '';
@@ -57,12 +68,17 @@ export const CoachProfileCard = ({
     if (match) return `${match[1]} سال سابقه`;
     if (bio.includes('۱۰ سال')) return '۱۰ سال سابقه';
     if (bio.includes('۱۲ سال')) return '۱۲ سال سابقه';
+    if (bio.includes('۱۵ سال')) return '۱۵ سال سابقه';
     if (bio.includes('۸ سال')) return '۸ سال سابقه';
+    if (isManager) return 'مدیریت و نظارت';
     return 'مربی باسابقه';
   };
 
-  // Extract certification
+  // Extract certification / role title
   const getCertificationText = () => {
+    if (isManager) {
+      return coach.role_title || coach.coaching_degree || 'مدیر و مؤسس';
+    }
     const degree = (coach.coaching_degree_display || coach.coaching_degree || '').toLowerCase();
     const bio = (coach.bio || '').toLowerCase();
     if (degree.includes('درجه ۱') || degree.includes('grade_1')) {
@@ -81,11 +97,17 @@ export const CoachProfileCard = ({
   };
 
   // Badges parsed from degree and experience
-  const credentialsList = [
-    coach.coaching_degree_display || coach.coaching_degree || 'مربی رسمی',
-    coach.years_of_experience ? `${coach.years_of_experience} سال سابقه` : 'با سابقه تدریس',
-    'فدراسیون شنا'
-  ].filter(Boolean);
+  const credentialsList = isManager
+    ? [
+        coach.role_title || coach.coaching_degree || 'مدیر و مؤسس',
+        coach.years_of_experience ? `${coach.years_of_experience} سال سابقه` : 'مدیریت و توسعه',
+        'مدرسه شنای ایران'
+      ]
+    : [
+        coach.coaching_degree_display || coach.coaching_degree || 'مربی رسمی',
+        coach.years_of_experience ? `${coach.years_of_experience} سال سابقه` : 'با سابقه تدریس',
+        'فدراسیون شنا'
+      ].filter(Boolean);
 
   return (
     <div
@@ -172,9 +194,13 @@ export const CoachProfileCard = ({
 
             {/* 2. Professional Role (Normalized height) */}
             <div className="mt-1.5 h-7 sm:h-8 flex items-center justify-center">
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#baf0ea] text-[#06544f] text-xs sm:text-sm font-extrabold border border-[#6cd9cc] shadow-2xs whitespace-nowrap">
-                <span className="w-2 h-2 rounded-full bg-[#0d9488] animate-pulse" />
-                مربی رسمی فدراسیون شنا
+              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs sm:text-sm font-extrabold border shadow-2xs whitespace-nowrap ${
+                isManager
+                  ? 'bg-purple-100/90 text-purple-900 border-purple-300 dark:bg-purple-950/60 dark:text-purple-200 dark:border-purple-800'
+                  : 'bg-[#baf0ea] text-[#06544f] border-[#6cd9cc]'
+              }`}>
+                <span className={`w-2 h-2 rounded-full animate-pulse ${isManager ? 'bg-purple-600' : 'bg-[#0d9488]'}`} />
+                {isManager ? (coach.role_title || coach.coaching_degree || 'مدیر و مؤسس آموزشگاه') : (coach.role_title || coach.coaching_degree || 'مربی رسمی فدراسیون شنا')}
               </span>
             </div>
 
@@ -221,7 +247,7 @@ export const CoachProfileCard = ({
               وضعیت: فعال و مجاز
             </span>
             <span className="font-mono text-[#06544f] bg-white/80 px-2 sm:px-2.5 py-1 rounded-md border border-[#7de0d6]/50 font-bold whitespace-nowrap text-xs">
-              تأییدیه فدراسیون ✓
+              {isManager ? 'مدیریت و مؤسس ✓' : 'تأییدیه فدراسیون ✓'}
             </span>
           </div>
         </div>

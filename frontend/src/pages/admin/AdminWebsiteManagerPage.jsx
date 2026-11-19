@@ -5,7 +5,7 @@ import {
   MapPin, Eye, EyeOff, ArrowUpDown, Save, Check, CheckCircle2, Clock,
   Upload, Image as ImageIcon, X, Sparkles, Phone, PhoneCall, Award, Shield,
   ArrowUp, ArrowDown, ArrowLeft, RefreshCw, LayoutTemplate, ExternalLink, Building2,
-  ToggleLeft, ToggleRight, Trophy
+  ToggleLeft, ToggleRight, Trophy, Crown, Heart
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -109,12 +109,26 @@ export const AdminWebsiteManagerPage = () => {
   const [previewPool, setPreviewPool] = useState(null);
 
   // =========================================================================
-  // 2. COACHES STATE & ORDERING
+  // 2. COACHES & EXECUTIVE STAFF STATE
   // =========================================================================
   const [coaches, setCoaches] = useState([]);
-  const [coachGenderTab, setCoachGenderTab] = useState('MALE'); // 'MALE' | 'FEMALE'
+  const [coachCategoryTab, setCoachCategoryTab] = useState('FOUNDERS'); // 'FOUNDERS' | 'MALE' | 'FEMALE' | 'ALL_COACHES'
   const [coachOrderList, setCoachOrderList] = useState([]);
   const [coachSavingOrder, setCoachSavingOrder] = useState(false);
+  const [coachModalOpen, setCoachModalOpen] = useState(false);
+  const [editingCoach, setEditingCoach] = useState(null);
+  const [coachForm, setCoachForm] = useState({
+    first_name: '',
+    last_name: '',
+    phone: '',
+    coaching_degree: '',
+    bio: '',
+    gender: 'MALE',
+    show_on_landing: true,
+  });
+  const [coachAvatarFile, setCoachAvatarFile] = useState(null);
+  const [coachAvatarPreview, setCoachAvatarPreview] = useState(null);
+  const [coachSubmitting, setCoachSubmitting] = useState(false);
 
   // =========================================================================
   // 3. NEWS STATE
@@ -341,6 +355,13 @@ export const AdminWebsiteManagerPage = () => {
   // =========================================================================
   // COACH ORDERING & MANAGEMENT HANDLERS
   // =========================================================================
+  const isManagerCoach = (c) => {
+    if (c.user_role === 'ADMIN' || c.role === 'ADMIN' || c.is_manager) return true;
+    const deg = (c.coaching_degree || c.coaching_degree_display || c.role_title || c.title || '').toLowerCase();
+    const bio = (c.bio || '').toLowerCase();
+    return deg.includes('مدیر') || deg.includes('موسس') || deg.includes('مؤسس') || bio.includes('مدیر و مؤسس') || bio.includes('موسس آموزشگاه');
+  };
+
   const isFemaleCoach = (c) => {
     if (c.gender === 'FEMALE') return true;
     if (c.gender === 'MALE') return false;
@@ -351,8 +372,10 @@ export const AdminWebsiteManagerPage = () => {
   const isMaleCoach = (c) => !isFemaleCoach(c);
 
   const filteredCoaches = coachOrderList.filter((c) => {
-    if (coachGenderTab === 'MALE') return isMaleCoach(c);
-    if (coachGenderTab === 'FEMALE') return isFemaleCoach(c);
+    if (coachCategoryTab === 'FOUNDERS') return isManagerCoach(c);
+    if (coachCategoryTab === 'MALE') return !isManagerCoach(c) && isMaleCoach(c);
+    if (coachCategoryTab === 'FEMALE') return !isManagerCoach(c) && isFemaleCoach(c);
+    if (coachCategoryTab === 'ALL_COACHES') return !isManagerCoach(c);
     return true;
   });
 
@@ -361,23 +384,24 @@ export const AdminWebsiteManagerPage = () => {
     const targetIndex = index + direction;
     if (targetIndex < 0 || targetIndex >= list.length) return;
 
-    // Swap in filtered list
-    const temp = list[index];
-    list[index] = list[targetIndex];
-    list[targetIndex] = temp;
+    const currentItem = list[index];
+    const targetItem = list[targetIndex];
 
-    // Reassign display_order sequentially
-    const updated = list.map((item, idx) => ({
-      ...item,
-      display_order: idx + 1,
-    }));
+    const fullList = [...coachOrderList];
+    const fullIndexCurrent = fullList.findIndex((c) => c.id === currentItem.id);
+    const fullIndexTarget = fullList.findIndex((c) => c.id === targetItem.id);
 
-    // Merge back into full coachOrderList
-    const otherCoaches = coachOrderList.filter((c) =>
-      coachGenderTab === 'MALE' ? !isMaleCoach(c) : !isFemaleCoach(c)
-    );
+    if (fullIndexCurrent !== -1 && fullIndexTarget !== -1) {
+      const temp = fullList[fullIndexCurrent];
+      fullList[fullIndexCurrent] = fullList[fullIndexTarget];
+      fullList[fullIndexTarget] = temp;
 
-    setCoachOrderList([...otherCoaches, ...updated].sort((a, b) => (a.display_order ?? 999) - (b.display_order ?? 999)));
+      const updated = fullList.map((item, idx) => ({
+        ...item,
+        display_order: idx + 1,
+      }));
+      setCoachOrderList(updated);
+    }
   };
 
   const handleSaveCoachOrders = async () => {
@@ -389,13 +413,115 @@ export const AdminWebsiteManagerPage = () => {
       }));
 
       await api.post('/coaches/reorder/', { orders: ordersPayload });
-      toast.success('ترتیب چینش مربیان با موفقیت ذخیره گردید.');
+      toast.success('ترتیب چینش اعضای کادر اجرایی با موفقیت ذخیره گردید.');
       fetchAllData();
     } catch (err) {
       console.error(err);
-      toast.error('خطا در ذخیره ترتیب چینش مربیان');
+      toast.error('خطا در ذخیره ترتیب چینش کادر اجرایی');
     } finally {
       setCoachSavingOrder(false);
+    }
+  };
+
+  const handleToggleCoachLanding = async (coach) => {
+    try {
+      const newStatus = !coach.show_on_landing;
+      await api.patch(`/coaches/${coach.id}/`, { show_on_landing: newStatus });
+      toast.success(
+        newStatus
+          ? `کارت «${coach.full_name}» در صفحه اصلی نمایش داده خواهد شد.`
+          : `کارت «${coach.full_name}» از نمایش در صفحه اصلی مخفی شد.`
+      );
+      fetchAllData();
+    } catch {
+      toast.error('خطا در تغییر وضعیت نمایش کارت در صفحه اصلی');
+    }
+  };
+
+  const handleOpenEditCoachCard = (coach) => {
+    setEditingCoach(coach);
+    let fn = coach.first_name || '';
+    let ln = coach.last_name || '';
+    if (!fn && !ln && coach.full_name) {
+      const parts = coach.full_name.trim().split(' ');
+      fn = parts[0] || '';
+      ln = parts.slice(1).join(' ') || '';
+    }
+    setCoachForm({
+      first_name: fn,
+      last_name: ln,
+      phone: coach.phone || '',
+      coaching_degree: coach.role_title || coach.coaching_degree_display || coach.coaching_degree || (isManagerCoach(coach) ? 'مدیر و مؤسس آموزشگاه' : 'مربی رسمی فدراسیون'),
+      bio: coach.bio || '',
+      gender: coach.gender || 'MALE',
+      show_on_landing: coach.show_on_landing ?? true,
+    });
+    setCoachAvatarFile(null);
+    setCoachAvatarPreview(coach.avatar || null);
+    setCoachModalOpen(true);
+  };
+
+  const handleOpenCreateCoachCard = () => {
+    setEditingCoach(null);
+    setCoachForm({
+      first_name: '',
+      last_name: '',
+      phone: '',
+      coaching_degree: coachCategoryTab === 'FOUNDERS' ? 'مدیر و مؤسس آموزشگاه' : 'مربیگری درجه ۲ فدراسیون',
+      bio: '',
+      gender: coachCategoryTab === 'FEMALE' ? 'FEMALE' : 'MALE',
+      show_on_landing: true,
+    });
+    setCoachAvatarFile(null);
+    setCoachAvatarPreview(null);
+    setCoachModalOpen(true);
+  };
+
+  const handleCoachCardSubmit = async (e) => {
+    e.preventDefault();
+    if (!coachForm.first_name.trim() || !coachForm.last_name.trim()) {
+      toast.error('نام و نام خانوادگی الزامی است.');
+      return;
+    }
+
+    try {
+      setCoachSubmitting(true);
+      const formData = new FormData();
+      formData.append('first_name', coachForm.first_name.trim());
+      formData.append('last_name', coachForm.last_name.trim());
+      formData.append('coaching_degree', coachForm.coaching_degree.trim());
+      formData.append('bio', coachForm.bio.trim());
+      formData.append('gender', coachForm.gender);
+      formData.append('show_on_landing', coachForm.show_on_landing);
+
+      if (coachAvatarFile) {
+        formData.append('avatar', coachAvatarFile);
+      }
+
+      if (editingCoach) {
+        await api.patch(`/coaches/${editingCoach.id}/`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        toast.success(`مشخصات کارت «${coachForm.first_name} ${coachForm.last_name}» با موفقیت به‌روزرسانی شد.`);
+      } else {
+        const dummyPhone = coachForm.phone ? coachForm.phone.trim() : `0999${Math.floor(1000000 + Math.random() * 9000000)}`;
+        formData.append('phone', dummyPhone);
+        formData.append('employment_status', 'ACTIVE');
+        formData.append('display_order', coachOrderList.length + 1);
+
+        await api.post('/coaches/', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        toast.success(`کارت جدید برای «${coachForm.first_name} ${coachForm.last_name}» با موفقیت افزوده گردید.`);
+      }
+
+      setCoachModalOpen(false);
+      fetchAllData();
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.detail || 'خطا در ثبت اطلاعات کارت');
+    } finally {
+      setCoachSubmitting(false);
     }
   };
 
@@ -689,7 +815,7 @@ export const AdminWebsiteManagerPage = () => {
     coaches: {
       icon: Users2,
       colorClass: 'text-indigo-600 bg-indigo-50 dark:bg-indigo-950/40 dark:text-indigo-400 border-indigo-200 dark:border-indigo-800',
-      badge: 'بخش ۶ • کادر مربیان',
+      badge: 'بخش ۶ • کادر اجرایی',
       actionTab: 'coaches',
       previewAnchor: '#coaches',
     },
@@ -847,7 +973,7 @@ export const AdminWebsiteManagerPage = () => {
           }`}
         >
           <Users2 className="w-4 h-4 text-teal-600 shrink-0" />
-          <span>کادر مربیان ({coaches.length})</span>
+          <span>کادر اجرایی ({coaches.length})</span>
         </button>
 
         <button
@@ -1403,57 +1529,123 @@ export const AdminWebsiteManagerPage = () => {
           )}
 
           {/* =========================================================================
-              TAB 2: COACHES & ORDERING (کادر مربیان و چینش)
+              TAB 2: EXECUTIVE & COACHING STAFF (کادر اجرایی، موسسین و مربیان)
               ========================================================================= */}
           {activeTab === 'coaches' && (
             <div className="space-y-6">
-              {renderSectionStatusBanner('coaches', 'کادر مربیان رسمی فدراسیون')}
+              {renderSectionStatusBanner('coaches', 'کادر اجرایی و مربیان رسمی')}
 
               <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-                  <Users2 className="w-5 h-5 text-teal-600 shrink-0" />
-                  <span>کادر مربیان و چینش</span>
-                </h2>
+                <div className="space-y-1">
+                  <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
+                    <Users2 className="w-5 h-5 text-teal-600 shrink-0" />
+                    <span>کادر اجرایی و چینش کارت‌ها</span>
+                  </h2>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+                    مدیریت، تفکیک دسته‌بندی‌ها و تنظیم اولویت چینش کارت‌های مدیران و مربیان در صفحه اصلی
+                  </p>
+                </div>
 
-                <Button
-                  onClick={handleSaveCoachOrders}
-                  disabled={coachSavingOrder}
-                  className="gap-2 text-xs sm:text-sm font-black py-2 px-4 bg-teal-600 hover:bg-teal-700 shadow-xs shrink-0"
-                >
-                  <Save className="w-4 h-4" />
-                  <span>{coachSavingOrder ? 'در حال ذخیره...' : 'ذخیره ترتیب چینش'}</span>
-                </Button>
+                <div className="flex items-center gap-2.5 shrink-0 flex-wrap">
+                  <Button
+                    onClick={handleOpenCreateCoachCard}
+                    variant="outline"
+                    className="gap-2 text-xs sm:text-sm font-black py-2 px-3.5 shadow-xs"
+                  >
+                    <Plus className="w-4 h-4 text-teal-600" />
+                    <span>افزودن کارت جدید</span>
+                  </Button>
+
+                  <Button
+                    onClick={handleSaveCoachOrders}
+                    disabled={coachSavingOrder}
+                    className="gap-2 text-xs sm:text-sm font-black py-2 px-4 bg-teal-600 hover:bg-teal-700 shadow-xs shrink-0"
+                  >
+                    <Save className="w-4 h-4" />
+                    <span>{coachSavingOrder ? 'در حال ذخیره...' : 'ذخیره ترتیب چینش'}</span>
+                  </Button>
+                </div>
               </div>
 
-              {/* Gender Tabs */}
-              <div className="flex items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl w-fit">
+              {/* 4 Tabs: مدیر و موسسین / کادر آقایان / کادر بانوان / کادر مربیان */}
+              <div className="flex flex-wrap items-center gap-2 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl w-fit">
                 <button
                   type="button"
-                  onClick={() => setCoachGenderTab('MALE')}
-                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                    coachGenderTab === 'MALE'
-                      ? 'bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-xs'
+                  onClick={() => setCoachCategoryTab('FOUNDERS')}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                    coachCategoryTab === 'FOUNDERS'
+                      ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-xs'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                   }`}
                 >
-                  <span>مربیان مرد</span>
-                  <span className="mr-1.5 px-2 py-0.5 rounded-full text-xs font-black bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300">
-                    {coachOrderList.filter(isMaleCoach).length}
+                  <Crown className="w-4 h-4 text-purple-500" />
+                  <span>مدیر و موسسین</span>
+                  <span className={`mr-1 px-2 py-0.5 rounded-full text-xs font-black ${
+                    coachCategoryTab === 'FOUNDERS'
+                      ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
+                      : 'bg-slate-200 text-slate-700 dark:bg-slate-900 dark:text-slate-300'
+                  }`}>
+                    {coachOrderList.filter(isManagerCoach).length}
                   </span>
                 </button>
 
                 <button
                   type="button"
-                  onClick={() => setCoachGenderTab('FEMALE')}
-                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                    coachGenderTab === 'FEMALE'
+                  onClick={() => setCoachCategoryTab('MALE')}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                    coachCategoryTab === 'MALE'
+                      ? 'bg-white dark:bg-slate-700 text-cyan-700 dark:text-cyan-300 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                >
+                  <Users2 className="w-4 h-4 text-cyan-500" />
+                  <span>کادر آقایان</span>
+                  <span className={`mr-1 px-2 py-0.5 rounded-full text-xs font-black ${
+                    coachCategoryTab === 'MALE'
+                      ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300'
+                      : 'bg-slate-200 text-slate-700 dark:bg-slate-900 dark:text-slate-300'
+                  }`}>
+                    {coachOrderList.filter((c) => !isManagerCoach(c) && isMaleCoach(c)).length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCoachCategoryTab('FEMALE')}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                    coachCategoryTab === 'FEMALE'
                       ? 'bg-white dark:bg-slate-700 text-pink-700 dark:text-pink-300 shadow-xs'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
                   }`}
                 >
-                  <span>مربیان زن</span>
-                  <span className="mr-1.5 px-2 py-0.5 rounded-full text-xs font-black bg-pink-100 dark:bg-pink-950 text-pink-800 dark:text-pink-300">
-                    {coachOrderList.filter(isFemaleCoach).length}
+                  <Heart className="w-4 h-4 text-pink-500" />
+                  <span>کادر بانوان</span>
+                  <span className={`mr-1 px-2 py-0.5 rounded-full text-xs font-black ${
+                    coachCategoryTab === 'FEMALE'
+                      ? 'bg-pink-100 text-pink-800 dark:bg-pink-950 dark:text-pink-300'
+                      : 'bg-slate-200 text-slate-700 dark:bg-slate-900 dark:text-slate-300'
+                  }`}>
+                    {coachOrderList.filter((c) => !isManagerCoach(c) && isFemaleCoach(c)).length}
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setCoachCategoryTab('ALL_COACHES')}
+                  className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 ${
+                    coachCategoryTab === 'ALL_COACHES'
+                      ? 'bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-xs'
+                      : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  }`}
+                >
+                  <Award className="w-4 h-4 text-teal-500" />
+                  <span>کادر مربیان</span>
+                  <span className={`mr-1 px-2 py-0.5 rounded-full text-xs font-black ${
+                    coachCategoryTab === 'ALL_COACHES'
+                      ? 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300'
+                      : 'bg-slate-200 text-slate-700 dark:bg-slate-900 dark:text-slate-300'
+                  }`}>
+                    {coachOrderList.filter((c) => !isManagerCoach(c)).length}
                   </span>
                 </button>
               </div>
@@ -1462,7 +1654,7 @@ export const AdminWebsiteManagerPage = () => {
               <div className="space-y-3.5">
                 {filteredCoaches.length === 0 ? (
                   <p className="text-center py-12 text-sm text-slate-500 font-semibold">
-                    مربی در این دسته‌بندی ثبت نشده است.
+                    عضوی در این دسته‌بندی ثبت نشده است. با استفاده از دکمه «افزودن کارت جدید» می‌توانید عضو اضافه کنید.
                   </p>
                 ) : (
                   filteredCoaches.map((coach, index) => (
@@ -1492,16 +1684,45 @@ export const AdminWebsiteManagerPage = () => {
 
                         {/* Information */}
                         <div className="space-y-1">
-                          <div className="flex items-center gap-2">
+                          <div className="flex flex-wrap items-center gap-2">
                             <h3 className="font-black text-slate-900 dark:text-white text-base sm:text-lg">
                               {coach.full_name}
                             </h3>
-                            <Badge variant={isFemaleCoach(coach) ? 'warning' : 'info'}>
-                              {isFemaleCoach(coach) ? 'مربی خانم' : 'مربی آقا'}
-                            </Badge>
+                            {isManagerCoach(coach) ? (
+                              <Badge variant="purple" className="flex items-center gap-1 bg-purple-100 text-purple-900 dark:bg-purple-950 dark:text-purple-300 border-purple-200">
+                                <Crown className="w-3 h-3 text-purple-600" />
+                                <span>مدیر و موسسین</span>
+                              </Badge>
+                            ) : isFemaleCoach(coach) ? (
+                              <Badge variant="warning">کادر بانوان</Badge>
+                            ) : (
+                              <Badge variant="info">کادر آقایان</Badge>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() => handleToggleCoachLanding(coach)}
+                              className={`text-[11px] font-bold px-2 py-0.5 rounded-full border transition-all cursor-pointer flex items-center gap-1 ${
+                                coach.show_on_landing !== false
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/40 dark:text-emerald-300'
+                                  : 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/40 dark:text-amber-300'
+                              }`}
+                              title="تغییر وضعیت نمایش در صفحه لندینگ"
+                            >
+                              {coach.show_on_landing !== false ? (
+                                <>
+                                  <Eye className="w-3 h-3" />
+                                  <span>نمایش در لندینگ: فعال</span>
+                                </>
+                              ) : (
+                                <>
+                                  <EyeOff className="w-3 h-3" />
+                                  <span>مخفی از لندینگ</span>
+                                </>
+                              )}
+                            </button>
                           </div>
                           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-semibold line-clamp-1">
-                            {coach.coaching_degree_display || coach.coaching_degree || 'مربی رسمی شنا'}
+                            {coach.role_title || coach.coaching_degree_display || coach.coaching_degree || (isManagerCoach(coach) ? 'مدیر و مؤسس آموزشگاه' : 'مربی رسمی شنا')}
                           </p>
                         </div>
                       </div>
@@ -1531,12 +1752,23 @@ export const AdminWebsiteManagerPage = () => {
                         <Button
                           size="sm"
                           variant="outline"
-                          onClick={() => handleOpenEditCoach(coach)}
+                          onClick={() => handleOpenEditCoachCard(coach)}
                           className="gap-1.5 text-xs sm:text-sm font-bold py-2 px-3"
                         >
                           <Edit className="w-4 h-4" />
-                          <span>ویرایش مشخصات</span>
+                          <span>ویرایش کارت</span>
                         </Button>
+                        {!isManagerCoach(coach) && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleOpenEditCoach(coach)}
+                            title="مشاهده پرونده کامل در بخش مربیان"
+                            className="h-9 w-9 p-0 text-slate-400 hover:text-slate-700 dark:hover:text-white"
+                          >
+                            <ExternalLink className="w-4 h-4" />
+                          </Button>
+                        )}
                       </div>
                     </div>
                   ))
@@ -2388,6 +2620,171 @@ export const AdminWebsiteManagerPage = () => {
               ) : (
                 'ثبت شناگر برتر'
               )}
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* =========================================================================
+          MODAL: ADD / EDIT EXECUTIVE & COACH CARD (مدیریت کارت کادر اجرایی و مربیان)
+          ========================================================================= */}
+      <Modal
+        isOpen={coachModalOpen}
+        onClose={() => setCoachModalOpen(false)}
+        title={editingCoach ? `ویرایش کارت: ${editingCoach.full_name}` : 'افزودن عضو جدید به کادر اجرایی'}
+        maxWidth="max-w-xl"
+      >
+        <form onSubmit={handleCoachCardSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                نام *
+              </label>
+              <input
+                type="text"
+                required
+                value={coachForm.first_name}
+                onChange={(e) => setCoachForm({ ...coachForm, first_name: e.target.value })}
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-teal-500"
+                placeholder="مثلاً: علی"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                نام خانوادگی *
+              </label>
+              <input
+                type="text"
+                required
+                value={coachForm.last_name}
+                onChange={(e) => setCoachForm({ ...coachForm, last_name: e.target.value })}
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-teal-500"
+                placeholder="مثلاً: هاشمی"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              سمت سازمانی / مدرک مربیگری *
+            </label>
+            <input
+              type="text"
+              required
+              value={coachForm.coaching_degree}
+              onChange={(e) => setCoachForm({ ...coachForm, coaching_degree: e.target.value })}
+              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl outline-none focus:ring-2 focus:ring-teal-500"
+              placeholder="مثلاً: مدیر و مؤسس آموزشگاه یا مربیگری درجه ۱ فدراسیون"
+            />
+            {/* Quick Suggestions */}
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {[
+                'مدیر و مؤسس آموزشگاه',
+                'عضو هیئت مدیره و مؤسس',
+                'مربیگری درجه ۱ فدراسیون',
+                'مربیگری درجه ۲ فدراسیون',
+                'مربیگری درجه ۳ فدراسیون',
+                'مربی ملی شنا'
+              ].map((chip) => (
+                <button
+                  key={chip}
+                  type="button"
+                  onClick={() => setCoachForm({ ...coachForm, coaching_degree: chip })}
+                  className="text-[11px] font-bold px-2 py-0.5 rounded-lg bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 cursor-pointer"
+                >
+                  {chip}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              دسته‌بندی جنسیت
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setCoachForm({ ...coachForm, gender: 'MALE' })}
+                className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  coachForm.gender === 'MALE'
+                    ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-400 text-sky-700 dark:text-sky-300 shadow-xs'
+                    : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                }`}
+              >
+                <span>آقا (کادر آقایان)</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setCoachForm({ ...coachForm, gender: 'FEMALE' })}
+                className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                  coachForm.gender === 'FEMALE'
+                    ? 'bg-pink-50 dark:bg-pink-950/60 border-pink-400 text-pink-700 dark:text-pink-300 shadow-xs'
+                    : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                }`}
+              >
+                <span>خانم (کادر بانوان)</span>
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              رزومه و معرفی کوتاه
+            </label>
+            <textarea
+              rows={3}
+              value={coachForm.bio}
+              onChange={(e) => setCoachForm({ ...coachForm, bio: e.target.value })}
+              className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl leading-relaxed outline-none focus:ring-2 focus:ring-teal-500"
+              placeholder="توضیح سوابق، افتخارات، تجربیات و مسئولیت‌ها..."
+            />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+              تصویر کارت / آواتار
+            </label>
+            <div className="flex items-center gap-4">
+              {coachAvatarPreview && (
+                <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-teal-500 shrink-0">
+                  <img src={coachAvatarPreview} alt="پیش‌نمایش" className="w-full h-full object-cover" />
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    setCoachAvatarFile(file);
+                    setCoachAvatarPreview(URL.createObjectURL(file));
+                  }
+                }}
+                className="text-xs file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-teal-50 file:text-teal-700 hover:file:bg-teal-100 dark:file:bg-slate-800 dark:file:text-slate-200"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 pt-2">
+            <input
+              type="checkbox"
+              id="coachShowLanding"
+              checked={coachForm.show_on_landing}
+              onChange={(e) => setCoachForm({ ...coachForm, show_on_landing: e.target.checked })}
+              className="w-4 h-4 text-teal-600 rounded-md border-slate-300 focus:ring-teal-500 cursor-pointer"
+            />
+            <label htmlFor="coachShowLanding" className="text-xs font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+              نمایش کارت در صفحه اصلی (لندینگ)
+            </label>
+          </div>
+
+          <div className="flex justify-end gap-2 pt-4 border-t border-slate-100 dark:border-slate-800">
+            <Button type="button" variant="outline" onClick={() => setCoachModalOpen(false)}>
+              انصراف
+            </Button>
+            <Button type="submit" disabled={coachSubmitting} className="bg-teal-600 hover:bg-teal-700 text-white font-bold">
+              {coachSubmitting ? 'در حال ذخیره...' : editingCoach ? 'به‌روزرسانی کارت' : 'ثبت کارت جدید'}
             </Button>
           </div>
         </form>

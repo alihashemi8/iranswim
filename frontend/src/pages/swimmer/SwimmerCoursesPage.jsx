@@ -4,7 +4,7 @@ import {
   BookOpen, Calendar, Clock, MapPin, Users, User, CheckCircle2,
   AlertCircle, Search, DollarSign, CreditCard, ArrowRight,
   Sparkles, ChevronDown, ChevronUp, Check, Info, X, UserCheck,
-  GraduationCap, ArrowLeft, RefreshCw, Eye, Dumbbell,
+  GraduationCap, ArrowLeft, RefreshCw, Eye,
   ArrowRightLeft, CheckCircle, AlertTriangle
 } from 'lucide-react';
 import { SwimCourseSpecsIcon, CourseLogoIcon } from '../../components/common/AquaticIcons';
@@ -534,15 +534,6 @@ export const SwimmerCoursesPage = () => {
                 {filteredRegistrationCourses.length}
               </span>
             </button>
-
-            {/* Direct Link to Dedicated Workout & Diet Plans Page */}
-            <Link
-              to="/swimmer/plans"
-              className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all cursor-pointer"
-            >
-              <Dumbbell className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>برنامه غذایی و تمرینی</span>
-            </Link>
           </div>
 
           {/* Refresh Button */}

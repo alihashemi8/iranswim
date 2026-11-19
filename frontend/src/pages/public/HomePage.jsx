@@ -127,6 +127,19 @@ const INITIAL_COURSES = [
 
 const INITIAL_COACHES = [
   {
+    id: 99,
+    full_name: 'علی هاشمی',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=500&q=80',
+    coaching_degree: 'مدیر و مؤسس آموزشگاه',
+    role_title: 'مدیر و مؤسس آموزشگاه',
+    user_role: 'ADMIN',
+    is_manager: true,
+    gender: 'MALE',
+    display_order: 1,
+    bio: 'مدیر و مؤسس مدرسه شنای ایران، پیشکسوت ورزش‌های آبی استان با بیش از ۱۵ سال سابقه مدیریت و توسعه شنای قهرمانی و پایه‌ای در قزوین',
+    icon: RescueBuoyRingIcon,
+  },
+  {
     id: 1,
     full_name: 'محمد رضایی',
     avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=500&q=80',
@@ -365,7 +378,7 @@ export const HomePage = () => {
   const [coursesLoading, setCoursesLoading] = useState(false);
   const [courseFilter, setCourseFilter] = useState('ALL'); // 'ALL' | 'KIDS' | 'TEENS' | 'INSTALLMENTS'
   const [coaches, setCoaches] = useState(INITIAL_COACHES);
-  const [coachGenderTab, setCoachGenderTab] = useState('ALL'); // 'ALL' | 'MALE' | 'FEMALE'
+  const [coachCategoryTab, setCoachCategoryTab] = useState('FOUNDERS'); // 'FOUNDERS' | 'MALE' | 'FEMALE' | 'ALL_COACHES'
   const [news, setNews] = useState(INITIAL_NEWS);
   const [selectedNews, setSelectedNews] = useState(null);
   const [showRaybanModal, setShowRaybanModal] = useState(false);
@@ -679,6 +692,13 @@ export const HomePage = () => {
     return SwimmerCrawlIcon;
   };
 
+  const isManagerCoach = (c) => {
+    if (c.user_role === 'ADMIN' || c.role === 'ADMIN' || c.is_manager) return true;
+    const title = (c.coaching_degree || c.coaching_degree_display || c.role_title || c.title || '').toLowerCase();
+    const bio = (c.bio || '').toLowerCase();
+    return title.includes('مدیر') || title.includes('موسس') || title.includes('مؤسس') || bio.includes('مدیر و مؤسس') || bio.includes('موسس آموزشگاه');
+  };
+
   const isFemaleCoach = (c) => {
     if (c.gender === 'FEMALE') return true;
     if (c.gender === 'MALE') return false;
@@ -690,8 +710,10 @@ export const HomePage = () => {
 
   const filteredCoaches = coaches
     .filter((c) => {
-      if (coachGenderTab === 'MALE') return isMaleCoach(c);
-      if (coachGenderTab === 'FEMALE') return isFemaleCoach(c);
+      if (coachCategoryTab === 'FOUNDERS') return isManagerCoach(c);
+      if (coachCategoryTab === 'MALE') return !isManagerCoach(c) && isMaleCoach(c);
+      if (coachCategoryTab === 'FEMALE') return !isManagerCoach(c) && isFemaleCoach(c);
+      if (coachCategoryTab === 'ALL_COACHES') return !isManagerCoach(c);
       return true;
     })
     .sort((a, b) => (a.display_order ?? 999) - (b.display_order ?? 999));
@@ -1360,60 +1382,94 @@ export const HomePage = () => {
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-7 relative z-10">
           <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-cyan-800/15 pb-5">
             <div className="space-y-1.5">
-              <Badge variant="success">کادر مربیان</Badge>
+              <Badge variant="success">کادر اجرایی</Badge>
               <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
-                مربیان باسابقه و رسمی مدرسه شنای ایران
+                کادر اجرایی، مدیر و موسسین، و مربیان مدرسه شنای ایران
               </h2>
               <p className="text-xs sm:text-sm text-slate-700 font-medium">
-                دارای مدارک مربیگری رسمی و نجات‌غریق از فدراسیون شنا، شیرجه و واترپلو جمهوری اسلامی ایران
+                مدیریت، کادر اجرایی و مربیان باسابقه و رسمی فدراسیون شنا، شیرجه و واترپلو جمهوری اسلامی ایران
               </p>
             </div>
             <span className="text-xs font-mono font-bold text-cyan-900 bg-white/90 px-3.5 py-1.5 rounded-xl border border-cyan-300/60 shrink-0 self-start sm:self-auto shadow-xs">
-              {filteredCoaches.length} مربی فعال و مجاز
+              {filteredCoaches.length} عضو فعال و مجاز
             </span>
           </div>
 
-          {/* Gender Filter Tabs: مربیان مرد / مربیان زن */}
-          <div className="flex items-center gap-2 p-1.5 bg-white/90 dark:bg-slate-900/90 rounded-2xl border border-cyan-200/80 shadow-xs w-fit">
+          {/* Executive & Coaching Staff Tabs (4 Tabs) */}
+          <div className="flex flex-wrap items-center gap-2 p-1.5 bg-white/90 dark:bg-slate-900/90 rounded-2xl border border-cyan-200/80 shadow-xs w-fit">
             <button
               type="button"
-              onClick={() => setCoachGenderTab('ALL')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                coachGenderTab === 'ALL'
-                  ? 'bg-cyan-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+              onClick={() => setCoachCategoryTab('FOUNDERS')}
+              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                coachCategoryTab === 'FOUNDERS'
+                  ? 'bg-purple-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
               }`}
             >
-              همه مربیان ({coaches.length})
+              <span>مدیر و موسسین</span>
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-black ${
+                coachCategoryTab === 'FOUNDERS' ? 'bg-white/20 text-white' : 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
+              }`}>
+                {coaches.filter(isManagerCoach).length}
+              </span>
             </button>
+
             <button
               type="button"
-              onClick={() => setCoachGenderTab('MALE')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                coachGenderTab === 'MALE'
+              onClick={() => setCoachCategoryTab('MALE')}
+              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                coachCategoryTab === 'MALE'
                   ? 'bg-cyan-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
               }`}
             >
-              مربیان مرد ({coaches.filter(isMaleCoach).length})
+              <span>کادر آقایان</span>
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-black ${
+                coachCategoryTab === 'MALE' ? 'bg-white/20 text-white' : 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300'
+              }`}>
+                {coaches.filter((c) => !isManagerCoach(c) && isMaleCoach(c)).length}
+              </span>
             </button>
+
             <button
               type="button"
-              onClick={() => setCoachGenderTab('FEMALE')}
-              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                coachGenderTab === 'FEMALE'
+              onClick={() => setCoachCategoryTab('FEMALE')}
+              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                coachCategoryTab === 'FEMALE'
                   ? 'bg-pink-600 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900'
+                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
               }`}
             >
-              مربیان زن ({coaches.filter(isFemaleCoach).length})
+              <span>کادر بانوان</span>
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-black ${
+                coachCategoryTab === 'FEMALE' ? 'bg-white/20 text-white' : 'bg-pink-100 text-pink-800 dark:bg-pink-950 dark:text-pink-300'
+              }`}>
+                {coaches.filter((c) => !isManagerCoach(c) && isFemaleCoach(c)).length}
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setCoachCategoryTab('ALL_COACHES')}
+              className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                coachCategoryTab === 'ALL_COACHES'
+                  ? 'bg-teal-600 text-white shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white'
+              }`}
+            >
+              <span>کادر مربیان</span>
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-black ${
+                coachCategoryTab === 'ALL_COACHES' ? 'bg-white/20 text-white' : 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300'
+              }`}>
+                {coaches.filter((c) => !isManagerCoach(c)).length}
+              </span>
             </button>
           </div>
 
           <Carousel
             items={filteredCoaches}
             className="landing-carousel"
-            ariaLabel="اسلایدر کادر مربیان آموزشگاه"
+            ariaLabel="اسلایدر کادر اجرایی آموزشگاه"
             visibleItems={{ mobile: 1, tablet: 2, laptop: 3, desktop: 3 }}
             interval={6000}
             renderItem={(coach) => (

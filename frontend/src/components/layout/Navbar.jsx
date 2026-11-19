@@ -89,7 +89,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
     { label: 'دوره‌ها و کلاس‌ها', href: '/#courses', icon: BookOpen, sectionKey: 'courses' },
     { label: 'استخرهای قزوین', href: '/#pools', icon: Waves, sectionKey: 'pools' },
     { label: 'شناگران برتر', href: '/#top-swimmers', icon: Trophy, sectionKey: 'top_swimmers' },
-    { label: 'کادر مربیان', href: '/#coaches', icon: Users2, sectionKey: 'coaches' },
+    { label: 'کادر اجرایی', href: '/#coaches', icon: Users2, sectionKey: 'coaches' },
     { label: 'اخبار و رویدادها', href: '/#news', icon: Newspaper, sectionKey: 'news' },
   ];
 

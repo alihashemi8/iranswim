@@ -26,6 +26,7 @@ from .serializers import (
 from .services import (
     PayrollService, ContractService, AttendanceCorrectionService, CoachActivityLogger
 )
+from apps.accounts.models import User
 from apps.accounts.permissions import IsAdminUserRole, IsSupervisorUserRole, IsAdminOrSupervisor, IsAdminOrCoach
 from apps.scheduling.models import ClassSession
 from apps.education.models import SwimmerGroup, GroupCoach
@@ -169,6 +170,24 @@ class CoachListHRView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         user = self.request.user if hasattr(self, 'request') else None
+
+        # اطمینان از وجود پروفایل اجرایی برای مدیران سیستم
+        if self.request.method == 'GET':
+            for admin_user in User.objects.filter(role=User.Role.ADMIN, is_active=True):
+                if not CoachProfile.objects.filter(user=admin_user).exists():
+                    CoachProfile.objects.create(
+                        user=admin_user,
+                        first_name=admin_user.first_name or 'مدیر',
+                        last_name=admin_user.last_name or 'آموزشگاه',
+                        coaching_degree='مدیر و مؤسس آموزشگاه',
+                        bio='مدیر و مؤسس مدرسه شنای ایران، پیشکسوت ورزش‌های آبی استان با بیش از ۱۵ سال سابقه مدیریت و توسعه شنای قهرمانی و پایه‌ای در قزوین.',
+                        gender=CoachProfile.Gender.MALE,
+                        show_on_landing=True,
+                        display_order=0,
+                        employment_status=CoachProfile.EmploymentStatus.ACTIVE,
+                        is_profile_completed=True,
+                    )
+
         qs = CoachProfile.objects.all().select_related('user').prefetch_related(
             'contracts', 'payrolls', 'assigned_groups'
         )

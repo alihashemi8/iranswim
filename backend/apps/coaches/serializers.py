@@ -27,13 +27,17 @@ class CoachPublicSerializer(serializers.ModelSerializer):
     avatar = serializers.SerializerMethodField()
     gender_display = serializers.CharField(source='get_gender_display', read_only=True)
     assigned_groups_count = serializers.SerializerMethodField()
+    user_role = serializers.CharField(source='user.role', read_only=True)
+    is_manager = serializers.SerializerMethodField()
+    role_title = serializers.SerializerMethodField()
 
     class Meta:
         model = CoachProfile
         fields = [
             'id', 'first_name', 'last_name', 'full_name',
             'avatar', 'gender', 'gender_display', 'display_order', 'show_on_landing',
-            'coaching_degree', 'bio', 'years_of_experience', 'assigned_groups_count'
+            'coaching_degree', 'bio', 'years_of_experience', 'assigned_groups_count',
+            'user_role', 'is_manager', 'role_title'
         ]
         read_only_fields = fields
 
@@ -42,7 +46,7 @@ class CoachPublicSerializer(serializers.ModelSerializer):
             name = obj.user.get_full_name().strip()
             if name:
                 return name
-        return 'مربی آکادمی'
+        return 'عضو کادر اجرایی'
 
     def get_avatar(self, obj):
         if obj.user and obj.user.avatar:
@@ -51,6 +55,15 @@ class CoachPublicSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.user.avatar.url)
             return obj.user.avatar.url
         return None
+
+    def get_is_manager(self, obj):
+        return bool(obj.user and obj.user.role == User.Role.ADMIN)
+
+    def get_role_title(self, obj):
+        degree_name = obj.get_coaching_degree_display() if hasattr(obj, 'get_coaching_degree_display') and obj.coaching_degree else obj.coaching_degree
+        if obj.user and obj.user.role == User.Role.ADMIN:
+            return degree_name or 'مدیر و مؤسس آموزشگاه'
+        return degree_name or 'مربی رسمی فدراسیون'
 
     def get_assigned_groups_count(self, obj):
         return obj.assigned_groups.count()
@@ -300,6 +313,9 @@ class CoachProfileSerializer(serializers.ModelSerializer):
     lifeguard_expiration = serializers.DateField(required=False, allow_null=True)
     employment_start_date = serializers.DateField(required=False, allow_null=True)
     password = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    user_role = serializers.CharField(source='user.role', read_only=True)
+    is_manager = serializers.SerializerMethodField()
+    role_title = serializers.SerializerMethodField()
     avatar = serializers.SerializerMethodField()
     gender_display = serializers.CharField(source='get_gender_display', read_only=True)
     employment_status_display = serializers.CharField(source='get_employment_status_display', read_only=True)
@@ -330,7 +346,7 @@ class CoachProfileSerializer(serializers.ModelSerializer):
         model = CoachProfile
         fields = [
             'id', 'user', 'first_name', 'last_name', 'full_name', 'phone', 'national_id',
-            'password', 'avatar', 'personnel_id', 'gender', 'gender_display',
+            'password', 'avatar', 'user_role', 'is_manager', 'role_title', 'personnel_id', 'gender', 'gender_display',
             'date_of_birth', 'emergency_contact_name', 'emergency_contact_phone', 'address', 'internal_notes',
             'coaching_degree', 'coaching_degree_display', 'coaching_certificate_date',
             'coaching_certificate_file', 'years_of_experience', 'bio', 'resume_file',
@@ -364,6 +380,15 @@ class CoachProfileSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.user.avatar.url)
             return obj.user.avatar.url
         return None
+
+    def get_is_manager(self, obj):
+        return bool(obj.user and obj.user.role == User.Role.ADMIN)
+
+    def get_role_title(self, obj):
+        degree_name = obj.get_coaching_degree_display() if hasattr(obj, 'get_coaching_degree_display') and obj.coaching_degree else obj.coaching_degree
+        if obj.user and obj.user.role == User.Role.ADMIN:
+            return degree_name or 'مدیر و مؤسس آموزشگاه'
+        return degree_name or 'مربی رسمی فدراسیون'
 
     def get_assigned_groups_count(self, obj):
         return obj.assigned_groups.count()
