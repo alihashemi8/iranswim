@@ -928,7 +928,7 @@ export const SwimmerCoursesPage = () => {
           </div>
 
           {/* Courses Grid */}
-          {loading || refreshing ? (
+          {loading ? (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {Array.from({ length: 6 }).map((_, idx) => (
                 <CourseCardSkeleton key={idx} />
