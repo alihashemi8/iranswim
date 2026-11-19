@@ -589,7 +589,7 @@ export const RadarChart = ({
   if (!data || data.length < 3) {
     return (
       <div className="flex items-center justify-center h-48 text-xs text-slate-400 dark:text-slate-500 bg-slate-50/50 dark:bg-slate-800/20 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800">
-        برای نمایش نمودار راداری حداقل ۳ شاخص ارزیابی مورد نیاز است.
+        برای نمایش نمودار راداری حداقل 3 شاخص ارزیابی مورد نیاز است.
       </div>
     );
   }

@@ -26,7 +26,7 @@ import { toShamsiDate } from '../../utils/date';
 const SAMPLE_VIDEOS = [
   {
     id: 'demo-v1',
-    title: 'آنالیز بیومکانیک ورود دست و فاز کشش ۵۰ متر آزاد',
+    title: 'آنالیز بیومکانیک ورود دست و فاز کشش 50 متر آزاد',
     description: 'بررسی زاویه ورود دست به آب، چرخش بالاتنه (Body Roll) و هماهنگی تنفس جانبی یک‌طرفه در فاز شتاب‌گیری.',
     category: 'TECHNIQUE',
     category_display: 'تحلیل تکنیک',
@@ -37,10 +37,10 @@ const SAMPLE_VIDEOS = [
     stroke: 'کرال سینه (آزاد)',
     score: 91,
     metrics: [
-      { label: 'زاویه ورود دست', value: 92, note: 'زاویه ۴۲ درجه عالی' },
+      { label: 'زاویه ورود دست', value: 92, note: 'زاویه 42 درجه عالی' },
       { label: 'کشش زیر آب', value: 90, note: 'مسیر S شکل مناسب' },
       { label: 'ثبات و تقارن بدن', value: 88, note: 'نوسان کم لگن' },
-      { label: 'ریتم ضربات پا', value: 94, note: 'ریتم ۶ ضربه‌ای یکنواخت' },
+      { label: 'ریتم ضربات پا', value: 94, note: 'ریتم 6 ضربه‌ای یکنواخت' },
       { label: 'تایمینگ تنفس', value: 89, note: 'تنفس بدون بالا آوردن اضافه سر' },
     ],
     timestamps: [
@@ -62,16 +62,16 @@ const SAMPLE_VIDEOS = [
     stroke: 'استارت و برگشت سالتو',
     score: 87,
     metrics: [
-      { label: 'واکنش استارت', value: 86, note: 'زمان واکنش ۰.۷۱ ثانیه' },
-      { label: 'فاز دلفینی', value: 91, note: 'حرکت موجی عمیق تا ۶.۵ متر' },
+      { label: 'واکنش استارت', value: 86, note: 'زمان واکنش 0.71 ثانیه' },
+      { label: 'فاز دلفینی', value: 91, note: 'حرکت موجی عمیق تا 6.5 متر' },
       { label: 'چرخش سالتو', value: 84, note: 'نیاز به نزدیک‌تر کردن پاها به دیواره' },
       { label: 'فشار از دیواره', value: 88, note: 'فشار انفجاری دوپا' },
       { label: 'انتقال به سطح', value: 87, note: 'شروع به موقع ضربه دست' },
     ],
     timestamps: [
       { time: '00:08', label: 'زاویه فرود در آب و حفظ حالت خطی استریم‌لاین' },
-      { time: '00:22', label: 'اجرای ۴ ضربه دلفینی قدرتمند با راندمان بالا' },
-      { time: '00:44', label: 'چرخش سریع سالتو و چرخش ۹۰ درجه حین خروج' },
+      { time: '00:22', label: 'اجرای 4 ضربه دلفینی قدرتمند با راندمان بالا' },
+      { time: '00:44', label: 'چرخش سریع سالتو و چرخش 90 درجه حین خروج' },
     ]
   },
   {
@@ -88,7 +88,7 @@ const SAMPLE_VIDEOS = [
     score: 84,
     metrics: [
       { label: 'ضربه پای قورباغه', value: 85, note: 'مچ پا رو به بیرون عالی' },
-      { label: 'فاز گلاید', value: 88, note: 'حفظ شناوری به مدت ۱.۲ ثانیه' },
+      { label: 'فاز گلاید', value: 88, note: 'حفظ شناوری به مدت 1.2 ثانیه' },
       { label: 'کشش دست', value: 82, note: 'عدم عبور دست‌ها از خط سینه' },
       { label: 'هواگیری قورباغه', value: 86, note: 'بلند شدن با عضلات پشت' },
       { label: 'هماهنگی کل بدن', value: 81, note: 'تایمینگ کشش دست پس از لگد' },
@@ -110,7 +110,7 @@ const SAMPLE_RECORDS = [
     duration_seconds: 28.45,
     formatted_time: '28.45s',
     pool_course: 'SHORT_25M',
-    pool_course_display: 'استخر ۲۵ متر (مسافت کوتاه)',
+    pool_course_display: 'استخر 25 متر (مسافت کوتاه)',
     recorded_at: '2024-11-12',
     recorded_by_name: 'داور رسمی فدراسیون / مربی ارشد',
     verification_status: 'VERIFIED',
@@ -127,7 +127,7 @@ const SAMPLE_RECORDS = [
     duration_seconds: 29.70,
     formatted_time: '29.70s',
     pool_course: 'SHORT_25M',
-    pool_course_display: 'استخر ۲۵ متر (مسافت کوتاه)',
+    pool_course_display: 'استخر 25 متر (مسافت کوتاه)',
     recorded_at: '2024-10-18',
     recorded_by_name: 'استاد رضایی',
     verification_status: 'VERIFIED',
@@ -143,7 +143,7 @@ const SAMPLE_RECORDS = [
     duration_seconds: 30.50,
     formatted_time: '30.50s',
     pool_course: 'SHORT_25M',
-    pool_course_display: 'استخر ۲۵ متر (مسافت کوتاه)',
+    pool_course_display: 'استخر 25 متر (مسافت کوتاه)',
     recorded_at: '2024-09-10',
     recorded_by_name: 'مربی پایگاه قهرمانی',
     verification_status: 'VERIFIED',
@@ -159,7 +159,7 @@ const SAMPLE_RECORDS = [
     duration_seconds: 31.90,
     formatted_time: '31.90s',
     pool_course: 'SHORT_25M',
-    pool_course_display: 'استخر ۲۵ متر (مسافت کوتاه)',
+    pool_course_display: 'استخر 25 متر (مسافت کوتاه)',
     recorded_at: '2024-08-01',
     recorded_by_name: 'کادر ارزیابی آکادمی',
     verification_status: 'VERIFIED',
@@ -175,7 +175,7 @@ const SAMPLE_RECORDS = [
     duration_seconds: 64.20,
     formatted_time: '1:04.20',
     pool_course: 'LONG_50M',
-    pool_course_display: 'استخر ۵۰ متر (المپیک)',
+    pool_course_display: 'استخر 50 متر (المپیک)',
     recorded_at: '2024-11-02',
     recorded_by_name: 'سرداور مسابقات باشگاهی',
     verification_status: 'VERIFIED',
@@ -192,7 +192,7 @@ const SAMPLE_RECORDS = [
     duration_seconds: 33.15,
     formatted_time: '33.15s',
     pool_course: 'SHORT_25M',
-    pool_course_display: 'استخر ۲۵ متر (مسافت کوتاه)',
+    pool_course_display: 'استخر 25 متر (مسافت کوتاه)',
     recorded_at: '2024-11-08',
     recorded_by_name: 'مربی کرال پشت',
     verification_status: 'VERIFIED',
@@ -209,7 +209,7 @@ const SAMPLE_RECORDS = [
     duration_seconds: 34.80,
     formatted_time: '34.80s',
     pool_course: 'SHORT_25M',
-    pool_course_display: 'استخر ۲۵ متر (مسافت کوتاه)',
+    pool_course_display: 'استخر 25 متر (مسافت کوتاه)',
     recorded_at: '2024-09-22',
     recorded_by_name: 'کادر فنی آکادمی',
     verification_status: 'VERIFIED',
@@ -225,7 +225,7 @@ const SAMPLE_RECORDS = [
     duration_seconds: 36.80,
     formatted_time: '36.80s',
     pool_course: 'SHORT_25M',
-    pool_course_display: 'استخر ۲۵ متر (مسافت کوتاه)',
+    pool_course_display: 'استخر 25 متر (مسافت کوتاه)',
     recorded_at: '2024-11-05',
     recorded_by_name: 'مربی تخصصی قورباغه',
     verification_status: 'VERIFIED',
@@ -242,7 +242,7 @@ const SAMPLE_RECORDS = [
     duration_seconds: 30.50,
     formatted_time: '30.50s',
     pool_course: 'SHORT_25M',
-    pool_course_display: 'استخر ۲۵ متر (مسافت کوتاه)',
+    pool_course_display: 'استخر 25 متر (مسافت کوتاه)',
     recorded_at: '2024-10-30',
     recorded_by_name: 'سرمربی آکادمی',
     verification_status: 'VERIFIED',
@@ -261,7 +261,7 @@ const SAMPLE_FEEDBACK = [
     author_role: 'مدیر آکادمی و عضو هیئت نظارت',
     date: '2024-11-14',
     title: 'تأییدیه رسمی ارتقای سطح و اعطای بورسیه تیم نخبگان',
-    content: 'با توجه به پیشرفت شایان ذکر در ماه‌های اخیر و ثبت رکوردهای زیر ۳۰ ثانیه در ۵۰ متر آزاد، شورای فنی آکادمی با پیشنهاد ارتقای سطح شناگر به سطح پیشرفته و ورود به ترکیب تیم مسابقات استانی موافقت کرد. همچنین تسهیلات تخفیف تمرینات تخصصی برای این شناگر لحاظ گردید.',
+    content: 'با توجه به پیشرفت شایان ذکر در ماه‌های اخیر و ثبت رکوردهای زیر 30 ثانیه در 50 متر آزاد، شورای فنی آکادمی با پیشنهاد ارتقای سطح شناگر به سطح پیشرفته و ورود به ترکیب تیم مسابقات استانی موافقت کرد. همچنین تسهیلات تخفیف تمرینات تخصصی برای این شناگر لحاظ گردید.',
     status: 'APPROVED',
     status_display: 'مصوب و تأییدشده',
     badge_variant: 'success',
@@ -273,8 +273,8 @@ const SAMPLE_FEEDBACK = [
     author_name: 'استاد رضایی',
     author_role: 'سرمربی تیم نونهالان و مدرس فدراسیون',
     date: '2024-11-11',
-    title: 'تحلیل فنی مسابقه و برنامه شتاب‌گیری در ۵۰ متر آزاد',
-    content: 'در ۵۰ متر آزاد، واکنش استارت بسیار سریع بود و خروج دلفینی تا ۶ متر بدون افت سرعت انجام شد. برای کاهش زمان به زیر ۲۸ ثانیه، لازم است در ۱۰ متر پایانی ضربات پا با تمام قدرت ادامه یابد و سر به سمت دیواره متمایل نگردد تا کشش دست‌ها بیشترین بازده را ایجاد کند. تمرینات خشک شانه در خانه روزانه ۱۰ دقیقه انجام شود.',
+    title: 'تحلیل فنی مسابقه و برنامه شتاب‌گیری در 50 متر آزاد',
+    content: 'در 50 متر آزاد، واکنش استارت بسیار سریع بود و خروج دلفینی تا 6 متر بدون افت سرعت انجام شد. برای کاهش زمان به زیر 28 ثانیه، لازم است در 10 متر پایانی ضربات پا با تمام قدرت ادامه یابد و سر به سمت دیواره متمایل نگردد تا کشش دست‌ها بیشترین بازده را ایجاد کند. تمرینات خشک شانه در خانه روزانه 10 دقیقه انجام شود.',
     status: 'ACTIVE',
     status_display: 'توصیه فنی مربی',
     score: 94,
@@ -288,11 +288,11 @@ const SAMPLE_FEEDBACK = [
     author_role: 'واحد مدیریت و نظارت بر باشگاه‌ها',
     date: '2024-10-28',
     title: 'تقدیرنامه انضباط و حضور منظم در تمامی جلسات تمرینی',
-    content: 'شناگر در سه ماهه گذشته با حضور ۱۰۰ درصدی و بدون غیبت در تمامی تمرینات صبحگاهی و بعدازظهر، نمونه‌ای بارز از اخلاق ورزشی، تعهد تیمی و انضباط فردی را به نمایش گذاشته است که شایسته تقدیر رسمی مدیریت است.',
+    content: 'شناگر در سه ماهه گذشته با حضور 100 درصدی و بدون غیبت در تمامی تمرینات صبحگاهی و بعدازظهر، نمونه‌ای بارز از اخلاق ورزشی، تعهد تیمی و انضباط فردی را به نمایش گذاشته است که شایسته تقدیر رسمی مدیریت است.',
     status: 'COMMENDED',
     status_display: 'تقدیر رسمی مدیریت',
     badge_variant: 'success',
-    tags: ['انضباط ورزشی', 'حضور ۱۰۰٪', 'الگوی اخلاق']
+    tags: ['انضباط ورزشی', 'حضور 100٪', 'الگوی اخلاق']
   },
   {
     id: 'feed-c2',
@@ -301,7 +301,7 @@ const SAMPLE_FEEDBACK = [
     author_role: 'مربی بدنسازی تخصصی و فیزیولوژی شنا',
     date: '2024-10-15',
     title: 'ارزیابی آمادگی جسمانی، قدرت مرکزی (Core) و انعطاف شانه',
-    content: 'تست‌های فانکشنال نشان‌دهنده افزایش ۲۲ درصدی توان عضلات مرکزی شکم و فیله کمر است که مستقیماً در حفظ تعادل و شناوری افقی در آب عمیق اثرگذار بوده است. برنامه کششی مچ پا برای سبک قورباغه در جلسات آتی تقویت خواهد شد.',
+    content: 'تست‌های فانکشنال نشان‌دهنده افزایش 22 درصدی توان عضلات مرکزی شکم و فیله کمر است که مستقیماً در حفظ تعادل و شناوری افقی در آب عمیق اثرگذار بوده است. برنامه کششی مچ پا برای سبک قورباغه در جلسات آتی تقویت خواهد شد.',
     status: 'ACTIVE',
     status_display: 'گزارش آمادگی جسمانی',
     score: 90,
@@ -535,10 +535,10 @@ export const SwimmerProgressPage = () => {
     if (matches.length === 0) {
       // Default progression curve for 50m Free
       return [
-        { label: 'مرداد', date: '۱۴۰۳/۰۵/۰۱', time: 31.90, event: 'تست اولیه تابستان', delta: 0 },
-        { label: 'شهریور', date: '۱۴۰۳/۰۶/۱۰', time: 30.50, event: 'تست میان‌دوره', delta: -1.40 },
-        { label: 'مهر', date: '۱۴۰۳/۰۷/۱۸', time: 29.70, event: 'رکوردگیری باشگاهی', delta: -0.80 },
-        { label: 'آبان', date: '۱۴۰۳/۰۸/۲۲', time: 28.45, event: 'مسابقات قهرمانی استان', delta: -1.25 },
+        { label: 'مرداد', date: '1403/05/01', time: 31.90, event: 'تست اولیه تابستان', delta: 0 },
+        { label: 'شهریور', date: '1403/06/10', time: 30.50, event: 'تست میان‌دوره', delta: -1.40 },
+        { label: 'مهر', date: '1403/07/18', time: 29.70, event: 'رکوردگیری باشگاهی', delta: -0.80 },
+        { label: 'آبان', date: '1403/08/22', time: 28.45, event: 'مسابقات قهرمانی استان', delta: -1.25 },
       ];
     }
 
@@ -561,12 +561,12 @@ export const SwimmerProgressPage = () => {
   const videoRadarData = useMemo(() => {
     // Top video analysis metrics
     return [
-      { label: 'زاویه ورود دست', value: 92, note: 'زاویه ۴۲ درجه نسبت به سطح آب' },
+      { label: 'زاویه ورود دست', value: 92, note: 'زاویه 42 درجه نسبت به سطح آب' },
       { label: 'کشش زیر آب', value: 89, note: 'مسیر S شکل با آرنج بالا' },
-      { label: 'تقارن چرخش بدن', value: 86, note: 'تقارن ۴۵ درجه در دو طرف' },
-      { label: 'ریتم ضربات پا', value: 94, note: 'ریتم پیوسته ۶ ضربه‌ای' },
+      { label: 'تقارن چرخش بدن', value: 86, note: 'تقارن 45 درجه در دو طرف' },
+      { label: 'ریتم ضربات پا', value: 94, note: 'ریتم پیوسته 6 ضربه‌ای' },
       { label: 'زمان‌بندی هواگیری', value: 90, note: 'چرخش سر بدون انحراف ستون فقرات' },
-      { label: 'سرعت خروج سالتو', value: 88, note: 'انتقال انفجاری تا ۷ متر زیر آب' },
+      { label: 'سرعت خروج سالتو', value: 88, note: 'انتقال انفجاری تا 7 متر زیر آب' },
     ];
   }, []);
 
@@ -585,8 +585,8 @@ export const SwimmerProgressPage = () => {
   const qualitativeFeedbackData = useMemo(() => {
     return [
       { label: 'تکنیک و مکانیک شنا', value: 93, note: 'پیشرفت چشمگیر در کرال سینه و پشت' },
-      { label: 'انضباط و حضور منظم', value: 98, note: 'حضور ۱۰۰٪ و سروقت در تمرینات' },
-      { label: 'استقامت و توان هوازی', value: 88, note: 'پایداری سرعت در لست‌های ۲۰۰ متر' },
+      { label: 'انضباط و حضور منظم', value: 98, note: 'حضور 100٪ و سروقت در تمرینات' },
+      { label: 'استقامت و توان هوازی', value: 88, note: 'پایداری سرعت در لست‌های 200 متر' },
       { label: 'یادگیری و اصلاح‌پذیری', value: 95, note: 'اجرای دقیق توصیه‌های مربی' },
       { label: 'روحیه ورزشی و تیمی', value: 97, note: 'همکاری و تشویق سایر شناگران' },
     ];
@@ -600,7 +600,7 @@ export const SwimmerProgressPage = () => {
       ? `${activeSwimmer.first_name} ${activeSwimmer.last_name || ''}`.trim()
       : 'شناگر';
 
-    const reportDate = new Date().toLocaleDateString('fa-IR');
+    const reportDate = toShamsiDate(new Date())?.shortNumeric || '1403/08/29';
 
     const headers = [
       'ردیف',
@@ -632,7 +632,7 @@ export const SwimmerProgressPage = () => {
         r.distance_meters,
         Number(r.duration_seconds).toFixed(2),
         r.formatted_time || `${r.duration_seconds}s`,
-        r.pool_course_display || (r.pool_course === 'SHORT_25M' ? '۲۵ متر' : '۵۰ متر'),
+        r.pool_course_display || (r.pool_course === 'SHORT_25M' ? '25 متر' : '50 متر'),
         r.verification_status_display || (r.verification_status === 'VERIFIED' ? 'تأییدشده و رسمی' : 'در انتظار بررسی'),
         shamsi,
         r.recorded_by_name || 'کادر فنی آکادمی',
@@ -828,7 +828,7 @@ export const SwimmerProgressPage = () => {
             <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-emerald-500/10 via-emerald-500/5 to-transparent border border-emerald-200/80 dark:border-emerald-900/60 shadow-xs relative overflow-hidden">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                  ۵۰ متر کرال سینه (آزاد)
+                  50 متر کرال سینه (آزاد)
                 </span>
                 <Trophy className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               </div>
@@ -839,15 +839,15 @@ export const SwimmerProgressPage = () => {
                 <span className="text-xs text-slate-500">ثانیه</span>
               </div>
               <div className="mt-2 flex items-center gap-1.5 text-[11px] text-emerald-600 dark:text-emerald-400 font-bold">
-                <span>⬇ ۱.۲۵- ثانیه بهبود</span>
-                <span className="text-slate-400">· ۲۵م</span>
+                <span>⬇ 1.25- ثانیه بهبود</span>
+                <span className="text-slate-400">· 25م</span>
               </div>
             </div>
 
             <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-sky-500/10 via-sky-500/5 to-transparent border border-sky-200/80 dark:border-sky-900/60 shadow-xs relative overflow-hidden">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-sky-800 dark:text-sky-300">
-                  ۵۰ متر کرال پشت
+                  50 متر کرال پشت
                 </span>
                 <Trophy className="w-4 h-4 text-sky-600 dark:text-sky-400" />
               </div>
@@ -858,15 +858,15 @@ export const SwimmerProgressPage = () => {
                 <span className="text-xs text-slate-500">ثانیه</span>
               </div>
               <div className="mt-2 flex items-center gap-1.5 text-[11px] text-sky-600 dark:text-sky-400 font-bold">
-                <span>⬇ ۱.۶۵- ثانیه بهبود</span>
-                <span className="text-slate-400">· ۲۵م</span>
+                <span>⬇ 1.65- ثانیه بهبود</span>
+                <span className="text-slate-400">· 25م</span>
               </div>
             </div>
 
             <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-amber-500/10 via-amber-500/5 to-transparent border border-amber-200/80 dark:border-amber-900/60 shadow-xs relative overflow-hidden">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-amber-800 dark:text-amber-300">
-                  ۵۰ متر شنای قورباغه
+                  50 متر شنای قورباغه
                 </span>
                 <Trophy className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               </div>
@@ -877,15 +877,15 @@ export const SwimmerProgressPage = () => {
                 <span className="text-xs text-slate-500">ثانیه</span>
               </div>
               <div className="mt-2 flex items-center gap-1.5 text-[11px] text-amber-600 dark:text-amber-400 font-bold">
-                <span>⬇ ۱.۹۰- ثانیه بهبود</span>
-                <span className="text-slate-400">· ۲۵م</span>
+                <span>⬇ 1.90- ثانیه بهبود</span>
+                <span className="text-slate-400">· 25م</span>
               </div>
             </div>
 
             <div className="p-4 sm:p-5 rounded-3xl bg-gradient-to-br from-purple-500/10 via-purple-500/5 to-transparent border border-purple-200/80 dark:border-purple-900/60 shadow-xs relative overflow-hidden">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-purple-800 dark:text-purple-300">
-                  ۵۰ متر شنای پروانه
+                  50 متر شنای پروانه
                 </span>
                 <Trophy className="w-4 h-4 text-purple-600 dark:text-purple-400" />
               </div>
@@ -896,8 +896,8 @@ export const SwimmerProgressPage = () => {
                 <span className="text-xs text-slate-500">ثانیه</span>
               </div>
               <div className="mt-2 flex items-center gap-1.5 text-[11px] text-purple-600 dark:text-purple-400 font-bold">
-                <span>⬇ ۱.۲۰- ثانیه بهبود</span>
-                <span className="text-slate-400">· ۲۵م</span>
+                <span>⬇ 1.20- ثانیه بهبود</span>
+                <span className="text-slate-400">· 25م</span>
               </div>
             </div>
           </div>
@@ -922,10 +922,10 @@ export const SwimmerProgressPage = () => {
               {/* Stroke Selector for Chart */}
               <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar">
                 {[
-                  { id: 'FREESTYLE_50', label: '۵۰م آزاد' },
-                  { id: 'BACKSTROKE_50', label: '۵۰م پشت' },
-                  { id: 'BREASTSTROKE_50', label: '۵۰م قورباغه' },
-                  { id: 'BUTTERFLY_50', label: '۵۰م پروانه' },
+                  { id: 'FREESTYLE_50', label: '50م آزاد' },
+                  { id: 'BACKSTROKE_50', label: '50م پشت' },
+                  { id: 'BREASTSTROKE_50', label: '50م قورباغه' },
+                  { id: 'BUTTERFLY_50', label: '50م پروانه' },
                 ].map((item) => (
                   <button
                     key={item.id}
@@ -1040,7 +1040,7 @@ export const SwimmerProgressPage = () => {
                         )}
                       </td>
                       <td className="py-3.5 px-3 text-slate-600 dark:text-slate-400 text-xs">
-                        {r.pool_course === 'SHORT_25M' ? 'استخر ۲۵ متر' : 'استخر ۵۰ متر (المپیک)'}
+                        {r.pool_course === 'SHORT_25M' ? 'استخر 25 متر' : 'استخر 50 متر (المپیک)'}
                       </td>
                       <td className="py-3.5 px-3">
                         <Badge variant={r.verification_status === 'VERIFIED' ? 'success' : 'warning'}>
@@ -1094,7 +1094,7 @@ export const SwimmerProgressPage = () => {
                       </span>
                       <span className="text-slate-400">·</span>
                       <span className="text-slate-500">
-                        {r.pool_course === 'SHORT_25M' ? '۲۵ متر' : '۵۰ متر'}
+                        {r.pool_course === 'SHORT_25M' ? '25 متر' : '50 متر'}
                       </span>
                     </div>
 
@@ -1140,12 +1140,12 @@ export const SwimmerProgressPage = () => {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl sm:text-3xl font-black font-mono text-amber-600 dark:text-amber-400">
-                  ۸۹
+                  89
                 </span>
-                <span className="text-xs text-slate-500">از ۱۰۰</span>
+                <span className="text-xs text-slate-500">از 100</span>
               </div>
               <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold block mt-1">
-                رشد ۷ درصدی نسبت به ماه قبل
+                رشد 7 درصدی نسبت به ماه قبل
               </span>
             </div>
 
@@ -1156,7 +1156,7 @@ export const SwimmerProgressPage = () => {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl sm:text-3xl font-black font-mono text-emerald-600 dark:text-emerald-400">
-                  ۴۲
+                  42
                 </span>
                 <span className="text-xs text-slate-500">ضربه/دقیقه</span>
               </div>
@@ -1170,7 +1170,7 @@ export const SwimmerProgressPage = () => {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl sm:text-3xl font-black font-mono text-teal-600 dark:text-teal-400">
-                  ۷.۲
+                  7.2
                 </span>
                 <span className="text-xs text-slate-500">متر</span>
               </div>
@@ -1184,10 +1184,10 @@ export const SwimmerProgressPage = () => {
               <RadarChart
                 data={videoRadarData}
                 comparisonData={videoRadarBaseline}
-                primaryLabel="جلسه اخیر (آبان ۱۴۰۳)"
-                comparisonLabel="جلسه قبلی (مهر ۱۴۰۳)"
+                primaryLabel="جلسه اخیر (آبان 1403)"
+                comparisonLabel="جلسه قبلی (مهر 1403)"
                 title="نمودار تحلیل کیفی بیومکانیک و رادار فاکتورهای حرکتی در فیلم"
-                subtitle="ارزیابی ۶ شاخص بنیادین تکنیک شناگر حاصل از آنالیز فریم‌به‌فریم ویدئوها"
+                subtitle="ارزیابی 6 شاخص بنیادین تکنیک شناگر حاصل از آنالیز فریم‌به‌فریم ویدئوها"
                 color="sky"
                 size={340}
               />
@@ -1215,7 +1215,7 @@ export const SwimmerProgressPage = () => {
                     <div>
                       <span className="font-bold block text-slate-900 dark:text-white">زاویه ورود و کشش دست (Catch Phase):</span>
                       <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">
-                        آرنج بالا و دست‌ها با زاویه مناسب ۴۲ درجه آب را لمس می‌کنند و هدررفت انرژی به حداقل رسیده است.
+                        آرنج بالا و دست‌ها با زاویه مناسب 42 درجه آب را لمس می‌کنند و هدررفت انرژی به حداقل رسیده است.
                       </p>
                     </div>
                   </div>
@@ -1223,7 +1223,7 @@ export const SwimmerProgressPage = () => {
                   <div className="p-3 rounded-2xl bg-white/80 dark:bg-slate-800/80 border border-slate-200/60 dark:border-slate-700/60 flex items-start gap-2.5">
                     <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                     <div>
-                      <span className="font-bold block text-slate-900 dark:text-white">ریتم پای ۶ ضربه‌ای:</span>
+                      <span className="font-bold block text-slate-900 dark:text-white">ریتم پای 6 ضربه‌ای:</span>
                       <p className="text-slate-600 dark:text-slate-300 text-xs mt-0.5">
                         ضربات پا به صورت ممتد و از ناحیه مفصل ران بدون خم شدن بیش از حد زانو اجرا می‌شود.
                       </p>
@@ -1348,7 +1348,7 @@ export const SwimmerProgressPage = () => {
                           </span>
                           {v.score && (
                             <span className="font-mono font-bold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-2 py-0.5 rounded-lg border border-sky-200 dark:border-sky-800">
-                              نمره: {v.score} از ۱۰۰
+                              نمره: {v.score} از 100
                             </span>
                           )}
                         </div>
@@ -1384,7 +1384,7 @@ export const SwimmerProgressPage = () => {
       )}
 
       {/* ========================================================================= */}
-      {/* TAB 3: نظر مربی و مدیریت + نمودار ارزیابی ۵ گانه کیفی */}
+      {/* TAB 3: نظر مربی و مدیریت + نمودار ارزیابی 5 گانه کیفی */}
       {/* ========================================================================= */}
       {activeTab === 'FEEDBACK' && (
         <div className="space-y-6">
@@ -1430,11 +1430,11 @@ export const SwimmerProgressPage = () => {
               </div>
               <div className="flex items-baseline gap-1">
                 <span className="text-2xl sm:text-3xl font-black font-mono text-emerald-600 dark:text-emerald-400">
-                  ۹۸٪
+                  98٪
                 </span>
               </div>
               <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-bold block mt-1">
-                حضور ۱۰۰٪ بدون تأخیر
+                حضور 100٪ بدون تأخیر
               </span>
             </div>
           </div>
@@ -1445,7 +1445,7 @@ export const SwimmerProgressPage = () => {
               <RadarChart
                 data={qualitativeFeedbackData}
                 primaryLabel="امتیاز کیفی شناگر"
-                title="نمودار ماتریس ارزیابی ۵گانه کیفی مربی و مدیریت"
+                title="نمودار ماتریس ارزیابی 5گانه کیفی مربی و مدیریت"
                 subtitle="شاخص‌های ارزیابی فنی، انضباطی، اخلاقی و استقامتی از دیدگاه کادر آموزش و مدیریت"
                 color="violet"
                 size={340}
@@ -1474,7 +1474,7 @@ export const SwimmerProgressPage = () => {
                           {item.label}
                         </span>
                         <span className="font-mono font-bold text-violet-600 dark:text-violet-400">
-                          {item.value} از ۱۰۰
+                          {item.value} از 100
                         </span>
                       </div>
                       <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
@@ -1490,7 +1490,7 @@ export const SwimmerProgressPage = () => {
 
               <div className="p-3.5 rounded-2xl bg-violet-50 dark:bg-violet-950/40 border border-violet-200/70 dark:border-violet-900/60 text-xs text-violet-900 dark:text-violet-200 space-y-1 leading-relaxed">
                 <span className="font-bold block">✨ تأییدیه فنی مربیگری:</span>
-                شناگر در زمینه انضباط تمرینی و یادگیری‌پذیری در جمع ۵ درصد برتر آکادمی قرار دارد.
+                شناگر در زمینه انضباط تمرینی و یادگیری‌پذیری در جمع 5 درصد برتر آکادمی قرار دارد.
               </div>
             </div>
           </div>
@@ -1583,7 +1583,7 @@ export const SwimmerProgressPage = () => {
                         <div className="flex items-center gap-2">
                           {f.score !== undefined && (
                             <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                              نمره: {Math.round(f.score)} از ۱۰۰
+                              نمره: {Math.round(f.score)} از 100
                             </span>
                           )}
                           <Badge variant={f.badge_variant || 'info'}>
@@ -1663,7 +1663,7 @@ export const SwimmerProgressPage = () => {
               </h4>
               <ul className="list-disc list-inside space-y-1.5 text-slate-600 dark:text-slate-300 leading-relaxed pr-2 font-medium">
                 <li>کسب نمره قبولی در تمام سرفصل‌های تکنیکی سطح جاری (تأیید کادر فنی)</li>
-                <li>تکمیل حداقل ۱۰ جلسه تمرینی در دوره با حضور مستمر</li>
+                <li>تکمیل حداقل 10 جلسه تمرینی در دوره با حضور مستمر</li>
                 <li>ثبت و تأیید آزمون عملی توسط سرمربی و مدیریت آموزشگاه</li>
               </ul>
             </div>
@@ -1767,7 +1767,7 @@ export const SwimmerProgressPage = () => {
                   { label: 'شناوری و سرش', value: 98 },
                 ]}
                 max={100}
-                valueFormatter={(v) => `${v} از ۱۰۰`}
+                valueFormatter={(v) => `${v} از 100`}
               />
             </div>
           </div>
