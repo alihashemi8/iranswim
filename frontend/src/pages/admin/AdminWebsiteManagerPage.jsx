@@ -1566,19 +1566,19 @@ export const AdminWebsiteManagerPage = () => {
                 </div>
               </div>
 
-              {/* 4 Tabs: کادر اجرایی / مدیر و موسسین / کادر آقایان / کادر بانوان (Responsive for Mobile, Tablet, Desktop) */}
-              <div className="w-full grid grid-cols-2 sm:grid-cols-4 lg:w-fit lg:flex lg:flex-row items-center gap-2 p-1.5 sm:p-2 lg:p-1.5 bg-slate-100 dark:bg-slate-800/90 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
+              {/* 4 Tabs: کادر اجرایی / مدیر و موسسین / کادر آقایان / کادر بانوان (Responsive & Strictly Equal Height) */}
+              <div className="w-full grid grid-cols-2 sm:grid-cols-4 lg:w-fit lg:flex lg:flex-row items-center gap-1.5 sm:gap-2 p-1 sm:p-1.5 bg-slate-100 dark:bg-slate-800/90 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 shadow-xs">
                 <button
                   type="button"
                   onClick={() => setCoachCategoryTab('ALL')}
-                  className={`w-full justify-between sm:justify-center lg:justify-start px-3 sm:px-3 lg:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs lg:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 active:scale-98 ${
+                  className={`h-10 w-full justify-between sm:justify-center px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap active:scale-98 ${
                     coachCategoryTab === 'ALL'
                       ? 'bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-xs ring-1 ring-slate-200/50 dark:ring-slate-600'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
                   }`}
                 >
                   <span>کادر اجرایی</span>
-                  <span className={`mr-1 px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
+                  <span className={`h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full text-[11px] font-black shrink-0 ${
                     coachCategoryTab === 'ALL'
                       ? 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300'
                       : 'bg-slate-200 text-slate-700 dark:bg-slate-900 dark:text-slate-300'
@@ -1590,14 +1590,14 @@ export const AdminWebsiteManagerPage = () => {
                 <button
                   type="button"
                   onClick={() => setCoachCategoryTab('FOUNDERS')}
-                  className={`w-full justify-between sm:justify-center lg:justify-start px-3 sm:px-3 lg:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs lg:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 active:scale-98 ${
+                  className={`h-10 w-full justify-between sm:justify-center px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap active:scale-98 ${
                     coachCategoryTab === 'FOUNDERS'
                       ? 'bg-white dark:bg-slate-700 text-purple-700 dark:text-purple-300 shadow-xs ring-1 ring-slate-200/50 dark:ring-slate-600'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
                   }`}
                 >
                   <span>مدیر و موسسین</span>
-                  <span className={`mr-1 px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
+                  <span className={`h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full text-[11px] font-black shrink-0 ${
                     coachCategoryTab === 'FOUNDERS'
                       ? 'bg-purple-100 text-purple-800 dark:bg-purple-950 dark:text-purple-300'
                       : 'bg-slate-200 text-slate-700 dark:bg-slate-900 dark:text-slate-300'
@@ -1609,14 +1609,14 @@ export const AdminWebsiteManagerPage = () => {
                 <button
                   type="button"
                   onClick={() => setCoachCategoryTab('MALE')}
-                  className={`w-full justify-between sm:justify-center lg:justify-start px-3 sm:px-3 lg:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs lg:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 active:scale-98 ${
+                  className={`h-10 w-full justify-between sm:justify-center px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap active:scale-98 ${
                     coachCategoryTab === 'MALE'
                       ? 'bg-white dark:bg-slate-700 text-cyan-700 dark:text-cyan-300 shadow-xs ring-1 ring-slate-200/50 dark:ring-slate-600'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
                   }`}
                 >
                   <span>کادر آقایان</span>
-                  <span className={`mr-1 px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
+                  <span className={`h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full text-[11px] font-black shrink-0 ${
                     coachCategoryTab === 'MALE'
                       ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-300'
                       : 'bg-slate-200 text-slate-700 dark:bg-slate-900 dark:text-slate-300'
@@ -1628,14 +1628,14 @@ export const AdminWebsiteManagerPage = () => {
                 <button
                   type="button"
                   onClick={() => setCoachCategoryTab('FEMALE')}
-                  className={`w-full justify-between sm:justify-center lg:justify-start px-3 sm:px-3 lg:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-xs lg:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 active:scale-98 ${
+                  className={`h-10 w-full justify-between sm:justify-center px-3 sm:px-4 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-2 whitespace-nowrap active:scale-98 ${
                     coachCategoryTab === 'FEMALE'
                       ? 'bg-white dark:bg-slate-700 text-pink-700 dark:text-pink-300 shadow-xs ring-1 ring-slate-200/50 dark:ring-slate-600'
                       : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/50 dark:hover:bg-slate-700/50'
                   }`}
                 >
                   <span>کادر بانوان</span>
-                  <span className={`mr-1 px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
+                  <span className={`h-5 min-w-[20px] px-1.5 flex items-center justify-center rounded-full text-[11px] font-black shrink-0 ${
                     coachCategoryTab === 'FEMALE'
                       ? 'bg-pink-100 text-pink-800 dark:bg-pink-950 dark:text-pink-300'
                       : 'bg-slate-200 text-slate-700 dark:bg-slate-900 dark:text-slate-300'
