@@ -1,0 +1,32 @@
+# robots.txt for IranSwim (https://iran-swim.ir)
+User-agent: *
+Allow: /
+Allow: /swimming-classes/
+Allow: /courses/
+Allow: /courses/kids-swimming/
+Allow: /courses/adults-swimming/
+Allow: /courses/beginner-swimming/
+Allow: /coaches/
+Allow: /pricing/
+Allow: /schedule/
+Allow: /contact/
+Allow: /blog/
+Allow: /assets/
+Allow: /images/
+Allow: /fonts/
+
+# Disallow authenticated private panels and system operations
+Disallow: /admin/
+Disallow: /coach/
+Disallow: /swimmer/
+Disallow: /supervisor/
+Disallow: /api/
+Disallow: /login
+Disallow: /register
+
+# Disallow session / tracking query strings
+Disallow: /*?*token=
+Disallow: /*?*session=
+
+# Authoritative XML Sitemap
+Sitemap: https://iran-swim.ir/sitemap.xml

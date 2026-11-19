@@ -745,6 +745,9 @@ class TopSwimmerDetailView(generics.RetrieveUpdateDestroyAPIView):
         return [IsAdminUserRole()]
 
 
+from django.http import HttpResponse
+
+
 class TopSwimmerReorderView(APIView):
     """مرتب‌سازی ترتیب نمایش شناگران برتر توسط مدیر"""
     permission_classes = [IsAdminUserRole]
@@ -763,6 +766,105 @@ class TopSwimmerReorderView(APIView):
         swimmers = TopSwimmer.objects.all().order_by('display_order', 'id')
         serializer = TopSwimmerSerializer(swimmers, many=True, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class DynamicSitemapXmlView(APIView):
+    """
+    سایت‌مپ پویا استاندارد بر اساس آخرین دوره‌ها، استخرها و اخبار ثبت‌شده در دیتابیس
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        base_url = "https://iran-swim.ir"
+        now_str = timezone.now().strftime("%Y-%m-%dT%H:%M:%S+03:30")
+
+        static_routes = [
+            ("", "1.0", "daily"),
+            ("swimming-classes/", "0.9", "weekly"),
+            ("courses/kids-swimming/", "0.9", "weekly"),
+            ("courses/adults-swimming/", "0.9", "weekly"),
+            ("courses/beginner-swimming/", "0.9", "weekly"),
+            ("coaches/", "0.8", "monthly"),
+            ("pricing/", "0.8", "weekly"),
+            ("schedule/", "0.8", "weekly"),
+            ("contact/", "0.8", "monthly"),
+            ("blog/", "0.8", "daily"),
+        ]
+
+        xml_entries = []
+        for path, priority, freq in static_routes:
+            loc = f"{base_url}/{path}".rstrip("/") + ("/" if path else "/")
+            xml_entries.append(
+                f"  <url>\n"
+                f"    <loc>{loc}</loc>\n"
+                f"    <lastmod>{now_str}</lastmod>\n"
+                f"    <changefreq>{freq}</changefreq>\n"
+                f"    <priority>{priority}</priority>\n"
+                f"  </url>"
+            )
+
+        # Dynamic news & articles
+        for post in NewsPost.objects.filter(status=NewsPost.Status.PUBLISHED):
+            loc = f"{base_url}/blog/{post.slug}"
+            lastmod = post.updated_at.strftime("%Y-%m-%dT%H:%M:%S+03:30") if post.updated_at else now_str
+            xml_entries.append(
+                f"  <url>\n"
+                f"    <loc>{loc}</loc>\n"
+                f"    <lastmod>{lastmod}</lastmod>\n"
+                f"    <changefreq>monthly</changefreq>\n"
+                f"    <priority>0.7</priority>\n"
+                f"  </url>"
+            )
+
+        xml_content = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
+            + "\n".join(xml_entries)
+            + "\n</urlset>"
+        )
+        return HttpResponse(xml_content, content_type="application/xml; charset=utf-8")
+
+
+class DynamicRobotsTxtView(APIView):
+    """
+    سرویس robots.txt استاندارد به همراه آدرس سایت‌مپ رسمی و مسدودسازی پنل‌ها
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        content = (
+            "# robots.txt for IranSwim (https://iran-swim.ir)\n"
+            "User-agent: *\n"
+            "Allow: /\n"
+            "Allow: /swimming-classes/\n"
+            "Allow: /courses/\n"
+            "Allow: /courses/kids-swimming/\n"
+            "Allow: /courses/adults-swimming/\n"
+            "Allow: /courses/beginner-swimming/\n"
+            "Allow: /coaches/\n"
+            "Allow: /pricing/\n"
+            "Allow: /schedule/\n"
+            "Allow: /contact/\n"
+            "Allow: /blog/\n"
+            "Allow: /assets/\n"
+            "Allow: /images/\n"
+            "Allow: /fonts/\n\n"
+            "# Disallow authenticated private panels and system operations\n"
+            "Disallow: /admin/\n"
+            "Disallow: /coach/\n"
+            "Disallow: /swimmer/\n"
+            "Disallow: /supervisor/\n"
+            "Disallow: /api/\n"
+            "Disallow: /login\n"
+            "Disallow: /register\n\n"
+            "# Disallow session / tracking query strings\n"
+            "Disallow: /*?*token=\n"
+            "Disallow: /*?*session=\n\n"
+            "# Authoritative XML Sitemap\n"
+            "Sitemap: https://iran-swim.ir/sitemap.xml\n"
+        )
+        return HttpResponse(content, content_type="text/plain; charset=utf-8")
+
 
 
 

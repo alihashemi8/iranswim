@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponseNotFound, JsonResponse
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from apps.content.views import DynamicSitemapXmlView, DynamicRobotsTxtView
 
 
 def health_ping_view(request):
@@ -24,6 +25,12 @@ def block_sensitive_documents_direct_access(request, subpath=None):
 urlpatterns = [
     # Unauthenticated Health Probe for Docker Container Readiness
     path('api/health/', health_ping_view, name='health_ping'),
+
+    # Dynamic SEO Crawl Endpoints
+    path('sitemap.xml', DynamicSitemapXmlView.as_view(), name='dynamic_sitemap'),
+    path('robots.txt', DynamicRobotsTxtView.as_view(), name='dynamic_robots'),
+    path('api/sitemap.xml', DynamicSitemapXmlView.as_view(), name='api_dynamic_sitemap'),
+    path('api/robots.txt', DynamicRobotsTxtView.as_view(), name='api_dynamic_robots'),
 
     # Block direct public access to sensitive swimmer documents
     path('media/swimmers/documents/<path:subpath>', block_sensitive_documents_direct_access),

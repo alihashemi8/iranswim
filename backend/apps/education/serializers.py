@@ -419,10 +419,21 @@ class EnrollmentSerializer(serializers.ModelSerializer):
     swimmer_level_id = serializers.IntegerField(source='swimmer.current_level_id', read_only=True)
 
     course_name = serializers.CharField(source='course.name', read_only=True)
-    course_pool = serializers.CharField(source='course.pool_location', read_only=True)
-    course_days = serializers.CharField(source='course.days_of_week', read_only=True)
+    course_pool = serializers.CharField(source='course.pool_location', read_only=True, default='')
+    course_days = serializers.CharField(source='course.days_of_week', read_only=True, default='')
     course_time = serializers.SerializerMethodField()
-    course_gender = serializers.CharField(source='course.gender', read_only=True)
+    course_gender = serializers.CharField(source='course.gender', read_only=True, default='')
+    course_gender_display = serializers.CharField(source='course.get_gender_display', read_only=True, default='')
+    course_start_date = serializers.DateField(source='course.start_date', read_only=True, default=None)
+    course_end_date = serializers.DateField(source='course.end_date', read_only=True, default=None)
+    course_sessions_count = serializers.IntegerField(source='course.sessions_count', read_only=True, default=12)
+    course_base_price = serializers.DecimalField(source='course.base_price', max_digits=12, decimal_places=2, read_only=True, default=0)
+    course_installments_count = serializers.IntegerField(source='course.installments_count', read_only=True, default=1)
+    course_card_number = serializers.CharField(source='course.card_number', read_only=True, default='')
+    course_card_holder = serializers.CharField(source='course.card_holder', read_only=True, default='')
+    course_age_range = serializers.CharField(source='course.age_range', read_only=True, default='')
+    course_what_you_learn = serializers.CharField(source='course.what_you_learn', read_only=True, default='')
+    course_description = serializers.CharField(source='course.description', read_only=True, default='')
 
     group_name = serializers.CharField(source='group.name', read_only=True, default=None, allow_null=True)
     coach_name = serializers.SerializerMethodField()
@@ -439,6 +450,9 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             'swimmer_national_id', 'swimmer_level_name', 'swimmer_gender',
             'swimmer_gender_display', 'swimmer_level_id',
             'course', 'course_name', 'course_pool', 'course_days', 'course_time', 'course_gender',
+            'course_gender_display', 'course_start_date', 'course_end_date', 'course_sessions_count',
+            'course_base_price', 'course_installments_count', 'course_card_number', 'course_card_holder',
+            'course_age_range', 'course_what_you_learn', 'course_description',
             'group', 'group_name', 'coach', 'coach_name', 'coach_avatar',
             'course_coaches', 'status', 'status_display',
             'sessions_purchased', 'sessions_attended', 'remaining_sessions',
@@ -498,11 +512,18 @@ class EnrollmentSerializer(serializers.ModelSerializer):
             if c.user and c.user.avatar:
                 avatar_url = request.build_absolute_uri(c.user.avatar.url) if request else c.user.avatar.url
             coach_label = (c.user.get_full_name().strip() if c.user else '') or 'مربی'
+            degree_display = ''
+            try:
+                degree_display = c.get_coaching_degree_display() or ''
+            except Exception:
+                degree_display = getattr(c, 'coaching_degree', '') or ''
             result.append({
                 'id': c.id,
                 'full_name': coach_label,
                 'avatar': avatar_url,
-                'class_name': f"کلاس {coach_label}"
+                'class_name': f"کلاس {coach_label}",
+                'coaching_degree': degree_display,
+                'years_of_experience': getattr(c, 'years_of_experience', 0) or 0,
             })
         return result
 

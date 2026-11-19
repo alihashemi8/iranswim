@@ -5,7 +5,7 @@ import {
   AlertCircle, Search, DollarSign, CreditCard, ArrowRight,
   Sparkles, ChevronDown, ChevronUp, Check, Info, X,
   GraduationCap, ArrowLeft, RefreshCw, Eye,
-  ArrowRightLeft, CheckCircle
+  ArrowRightLeft, CheckCircle, Award, Copy, Building2
 } from 'lucide-react';
 import { SwimCourseSpecsIcon, CourseLogoIcon } from '../../components/common/AquaticIcons';
 import api from '../../api/client';
@@ -20,7 +20,7 @@ import { Modal } from '../../components/common/Modal';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { ProgressBar } from '../../components/common/Charts';
 import { toShamsiDate } from '../../utils/date';
-import { formatCardNumberWithDashes, copyCardToClipboard } from '../../utils/bankCard';
+import { formatCardNumberWithDashes, copyCardToClipboard, getBankNameFromCard } from '../../utils/bankCard';
 
 export const SwimmerCoursesPage = () => {
   const { user } = useAuth();
@@ -527,7 +527,7 @@ export const SwimmerCoursesPage = () => {
                         </div>
 
                         {/* Specs overview */}
-                        <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                           <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
                             <span className="text-[10px] text-slate-400 block mb-0.5">مربی مسئول:</span>
                             <div className="font-bold text-slate-800 dark:text-slate-200 truncate flex items-center gap-1">
@@ -540,7 +540,31 @@ export const SwimmerCoursesPage = () => {
                             <span className="text-[10px] text-slate-400 block mb-0.5">محل استخر:</span>
                             <div className="font-bold text-slate-800 dark:text-slate-200 truncate flex items-center gap-1">
                               <MapPin className="w-3.5 h-3.5 text-teal-600 shrink-0" />
-                              <span className="truncate">{courseDetail?.pool_location || 'استخر اصلی آموزشگاه'}</span>
+                              <span className="truncate">{courseDetail?.pool_location || enr.course_pool || 'استخر اصلی آموزشگاه'}</span>
+                            </div>
+                          </div>
+
+                          <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                            <span className="text-[10px] text-slate-400 block mb-0.5">روزها و ساعت برگزاری:</span>
+                            <div className="font-bold text-slate-800 dark:text-slate-200 truncate flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+                              <span className="truncate">
+                                {courseDetail?.days_of_week || enr.course_days || 'جلسات هفتگی'} {(courseDetail?.time_display || enr.course_time) ? `(${courseDetail?.time_display || enr.course_time})` : ''}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="bg-slate-50 dark:bg-slate-800/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800">
+                            <span className="text-[10px] text-slate-400 block mb-0.5">بازه زمانی دوره:</span>
+                            <div className="font-bold text-slate-800 dark:text-slate-200 truncate flex items-center gap-1 font-mono text-[11px]">
+                              <Calendar className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+                              <span className="truncate">
+                                {(courseDetail?.start_date || enr.course_start_date) ? (
+                                  <>
+                                    از {toShamsiDate(courseDetail?.start_date || enr.course_start_date).shortNumeric || (courseDetail?.start_date || enr.course_start_date)} تا {toShamsiDate(courseDetail?.end_date || enr.course_end_date).shortNumeric || (courseDetail?.end_date || enr.course_end_date)}
+                                  </>
+                                ) : 'مصوب مدیریت'}
+                              </span>
                             </div>
                           </div>
                         </div>

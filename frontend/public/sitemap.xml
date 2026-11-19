@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+  <!-- Homepage -->
+  <url>
+    <loc>https://iran-swim.ir/</loc>
+    <lastmod>2026-11-19T12:00:00+03:30</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Swimming Classes / Courses Overview -->
+  <url>
+    <loc>https://iran-swim.ir/swimming-classes/</loc>
+    <lastmod>2026-11-19T12:00:00+03:30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Specific Course Category Pages -->
+  <url>
+    <loc>https://iran-swim.ir/courses/kids-swimming/</loc>
+    <lastmod>2026-11-19T12:00:00+03:30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://iran-swim.ir/courses/adults-swimming/</loc>
+    <lastmod>2026-11-19T12:00:00+03:30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://iran-swim.ir/courses/beginner-swimming/</loc>
+    <lastmod>2026-11-19T12:00:00+03:30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Coaches Staff Directory -->
+  <url>
+    <loc>https://iran-swim.ir/coaches/</loc>
+    <lastmod>2026-11-19T12:00:00+03:30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Pricing & Installments -->
+  <url>
+    <loc>https://iran-swim.ir/pricing/</loc>
+    <lastmod>2026-11-19T12:00:00+03:30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Weekly Schedule & Timetable -->
+  <url>
+    <loc>https://iran-swim.ir/schedule/</loc>
+    <lastmod>2026-11-19T12:00:00+03:30</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Contact Us & Pools Directory in Qazvin -->
+  <url>
+    <loc>https://iran-swim.ir/contact/</loc>
+    <lastmod>2026-11-19T12:00:00+03:30</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Educational Blog & News Portal -->
+  <url>
+    <loc>https://iran-swim.ir/blog/</loc>
+    <lastmod>2026-11-19T12:00:00+03:30</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <!-- Verified News & Article URLs -->
+  <url>
+    <loc>https://iran-swim.ir/blog/welcome-autumn-term-1405</loc>
+    <lastmod>2026-10-25T12:49:27+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iran-swim.ir/blog/state-swimming-championship-freedom-cup</loc>
+    <lastmod>2026-10-22T16:35:12+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iran-swim.ir/blog/ozone-water-purification-upgrade</loc>
+    <lastmod>2026-10-18T16:35:12+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iran-swim.ir/blog/winter-term-registration-opened</loc>
+    <lastmod>2026-10-15T16:35:13+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iran-swim.ir/blog/nutrition-and-breathing-workshop</loc>
+    <lastmod>2026-10-10T12:00:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://iran-swim.ir/blog/iran-swim-academy-shines-in-national-league</loc>
+    <lastmod>2026-10-05T12:00:00+00:00</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+</urlset>
