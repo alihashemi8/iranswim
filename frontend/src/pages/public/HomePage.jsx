@@ -4,7 +4,7 @@ import {
   ShieldCheck, ArrowLeft, PhoneCall,
   CheckCircle2, Clock, MapPin, Check,
   Sparkles, Droplet, ArrowDown, Waves, Users2, Award, CreditCard,
-  ArrowUp, Copy, Coins, AlertCircle, RefreshCw, Crown, Heart
+  ArrowUp, Copy, Coins, AlertCircle, RefreshCw, Users, Briefcase, Mars, Venus
 } from 'lucide-react';
 import { getBankNameFromCard, formatCardNumberWithDashes, copyCardToClipboard } from '../../utils/bankCard';
 import {
@@ -37,7 +37,23 @@ import { FloatingLandingWaterIcons } from '../../components/landing/FloatingLand
 import { CoachProfileCard } from '../../components/common/CoachProfileCard';
 import { useLandingSections } from '../../context/LandingSectionsContext';
 import TopSwimmersSection from '../../components/landing/TopSwimmersSection';
+import { SEOHead } from '../../components/common/SEOHead';
+import { LandingFaqSection, FAQ_ITEMS } from '../../components/landing/LandingFaqSection';
 import './HomePage.css';
+
+const HOMEPAGE_FAQ_SCHEMA = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  '@id': 'https://iran-swim.ir/#faq',
+  'mainEntity': FAQ_ITEMS.map((item) => ({
+    '@type': 'Question',
+    'name': item.q,
+    'acceptedAnswer': {
+      '@type': 'Answer',
+      'text': item.a,
+    },
+  })),
+};
 
 export const toEnglishDigits = (val) => {
   if (val === null || val === undefined) return '';
@@ -849,6 +865,15 @@ export const HomePage = () => {
 
   return (
     <div className="landing-experience relative min-h-screen selection:bg-cyan-200 selection:text-slate-900 overflow-x-hidden text-right font-sans">
+      <SEOHead
+        title="مدرسه شنای ایران | آموزش و کلاس شنا در قزوین"
+        description="مدرسه شنای ایران؛ ارائه خدمات تخصصی آموزش شنا و دوره‌های آموزشی برای علاقه‌مندان به شنا در قزوین. مشاهده دوره‌ها، آشنایی با مربیان رسمی فدراسیون و ثبت‌نام آنلاین."
+        canonicalUrl="/"
+        keywords="مدرسه شنای ایران, کلاس شنای قزوین, آموزش شنا در قزوین, کلاس شنا, ثبت نام کلاس شنا, استخر قزوین, مربی شنا در قزوین"
+        schemaData={HOMEPAGE_FAQ_SCHEMA}
+        breadcrumbs={[{ name: 'صفحه اصلی', url: '/' }]}
+      />
+
       {/* Dynamic Aquatic Water Caustic Canvas */}
       <AquaticPoolBackground />
 
@@ -877,10 +902,10 @@ export const HomePage = () => {
                 {/* Main Headline */}
                 <div className="space-y-2 sm:space-y-4">
                   <h1 className="text-3xl sm:text-4xl md:text-[1.85rem] lg:text-[2.6rem] xl:text-5xl font-black tracking-tight leading-[1.25] text-white">
-                    <span>آموزش اصولی شنا</span>{' '}
+                    <span>مدرسه شنای ایران؛</span>{' '}
                     <br className="block md:hidden" />
                     <span className="text-cyan-300 font-black">
-                      از مبتدی تا پیشرفته
+                      آموزش و کلاس شنا در قزوین
                     </span>
                   </h1>
                   <p className="hero-lead-text text-xs sm:text-base lg:text-xl font-bold text-sky-100 leading-normal sm:leading-snug">
@@ -1406,7 +1431,7 @@ export const HomePage = () => {
               }`}
             >
               <div className="flex items-center gap-1.5 min-w-0">
-                <Award className={`w-4 h-4 shrink-0 ${coachCategoryTab === 'ALL' ? 'text-white' : 'text-teal-600 dark:text-teal-400'}`} />
+                <Users className={`w-4 h-4 shrink-0 ${coachCategoryTab === 'ALL' ? 'text-white' : 'text-teal-600 dark:text-teal-400'}`} />
                 <span className="truncate">کادر اجرایی</span>
               </div>
               <span className={`px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
@@ -1426,7 +1451,7 @@ export const HomePage = () => {
               }`}
             >
               <div className="flex items-center gap-1.5 min-w-0">
-                <Crown className={`w-4 h-4 shrink-0 ${coachCategoryTab === 'FOUNDERS' ? 'text-white' : 'text-purple-600 dark:text-purple-400'}`} />
+                <Briefcase className={`w-4 h-4 shrink-0 ${coachCategoryTab === 'FOUNDERS' ? 'text-white' : 'text-purple-600 dark:text-purple-400'}`} />
                 <span className="truncate">مدیر و موسسین</span>
               </div>
               <span className={`px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
@@ -1446,7 +1471,7 @@ export const HomePage = () => {
               }`}
             >
               <div className="flex items-center gap-1.5 min-w-0">
-                <Users2 className={`w-4 h-4 shrink-0 ${coachCategoryTab === 'MALE' ? 'text-white' : 'text-cyan-600 dark:text-cyan-400'}`} />
+                <Mars className={`w-4 h-4 shrink-0 ${coachCategoryTab === 'MALE' ? 'text-white' : 'text-cyan-600 dark:text-cyan-400'}`} />
                 <span className="truncate">کادر آقایان</span>
               </div>
               <span className={`px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
@@ -1466,7 +1491,7 @@ export const HomePage = () => {
               }`}
             >
               <div className="flex items-center gap-1.5 min-w-0">
-                <Heart className={`w-4 h-4 shrink-0 ${coachCategoryTab === 'FEMALE' ? 'text-white' : 'text-pink-600 dark:text-pink-400'}`} />
+                <Venus className={`w-4 h-4 shrink-0 ${coachCategoryTab === 'FEMALE' ? 'text-white' : 'text-pink-600 dark:text-pink-400'}`} />
                 <span className="truncate">کادر بانوان</span>
               </div>
               <span className={`px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${

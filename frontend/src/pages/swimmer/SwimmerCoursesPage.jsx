@@ -871,7 +871,7 @@ export const SwimmerCoursesPage = () => {
                     <div className="p-5 sm:p-6 space-y-4 flex-1">
                       {/* Top Badges Row */}
                       <div className="flex flex-wrap items-center justify-between gap-2">
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex flex-wrap items-center gap-1.5">
                           <Badge
                             variant={
                               course.status === 'ACTIVE'
@@ -884,6 +884,13 @@ export const SwimmerCoursesPage = () => {
                           >
                             {course.status === 'ACTIVE' ? 'در حال برگزاری' : 'پیش‌ثبت‌نام'}
                           </Badge>
+
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 flex items-center gap-1">
+                            <User className="w-3 h-3 text-sky-500" />
+                            <span>
+                              {course.gender_display || (course.gender === 'FEMALE' ? 'دختران / بانوان' : course.gender === 'MALE' ? 'پسران / آقایان' : 'عمومی (پسران و دختران)')}
+                            </span>
+                          </span>
 
                           {enrInfo.isEnrolled && (
                             <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
@@ -921,7 +928,7 @@ export const SwimmerCoursesPage = () => {
                       {/* Specifications Grid */}
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-100 dark:border-slate-800/80">
-                          <span className="text-[10px] text-slate-400 block mb-0.5">رده سنی:</span>
+                          <span className="text-[10px] text-slate-400 block mb-0.5">رده سنی مجاز:</span>
                           <div className="font-bold text-sky-600 dark:text-sky-400 flex items-center gap-1.5 truncate">
                             <Calendar className="w-3.5 h-3.5 text-sky-500 shrink-0" />
                             <span className="truncate">
@@ -952,6 +959,20 @@ export const SwimmerCoursesPage = () => {
                             </span>
                           </div>
                         </div>
+
+                        <div className="col-span-2 bg-slate-50 dark:bg-slate-800/60 rounded-xl p-2.5 border border-slate-100 dark:border-slate-800/80">
+                          <span className="text-[10px] text-slate-400 block mb-0.5">بازه زمانی برگزاری دوره:</span>
+                          <div className="font-bold text-slate-800 dark:text-slate-200 flex items-center justify-between text-xs gap-2">
+                            <span className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 truncate">
+                              <Calendar className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                              <span>شروع: <strong>{toShamsiDate(course.start_date).shortNumeric || course.start_date || '—'}</strong></span>
+                            </span>
+                            <span className="text-slate-400 text-[10px]">الی</span>
+                            <span className="flex items-center gap-1 text-slate-700 dark:text-slate-300 truncate">
+                              <span>پایان: <strong>{toShamsiDate(course.end_date).shortNumeric || course.end_date || '—'}</strong></span>
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
                       {/* Coaches List */}
@@ -974,6 +995,11 @@ export const SwimmerCoursesPage = () => {
                                   )}
                                 </div>
                                 <span>{c.full_name}</span>
+                                {c.coaching_degree && (
+                                  <span className="text-[9px] px-1.5 py-0.2 rounded-md bg-sky-100 dark:bg-sky-900/60 text-sky-800 dark:text-sky-300">
+                                    {c.coaching_degree}
+                                  </span>
+                                )}
                               </div>
                             ))}
                           </div>
@@ -1017,9 +1043,14 @@ export const SwimmerCoursesPage = () => {
                             {formatTomans(course.base_price)}{' '}
                             <span className="text-xs font-normal text-slate-500">تومان</span>
                           </div>
+                          {course.sessions_count && Number(course.sessions_count) > 0 && (
+                            <span className="text-[10px] text-sky-600 dark:text-sky-400 block font-mono">
+                              (هر جلسه {formatTomans(Math.round(Number(course.base_price) / Number(course.sessions_count)))} تومان)
+                            </span>
+                          )}
                         </div>
 
-                        <div className="text-left">
+                        <div className="text-left space-y-1">
                           {course.installments_count && course.installments_count > 1 ? (
                             <span className="inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold border border-emerald-200 dark:border-emerald-800">
                               <CreditCard className="w-3 h-3" />
@@ -1027,6 +1058,11 @@ export const SwimmerCoursesPage = () => {
                             </span>
                           ) : (
                             <span className="text-[10px] text-slate-400">پرداخت یکجا</span>
+                          )}
+                          {course.total_capacity > 0 && (
+                            <div className="text-[10px] text-slate-400">
+                              ظرفیت: {course.total_capacity} نفر
+                            </div>
                           )}
                         </div>
                       </div>
@@ -1085,12 +1121,24 @@ export const SwimmerCoursesPage = () => {
         >
           <div className="space-y-5 text-slate-800 dark:text-slate-100" dir="rtl">
             <div className="bg-gradient-to-br from-sky-50 to-blue-50 dark:from-slate-800 dark:to-slate-800/60 p-4 rounded-2xl border border-sky-100 dark:border-slate-700 space-y-2">
-              <div className="flex items-center justify-between gap-2">
-                <Badge variant={selectedCourseForDetail.status === 'ACTIVE' ? 'success' : 'info'}>
-                  {selectedCourseForDetail.status === 'ACTIVE' ? 'در حال برگزاری' : 'پیش‌ثبت‌نام'}
-                </Badge>
-                <div className="text-base font-black text-sky-600 dark:text-sky-400 font-mono">
-                  {formatTomans(selectedCourseForDetail.base_price)} تومان
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-1.5">
+                  <Badge variant={selectedCourseForDetail.status === 'ACTIVE' ? 'success' : 'info'}>
+                    {selectedCourseForDetail.status === 'ACTIVE' ? 'در حال برگزاری' : 'پیش‌ثبت‌نام'}
+                  </Badge>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white/70 dark:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-600">
+                    {selectedCourseForDetail.gender_display || (selectedCourseForDetail.gender === 'FEMALE' ? 'دختران / بانوان' : selectedCourseForDetail.gender === 'MALE' ? 'پسران / آقایان' : 'عمومی (پسران و دختران)')}
+                  </span>
+                </div>
+                <div className="text-right">
+                  <div className="text-base font-black text-sky-600 dark:text-sky-400 font-mono">
+                    {formatTomans(selectedCourseForDetail.base_price)} تومان
+                  </div>
+                  {selectedCourseForDetail.sessions_count > 0 && (
+                    <div className="text-[10px] text-slate-500 font-mono">
+                      (هر جلسه {formatTomans(Math.round(Number(selectedCourseForDetail.base_price) / Number(selectedCourseForDetail.sessions_count)))} تومان)
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -1106,11 +1154,11 @@ export const SwimmerCoursesPage = () => {
               <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
                 <span className="text-slate-400 block text-[11px] mb-1">جنسیت مجاز:</span>
                 <span className="font-bold text-slate-800 dark:text-slate-200">
-                  {selectedCourseForDetail.gender === 'MALE'
+                  {selectedCourseForDetail.gender_display || (selectedCourseForDetail.gender === 'MALE'
                     ? 'پسران / آقایان'
                     : selectedCourseForDetail.gender === 'FEMALE'
                     ? 'دختران / بانوان'
-                    : 'عمومی (پسران و دختران)'}
+                    : 'عمومی (پسران و دختران)')}
                 </span>
               </div>
 
@@ -1137,6 +1185,22 @@ export const SwimmerCoursesPage = () => {
               </div>
 
               <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                <span className="text-slate-400 block text-[11px] mb-1">تاریخ آغاز دوره:</span>
+                <span className="font-bold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                  <span>{toShamsiDate(selectedCourseForDetail.start_date).fullText || selectedCourseForDetail.start_date || 'تعیین نشده'}</span>
+                </span>
+              </div>
+
+              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
+                <span className="text-slate-400 block text-[11px] mb-1">تاریخ پایان دوره:</span>
+                <span className="font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-slate-500 shrink-0" />
+                  <span>{toShamsiDate(selectedCourseForDetail.end_date).fullText || selectedCourseForDetail.end_date || 'تعیین نشده'}</span>
+                </span>
+              </div>
+
+              <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl">
                 <span className="text-slate-400 block text-[11px] mb-1">تعداد جلسات دوره:</span>
                 <span className="font-bold font-mono">{selectedCourseForDetail.sessions_count || 12} جلسه</span>
               </div>
@@ -1149,6 +1213,13 @@ export const SwimmerCoursesPage = () => {
                     : 'پرداخت یکجا (نقدی)'}
                 </span>
               </div>
+
+              {selectedCourseForDetail.total_capacity > 0 && (
+                <div className="p-3 bg-slate-50 dark:bg-slate-800 rounded-xl col-span-1 sm:col-span-2">
+                  <span className="text-slate-400 block text-[11px] mb-1">ظرفیت کل دوره آموزشی:</span>
+                  <span className="font-bold font-mono">{selectedCourseForDetail.total_capacity} نفر ظرفیت پذیرش</span>
+                </div>
+              )}
             </div>
 
             {selectedCourseForDetail.coaches && selectedCourseForDetail.coaches.length > 0 && (
@@ -1167,9 +1238,21 @@ export const SwimmerCoursesPage = () => {
                           <span>{c.full_name?.charAt(0)}</span>
                         )}
                       </div>
-                      <div>
-                        <div className="text-xs font-bold text-slate-900 dark:text-slate-100">{c.full_name}</div>
-                        <div className="text-[11px] text-slate-400">{c.class_name || 'کلاس اختصاصی مربی'}</div>
+                      <div className="min-w-0 flex-1">
+                        <div className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 flex-wrap">
+                          <span>{c.full_name}</span>
+                          {c.coaching_degree && (
+                            <span className="text-[10px] px-1.5 py-0.2 rounded-md bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300">
+                              {c.coaching_degree}
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-[11px] text-slate-400 mt-0.5 flex items-center gap-2">
+                          <span>{c.class_name || 'کلاس اختصاصی مربی'}</span>
+                          {c.years_of_experience > 0 && (
+                            <span>• {c.years_of_experience} سال سابقه</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -1191,18 +1274,25 @@ export const SwimmerCoursesPage = () => {
 
             {selectedCourseForDetail.card_number && (
               <div className="bg-sky-50/80 dark:bg-sky-950/40 border border-sky-200/80 dark:border-sky-800 rounded-2xl p-3.5 space-y-1.5">
-                <span className="text-[11px] font-bold text-sky-800 dark:text-sky-300 block">
-                  اطلاعات حساب واریز شهریه دوره:
-                </span>
+                <div className="flex items-center justify-between text-xs">
+                  <span className="text-[11px] font-bold text-sky-800 dark:text-sky-300 flex items-center gap-1">
+                    <CreditCard className="w-3.5 h-3.5 text-sky-600" />
+                    <span>اطلاعات حساب بانکی واریز شهریه دوره:</span>
+                  </span>
+                  <span className="text-[11px] text-slate-500">
+                    {getBankNameFromCard(selectedCourseForDetail.card_number)}
+                  </span>
+                </div>
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-mono font-bold text-sm text-sky-900 dark:text-sky-200 tracking-wider">
                     {formatCardNumberWithDashes(selectedCourseForDetail.card_number)}
                   </span>
                   <button
                     type="button"
-                    onClick={() => copyCardToClipboard(selectedCourseForDetail.card_number, toast)}
+                    onClick={() => copyCardToClipboard(selectedCourseForDetail.card_number, 'شماره کارت', toast)}
                     className="p-1.5 rounded-lg bg-sky-200/60 dark:bg-sky-800 hover:bg-sky-300 text-sky-800 dark:text-sky-100 text-xs font-semibold flex items-center gap-1 cursor-pointer"
                   >
+                    <Copy className="w-3.5 h-3.5" />
                     <span>کپی شماره کارت</span>
                   </button>
                 </div>
@@ -1255,6 +1345,36 @@ export const SwimmerCoursesPage = () => {
               </div>
             </div>
 
+            {/* Course Summary Banner */}
+            <div className="bg-gradient-to-r from-sky-50 to-teal-50 dark:from-slate-800 dark:to-slate-800/80 p-3.5 rounded-2xl border border-sky-100 dark:border-slate-700 space-y-2">
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 truncate">
+                  <BookOpen className="w-4 h-4 text-sky-600 shrink-0" />
+                  <span className="truncate">{selectedCourseForEnroll.name}</span>
+                </h4>
+                <span className="text-xs font-black text-sky-700 dark:text-sky-300 font-mono shrink-0">
+                  {formatTomans(selectedCourseForEnroll.base_price)} تومان
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] text-slate-600 dark:text-slate-300">
+                <div className="flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+                  <span className="truncate">{selectedCourseForEnroll.pool_location || 'استخر مرکزی'}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+                  <span className="truncate">{selectedCourseForEnroll.days_of_week} ({selectedCourseForEnroll.time_display || 'ساعات مصوب'})</span>
+                </div>
+                <div className="flex items-center gap-1 col-span-1 sm:col-span-2">
+                  <Calendar className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span className="truncate">
+                    دوره: از <strong>{toShamsiDate(selectedCourseForEnroll.start_date).shortNumeric || selectedCourseForEnroll.start_date}</strong> تا <strong>{toShamsiDate(selectedCourseForEnroll.end_date).shortNumeric || selectedCourseForEnroll.end_date}</strong> ({selectedCourseForEnroll.sessions_count || 12} جلسه)
+                  </span>
+                </div>
+              </div>
+            </div>
+
             {selectedCourseForEnroll.coaches && selectedCourseForEnroll.coaches.length > 0 && (
               <div>
                 <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">
@@ -1265,7 +1385,7 @@ export const SwimmerCoursesPage = () => {
                   onChange={(val) => setEnrollForm({ ...enrollForm, selectedCoachId: val })}
                   options={selectedCourseForEnroll.coaches.map((c) => ({
                     value: c.id,
-                    label: `${c.full_name} (${c.class_name || 'کلاس اختصاصی'})`,
+                    label: `${c.full_name} (${c.class_name || 'کلاس اختصاصی'}${c.coaching_degree ? ` - ${c.coaching_degree}` : ''})`,
                     icon: User,
                   }))}
                   placeholder="مربی مورد نظر خود را انتخاب کنید..."
@@ -1316,6 +1436,38 @@ export const SwimmerCoursesPage = () => {
                 </div>
               )}
             </div>
+
+            {selectedCourseForEnroll.card_number && (
+              <div className="bg-sky-50/90 dark:bg-sky-950/40 border border-sky-200/80 dark:border-sky-800 rounded-2xl p-3.5 space-y-1.5">
+                <div className="flex items-center justify-between text-xs">
+                  <span className="font-bold text-sky-800 dark:text-sky-300 flex items-center gap-1">
+                    <CreditCard className="w-3.5 h-3.5 text-sky-600" />
+                    <span>حساب بانکی واریز شهریه / پیش‌پرداخت دوره:</span>
+                  </span>
+                  <span className="text-[11px] text-slate-500">
+                    {getBankNameFromCard(selectedCourseForEnroll.card_number)}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2 pt-0.5">
+                  <span className="font-mono font-bold text-sm text-sky-900 dark:text-sky-200 tracking-wider">
+                    {formatCardNumberWithDashes(selectedCourseForEnroll.card_number)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => copyCardToClipboard(selectedCourseForEnroll.card_number, 'شماره کارت', toast)}
+                    className="p-1.5 rounded-lg bg-sky-200/60 dark:bg-sky-800 hover:bg-sky-300 text-sky-800 dark:text-sky-100 text-[11px] font-semibold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Copy className="w-3 h-3" />
+                    <span>کپی کارت</span>
+                  </button>
+                </div>
+                {selectedCourseForEnroll.card_holder && (
+                  <div className="text-[11px] text-slate-600 dark:text-slate-400">
+                    به نام: <strong>{selectedCourseForEnroll.card_holder}</strong>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div>
               <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5">

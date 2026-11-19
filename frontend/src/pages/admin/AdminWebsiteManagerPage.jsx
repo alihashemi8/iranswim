@@ -5,7 +5,7 @@ import {
   MapPin, Eye, EyeOff, ArrowUpDown, Save, Check, CheckCircle2, Clock,
   Upload, Image as ImageIcon, X, Sparkles, Phone, PhoneCall, Award, Shield,
   ArrowUp, ArrowDown, ArrowLeft, RefreshCw, LayoutTemplate, ExternalLink, Building2,
-  ToggleLeft, ToggleRight, Trophy, Crown, Heart
+  ToggleLeft, ToggleRight, Trophy, Crown, Heart, Users, Briefcase, Mars, Venus
 } from 'lucide-react';
 import api from '../../api/client';
 import { Badge } from '../../components/common/Badge';
@@ -1578,7 +1578,7 @@ export const AdminWebsiteManagerPage = () => {
                   }`}
                 >
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <Award className="w-4 h-4 text-teal-500 shrink-0" />
+                    <Users className="w-4 h-4 text-teal-500 shrink-0" />
                     <span className="truncate">کادر اجرایی</span>
                   </div>
                   <span className={`mr-1 px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
@@ -1600,7 +1600,7 @@ export const AdminWebsiteManagerPage = () => {
                   }`}
                 >
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <Crown className="w-4 h-4 text-purple-500 shrink-0" />
+                    <Briefcase className="w-4 h-4 text-purple-500 shrink-0" />
                     <span className="truncate">مدیر و موسسین</span>
                   </div>
                   <span className={`mr-1 px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
@@ -1622,7 +1622,7 @@ export const AdminWebsiteManagerPage = () => {
                   }`}
                 >
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <Users2 className="w-4 h-4 text-cyan-500 shrink-0" />
+                    <Mars className="w-4 h-4 text-cyan-500 shrink-0" />
                     <span className="truncate">کادر آقایان</span>
                   </div>
                   <span className={`mr-1 px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
@@ -1644,7 +1644,7 @@ export const AdminWebsiteManagerPage = () => {
                   }`}
                 >
                   <div className="flex items-center gap-1.5 min-w-0">
-                    <Heart className="w-4 h-4 text-pink-500 shrink-0" />
+                    <Venus className="w-4 h-4 text-pink-500 shrink-0" />
                     <span className="truncate">کادر بانوان</span>
                   </div>
                   <span className={`mr-1 px-2 py-0.5 rounded-full text-[11px] font-black shrink-0 ${
