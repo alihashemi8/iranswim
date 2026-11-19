@@ -84,10 +84,6 @@ export const SwimmerProgressPage = () => {
     return scored;
   }, [assessments]);
 
-  if (loading) {
-    return <LoadingState type="dashboard" message="در حال محاسبه زنجیره مهارت‌ها و پیشرفت ورزشی..." />;
-  }
-
   const skillDonutData = useMemo(() => {
     const passed = passedAssessments.length;
     const inProgress = inProgressAssessments.length;
@@ -109,6 +105,10 @@ export const SwimmerProgressPage = () => {
         : 'bg-gradient-to-l from-sky-500 to-cyan-400',
     }));
   }, [assessments]);
+
+  if (loading) {
+    return <LoadingState type="dashboard" message="در حال محاسبه زنجیره مهارت‌ها و پیشرفت ورزشی..." />;
+  }
 
   return (
     <div className="space-y-6">
