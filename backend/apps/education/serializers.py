@@ -110,6 +110,9 @@ class CourseSerializer(serializers.ModelSerializer):
     )
     coaches = serializers.SerializerMethodField(read_only=True)
     time_display = serializers.SerializerMethodField(read_only=True)
+    session_price = serializers.SerializerMethodField(read_only=True)
+    total_capacity = serializers.SerializerMethodField(read_only=True)
+    remaining_capacity = serializers.SerializerMethodField(read_only=True)
     is_matched = serializers.SerializerMethodField(read_only=True)
     match_details = serializers.SerializerMethodField(read_only=True)
     is_enrolled = serializers.SerializerMethodField(read_only=True)
@@ -121,9 +124,10 @@ class CourseSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'name', 'description', 'pool_location', 'days_of_week',
             'start_time', 'end_time', 'time_display', 'coaches', 'coach_ids',
-            'start_date', 'end_date', 'base_price', 'sessions_count', 'installments_count',
-            'card_number', 'card_holder', 'status',
-            'groups', 'age_range', 'min_age', 'max_age', 'gender', 'gender_display', 'what_you_learn',
+            'start_date', 'end_date', 'base_price', 'sessions_count', 'session_price',
+            'installments_count', 'card_number', 'card_holder', 'status',
+            'groups', 'total_capacity', 'remaining_capacity',
+            'age_range', 'min_age', 'max_age', 'gender', 'gender_display', 'what_you_learn',
             'is_matched', 'match_details', 'is_enrolled', 'enrollment_status', 'has_pending_request',
             'created_at'
         ]
@@ -235,6 +239,23 @@ class CourseSerializer(serializers.ModelSerializer):
             return f"{st} الی {et}"
         return ''
 
+    def get_session_price(self, obj):
+        if obj.sessions_count and obj.sessions_count > 0:
+            return round(obj.base_price / obj.sessions_count)
+        return 0
+
+    def get_total_capacity(self, obj):
+        try:
+            return sum(g.capacity for g in obj.groups.all())
+        except Exception:
+            return 0
+
+    def get_remaining_capacity(self, obj):
+        try:
+            return sum(g.remaining_capacity for g in obj.groups.all())
+        except Exception:
+            return 0
+
     def get_coaches(self, obj):
         request = self.context.get('request')
         result = []
@@ -247,11 +268,18 @@ class CourseSerializer(serializers.ModelSerializer):
                 except Exception:
                     avatar_url = None
                 coach_label = (c.user.get_full_name().strip() if c.user else '') or 'مربی'
+                degree_display = ''
+                try:
+                    degree_display = c.get_coaching_degree_display() or ''
+                except Exception:
+                    degree_display = getattr(c, 'coaching_degree', '') or ''
                 result.append({
                     'id': c.id,
                     'full_name': coach_label,
                     'avatar': avatar_url,
-                    'class_name': f"کلاس {coach_label}"
+                    'class_name': f"کلاس {coach_label}",
+                    'coaching_degree': degree_display,
+                    'years_of_experience': getattr(c, 'years_of_experience', 0) or 0,
                 })
         except Exception:
             pass
@@ -300,6 +328,16 @@ class EnrollmentRequestSerializer(serializers.ModelSerializer):
     course_base_price = serializers.DecimalField(source='course.base_price', max_digits=12, decimal_places=2, read_only=True)
     course_card_number = serializers.CharField(source='course.card_number', read_only=True)
     course_card_holder = serializers.CharField(source='course.card_holder', read_only=True)
+    course_pool = serializers.CharField(source='course.pool_location', read_only=True, default='')
+    course_days = serializers.CharField(source='course.days_of_week', read_only=True, default='')
+    course_time = serializers.SerializerMethodField(read_only=True)
+    course_start_date = serializers.DateField(source='course.start_date', read_only=True, default=None)
+    course_end_date = serializers.DateField(source='course.end_date', read_only=True, default=None)
+    course_gender_display = serializers.CharField(source='course.get_gender_display', read_only=True, default='')
+    course_sessions_count = serializers.IntegerField(source='course.sessions_count', read_only=True, default=12)
+    course_age_range = serializers.CharField(source='course.age_range', read_only=True, default='')
+    course_what_you_learn = serializers.CharField(source='course.what_you_learn', read_only=True, default='')
+    course_description = serializers.CharField(source='course.description', read_only=True, default='')
 
     class Meta:
         model = EnrollmentRequest
@@ -309,12 +347,28 @@ class EnrollmentRequestSerializer(serializers.ModelSerializer):
             'group_name', 'coach', 'coach_name', 'status', 'status_display',
             'selected_installments', 'installment_amounts',
             'course_max_installments', 'course_base_price', 'course_card_number', 'course_card_holder',
+            'course_pool', 'course_days', 'course_time', 'course_start_date', 'course_end_date',
+            'course_gender_display', 'course_sessions_count', 'course_age_range',
+            'course_what_you_learn', 'course_description',
             'notes', 'rejection_reason', 'created_at', 'reviewed_at'
         ]
-        read_only_fields = ['id', 'status', 'rejection_reason', 'created_at', 'reviewed_at', 'course_max_installments', 'course_base_price', 'course_card_number', 'course_card_holder']
+        read_only_fields = [
+            'id', 'status', 'rejection_reason', 'created_at', 'reviewed_at',
+            'course_max_installments', 'course_base_price', 'course_card_number', 'course_card_holder',
+            'course_pool', 'course_days', 'course_time', 'course_start_date', 'course_end_date',
+            'course_gender_display', 'course_sessions_count', 'course_age_range',
+            'course_what_you_learn', 'course_description'
+        ]
 
     def get_coach_name(self, obj):
         return _safe_coach_name(obj.coach)
+
+    def get_course_time(self, obj):
+        if obj.course and obj.course.start_time and obj.course.end_time:
+            st = obj.course.start_time.strftime('%H:%M') if hasattr(obj.course.start_time, 'strftime') else str(obj.course.start_time)[:5]
+            et = obj.course.end_time.strftime('%H:%M') if hasattr(obj.course.end_time, 'strftime') else str(obj.course.end_time)[:5]
+            return f"{st} الی {et}"
+        return ''
 
     def validate(self, attrs):
         course = attrs.get('course')

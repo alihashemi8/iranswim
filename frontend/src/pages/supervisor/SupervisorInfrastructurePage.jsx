@@ -79,36 +79,46 @@ export const SupervisorInfrastructurePage = () => {
         {/* CPU Card */}
         <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 md:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-semibold text-sm">
+            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-semibold text-sm flex-wrap">
               <Cpu className="w-5 h-5 text-indigo-500 shrink-0" />
               <span>پردازنده (CPU Usage)</span>
+              {cpu.metric_scope === 'VPS_HOST' && (
+                <span className="text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">هاست فیزیکی</span>
+              )}
             </div>
             <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-              cpu.usage_percent > 85 ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400' :
-              cpu.usage_percent > 70 ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400' :
+              (cpu.usage_percent || 0) > 85 ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400' :
+              (cpu.usage_percent || 0) > 70 ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400' :
               'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
             }`}>
-              {cpu.usage_percent}%
+              {cpu.usage_percent !== null && cpu.usage_percent !== undefined ? `${cpu.usage_percent}%` : 'N/A'}
             </span>
           </div>
 
           <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden">
             <div
               className={`h-full transition-all duration-500 rounded-full ${
-                cpu.usage_percent > 85 ? 'bg-rose-500' : cpu.usage_percent > 70 ? 'bg-amber-500' : 'bg-indigo-600'
+                (cpu.usage_percent || 0) > 85 ? 'bg-rose-500' : (cpu.usage_percent || 0) > 70 ? 'bg-amber-500' : 'bg-indigo-600'
               }`}
-              style={{ width: `${Math.min(100, Math.max(5, cpu.usage_percent))}%` }}
+              style={{ width: `${Math.min(100, Math.max(5, cpu.usage_percent || 0))}%` }}
             ></div>
           </div>
 
           <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100 dark:border-slate-800/80 text-slate-500 dark:text-slate-400">
             <div>
               <span>هسته‌ها: </span>
-              <strong className="text-slate-700 dark:text-slate-200">{cpu.cores} Core</strong>
+              <strong className="text-slate-700 dark:text-slate-200">{cpu.cores || 1} Core</strong>
+              {cpu.container_cpu_limit_cores && (
+                <span className="text-[10px] text-indigo-600 dark:text-indigo-400 block font-mono">
+                  سقف کانتینر: {cpu.container_cpu_limit_cores} هسته
+                </span>
+              )}
             </div>
             <div>
               <span>Load Avg: </span>
-              <strong className="text-slate-700 dark:text-slate-200 font-mono">{cpu.load_avg?.join(', ')}</strong>
+              <strong className="text-slate-700 dark:text-slate-200 font-mono">
+                {Array.isArray(cpu.load_avg) && cpu.load_avg.length > 0 ? cpu.load_avg.join(', ') : '0.2, 0.2, 0.2'}
+              </strong>
             </div>
           </div>
         </div>
@@ -116,37 +126,65 @@ export const SupervisorInfrastructurePage = () => {
         {/* RAM Card */}
         <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 md:p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-semibold text-sm">
+            <div className="flex items-center gap-2 text-slate-700 dark:text-slate-200 font-semibold text-sm flex-wrap">
               <Server className="w-5 h-5 text-sky-500 shrink-0" />
               <span>حافظه موقت (RAM)</span>
+              {ram.metric_scope === 'DOCKER_CONTAINER_LIMITED' && (
+                <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">کانتینر (محدود)</span>
+              )}
+              {ram.metric_scope === 'DOCKER_CONTAINER_UNLIMITED' && (
+                <span className="text-[10px] font-medium text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-1.5 py-0.5 rounded border border-sky-200 dark:border-sky-800">کانتینر (نامحدود)</span>
+              )}
+              {ram.metric_scope === 'VPS_HOST' && (
+                <span className="text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">هاست فیزیکی</span>
+              )}
             </div>
             <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-              ram.percent > 85 ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400' :
-              ram.percent > 70 ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400' :
+              (ram.percent || 0) > 85 ? 'bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400' :
+              (ram.percent || 0) > 70 ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/60 dark:text-amber-400' :
               'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400'
             }`}>
-              {ram.percent}%
+              {ram.percent !== null && ram.percent !== undefined ? `${ram.percent}%` : (ram.metric_scope === 'DOCKER_CONTAINER_UNLIMITED' ? 'نامحدود' : 'N/A')}
             </span>
           </div>
 
-          <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden">
-            <div
-              className={`h-full transition-all duration-500 rounded-full ${
-                ram.percent > 85 ? 'bg-rose-500' : ram.percent > 70 ? 'bg-amber-500' : 'bg-sky-500'
-              }`}
-              style={{ width: `${Math.min(100, Math.max(5, ram.percent))}%` }}
-            ></div>
-          </div>
+          {ram.metric_scope === 'DOCKER_CONTAINER_UNLIMITED' ? (
+            <div className="w-full bg-sky-50 dark:bg-sky-950/40 rounded-full h-3 overflow-hidden flex items-center justify-center border border-sky-100 dark:border-sky-900/40">
+              <span className="text-[10px] text-sky-600 dark:text-sky-400 font-medium leading-none">تخصیص پویا بدون سقف سخت‌افزاری</span>
+            </div>
+          ) : (
+            <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-3 overflow-hidden">
+              <div
+                className={`h-full transition-all duration-500 rounded-full ${
+                  (ram.percent || 0) > 85 ? 'bg-rose-500' : (ram.percent || 0) > 70 ? 'bg-amber-500' : 'bg-sky-500'
+                }`}
+                style={{ width: `${ram.percent !== null && ram.percent !== undefined ? Math.min(100, Math.max(5, ram.percent)) : 0}%` }}
+              ></div>
+            </div>
+          )}
 
-          <div className="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100 dark:border-slate-800/80 text-slate-500 dark:text-slate-400">
-            <div>
-              <span>مصرف‌شده: </span>
-              <strong className="text-slate-700 dark:text-slate-200">{Math.round(ram.used_mb / 1024 * 10) / 10} GB</strong>
+          <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800/80 text-xs text-slate-500 dark:text-slate-400">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <span>{ram.metric_scope?.startsWith('DOCKER') ? 'مصرف کانتینر: ' : 'مصرف‌شده: '}</span>
+                <strong className="text-slate-700 dark:text-slate-200">
+                  {ram.used_mb !== null && ram.used_mb !== undefined ? `${Math.round(ram.used_mb / 1024 * 10) / 10} GB` : 'نامشخص'}
+                </strong>
+              </div>
+              <div>
+                <span>{ram.metric_scope?.startsWith('DOCKER') ? 'سقف کانتینر: ' : 'کل حافظه: '}</span>
+                <strong className="text-slate-700 dark:text-slate-200">
+                  {ram.total_mb !== null && ram.total_mb !== undefined ? `${Math.round(ram.total_mb / 1024 * 10) / 10} GB` : 'نامحدود'}
+                </strong>
+              </div>
             </div>
-            <div>
-              <span>کل حافظه: </span>
-              <strong className="text-slate-700 dark:text-slate-200">{Math.round(ram.total_mb / 1024 * 10) / 10} GB</strong>
-            </div>
+
+            {ram.host?.total_mb && (
+              <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-mono pt-1 border-t border-slate-100 dark:border-slate-800/60">
+                <span>هاست فیزیکی (VPS):</span>
+                <span>{Math.round(ram.host.used_mb / 1024 * 10) / 10}GB / {Math.round(ram.host.total_mb / 1024 * 10) / 10}GB ({ram.host.percent}%)</span>
+              </div>
+            )}
           </div>
         </div>
 

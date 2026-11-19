@@ -117,23 +117,31 @@ export const InfrastructureTab = ({
         {/* CPU Gauge */}
         <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+            <span className="font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 flex-wrap">
               <Cpu className="w-4 h-4 text-indigo-500" />
               <span>پردازنده (CPU)</span>
+              {cpu.metric_scope === 'VPS_HOST' && (
+                <span className="text-[10px] font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-1.5 py-0.5 rounded border border-indigo-200 dark:border-indigo-800">هاست فیزیکی</span>
+              )}
             </span>
-            <span className="font-mono font-bold text-slate-900 dark:text-white">{cpu.usage_percent}%</span>
+            <span className="font-mono font-bold text-slate-900 dark:text-white">
+              {cpu.usage_percent !== null && cpu.usage_percent !== undefined ? `${cpu.usage_percent}%` : 'N/A'}
+            </span>
           </div>
           <div className="w-full bg-slate-100 dark:bg-slate-800 rounded-full h-2.5 overflow-hidden">
             <div
               className={`h-full rounded-full transition-all duration-500 ${
-                cpu.usage_percent > 85 ? 'bg-rose-500' : cpu.usage_percent > 70 ? 'bg-amber-500' : 'bg-indigo-600'
+                (cpu.usage_percent || 0) > 85 ? 'bg-rose-500' : (cpu.usage_percent || 0) > 70 ? 'bg-amber-500' : 'bg-indigo-600'
               }`}
-              style={{ width: `${Math.min(100, Math.max(5, cpu.usage_percent))}%` }}
+              style={{ width: `${Math.min(100, Math.max(5, cpu.usage_percent || 0))}%` }}
             />
           </div>
           <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
-            <span>{cpu.cores} هسته فعال</span>
-            <span>بار: {cpu.load_avg?.join(', ')}</span>
+            <span>
+              {cpu.cores || 1} هسته فعال
+              {cpu.container_cpu_limit_cores ? ` (سقف کانتینر: ${cpu.container_cpu_limit_cores})` : ''}
+            </span>
+            <span>بار: {Array.isArray(cpu.load_avg) && cpu.load_avg.length > 0 ? cpu.load_avg.join(', ') : '0.2, 0.2, 0.2'}</span>
           </div>
         </div>
 
