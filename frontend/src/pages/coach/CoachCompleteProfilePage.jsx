@@ -13,6 +13,9 @@ import { Button } from '../../components/common/Button';
 import { LoadingState } from '../../components/common/LoadingState';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { CustomSelect } from '../../components/common/CustomSelect';
+import { AvatarUpload } from '../../components/common/AvatarUpload';
+import { MapLocationPicker } from '../../components/common/MapLocationPicker';
+import { toEnglishDigits } from '../../utils/digits';
 
 export const CoachCompleteProfilePage = () => {
   const { user, updateUserData } = useAuth();
@@ -27,6 +30,39 @@ export const CoachCompleteProfilePage = () => {
 
   const DRAFT_KEY = user?.id ? `coach_profile_draft_${user.id}` : 'coach_profile_draft';
   const STEP_KEY = user?.id ? `coach_profile_step_${user.id}` : 'coach_profile_step';
+  const userKey = user?.id || 'temp';
+
+  // Helper to convert cached DataURL back to a File object
+  const dataURLtoFile = (dataurl, filename, defaultType = 'image/jpeg') => {
+    try {
+      const arr = dataurl.split(',');
+      const mimeMatch = arr[0].match(/:(.*?);/);
+      const mime = mimeMatch ? mimeMatch[1] : defaultType;
+      const bstr = atob(arr[1]);
+      let n = bstr.length;
+      const u8arr = new Uint8Array(n);
+      while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+      }
+      return new File([u8arr], filename, { type: mime });
+    } catch (e) {
+      console.error('Error converting DataURL to File:', e);
+      return null;
+    }
+  };
+
+  const readCachedDraftFile = (key) => {
+    try {
+      const raw = sessionStorage.getItem(key);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed?.dataUrl) return null;
+      const file = dataURLtoFile(parsed.dataUrl, parsed.name || 'uploaded_file', parsed.type);
+      return { file, preview: parsed.dataUrl, name: parsed.name };
+    } catch (e) {
+      return null;
+    }
+  };
 
   const readSavedDraft = () => {
     try {
@@ -69,6 +105,9 @@ export const CoachCompleteProfilePage = () => {
 
   // Read initial draft for state defaults
   const initialDraft = readSavedDraft();
+  const cachedAvatar = readCachedDraftFile(`coach_avatar_draft_${userKey}`);
+  const cachedCert = readCachedDraftFile(`coach_cert_draft_${userKey}`);
+  const cachedRetrain = readCachedDraftFile(`coach_retrain_draft_${userKey}`);
 
   // Step 1: هویت فردی
   const [firstName, setFirstName] = useState(initialDraft.firstName ?? user?.first_name ?? '');
@@ -76,27 +115,29 @@ export const CoachCompleteProfilePage = () => {
   const [nationalId, setNationalId] = useState(initialDraft.nationalId ?? user?.national_id ?? '');
   const [dateOfBirth, setDateOfBirth] = useState(initialDraft.dateOfBirth ?? '');
   const [gender, setGender] = useState(initialDraft.gender ?? 'MALE');
-  const [avatar, setAvatar] = useState(null);
-  const [avatarPreview, setAvatarPreview] = useState(null);
+  const [avatar, setAvatar] = useState(() => cachedAvatar?.file || null);
+  const [avatarPreview, setAvatarPreview] = useState(() => cachedAvatar?.preview || null);
 
   // Step 2: نشانی و ارتباط اضطراری
   const [address, setAddress] = useState(initialDraft.address ?? '');
+  const [latitude, setLatitude] = useState(initialDraft.latitude ?? null);
+  const [longitude, setLongitude] = useState(initialDraft.longitude ?? null);
   const [emergencyContactName, setEmergencyContactName] = useState(initialDraft.emergencyContactName ?? '');
   const [emergencyContactPhone, setEmergencyContactPhone] = useState(initialDraft.emergencyContactPhone ?? '');
 
   // Step 3: درجه و مدارک مربیگری
   const [coachingDegree, setCoachingDegree] = useState(initialDraft.coachingDegree ?? 'GRADE_3');
   const [coachingCertificateDate, setCoachingCertificateDate] = useState(initialDraft.coachingCertificateDate ?? '');
-  const [coachingCertificateFile, setCoachingCertificateFile] = useState(null);
-  const [coachingCertificateFilePreview, setCoachingCertificateFilePreview] = useState(null);
-  const [yearsOfExperience, setYearsOfExperience] = useState(initialDraft.yearsOfExperience ?? 1);
+  const [coachingCertificateFile, setCoachingCertificateFile] = useState(() => cachedCert?.file || null);
+  const [coachingCertificateFilePreview, setCoachingCertificateFilePreview] = useState(() => cachedCert?.preview || null);
+  const [yearsOfExperience, setYearsOfExperience] = useState(initialDraft.yearsOfExperience ?? '');
   const [bio, setBio] = useState(initialDraft.bio ?? '');
   const [resumeFile, setResumeFile] = useState(null);
   const [resumeFileName, setResumeFileName] = useState('');
 
   // بازآموزی سال جاری
-  const [retrainingCertificateFile, setRetrainingCertificateFile] = useState(null);
-  const [retrainingCertificateFilePreview, setRetrainingCertificateFilePreview] = useState(null);
+  const [retrainingCertificateFile, setRetrainingCertificateFile] = useState(() => cachedRetrain?.file || null);
+  const [retrainingCertificateFilePreview, setRetrainingCertificateFilePreview] = useState(() => cachedRetrain?.preview || null);
   const [retrainingStatus, setRetrainingStatus] = useState('UNUPLOADED');
   const [retrainingYear, setRetrainingYear] = useState(null);
   const [retrainingExpiryDate, setRetrainingExpiryDate] = useState('');
@@ -141,24 +182,38 @@ export const CoachCompleteProfilePage = () => {
         setNationalId(draft.nationalId !== undefined && draft.nationalId !== '' ? draft.nationalId : (data.national_id || user?.national_id || ''));
         setDateOfBirth(draft.dateOfBirth !== undefined && draft.dateOfBirth !== '' ? draft.dateOfBirth : (data.date_of_birth || ''));
         setGender(draft.gender !== undefined && draft.gender !== '' ? draft.gender : (data.gender || 'MALE'));
-        if (data.avatar || user?.avatar) setAvatarPreview(data.avatar || user?.avatar);
+        if (!avatar && (data.avatar || user?.avatar)) setAvatarPreview(data.avatar || user?.avatar);
 
         setAddress(draft.address !== undefined && draft.address !== '' ? draft.address : (data.address || ''));
+        if (draft.latitude !== undefined && draft.latitude !== null && draft.latitude !== '') {
+          setLatitude(draft.latitude);
+        } else if (data.latitude) {
+          setLatitude(data.latitude);
+        }
+        if (draft.longitude !== undefined && draft.longitude !== null && draft.longitude !== '') {
+          setLongitude(draft.longitude);
+        } else if (data.longitude) {
+          setLongitude(data.longitude);
+        }
         setEmergencyContactName(draft.emergencyContactName !== undefined && draft.emergencyContactName !== '' ? draft.emergencyContactName : (data.emergency_contact_name || ''));
         setEmergencyContactPhone(draft.emergencyContactPhone !== undefined && draft.emergencyContactPhone !== '' ? draft.emergencyContactPhone : (data.emergency_contact_phone || ''));
 
         setCoachingDegree(draft.coachingDegree !== undefined && draft.coachingDegree !== '' ? draft.coachingDegree : (data.coaching_degree || 'GRADE_3'));
         setCoachingCertificateDate(draft.coachingCertificateDate !== undefined && draft.coachingCertificateDate !== '' ? draft.coachingCertificateDate : (data.coaching_certificate_date || ''));
-        if (data.coaching_certificate_file) {
+        if (!coachingCertificateFile && data.coaching_certificate_file) {
           setCoachingCertificateFilePreview(data.coaching_certificate_file);
         }
-        setYearsOfExperience(draft.yearsOfExperience !== undefined && draft.yearsOfExperience !== '' ? draft.yearsOfExperience : (data.years_of_experience ?? 1));
+        setYearsOfExperience(
+          draft.yearsOfExperience !== undefined && draft.yearsOfExperience !== ''
+            ? draft.yearsOfExperience
+            : (data.years_of_experience !== null && data.years_of_experience !== undefined ? String(data.years_of_experience) : '')
+        );
         setBio(draft.bio !== undefined && draft.bio !== '' ? draft.bio : (data.bio || ''));
         if (data.resume_file) {
           setResumeFileName(data.resume_file.split('/').pop() || 'فایل رزومه');
         }
 
-        if (data.retraining_certificate_file_url || data.retraining_certificate_file) {
+        if (!retrainingCertificateFile && (data.retraining_certificate_file_url || data.retraining_certificate_file)) {
           setRetrainingCertificateFilePreview(data.retraining_certificate_file_url || data.retraining_certificate_file);
         }
         if (data.retraining_status) setRetrainingStatus(data.retraining_status);
@@ -180,6 +235,8 @@ export const CoachCompleteProfilePage = () => {
         if (draft.dateOfBirth) setDateOfBirth(draft.dateOfBirth);
         if (draft.gender) setGender(draft.gender);
         if (draft.address) setAddress(draft.address);
+        if (draft.latitude) setLatitude(draft.latitude);
+        if (draft.longitude) setLongitude(draft.longitude);
         if (draft.emergencyContactName) setEmergencyContactName(draft.emergencyContactName);
         if (draft.emergencyContactPhone) setEmergencyContactPhone(draft.emergencyContactPhone);
         if (draft.coachingDegree) setCoachingDegree(draft.coachingDegree);
@@ -210,6 +267,8 @@ export const CoachCompleteProfilePage = () => {
         dateOfBirth,
         gender,
         address,
+        latitude,
+        longitude,
         emergencyContactName,
         emergencyContactPhone,
         coachingDegree,
@@ -231,6 +290,8 @@ export const CoachCompleteProfilePage = () => {
     dateOfBirth,
     gender,
     address,
+    latitude,
+    longitude,
     emergencyContactName,
     emergencyContactPhone,
     coachingDegree,
@@ -252,8 +313,8 @@ export const CoachCompleteProfilePage = () => {
     });
   };
 
-  // File selection helper
-  const handleFileChange = (e, setFile, setPreview) => {
+  // File selection helper with optional sessionStorage caching
+  const handleFileChange = (e, setFile, setPreview, cacheKey) => {
     const file = e.target.files?.[0];
     if (file) {
       if (file.size > 8 * 1024 * 1024) {
@@ -266,6 +327,25 @@ export const CoachCompleteProfilePage = () => {
           setPreview(URL.createObjectURL(file));
         } else {
           setPreview(file.name);
+        }
+      }
+      if (cacheKey && file.size <= 4 * 1024 * 1024) {
+        try {
+          const reader = new FileReader();
+          reader.onload = (loadEvt) => {
+            try {
+              sessionStorage.setItem(cacheKey, JSON.stringify({
+                dataUrl: loadEvt.target.result,
+                name: file.name,
+                type: file.type,
+              }));
+            } catch (err) {
+              console.warn('Could not cache file draft:', err);
+            }
+          };
+          reader.readAsDataURL(file);
+        } catch (err) {
+          console.warn('FileReader error:', err);
         }
       }
     }
@@ -438,21 +518,25 @@ export const CoachCompleteProfilePage = () => {
     if (!validateStep1()) {
       setCurrentStep(1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast.error('لطفاً فیلدهای الزامی مرحله ۱ (از جمله عکس پرسنلی) را تکمیل نمایید.');
       return;
     }
     if (!validateStep2()) {
       setCurrentStep(2);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast.error('لطفاً فیلدهای الزامی مرحله ۲ (نشانی و مخاطب اضطراری) را تکمیل نمایید.');
       return;
     }
     if (!validateStep3()) {
       setCurrentStep(3);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast.error('لطفاً مدارک الزامی مرحله ۳ (مدرک مربیگری و گواهی بازآموزی) را بارگذاری نمایید.');
       return;
     }
     if (!validateStep4()) {
       setCurrentStep(4);
       window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast.error('لطفاً اطلاعات بانکی مرحله ۴ را تکمیل نمایید.');
       return;
     }
 
@@ -469,6 +553,12 @@ export const CoachCompleteProfilePage = () => {
       if (avatar) formData.append('avatar', avatar);
 
       formData.append('address', address.trim());
+      if (latitude !== null && latitude !== undefined && latitude !== '') {
+        formData.append('latitude', latitude);
+      }
+      if (longitude !== null && longitude !== undefined && longitude !== '') {
+        formData.append('longitude', longitude);
+      }
       formData.append('emergency_contact_name', emergencyContactName.trim());
       formData.append('emergency_contact_phone', emergencyContactPhone.trim());
 
@@ -496,6 +586,9 @@ export const CoachCompleteProfilePage = () => {
         localStorage.removeItem(STEP_KEY);
         localStorage.removeItem('coach_profile_draft');
         localStorage.removeItem('coach_profile_step');
+        sessionStorage.removeItem(`coach_avatar_draft_${userKey}`);
+        sessionStorage.removeItem(`coach_cert_draft_${userKey}`);
+        sessionStorage.removeItem(`coach_retrain_draft_${userKey}`);
       } catch (storageErr) {
         console.error('Error clearing draft storage:', storageErr);
       }
@@ -721,10 +814,12 @@ export const CoachCompleteProfilePage = () => {
                 <input
                   type="text"
                   dir="ltr"
+                  inputMode="numeric"
                   maxLength={10}
                   value={nationalId}
                   onChange={(e) => {
-                    setNationalId(e.target.value.replace(/\D/g, ''));
+                    const eng = toEnglishDigits(e.target.value).replace(/\D/g, '');
+                    setNationalId(eng);
                     clearFieldError('nationalId');
                   }}
                   placeholder="0012345678"
@@ -799,54 +894,40 @@ export const CoachCompleteProfilePage = () => {
                 </div>
               </div>
 
-              <div>
-                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  عکس پرسنلی <span className="text-rose-500 font-bold">*</span>
-                </label>
-                <div className="flex items-center gap-3">
-                  {avatarPreview ? (
-                    <img
-                      src={avatarPreview}
-                      alt="عکس"
-                      className={`w-12 h-12 rounded-xl object-cover border ${
-                        fieldErrors.avatar
-                          ? 'border-rose-500 ring-2 ring-rose-500/20'
-                          : 'border-slate-200 dark:border-slate-700'
-                      }`}
-                    />
-                  ) : (
-                    <div
-                      className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                        fieldErrors.avatar
-                          ? 'bg-rose-50 dark:bg-rose-950/40 border border-rose-500 ring-2 ring-rose-500/20 text-rose-500'
-                          : 'bg-slate-100 dark:bg-slate-800 text-slate-400 border border-slate-200 dark:border-slate-700'
-                      }`}
-                    >
-                      <User className="w-6 h-6" />
-                    </div>
-                  )}
-                  <label
-                    className={`cursor-pointer px-3.5 py-2.5 rounded-xl border flex items-center gap-2 transition-colors text-xs sm:text-sm font-bold ${
-                      fieldErrors.avatar
-                        ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300'
-                        : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
-                    }`}
-                  >
-                    <Upload className={`w-4 h-4 shrink-0 ${fieldErrors.avatar ? 'text-rose-600' : 'text-emerald-600'}`} />
-                    <span>انتخاب عکس</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => {
-                        handleFileChange(e, setAvatar, setAvatarPreview);
-                        clearFieldError('avatar');
-                      }}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
+              <div className="sm:col-span-2 p-4 rounded-2xl bg-slate-50/60 dark:bg-slate-800/30 border border-slate-200/80 dark:border-slate-800">
+                <AvatarUpload
+                  currentAvatar={avatarPreview}
+                  displayName={`${firstName || ''} ${lastName || ''}`.trim() || 'مربی'}
+                  role="COACH"
+                  size="lg"
+                  canDelete={true}
+                  autoUpload={false}
+                  onAvatarChange={(newUrl, croppedFile) => {
+                    if (newUrl) {
+                      setAvatar(croppedFile);
+                      setAvatarPreview(newUrl);
+                      clearFieldError('avatar');
+                      try {
+                        sessionStorage.setItem(`coach_avatar_draft_${userKey}`, JSON.stringify({
+                          dataUrl: newUrl,
+                          name: croppedFile?.name || 'coach_avatar.jpg',
+                          type: croppedFile?.type || 'image/jpeg',
+                        }));
+                      } catch (e) {
+                        console.warn('Could not cache avatar draft:', e);
+                      }
+                    } else {
+                      setAvatar(null);
+                      setAvatarPreview(null);
+                      sessionStorage.removeItem(`coach_avatar_draft_${userKey}`);
+                    }
+                  }}
+                  label="عکس پرسنلی مربی *"
+                  subtitle="تصویر باکیفیت و واضح پرسنلی (دارای امکان برش، زوم، چرخش و تنظیم دقیق کادر چهره)"
+                  className={fieldErrors.avatar ? 'p-2 rounded-xl ring-2 ring-rose-500/50 bg-rose-50/40 dark:bg-rose-950/20' : ''}
+                />
                 {fieldErrors.avatar && (
-                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-2 block">
                     {fieldErrors.avatar}
                   </span>
                 )}
@@ -895,6 +976,24 @@ export const CoachCompleteProfilePage = () => {
                 )}
               </div>
 
+              {/* Interactive Map Picker */}
+              <div className="sm:col-span-2">
+                <MapLocationPicker
+                  latitude={latitude}
+                  longitude={longitude}
+                  onChange={({ lat, lng, address: selectedAddr }) => {
+                    setLatitude(lat);
+                    setLongitude(lng);
+                    if (selectedAddr && (!address || address.trim() === '')) {
+                      setAddress(selectedAddr);
+                      clearFieldError('address');
+                    }
+                  }}
+                  label="مشخص کردن موقعیت منزل روی نقشه"
+                  height="260px"
+                />
+              </div>
+
               <div>
                 <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   نام و نام خانوادگی مخاطب اضطراری <span className="text-rose-500 font-bold">*</span>
@@ -930,14 +1029,17 @@ export const CoachCompleteProfilePage = () => {
                     fieldErrors.emergencyContactPhone ? 'text-rose-500' : 'text-slate-400'
                   }`} />
                   <input
-                    type="text"
+                    type="tel"
                     dir="ltr"
+                    inputMode="numeric"
+                    maxLength={11}
                     value={emergencyContactPhone}
                     onChange={(e) => {
-                      setEmergencyContactPhone(e.target.value);
+                      const eng = toEnglishDigits(e.target.value).replace(/\D/g, '');
+                      setEmergencyContactPhone(eng);
                       clearFieldError('emergencyContactPhone');
                     }}
-                    placeholder="0912..."
+                    placeholder="09123456789"
                     className={`w-full pr-9 pl-3 py-2.5 rounded-xl border text-slate-900 dark:text-white font-mono text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm ${
                       fieldErrors.emergencyContactPhone
                         ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/40 dark:bg-rose-950/20'
@@ -1030,15 +1132,18 @@ export const CoachCompleteProfilePage = () => {
                   سابقه کار و تدریس (سال) <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <input
-                  type="number"
-                  min="0"
-                  max="60"
+                  type="text"
+                  dir="ltr"
+                  inputMode="numeric"
+                  maxLength={2}
                   value={yearsOfExperience}
                   onChange={(e) => {
-                    setYearsOfExperience(e.target.value);
+                    const eng = toEnglishDigits(e.target.value).replace(/\D/g, '');
+                    setYearsOfExperience(eng);
                     clearFieldError('yearsOfExperience');
                   }}
-                  className={`w-full p-2.5 rounded-xl border text-slate-900 dark:text-white font-mono text-sm sm:text-base ${
+                  placeholder="مثلاً ۵"
+                  className={`w-full p-2.5 rounded-xl border text-slate-900 dark:text-white font-mono text-center text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm ${
                     fieldErrors.yearsOfExperience
                       ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/40 dark:bg-rose-950/20'
                       : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50'
@@ -1079,7 +1184,7 @@ export const CoachCompleteProfilePage = () => {
                     type="file"
                     accept=".pdf,image/*"
                     onChange={(e) => {
-                      handleFileChange(e, setCoachingCertificateFile, setCoachingCertificateFilePreview);
+                      handleFileChange(e, setCoachingCertificateFile, setCoachingCertificateFilePreview, `coach_cert_draft_${userKey}`);
                       clearFieldError('coachingCertificateFile');
                     }}
                     className="hidden"
@@ -1104,9 +1209,6 @@ export const CoachCompleteProfilePage = () => {
                         بازآموزی سال جاری ({currentJalaliYear}) <span className="text-rose-500">*</span>
                       </h3>
                     </div>
-                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
-                      طبق آیین‌نامه فدراسیون شنا، مربیان ملزم به بارگذاری گواهی بازآموزی سالانه هستند. این مدرک تا <strong className="text-emerald-700 dark:text-emerald-300">پایان اسفند ماه ({currentJalaliYear})</strong> دارای اعتبار است.
-                    </p>
                   </div>
 
                   <div className="shrink-0">
@@ -1168,7 +1270,7 @@ export const CoachCompleteProfilePage = () => {
                       type="file"
                       accept=".pdf,image/*"
                       onChange={(e) => {
-                        handleFileChange(e, setRetrainingCertificateFile, setRetrainingCertificateFilePreview);
+                        handleFileChange(e, setRetrainingCertificateFile, setRetrainingCertificateFilePreview, `coach_retrain_draft_${userKey}`);
                         clearFieldError('retrainingCertificateFile');
                       }}
                       className="hidden"
@@ -1256,10 +1358,12 @@ export const CoachCompleteProfilePage = () => {
                   <input
                     type="text"
                     dir="ltr"
+                    inputMode="numeric"
                     maxLength={19}
                     value={formatCardInput(cardNumber)}
                     onChange={(e) => {
-                      setCardNumber(e.target.value.replace(/\D/g, ''));
+                      const eng = toEnglishDigits(e.target.value).replace(/\D/g, '');
+                      setCardNumber(eng);
                       clearFieldError('cardNumber');
                     }}
                     placeholder="6037-9918-XXXX-XXXX"
@@ -1295,10 +1399,11 @@ export const CoachCompleteProfilePage = () => {
                   <input
                     type="text"
                     dir="ltr"
+                    inputMode="numeric"
                     maxLength={26}
                     value={shabaNumber.replace(/^IR/i, '')}
                     onChange={(e) => {
-                      const clean = e.target.value.replace(/\s+/g, '').toUpperCase();
+                      const clean = toEnglishDigits(e.target.value).replace(/[^0-9]/g, '');
                       setShabaNumber(`IR${clean}`);
                       clearFieldError('shabaNumber');
                     }}
@@ -1346,7 +1451,9 @@ export const CoachCompleteProfilePage = () => {
                 </div>
                 <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
                   <span className="text-slate-400 block mb-0.5 text-xs">سابقه کار:</span>
-                  <span className="font-bold text-sm sm:text-base text-slate-800 dark:text-slate-200">{yearsOfExperience} سال</span>
+                  <span className="font-bold text-sm sm:text-base text-slate-800 dark:text-slate-200">
+                    {yearsOfExperience !== '' ? `${yearsOfExperience} سال` : 'ثبت‌نشده'}
+                  </span>
                 </div>
               </div>
             </div>
@@ -1387,14 +1494,11 @@ export const CoachCompleteProfilePage = () => {
               type="button"
               onClick={handleSubmit}
               disabled={submitting}
-              className="gap-1.5 sm:gap-2 text-sm sm:text-base bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 px-3 sm:px-6 py-2.5 flex-1 sm:flex-initial sm:min-w-[180px] justify-center min-h-[44px] font-bold min-w-0 !shrink"
+              className="gap-1.5 sm:gap-2 text-sm sm:text-base bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 px-3 sm:px-6 py-2.5 flex-1 sm:flex-initial sm:min-w-[140px] justify-center min-h-[44px] font-bold min-w-0 !shrink"
             >
               <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-              <span className="truncate hidden sm:inline">
-                {submitting ? 'در حال ثبت نهایی...' : 'ثبت نهایی و تکمیل پرونده مربیگری'}
-              </span>
-              <span className="truncate sm:hidden">
-                {submitting ? 'در حال ثبت...' : 'ثبت نهایی پرونده'}
+              <span className="truncate">
+                {submitting ? 'در حال ثبت...' : 'ثبت نهایی'}
               </span>
             </Button>
           )}

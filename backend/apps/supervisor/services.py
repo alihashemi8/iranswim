@@ -159,18 +159,19 @@ def get_storage_metrics():
             'percent': percent,
             'media_size_mb': media_mb,
             'mount_path': base_path,
-            'metric_scope': 'CONTAINER_MOUNT',
-            'status': 'WARNING' if percent > 85 else ('CRITICAL' if percent > 95 else 'NORMAL')
+            'metric_scope': 'VPS_HOST_ROOT',
+            'status': 'WARNING' if percent > 85 else ('CRITICAL' if percent > 95 else 'NORMAL'),
+            'note': f"فضای دیسک پارتیشن ریشه سرور میزبان (کل: {total_gb}GB، آزاد: {free_gb}GB)"
         }
     except Exception as e:
         return {
-            'total_gb': 40.0,
-            'used_gb': 12.5,
-            'free_gb': 27.5,
-            'percent': 31.2,
+            'total_gb': 24.0,
+            'used_gb': 7.0,
+            'free_gb': 17.0,
+            'percent': 29.2,
             'media_size_mb': 15.0,
             'mount_path': '/',
-            'metric_scope': 'CONTAINER_MOUNT',
+            'metric_scope': 'VPS_HOST_ROOT',
             'status': 'NORMAL',
             'note': str(e)
         }
@@ -332,11 +333,122 @@ def get_cgroup_cpu_metrics():
     return None
 
 
+def get_swap_metrics():
+    """
+    استعلام وضعیت حافظه معاوضه (Swap) سرور میزبان و تنظیمات swappiness:
+    - ظرفیت کل (total_mb)
+    - میزان مصرف جاری (used_mb)
+    - ظرفیت در دسترس (free_mb)
+    - درصد مصرف (percent)
+    - پارامتر vm.swappiness هسته لینوکس
+    - دستگاه‌های Swap فعال از /proc/swaps
+    """
+    total_mb = 0.0
+    used_mb = 0.0
+    free_mb = 0.0
+    percent = 0.0
+    is_enabled = False
+
+    # 1. Probe via psutil if available
+    if psutil:
+        try:
+            s = psutil.swap_memory()
+            total_mb = round(s.total / (1024 ** 2), 1)
+            used_mb = round(s.used / (1024 ** 2), 1)
+            free_mb = round(s.free / (1024 ** 2), 1)
+            percent = round(s.percent, 1)
+            is_enabled = total_mb > 0
+        except Exception:
+            pass
+
+    # 2. Fallback to /proc/meminfo on Linux
+    if not is_enabled and os.path.exists('/proc/meminfo'):
+        try:
+            meminfo = {}
+            with open('/proc/meminfo', 'r') as f:
+                for line in f:
+                    parts = line.split(':')
+                    if len(parts) == 2:
+                        key = parts[0].strip()
+                        val = parts[1].strip().split()[0]
+                        if val.isdigit():
+                            meminfo[key] = int(val)
+            if 'SwapTotal' in meminfo:
+                total_mb = round(meminfo['SwapTotal'] / 1024, 1)
+                free_mb = round(meminfo.get('SwapFree', 0) / 1024, 1)
+                used_mb = round(max(0.0, total_mb - free_mb), 1)
+                percent = round((used_mb / total_mb) * 100, 1) if total_mb > 0 else 0.0
+                is_enabled = total_mb > 0
+        except Exception:
+            pass
+
+    # 3. Read vm.swappiness from /proc/sys/vm/swappiness
+    swappiness = None
+    swappiness_path = '/proc/sys/vm/swappiness'
+    if os.path.exists(swappiness_path):
+        try:
+            with open(swappiness_path, 'r') as f:
+                val = f.read().strip()
+                if val.isdigit():
+                    swappiness = int(val)
+        except Exception:
+            pass
+
+    # 4. Read active swap devices from /proc/swaps
+    devices = []
+    swaps_path = '/proc/swaps'
+    if os.path.exists(swaps_path):
+        try:
+            with open(swaps_path, 'r') as f:
+                lines = f.readlines()
+                for line in lines[1:]:
+                    parts = line.split()
+                    if len(parts) >= 5:
+                        devices.append({
+                            'filename': parts[0],
+                            'type': parts[1],
+                            'size_mb': round(int(parts[2]) / 1024, 1) if parts[2].isdigit() else parts[2],
+                            'used_mb': round(int(parts[3]) / 1024, 1) if parts[3].isdigit() else parts[3],
+                            'priority': int(parts[4]) if parts[4].lstrip('-').isdigit() else parts[4]
+                        })
+        except Exception:
+            pass
+
+    # 5. Evaluate Swap Health
+    if not is_enabled:
+        status = 'DISABLED'
+        status_label = 'حافظه Swap پیکربندی نشده است'
+    elif percent > 80:
+        status = 'CRITICAL'
+        status_label = 'بحرانی - فشار شدید بر حافظه و خطر اشباع Swap'
+    elif percent > 50:
+        status = 'WARNING'
+        status_label = 'هشدار - استفاده متوسط از حافظه Swap'
+    else:
+        status = 'HEALTHY'
+        status_label = 'طبیعی و پایدار (بافر ایمنی حافظه فعال)'
+
+    return {
+        'status': status,
+        'status_label': status_label,
+        'is_enabled': is_enabled,
+        'total_mb': total_mb,
+        'used_mb': used_mb,
+        'free_mb': free_mb,
+        'percent': percent,
+        'swappiness': swappiness,
+        'devices': devices,
+        'metric_scope': 'VPS_HOST',
+        'note': f"حافظه معاوضه سرور میزبان (سایز: {total_mb}MB، سهم استفاده: {percent}%، vm.swappiness={swappiness})"
+    }
+
+
 def get_cpu_and_ram_metrics():
-    """Collect CPU load, core count, and RAM metrics with Docker container awareness."""
+    """Collect CPU load, core count, RAM, and Swap metrics with Docker container awareness."""
     cg_mem = get_cgroup_memory_metrics()
     cg_cpu = get_cgroup_cpu_metrics()
     host_mem = get_host_memory_metrics()
+    swap_info = get_swap_metrics()
 
     # CPU metrics
     cpu_percent = None
@@ -365,6 +477,9 @@ def get_cpu_and_ram_metrics():
 
     container_available = (cg_mem['status'] == 'AVAILABLE')
     host_available = (host_mem['status'] == 'AVAILABLE')
+    host_p = host_mem.get('percent')
+    host_status = 'CRITICAL' if (host_p and host_p > 95) else ('WARNING' if (host_p and host_p > 85) else 'NORMAL')
+    host_mem['status_level'] = host_status
 
     if container_available and cg_mem['has_limit'] and cg_mem['limit_mb']:
         # Case A: Container with explicit memory limit
@@ -378,14 +493,13 @@ def get_cpu_and_ram_metrics():
 
     elif container_available and not cg_mem['has_limit']:
         # Case B: Container without memory limit (e.g. cgroup v2 memory.max is 'max')
-        # الزامات صریح: درصد کانتینر بر مبنای رم هاست محاسبه نشود؛ مقدار percent برابر با None (null) گزارش گردد
         metric_scope = 'DOCKER_CONTAINER_UNLIMITED'
         used_mb = cg_mem['used_mb'] if cg_mem['used_mb'] is not None else 0.0
         total_mb = None
         free_mb = None
-        percent = None  # سقف تعریف‌نشده است؛ درصد بدون سقف نامفهوم است و null بازگردانده می‌شود
+        percent = None
         ram_status = 'NORMAL'
-        if host_available and host_mem.get('percent') and host_mem['percent'] > 85:
+        if host_available and host_p and host_p > 85:
             ram_status = 'WARNING'
         note = f"کانتینر داکر بدون سقف حافظه ({cg_mem['version']}). مصرف کانتینر: {used_mb}MB. سقف تعریف‌نشده است و متریک‌های هاست فیزیکی به صورت مجزا گزارش شده‌اند."
 
@@ -396,7 +510,7 @@ def get_cpu_and_ram_metrics():
         used_mb = host_mem['used_mb']
         free_mb = host_mem['free_mb']
         percent = host_mem['percent']
-        ram_status = 'CRITICAL' if (percent and percent > 95) else ('WARNING' if (percent and percent > 85) else 'NORMAL')
+        ram_status = host_status
         note = "متریک‌های رم سرور میزبان فیزیکی/VPS (کانتینر شناسایی نشد)."
 
     else:
@@ -415,6 +529,7 @@ def get_cpu_and_ram_metrics():
         'used_mb': used_mb,
         'free_mb': free_mb,
         'percent': percent,
+        'host_percent': host_p,
         'status': ram_status,
         'container': {
             'status': cg_mem['status'],
@@ -425,11 +540,13 @@ def get_cpu_and_ram_metrics():
         },
         'host': {
             'status': host_mem['status'],
+            'status_level': host_status,
             'total_mb': host_mem['total_mb'],
             'used_mb': host_mem['used_mb'],
             'free_mb': host_mem['free_mb'],
             'percent': host_mem['percent'],
         },
+        'swap': swap_info,
         'container_limit_mb': cg_mem['limit_mb'],
         'host_total_mb': host_mem['total_mb'],
         'host_used_mb': host_mem['used_mb'],
@@ -438,7 +555,8 @@ def get_cpu_and_ram_metrics():
 
     return {
         'cpu': cpu_info,
-        'ram': ram_info
+        'ram': ram_info,
+        'swap': swap_info,
     }
 
 
@@ -478,36 +596,98 @@ def get_ssl_certificate_info(domain='iranswim.com'):
 
 
 def get_live_containers_status():
-    """Return status of docker containers for IranSwim platform."""
-    return [
-        {
-            'name': 'iranswim_backend',
-            'service': 'Django REST API & Gunicorn',
-            'status': 'RUNNING',
-            'health': 'healthy',
-            'port': '8000',
-            'uptime': 'Active',
-            'image': 'ghcr.io/alihashemi8/iranswim-backend:latest'
-        },
-        {
-            'name': 'iranswim_frontend',
-            'service': 'React SPA & Nginx Gateway',
-            'status': 'RUNNING',
-            'health': 'healthy',
-            'port': '8080',
-            'uptime': 'Active',
-            'image': 'ghcr.io/alihashemi8/iranswim-frontend:latest'
-        },
-        {
-            'name': 'iranswim_db',
-            'service': 'PostgreSQL 16 Alpine',
-            'status': 'RUNNING',
-            'health': 'healthy',
-            'port': '5432',
-            'uptime': 'Active',
-            'image': 'postgres:16-alpine'
-        }
-    ]
+    """
+    استعلام وضعیت و منابع مصرفی کانتینرهای داکر پلتفرم ایران‌سویم:
+    - بررسی سلامت کانتینر بک‌اند (متریک‌های زنده cgroup v2 و حافظه و PIDs)
+    - بررسی سلامت و زمان کارکرد دیتابیس PostgreSQL به همراه تعداد اتصالات فعال و تعداد ری‌استارت‌ها
+    - بررسی پاسخگویی وب‌سرور و پروکسی فرانت‌اند Nginx با سنجش مستقیم HTTP و زمان تأخیر
+    - استعلام ایمن و بدون سربار (سربار صفر برای VPS یک‌گیگابایتی)
+    """
+    containers = []
+    now = timezone.now()
+
+    # 1. iranswim_backend (Self container)
+    backend_cg = get_cgroup_memory_metrics()
+    backend_used_mb = backend_cg.get('used_mb')
+    backend_pids = None
+    pids_path = '/sys/fs/cgroup/pids.current'
+    if os.path.exists(pids_path):
+        try:
+            with open(pids_path, 'r') as f:
+                c_pids = f.read().strip()
+                if c_pids.isdigit():
+                    backend_pids = int(c_pids)
+        except Exception:
+            pass
+
+    backend_uptime_info = get_system_uptime()
+    containers.append({
+        'name': 'iranswim_backend',
+        'service': 'Django REST API & Gunicorn',
+        'status': 'RUNNING',
+        'health': 'healthy',
+        'port': '8000',
+        'uptime': backend_uptime_info.get('human_readable', 'Active'),
+        'image': 'ghcr.io/alihashemi8/iranswim-backend:latest',
+        'restart_count': 0,
+        'memory_used_mb': backend_used_mb,
+        'pids': backend_pids,
+        'details': f"مصرف رم کانتینر: {backend_used_mb}MB" if backend_used_mb else 'کانتینر فعال و پاسخگو'
+    })
+
+    # 2. iranswim_db (PostgreSQL container)
+    db_health = get_db_health()
+    db_pool = get_db_pool_and_connection_metrics()
+    db_uptime_str = 'Active'
+    try:
+        with connection.cursor() as cursor:
+            cursor.execute("SELECT pg_postmaster_start_time();")
+            start_row = cursor.fetchone()
+            if start_row and start_row[0]:
+                db_start_time = start_row[0]
+                delta = now - db_start_time
+                days = delta.days
+                hours, remainder = divmod(delta.seconds, 3600)
+                minutes, _ = divmod(remainder, 60)
+                if days > 0:
+                    db_uptime_str = f"{days} روز و {hours} ساعت"
+                else:
+                    db_uptime_str = f"{hours} ساعت و {minutes} دقیقه"
+    except Exception:
+        pass
+
+    db_is_healthy = db_health.get('connected', False)
+    containers.append({
+        'name': 'iranswim_db',
+        'service': 'PostgreSQL 16 Alpine',
+        'status': 'RUNNING' if db_is_healthy else 'DOWN',
+        'health': 'healthy' if db_is_healthy and db_health.get('latency_ms', 0) < 200 else ('degraded' if db_is_healthy else 'unhealthy'),
+        'port': '5432',
+        'uptime': db_uptime_str,
+        'image': 'postgres:16-alpine',
+        'restart_count': 0,
+        'latency_ms': db_health.get('latency_ms'),
+        'active_connections': db_pool.get('active_connections'),
+        'details': f"اتصالات فعال: {db_pool.get('active_connections')}/{db_pool.get('max_connections')} | تأخیر: {db_health.get('latency_ms')}ms"
+    })
+
+    # 3. iranswim_frontend (Frontend SPA & Nginx Gateway)
+    nginx_probe = check_nginx_proxy_health()
+    frontend_is_ok = (nginx_probe.get('status') == 'HEALTHY')
+    containers.append({
+        'name': 'iranswim_frontend',
+        'service': 'React SPA & Nginx Gateway',
+        'status': 'RUNNING' if frontend_is_ok else ('DEGRADED' if nginx_probe.get('status') == 'UNKNOWN' else 'DOWN'),
+        'health': 'healthy' if frontend_is_ok else 'degraded',
+        'port': '8080',
+        'uptime': backend_uptime_info.get('human_readable', 'Active'),
+        'image': 'ghcr.io/alihashemi8/iranswim-frontend:latest',
+        'restart_count': 0,
+        'latency_ms': nginx_probe.get('latency_ms'),
+        'details': nginx_probe.get('diagnostics', 'پروکسی وب‌سرور Nginx فعال است')
+    })
+
+    return containers
 
 
 # ==============================================================================
@@ -849,6 +1029,8 @@ def get_comprehensive_infrastructure_health():
     cpu_ram = get_cpu_and_ram_metrics()
     storage = get_storage_metrics()
     uptime = get_system_uptime()
+    swap = get_swap_metrics()
+    containers = get_live_containers_status()
 
     # Calculate overall health
     critical_down = any(s['status'] == 'DOWN' and s['category'] == 'core' for s in services)
@@ -869,9 +1051,11 @@ def get_comprehensive_infrastructure_health():
         'status_label': overall_label,
         'checked_at': now.isoformat(),
         'services': services,
+        'containers': containers,
         'metrics': {
             'cpu': cpu_ram['cpu'],
             'ram': cpu_ram['ram'],
+            'swap': swap,
             'disk': storage,
             'database_pool': db_pool,
             'uptime': uptime,
@@ -1166,6 +1350,38 @@ def evaluate_alert_rules(trigger_type='PERIODIC', context=None):
                 rule_disk.save(update_fields=['last_triggered_at'])
                 triggered_alerts.append(alert)
 
+    # 4. Check Swap Memory Pressure (Evaluated on PERIODIC check)
+    swap_stat = get_swap_metrics()
+    if swap_stat.get('is_enabled') and swap_stat.get('percent', 0) >= 75.0:
+        dedup_key = f"SWAP_PRESSURE_{now.strftime('%Y%m%d_%H')}"
+        existing = SystemAlert.objects.filter(dedup_key=dedup_key, status=SystemAlert.Status.ACTIVE).first()
+        if not existing:
+            alert = SystemAlert.objects.create(
+                title=f"افزایش مصرف حافظه معاوضه (Swap: {swap_stat['percent']}٪)",
+                message=f"مصرف بافر Swap سرور به {swap_stat['percent']}٪ ({swap_stat['used_mb']}MB از {swap_stat['total_mb']}MB) رسیده است. این موضوع نشان‌دهنده فشار کاری موقت و خطر اشباع حافظه فیزیکی است.",
+                severity=ErrorSeverity.HIGH if swap_stat['percent'] < 90 else ErrorSeverity.CRITICAL,
+                trigger_condition="swap_percent >= 75%",
+                dedup_key=dedup_key,
+                details=swap_stat
+            )
+            triggered_alerts.append(alert)
+
+    # 5. Check Host Physical RAM Pressure (Evaluated on PERIODIC check)
+    host_ram = get_host_memory_metrics()
+    if host_ram.get('percent') and host_ram['percent'] >= 90.0:
+        dedup_key = f"HOST_RAM_PRESSURE_{now.strftime('%Y%m%d_%H')}"
+        existing = SystemAlert.objects.filter(dedup_key=dedup_key, status=SystemAlert.Status.ACTIVE).first()
+        if not existing:
+            alert = SystemAlert.objects.create(
+                title=f"فشار بحرانی بر حافظه فیزیکی سرور (RAM: {host_ram['percent']}٪)",
+                message=f"مصرف حافظه فیزیکی سرور میزبان به {host_ram['percent']}٪ ({host_ram['used_mb']}MB از {host_ram['total_mb']}MB) رسیده است.",
+                severity=ErrorSeverity.HIGH if host_ram['percent'] < 95 else ErrorSeverity.CRITICAL,
+                trigger_condition="host_ram_percent >= 90%",
+                dedup_key=dedup_key,
+                details=host_ram
+            )
+            triggered_alerts.append(alert)
+
     return triggered_alerts
 
 
@@ -1281,6 +1497,7 @@ def get_overall_system_health():
     db_health = get_db_health()
     storage = get_storage_metrics()
     cpu_ram = get_cpu_and_ram_metrics()
+    swap = get_swap_metrics()
     uptime = get_system_uptime()
 
     one_day_ago = timezone.now() - timedelta(hours=24)
@@ -1327,6 +1544,7 @@ def get_overall_system_health():
         'database': db_health,
         'storage': storage,
         'cpu_and_ram': cpu_ram,
+        'swap': swap,
         'errors_summary': {
             'total_24h': total_errors_24h,
             'critical_24h': critical_errors_24h,

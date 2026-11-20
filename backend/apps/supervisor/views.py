@@ -45,6 +45,7 @@ from .serializers import (
 from .services import (
     get_overall_system_health,
     get_cpu_and_ram_metrics,
+    get_swap_metrics,
     get_storage_metrics,
     get_db_health,
     get_live_containers_status,
@@ -591,10 +592,12 @@ class SupervisorInfrastructureView(APIView):
         storage = get_storage_metrics()
         containers = get_live_containers_status()
         uptime = get_system_uptime()
+        swap = get_swap_metrics()
 
         return Response({
             'cpu': cpu_ram['cpu'],
             'ram': cpu_ram['ram'],
+            'swap': swap,
             'disk': storage,
             'containers': containers,
             'uptime': uptime,

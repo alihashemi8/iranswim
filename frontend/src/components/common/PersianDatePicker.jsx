@@ -667,22 +667,22 @@ export const PersianDatePicker = ({
         </button>
 
         {/* Month & Year Title buttons */}
-        <div className="flex items-center gap-1.5 text-xs font-bold">
+        <div className="flex items-center gap-1.5 text-xs sm:text-sm font-bold">
           <button
             type="button"
             onClick={() => setPickerMode(pickerMode === 'months' ? 'days' : 'months')}
-            className={`px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 hover:${colorStyles.text} transition-colors cursor-pointer flex items-center gap-1`}
+            className={`px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 hover:${colorStyles.text} transition-colors cursor-pointer flex items-center gap-1 text-xs sm:text-sm`}
           >
             <span>{PERSIAN_MONTHS[viewMonth - 1]}</span>
-            <ChevronDown className="w-3 h-3 text-slate-400" />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
           </button>
           <button
             type="button"
             onClick={() => setPickerMode(pickerMode === 'years' ? 'days' : 'years')}
-            className={`px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 hover:${colorStyles.text} font-mono transition-colors cursor-pointer flex items-center gap-1`}
+            className={`px-2 py-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-100 hover:${colorStyles.text} font-mono transition-colors cursor-pointer flex items-center gap-1 text-xs sm:text-sm`}
           >
             <span>{formatNum(viewYear, { useGrouping: false })}</span>
-            <ChevronDown className="w-3 h-3 text-slate-400" />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
           </button>
         </div>
 
@@ -717,7 +717,7 @@ export const PersianDatePicker = ({
                 disabled={isDisabledMonth}
                 onClick={() => handleSelectMonth(monthNum)}
                 title={isDisabledMonth ? 'امکان انتخاب ماه‌های آینده وجود ندارد' : undefined}
-                className={`py-2 px-1 text-xs font-semibold rounded-xl transition-all select-none ${
+                className={`py-2 px-1 text-xs sm:text-sm font-semibold rounded-xl transition-all select-none ${
                   isDisabledMonth
                     ? 'opacity-25 cursor-not-allowed text-slate-300 dark:text-slate-600 hover:bg-transparent'
                     : isSelected
@@ -749,7 +749,7 @@ export const PersianDatePicker = ({
                 data-selected={isSelected ? 'true' : undefined}
                 onClick={() => handleSelectYear(y)}
                 title={isDisabledYear ? 'امکان انتخاب سال‌های آینده وجود ندارد' : undefined}
-                className={`py-2 px-1 text-xs font-mono font-bold rounded-xl transition-all select-none ${
+                className={`py-2 px-1 text-xs sm:text-sm font-mono font-bold rounded-xl transition-all select-none ${
                   isDisabledYear
                     ? 'opacity-25 cursor-not-allowed text-slate-300 dark:text-slate-600 hover:bg-transparent'
                     : isSelected
@@ -774,7 +774,7 @@ export const PersianDatePicker = ({
             {PERSIAN_WEEKDAYS.map((wd) => (
               <div
                 key={wd.name}
-                className={`text-[11px] font-bold py-1 ${
+                className={`text-xs font-bold py-1 ${
                   wd.isWeekend
                     ? 'text-rose-500 dark:text-rose-400'
                     : 'text-slate-400 dark:text-slate-500'
@@ -790,7 +790,7 @@ export const PersianDatePicker = ({
           <div className="grid grid-cols-7 gap-1">
             {/* Empty leading cells */}
             {Array.from({ length: startWeekday }).map((_, i) => (
-              <div key={`empty-${i}`} className="h-8" />
+              <div key={`empty-${i}`} className="h-8.5 sm:h-9" />
             ))}
 
             {/* Days of current month */}
@@ -815,7 +815,7 @@ export const PersianDatePicker = ({
                   disabled={isDisabledDay}
                   onClick={() => handleSelectDay(day)}
                   title={isDisabledDay ? 'امکان انتخاب تاریخ آینده وجود ندارد (فقط تا امروز)' : undefined}
-                  className={`h-8 rounded-xl font-mono text-xs flex items-center justify-center transition-all select-none ${
+                  className={`h-8.5 sm:h-9 rounded-xl font-mono text-xs sm:text-sm font-medium flex items-center justify-center transition-all select-none ${
                     isDisabledDay
                       ? 'opacity-25 cursor-not-allowed text-slate-300 dark:text-slate-600 hover:bg-transparent'
                       : isSelected
@@ -834,7 +834,7 @@ export const PersianDatePicker = ({
           </div>
 
           {/* Quick actions footer */}
-          <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 text-xs">
+          <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 dark:border-slate-800 text-xs sm:text-sm">
             <button
               type="button"
               onClick={handleSelectToday}
@@ -959,24 +959,22 @@ export const PersianDatePicker = ({
           </div>
         )}
 
-        {/* Mobile Bottom Sheet Modal */}
+        {/* Mobile Centered / Floating Modal */}
         {isOpen && isMobile && typeof document !== 'undefined' && createPortal(
-          <div className="fixed inset-0 z-50 flex flex-col justify-end" dir="rtl">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4" dir="rtl">
             {/* Backdrop */}
             <div
               className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
               onClick={() => setIsOpen(false)}
             />
 
-            {/* Bottom Sheet Drawer */}
+            {/* Floating Modal Card */}
             <div
               ref={dropdownRef}
               role="dialog"
               aria-label="تقویم شمسی"
-              className="relative z-10 w-full max-w-lg mx-auto bg-white dark:bg-slate-900 rounded-t-3xl border-t border-slate-200 dark:border-slate-800 p-4 pb-8 shadow-2xl animate-in slide-in-from-bottom duration-200 select-none"
+              className="relative z-10 w-full max-w-[340px] sm:max-w-sm mx-auto bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 sm:p-5 shadow-2xl animate-in zoom-in-95 duration-200 select-none"
             >
-              {/* Drag Handle */}
-              <div className="w-12 h-1.5 bg-slate-300 dark:bg-slate-700 rounded-full mx-auto mb-3" />
               {renderCalendarContent(true)}
             </div>
           </div>,

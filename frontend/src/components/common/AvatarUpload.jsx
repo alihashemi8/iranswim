@@ -287,6 +287,22 @@ export const AvatarUpload = ({
             <span>{avatarUrl ? 'تغییر و کراپ عکس' : 'انتخاب عکس'}</span>
           </button>
 
+          {avatarUrl && (
+            <button
+              type="button"
+              disabled={loading}
+              onClick={() => {
+                setCropImageSrc(avatarUrl);
+                setIsCropModalOpen(true);
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-750 dark:text-slate-250 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 cursor-pointer transition-colors"
+              title="تغییر کادربندی، چرخش یا زوم عکس فعلی"
+            >
+              <Crop className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>کادربندی مجدد</span>
+            </button>
+          )}
+
           {canDelete && avatarUrl && (
             <button
               type="button"

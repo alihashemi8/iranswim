@@ -62,6 +62,8 @@ class CoachProfile(models.Model):
     emergency_contact_name = models.CharField(_('نام و نام خانوادگی مخاطب اضطراری'), max_length=150, blank=True)
     emergency_contact_phone = models.CharField(_('شماره مخاطب اضطراری'), max_length=20, blank=True)
     address = models.TextField(_('آدرس محل سکونت'), blank=True)
+    latitude = models.FloatField(_('عرض جغرافیایی (Latitude)'), null=True, blank=True)
+    longitude = models.FloatField(_('طول جغرافیایی (Longitude)'), null=True, blank=True)
     internal_notes = models.TextField(_('یادداشت محرمانه اداری'), blank=True)
 
     # Coaching Credentials & Professional details

@@ -233,48 +233,11 @@ export const CoachCreateWorkoutPage = () => {
   return (
     <div className="space-y-6 pb-16 max-w-5xl mx-auto px-3 sm:px-4 md:px-0">
       {/* Top Header & Navigation */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white dark:bg-slate-900 rounded-3xl p-5 sm:p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs">
-        <div className="flex items-center gap-3">
-          <BackButton to="/coach/workouts" label="بازگشت به برنامه‌ها" showLabelAlways />
-          <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-              <span className={`p-2 rounded-2xl text-white ${planType === 'DIET' ? 'bg-emerald-600' : 'bg-blue-600'}`}>
-                {planType === 'DIET' ? <Utensils className="w-5 h-5 sm:w-6 sm:h-6" /> : <Dumbbell className="w-5 h-5 sm:w-6 sm:h-6" />}
-              </span>
-              <span>{isEditing ? 'ویرایش برنامه' : 'طراحی برنامه جدید'}</span>
-            </h1>
-            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-300 mt-1.5 leading-relaxed">
-              {planType === 'DIET'
-                ? 'تدوین رژیم غذایی و راهنمای هیدراتاسیون برای کلاس یا شناگر اختصاصی'
-                : 'طراحی جلسه تمرین شنا، ست‌های اصلی، گرم‌کردن و سردکردن'}
-            </p>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-2 sm:flex items-center gap-2.5 w-full sm:w-auto">
-          <Button
-            type="button"
-            variant="outline"
-            size="md"
-            onClick={() => navigate('/coach/workouts')}
-            className="w-full sm:w-auto justify-center text-sm sm:text-base font-bold px-4 py-2"
-          >
-            انصراف
-          </Button>
-          <Button
-            type="button"
-            variant="primary"
-            size="md"
-            loading={saving}
-            onClick={handleSubmit}
-            className={`w-full sm:w-auto justify-center gap-2 text-sm sm:text-base font-bold text-white shadow-xs px-5 py-2 ${
-              planType === 'DIET' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'
-            }`}
-          >
-            <Save className="w-4.5 h-4.5" />
-            <span>ذخیره نهایی برنامه</span>
-          </Button>
-        </div>
+      <div className="flex items-center gap-3 pt-1">
+        <BackButton to="/coach/workouts" label="بازگشت" showLabelAlways />
+        <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+          {isEditing ? 'ویرایش برنامه' : 'طراحی برنامه جدید'}
+        </h1>
       </div>
 
       {/* Main Form Container */}

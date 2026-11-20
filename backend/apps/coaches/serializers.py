@@ -354,7 +354,8 @@ class CoachProfileSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'user', 'first_name', 'last_name', 'full_name', 'phone', 'national_id',
             'password', 'avatar', 'user_role', 'is_manager', 'role_title', 'personnel_id', 'gender', 'gender_display',
-            'date_of_birth', 'emergency_contact_name', 'emergency_contact_phone', 'address', 'internal_notes',
+            'date_of_birth', 'emergency_contact_name', 'emergency_contact_phone', 'address',
+            'latitude', 'longitude', 'internal_notes',
             'coaching_degree', 'coaching_degree_display', 'coaching_certificate_date',
             'coaching_certificate_file', 'years_of_experience', 'bio', 'resume_file',
             'card_number', 'shaba_number', 'is_profile_completed', 'has_required_info',
@@ -537,6 +538,10 @@ class CoachProfileSerializer(serializers.ModelSerializer):
         for dec_field in ['hourly_rate', 'fixed_monthly_salary', 'revenue_percentage']:
             if dec_field in data and (data[dec_field] == '' or data[dec_field] is None):
                 data[dec_field] = '0'
+
+        for float_field in ['latitude', 'longitude']:
+            if float_field in data and (data[float_field] == '' or data[float_field] is None):
+                data[float_field] = None
 
         if 'personnel_id' in data and not data['personnel_id']:
             data['personnel_id'] = None

@@ -328,3 +328,64 @@ def test_ai_feature_flag_is_strictly_disabled():
     suggestions = analyzer.suggest_remediation(1)
     assert suggestions['enabled'] is False
     assert suggestions['suggestions'] == []
+
+
+@pytest.mark.django_db
+def test_swap_metrics_and_infrastructure_endpoints(api_client, supervisor_user, regular_user):
+    """آزمون متریک‌های Swap، سلامت هاست فیزیکی، کانتینرها و کنترل سطح دسترسی RBAC"""
+    from apps.supervisor.services import get_swap_metrics, get_live_containers_status, get_storage_metrics
+
+    # 1. Direct service test for Swap metrics
+    swap = get_swap_metrics()
+    assert 'status' in swap
+    assert 'total_mb' in swap
+    assert 'used_mb' in swap
+    assert 'free_mb' in swap
+    assert 'percent' in swap
+    assert 'metric_scope' in swap
+    assert swap['metric_scope'] == 'VPS_HOST'
+
+    # 2. Direct service test for Storage metrics
+    storage = get_storage_metrics()
+    assert storage['metric_scope'] == 'VPS_HOST_ROOT'
+    assert 'total_gb' in storage
+    assert 'free_gb' in storage
+
+    # 3. Direct service test for Live containers
+    containers = get_live_containers_status()
+    assert len(containers) >= 3
+    container_names = [c['name'] for c in containers]
+    assert 'iranswim_backend' in container_names
+    assert 'iranswim_db' in container_names
+    assert 'iranswim_frontend' in container_names
+    for c in containers:
+        assert 'status' in c
+        assert 'health' in c
+        assert 'restart_count' in c
+        assert c['restart_count'] == 0
+
+    # 4. RBAC: Regular swimmer user cannot access infrastructure
+    api_client.force_authenticate(user=regular_user)
+    res_forbidden = api_client.get('/api/supervisor/infrastructure/')
+    assert res_forbidden.status_code == 403
+
+    # 5. RBAC: Supervisor user receives 200 with complete metrics including Swap
+    api_client.force_authenticate(user=supervisor_user)
+    res_ok = api_client.get('/api/supervisor/infrastructure/')
+    assert res_ok.status_code == 200
+    data = res_ok.data
+    assert 'swap' in data
+    assert 'cpu' in data
+    assert 'ram' in data
+    assert 'disk' in data
+    assert 'containers' in data
+    assert 'uptime' in data
+    assert data['disk']['metric_scope'] == 'VPS_HOST_ROOT'
+    assert 'swap' in data['ram']
+
+    # 6. Live Infrastructure Health Endpoint
+    res_live = api_client.get('/api/supervisor/infrastructure/live/')
+    assert res_live.status_code == 200
+    live_data = res_live.data
+    assert 'swap' in live_data['metrics']
+    assert 'containers' in live_data

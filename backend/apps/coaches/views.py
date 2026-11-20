@@ -314,7 +314,7 @@ class CoachCompleteProfileView(APIView):
             coach.user.avatar = request.FILES['avatar']
             coach.user.save(update_fields=['avatar'])
 
-        # Validate mandatory fields (14 core fields):
+        # Validate mandatory fields:
         missing = []
         fn = coach.first_name or (coach.user.first_name if coach.user else '')
         ln = coach.last_name or (coach.user.last_name if coach.user else '')
@@ -328,10 +328,16 @@ class CoachCompleteProfileView(APIView):
             missing.append('کد ملی ۱۰ رقمی معتبر')
         if not coach.date_of_birth:
             missing.append('تاریخ تولد')
+        if not (coach.user and coach.user.avatar):
+            missing.append('عکس پرسنلی')
         if not coach.coaching_degree or not str(coach.coaching_degree).strip():
             missing.append('درجه مربیگری')
         if not coach.coaching_certificate_date:
             missing.append('تاریخ اخذ مربیگری')
+        if not coach.coaching_certificate_file:
+            missing.append('آپلود مدرک مربیگری')
+        if not coach.retraining_certificate_file:
+            missing.append('آپلود گواهی بازآموزی سال جاری')
         if coach.years_of_experience is None or coach.years_of_experience < 0:
             missing.append('سابقه کار')
         if not coach.bio and not coach.resume_file:
@@ -349,8 +355,6 @@ class CoachCompleteProfileView(APIView):
         clean_emerg_phone = str(coach.emergency_contact_phone or '').strip()
         if not clean_emerg_phone:
             missing.append('شماره مخاطب اضطراری')
-        if not coach.coaching_certificate_file:
-            missing.append('آپلود مدرک مربیگری')
 
         if missing:
             coach.save()

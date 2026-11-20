@@ -14,6 +14,7 @@ import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
 import { validatePassword, PasswordRequirementsList } from '../../utils/passwordValidator';
+import { toEnglishDigits } from '../../utils/digits';
 
 export const AdminCreateCoachPage = () => {
   const { id } = useParams();
@@ -53,7 +54,7 @@ export const AdminCreateCoachPage = () => {
     // Step 3: Coaching Credentials (specialties REMOVED)
     coaching_degree: 'GRADE_3',
     coaching_certificate_date: '',
-    years_of_experience: 1,
+    years_of_experience: '',
     bio: '',
     lifeguard_certificate: '',
     lifeguard_expiration: '',
@@ -119,7 +120,7 @@ export const AdminCreateCoachPage = () => {
           address: c.address || '',
           coaching_degree: c.coaching_degree || 'GRADE_3',
           coaching_certificate_date: c.coaching_certificate_date || '',
-          years_of_experience: c.years_of_experience ?? 1,
+          years_of_experience: c.years_of_experience !== null && c.years_of_experience !== undefined ? String(c.years_of_experience) : '',
           bio: c.bio || '',
           lifeguard_certificate: c.lifeguard_certificate || '',
           lifeguard_expiration: c.lifeguard_expiration || '',
@@ -507,10 +508,12 @@ export const AdminCreateCoachPage = () => {
                 <div className="relative">
                   <Phone className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
                   <input
-                    type="text"
+                    type="tel"
                     dir="ltr"
+                    inputMode="numeric"
+                    maxLength={11}
                     value={form.phone}
-                    onChange={(e) => handleChange('phone', e.target.value)}
+                    onChange={(e) => handleChange('phone', toEnglishDigits(e.target.value).replace(/\D/g, ''))}
                     placeholder="09123456789"
                     className="w-full pr-9 pl-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm"
                     required
@@ -527,9 +530,10 @@ export const AdminCreateCoachPage = () => {
                   <input
                     type="text"
                     dir="ltr"
+                    inputMode="numeric"
                     maxLength={10}
                     value={form.national_id}
-                    onChange={(e) => handleChange('national_id', e.target.value.replace(/\D/g, ''))}
+                    onChange={(e) => handleChange('national_id', toEnglishDigits(e.target.value).replace(/\D/g, ''))}
                     placeholder="0012345678"
                     className="w-full pr-9 pl-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm"
                     required
@@ -708,11 +712,13 @@ export const AdminCreateCoachPage = () => {
                   تلفن تماس اضطراری <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <input
-                  type="text"
+                  type="tel"
                   dir="ltr"
+                  inputMode="numeric"
+                  maxLength={11}
                   value={form.emergency_contact_phone}
-                  onChange={(e) => handleChange('emergency_contact_phone', e.target.value)}
-                  placeholder="0912..."
+                  onChange={(e) => handleChange('emergency_contact_phone', toEnglishDigits(e.target.value).replace(/\D/g, ''))}
+                  placeholder="09123456789"
                   className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm"
                   required
                 />
@@ -790,12 +796,14 @@ export const AdminCreateCoachPage = () => {
                   سابقه تدریس و مربیگری (سال) <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <input
-                  type="number"
-                  min="0"
-                  max="50"
+                  type="text"
+                  dir="ltr"
+                  inputMode="numeric"
+                  maxLength={2}
                   value={form.years_of_experience}
-                  onChange={(e) => handleChange('years_of_experience', e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono text-sm sm:text-base"
+                  onChange={(e) => handleChange('years_of_experience', toEnglishDigits(e.target.value).replace(/\D/g, ''))}
+                  placeholder="مثلاً ۵"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono text-center text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm"
                   required
                 />
               </div>
@@ -922,9 +930,10 @@ export const AdminCreateCoachPage = () => {
                   <input
                     type="text"
                     dir="ltr"
+                    inputMode="numeric"
                     maxLength={19}
                     value={formatCardInput(form.card_number)}
-                    onChange={(e) => handleChange('card_number', e.target.value.replace(/\D/g, ''))}
+                    onChange={(e) => handleChange('card_number', toEnglishDigits(e.target.value).replace(/\D/g, ''))}
                     placeholder="6037-9918-XXXX-XXXX"
                     className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono text-center tracking-wider font-bold text-sm sm:text-base"
                     required
@@ -942,10 +951,11 @@ export const AdminCreateCoachPage = () => {
                     <input
                       type="text"
                       dir="ltr"
+                      inputMode="numeric"
                       maxLength={26}
                       value={form.shaba_number.replace(/^IR/i, '')}
                       onChange={(e) => {
-                        const clean = e.target.value.replace(/\s+/g, '').toUpperCase();
+                        const clean = toEnglishDigits(e.target.value).replace(/[^0-9]/g, '');
                         handleChange('shaba_number', `IR${clean}`);
                       }}
                       placeholder="24 رقمی بدون IR"
