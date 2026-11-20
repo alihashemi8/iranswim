@@ -110,14 +110,13 @@ export const PublicFooter = () => {
                 </p>
                 <div className="flex items-center gap-2.5">
                   <PhoneCall className="w-4 h-4 text-teal-400 shrink-0" />
-                  <a
-                    href="tel:02833650000"
+                  <Link
+                    to="/contact/"
                     className="hover:text-cyan-300 transition-colors flex items-center gap-2 font-medium group"
                   >
-                    <span>تلفن پذیرش:</span>
-                    <span dir="ltr" className="inline-block font-bold text-cyan-300 group-hover:underline tracking-wider">۰۲۸-۳۳۶۵۰۰۰۰</span>
-                    <span className="text-[10px] text-cyan-400/80 bg-cyan-950/80 px-1.5 py-0.5 rounded border border-cyan-800/50">تماس مستقیم</span>
-                  </a>
+                    <span>تماس با استخرهای همکار:</span>
+                    <span className="text-[10px] text-cyan-400/80 bg-cyan-950/80 px-1.5 py-0.5 rounded border border-cyan-800/50">مشاهده شماره‌ها</span>
+                  </Link>
                 </div>
                 <p className="flex items-center gap-2.5">
                   <Clock className="w-4 h-4 text-teal-400 shrink-0" />

@@ -100,15 +100,15 @@ export const LandingFaqSection = () => {
         <div className="p-6 rounded-3xl bg-gradient-to-r from-cyan-600 to-teal-500 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg shadow-cyan-600/20">
           <div className="space-y-1 text-center sm:text-right">
             <h3 className="font-bold text-base">سوالی دارید که در لیست بالا نبود؟</h3>
-            <p className="text-xs text-cyan-100">کارشناسان پذیرش مدرسه شنای ایران آماده پاسخگویی و راهنمایی شما هستند.</p>
+            <p className="text-xs text-cyan-100">کارشناسان و کادر مربیان مدرسه شنای ایران آماده پاسخگویی و راهنمایی شما هستند.</p>
           </div>
-          <a
-            href="tel:02833650000"
+          <Link
+            to="/contact/"
             className="px-6 py-2.5 rounded-xl bg-white text-slate-950 font-black text-xs inline-flex items-center gap-2 hover:bg-cyan-50 transition-colors shrink-0 shadow-sm"
           >
             <PhoneCall className="w-4 h-4 text-cyan-600" />
-            <span>تماس با پذیرش: ۰۲۸-۳۳۶۵۰۰۰۰</span>
-          </a>
+            <span>مشاهده اطلاعات تماس و استخرها</span>
+          </Link>
         </div>
       </div>
     </section>

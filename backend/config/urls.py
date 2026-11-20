@@ -4,7 +4,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.http import HttpResponseNotFound, JsonResponse
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from apps.content.views import DynamicSitemapXmlView, DynamicRobotsTxtView
+from apps.content.views import DynamicSitemapXmlView, DynamicRobotsTxtView, blog_article_resolver_view
 
 
 def health_ping_view(request):
@@ -31,6 +31,7 @@ urlpatterns = [
     path('robots.txt', DynamicRobotsTxtView.as_view(), name='dynamic_robots'),
     path('api/sitemap.xml', DynamicSitemapXmlView.as_view(), name='api_dynamic_sitemap'),
     path('api/robots.txt', DynamicRobotsTxtView.as_view(), name='api_dynamic_robots'),
+    path('api/content/validate-article/<str:slug>/', blog_article_resolver_view, name='validate_article_slug'),
 
     # Block direct public access to sensitive swimmer documents
     path('media/swimmers/documents/<path:subpath>', block_sensitive_documents_direct_access),

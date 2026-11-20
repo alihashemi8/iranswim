@@ -1642,15 +1642,13 @@ export const HomePage = () => {
                   <ArrowLeft className="w-5 h-5" />
                 </Link>
 
-                <a
-                  href="tel:02833650000"
-                  onClick={() => trackPhoneCallClick('02833650000', 'landing_cta')}
+                <Link
+                  to="/contact/"
                   className="px-7 sm:px-9 py-3.5 sm:py-4 bg-white hover:bg-cyan-50 text-slate-950 font-black rounded-2xl border-2 border-cyan-200/90 transition-all text-base sm:text-lg inline-flex items-center gap-2.5 shadow-md active:scale-95"
                 >
                   <PhoneCall className="w-5 h-5 text-cyan-600" />
-                  <span>تماس با پذیرش:</span>
-                  <span dir="ltr" className="inline-block tracking-wider">۰۲۸-۳۳۶۵۰۰۰۰</span>
-                </a>
+                  <span>اطلاعات تماس و استخرها</span>
+                </Link>
               </div>
             </div>
           </div>

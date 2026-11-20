@@ -105,15 +105,11 @@ export const ContactPage = () => {
             <div className="w-10 h-10 rounded-xl bg-cyan-600 text-white flex items-center justify-center">
               <PhoneCall className="w-5 h-5" />
             </div>
-            <h2 className="font-black text-sm text-slate-900 dark:text-white">شماره تماس پذیرش مرکزی</h2>
-            <a
-              href="tel:02833650000"
-              className="text-lg font-mono font-black text-cyan-700 dark:text-cyan-300 block hover:underline"
-              dir="ltr"
-            >
-              ۰۲۸-۳۳۶۵۰۰۰۰
-            </a>
-            <p className="text-[11px] text-slate-500">پاسخگویی سریع برای مشاوره و ثبت‌نام دوره‌ها</p>
+            <h2 className="font-black text-sm text-slate-900 dark:text-white">پذیرش و هماهنگی سانس‌ها</h2>
+            <p className="text-sm font-bold text-cyan-800 dark:text-cyan-200">
+              تماس مستقیم با استخرهای محل برگزاری
+            </p>
+            <p className="text-[11px] text-slate-500">شماره تماس اختصاصی هر مجموعه در جدول زیر درج گردیده است</p>
           </div>
 
           <div className="space-y-2 p-4 bg-teal-50/70 dark:bg-teal-950/40 rounded-2xl border border-teal-200/60 dark:border-teal-800/60">

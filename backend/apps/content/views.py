@@ -56,7 +56,6 @@ class NewsPostListView(generics.ListCreateAPIView):
 
 
 class NewsPostDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = NewsPost.objects.all()
     serializer_class = NewsPostSerializer
     parser_classes = [MultiPartParser, FormParser, JSONParser]
     lookup_field = 'slug'
@@ -65,6 +64,12 @@ class NewsPostDetailView(generics.RetrieveUpdateDestroyAPIView):
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
         return [IsAdminUserRole()]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user and (getattr(user, 'role', '') in ['ADMIN', 'SUPERVISOR'] or getattr(user, 'is_superuser', False)):
+            return NewsPost.objects.all()
+        return NewsPost.objects.filter(status=NewsPost.Status.PUBLISHED, publish_at__lte=timezone.now())
 
     def perform_update(self, serializer):
         post = serializer.save()
@@ -745,7 +750,7 @@ class TopSwimmerDetailView(generics.RetrieveUpdateDestroyAPIView):
         return [IsAdminUserRole()]
 
 
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseNotFound
 
 
 class TopSwimmerReorderView(APIView):
@@ -803,8 +808,9 @@ class DynamicSitemapXmlView(APIView):
                 f"  </url>"
             )
 
-        # Dynamic news & articles
-        for post in NewsPost.objects.filter(status=NewsPost.Status.PUBLISHED):
+        # Dynamic news & articles (published and effective up to now)
+        now = timezone.now()
+        for post in NewsPost.objects.filter(status=NewsPost.Status.PUBLISHED, publish_at__lte=now):
             loc = f"{base_url}/blog/{post.slug}"
             lastmod = post.updated_at.strftime("%Y-%m-%dT%H:%M:%S+03:30") if post.updated_at else now_str
             xml_entries.append(
@@ -823,6 +829,27 @@ class DynamicSitemapXmlView(APIView):
             + "\n</urlset>"
         )
         return HttpResponse(xml_content, content_type="application/xml; charset=utf-8")
+
+
+def blog_article_resolver_view(request, slug):
+    """
+    اعتبارسنجی اسلاگ مقاله برای وب‌سرور Nginx:
+    در صورت وجود و انتشار قطعی مقاله تا لحظه فعلی، پاسخ ۲۰۰ با هدر X-Accel-Redirect به Nginx جهت سرو index.html ارسال می‌شود.
+    در صورت عدم وجود مقاله، وضعیت پیش‌نویس (DRAFT)، بایگانی (ARCHIVED) یا انتشار آینده، خطای واقعی ۴۰۴ صادر می‌شود تا از رخداد Soft 404 جلوگیری گردد.
+    """
+    clean_slug = slug.strip().rstrip('/')
+    now = timezone.now()
+    exists = NewsPost.objects.filter(
+        slug=clean_slug,
+        status=NewsPost.Status.PUBLISHED,
+        publish_at__lte=now
+    ).exists()
+    if not exists:
+        return HttpResponseNotFound("Article Not Found")
+
+    response = HttpResponse(content_type="text/html; charset=utf-8")
+    response['X-Accel-Redirect'] = '/internal_spa/index.html'
+    return response
 
 
 class DynamicRobotsTxtView(APIView):
