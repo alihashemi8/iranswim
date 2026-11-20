@@ -600,12 +600,13 @@ export const SwimmerCourseEnrollPage = () => {
         </div>
 
         {/* 9. SUBMIT & CANCEL BUTTONS */}
-        <div className="flex items-center justify-end gap-3 pt-2">
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2.5 pt-2">
           <Button
             type="button"
             variant="outline"
             disabled={submitting}
             onClick={() => navigate('/swimmer/courses?tab=register')}
+            className="w-full sm:w-auto"
           >
             انصراف و بازگشت
           </Button>
@@ -615,7 +616,7 @@ export const SwimmerCourseEnrollPage = () => {
             variant="primary"
             disabled={submitting || Boolean(existingEnrollment) || Boolean(pendingRequest)}
             loading={submitting}
-            className="px-6"
+            className="w-full sm:w-auto px-6"
           >
             <CheckCircle2 className="w-4 h-4 ml-1.5" />
             <span>تأیید و ارسال درخواست پیش‌ثبت‌نام</span>

@@ -655,38 +655,70 @@ export const SwimmerFinancePage = () => {
         </h3>
 
         {payments.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold text-sm">
-                  <th className="py-3 px-3">کد رهگیری</th>
-                  <th className="py-3 px-3">مبلغ پرداختی</th>
-                  <th className="py-3 px-3">روش پرداخت</th>
-                  <th className="py-3 px-3">تاریخ و ساعت</th>
-                  <th className="py-3 px-3">وضعیت</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {payments.map((p) => (
-                  <tr key={p.id} className="text-slate-700 dark:text-slate-300">
-                    <td className="py-3.5 px-3 font-mono font-bold text-sm sm:text-base">{p.tracking_number}</td>
-                    <td className="py-3.5 px-3 font-mono font-black text-emerald-600 text-sm sm:text-base">
+          <>
+            {/* Mobile Card View */}
+            <div className="block sm:hidden space-y-3">
+              {payments.map((p) => (
+                <div
+                  key={p.id}
+                  className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 space-y-2 text-xs"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-slate-800 dark:text-slate-100 text-sm">
+                      {p.method_display || p.method}
+                    </span>
+                    <span className="text-emerald-600 font-bold flex items-center gap-1 text-xs">
+                      <CheckCircle2 className="w-3.5 h-3.5" /> قطعی
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-slate-500">مبلغ:</span>
+                    <span className="font-mono font-black text-emerald-600 text-sm">
                       {formatPrice(p.amount)} تومان
-                    </td>
-                    <td className="py-3.5 px-3 text-sm font-medium">{p.method_display || p.method}</td>
-                    <td className="py-3.5 px-3 font-mono text-slate-500 text-xs sm:text-sm">
-                      {p.paid_at?.slice(0, 16).replace('T', ' ')}
-                    </td>
-                    <td className="py-3.5 px-3">
-                      <span className="text-emerald-600 font-bold flex items-center gap-1.5 text-xs sm:text-sm">
-                        <CheckCircle2 className="w-4 h-4" /> قطعی
-                      </span>
-                    </td>
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-500 font-mono text-[11px]">
+                    <span>کد رهگیری: {p.tracking_number}</span>
+                    <span>{p.paid_at?.slice(0, 16).replace('T', ' ')}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-right text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold text-sm">
+                    <th className="py-3 px-3">کد رهگیری</th>
+                    <th className="py-3 px-3">مبلغ پرداختی</th>
+                    <th className="py-3 px-3">روش پرداخت</th>
+                    <th className="py-3 px-3">تاریخ و ساعت</th>
+                    <th className="py-3 px-3">وضعیت</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {payments.map((p) => (
+                    <tr key={p.id} className="text-slate-700 dark:text-slate-300">
+                      <td className="py-3.5 px-3 font-mono font-bold text-sm sm:text-base">{p.tracking_number}</td>
+                      <td className="py-3.5 px-3 font-mono font-black text-emerald-600 text-sm sm:text-base">
+                        {formatPrice(p.amount)} تومان
+                      </td>
+                      <td className="py-3.5 px-3 text-sm font-medium">{p.method_display || p.method}</td>
+                      <td className="py-3.5 px-3 font-mono text-slate-500 text-xs sm:text-sm">
+                        {p.paid_at?.slice(0, 16).replace('T', ' ')}
+                      </td>
+                      <td className="py-3.5 px-3">
+                        <span className="text-emerald-600 font-bold flex items-center gap-1.5 text-xs sm:text-sm">
+                          <CheckCircle2 className="w-4 h-4" /> قطعی
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         ) : (
           <div className="p-8 text-center text-sm text-slate-400">
             هنوز تراکنش پرداختی برای این شناگر ثبت نشده است.
@@ -713,7 +745,7 @@ export const SwimmerFinancePage = () => {
               setUploadForm((prev) => ({ ...prev, course_id: defaultCourse }));
               setIsUploadModalOpen(true);
             }}
-            className="px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer self-start sm:self-auto shrink-0"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0"
           >
             <Upload className="w-4 h-4" />
             <span>ارسال رسید واریز جدید</span>

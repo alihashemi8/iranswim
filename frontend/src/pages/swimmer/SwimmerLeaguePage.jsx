@@ -90,7 +90,7 @@ export const SwimmerLeaguePage = () => {
         </div>
 
         {/* Swimmer Rank Pill */}
-        <div className="flex items-center gap-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2.5 rounded-2xl shadow-xs">
+        <div className="flex items-center gap-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-4 py-2.5 rounded-2xl shadow-xs w-full sm:w-auto">
           <Medal className="w-7 h-7 shrink-0" />
           <div>
             <span className="text-xs text-amber-100 font-bold block leading-tight">
@@ -158,9 +158,9 @@ export const SwimmerLeaguePage = () => {
 
           {/* League Selector */}
           {leagues.length > 0 && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
               <span className="text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 shrink-0">انتخاب فصل:</span>
-              <div className="w-56">
+              <div className="w-full sm:w-56">
                 <CustomSelect
                   value={selectedLeagueId ? String(selectedLeagueId) : ''}
                   onChange={(val) => handleLeagueChange(val)}

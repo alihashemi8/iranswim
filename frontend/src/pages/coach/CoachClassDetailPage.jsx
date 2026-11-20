@@ -132,7 +132,65 @@ export const CoachClassDetailPage = () => {
       {/* Tab 1: Swimmers List */}
       {activeTab === 'swimmers' && (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs">
-          <div className="overflow-x-auto">
+          {/* Mobile Card View (< sm) */}
+          <div className="sm:hidden space-y-3 p-3">
+            {data.swimmers && data.swimmers.length > 0 ? (
+              data.swimmers.map((sw) => (
+                <div
+                  key={sw.swimmer_id}
+                  className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-2xs space-y-3"
+                >
+                  <div className="flex items-center justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <SwimmerAvatar fullName={sw.full_name} avatar={sw.avatar} />
+                      <div className="min-w-0">
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white truncate">
+                          {sw.full_name}
+                        </h3>
+                        <SwimmerBirthLine age={sw.age} dateOfBirth={sw.date_of_birth} />
+                      </div>
+                    </div>
+                    <span className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 font-bold text-xs shrink-0 border border-emerald-200/60 dark:border-emerald-800">
+                      {sw.level_name}
+                    </span>
+                  </div>
+
+                  {/* Attendance Metric & Progress Bar */}
+                  <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-1.5">
+                    <div className="flex items-center justify-between text-xs font-semibold">
+                      <span className="text-slate-500 dark:text-slate-400">حضور در جلسات:</span>
+                      <span className="font-mono font-bold text-slate-800 dark:text-slate-200">
+                        {sw.sessions_attended} جلسه ({sw.attendance_rate}٪)
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-200 dark:bg-slate-700 h-2 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${
+                          sw.attendance_rate >= 80 ? 'bg-emerald-500' : sw.attendance_rate >= 50 ? 'bg-amber-500' : 'bg-rose-500'
+                        }`}
+                        style={{ width: `${Math.min(100, sw.attendance_rate)}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  <Link
+                    to={`/coach/progress/${sw.swimmer_id}`}
+                    className="w-full inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-600 hover:text-white text-emerald-700 dark:text-emerald-300 text-xs font-bold transition-all border border-emerald-200/80 dark:border-emerald-800"
+                  >
+                    <TrendingUp className="w-4 h-4" />
+                    <span>مشاهده پرونده مهارت شناگر</span>
+                  </Link>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-slate-400 text-sm">
+                هیچ شناگری در این کلاس ثبت‌نام نشده است.
+              </div>
+            )}
+          </div>
+
+          {/* Tablet & Desktop Table View (sm+) */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-right text-sm">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700/60 font-bold text-sm">
                 <tr>
@@ -204,7 +262,75 @@ export const CoachClassDetailPage = () => {
       {/* Tab 2: Sessions */}
       {activeTab === 'sessions' && (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-xs">
-          <div className="overflow-x-auto">
+          {/* Mobile Card View (< sm) */}
+          <div className="sm:hidden space-y-3 p-3">
+            {data.sessions && data.sessions.length > 0 ? (
+              data.sessions.map((sess) => (
+                <div
+                  key={sess.id}
+                  className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 shadow-2xs space-y-3"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+                        <Calendar className="w-4 h-4" />
+                      </span>
+                      <div>
+                        <span className="font-bold text-sm text-slate-900 dark:text-white block font-mono">
+                          {sess.session_date}
+                        </span>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 font-mono">
+                          ساعت {sess.start_time} تا {sess.end_time}
+                        </span>
+                      </div>
+                    </div>
+                    <span
+                      className={`px-2.5 py-1 rounded-lg font-bold text-xs ${
+                        sess.status === 'COMPLETED'
+                          ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300'
+                          : sess.status === 'CANCELLED'
+                          ? 'bg-rose-50 text-rose-700'
+                          : 'bg-sky-50 text-sky-700 dark:bg-sky-950/50 dark:text-sky-300'
+                      }`}
+                    >
+                      {sess.status_display}
+                    </span>
+                  </div>
+
+                  {sess.pool_location && (
+                    <div className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                      <span>{sess.pool_location}</span>
+                    </div>
+                  )}
+
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                    {sess.has_attendance ? (
+                      <span className="inline-flex items-center gap-1.5 text-emerald-600 font-bold text-xs">
+                        <CheckCircle2 className="w-4 h-4" />
+                        حضور ثبت‌شده
+                      </span>
+                    ) : (
+                      <span className="text-amber-600 font-bold text-xs">در انتظار ثبت</span>
+                    )}
+
+                    <Link
+                      to={`/coach/attendance?session_id=${sess.id}`}
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-200 text-xs font-bold transition-all"
+                    >
+                      <ClipboardCheck className="w-4 h-4" />
+                      <span>{sess.has_attendance ? 'ویرایش حضور' : 'ثبت حضور'}</span>
+                    </Link>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-slate-400 text-sm">جلسه‌ای یافت نشد.</div>
+            )}
+          </div>
+
+          {/* Tablet & Desktop Table View (sm+) */}
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-right text-sm">
               <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-400 border-b border-slate-200 dark:border-slate-700/60 font-bold text-sm">
                 <tr>

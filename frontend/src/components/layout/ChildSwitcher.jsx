@@ -26,20 +26,20 @@ export const ChildSwitcher = () => {
       <button
         type="button"
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="flex items-center gap-2 px-2.5 sm:px-3.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-100 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-all cursor-pointer text-sm sm:text-base font-bold shadow-2xs"
+        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-100 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-all cursor-pointer text-xs sm:text-base font-bold shadow-2xs"
         title="انتخاب و جابه‌جایی بین پرونده فرزندان"
       >
         <div className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs shrink-0 font-bold shadow-2xs">
           {activeSwimmer?.first_name ? activeSwimmer.first_name.charAt(0) : <User className="w-3.5 h-3.5" />}
         </div>
-        <span className="truncate max-w-[110px] sm:max-w-[160px] font-bold">
+        <span className="truncate max-w-[85px] sm:max-w-[160px] font-bold">
           {currentName}
         </span>
-        <ChevronDown className={`w-4 h-4 text-blue-600 dark:text-blue-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
+        <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />
       </button>
 
       {dropdownOpen && (
-        <div className="absolute left-0 sm:left-auto right-auto sm:right-0 mt-2 w-72 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
+        <div className="absolute right-0 mt-2 w-72 max-w-[calc(100vw-24px)] bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-2 z-50 animate-in fade-in slide-in-from-top-2 duration-150">
           <div className="px-3.5 py-2 border-b border-slate-100 dark:border-slate-800">
             <div className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
               <Users className="w-4 h-4 text-blue-600" />

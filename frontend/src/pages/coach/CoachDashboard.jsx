@@ -119,17 +119,17 @@ export const CoachDashboard = () => {
             </p>
           </div>
 
-          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 w-full lg:w-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:flex items-center gap-2.5 w-full lg:w-auto">
             <Link
               to="/coach/attendance"
-              className="flex-1 lg:flex-initial justify-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-emerald-800 text-sm sm:text-base font-bold shadow-md hover:bg-emerald-50 transition-all active:scale-95 whitespace-nowrap"
+              className="flex-1 lg:flex-initial justify-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-emerald-800 text-sm sm:text-base font-bold shadow-md hover:bg-emerald-50 transition-all active:scale-95 whitespace-nowrap min-h-[44px]"
             >
               <ClipboardCheck className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
               <span>ثبت حضور و غیاب</span>
             </Link>
             <Link
               to="/coach/workouts"
-              className="flex-1 lg:flex-initial justify-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-700/60 hover:bg-emerald-700 text-white text-sm sm:text-base font-semibold backdrop-blur-sm border border-emerald-400/30 transition-all active:scale-95 whitespace-nowrap"
+              className="flex-1 lg:flex-initial justify-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-700/60 hover:bg-emerald-700 text-white text-sm sm:text-base font-semibold backdrop-blur-sm border border-emerald-400/30 transition-all active:scale-95 whitespace-nowrap min-h-[44px]"
             >
               <PlusCircle className="w-4.5 h-4.5 shrink-0" />
               <span>طرح تمرین امروز</span>
@@ -404,30 +404,34 @@ export const CoachDashboard = () => {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2.5 self-end sm:self-auto">
-                  {s.attendance_recorded ? (
-                    <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-lg font-semibold">
-                      <CheckCircle2 className="w-4 h-4" />
-                      حضور ثبت‌شده
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-xs sm:text-sm text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 rounded-lg font-semibold">
-                      در انتظار ثبت
-                    </span>
-                  )}
-                  <Link
-                    to={`/coach/attendance?session_id=${s.id}`}
-                    className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-bold transition-all"
-                  >
-                    حضور و غیاب
-                  </Link>
-                  <Link
-                    to={`/coach/classes/${s.group_id}`}
-                    className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
-                    title="جزئیات کلاس"
-                  >
-                    <ChevronLeft className="w-4.5 h-4.5" />
-                  </Link>
+                <div className="flex items-center justify-between sm:justify-end gap-2.5 w-full sm:w-auto pt-2.5 sm:pt-0 border-t sm:border-t-0 border-slate-100 dark:border-slate-800">
+                  <div className="flex items-center gap-2">
+                    {s.attendance_recorded ? (
+                      <span className="inline-flex items-center gap-1.5 text-xs sm:text-sm text-emerald-600 bg-emerald-50 dark:bg-emerald-950/40 px-3 py-1.5 rounded-lg font-semibold">
+                        <CheckCircle2 className="w-4 h-4 shrink-0" />
+                        حضور ثبت‌شده
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-xs sm:text-sm text-amber-600 bg-amber-50 dark:bg-amber-950/40 px-3 py-1.5 rounded-lg font-semibold">
+                        در انتظار ثبت
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Link
+                      to={`/coach/attendance?session_id=${s.id}`}
+                      className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-bold transition-all min-h-[38px] flex items-center justify-center"
+                    >
+                      حضور و غیاب
+                    </Link>
+                    <Link
+                      to={`/coach/classes/${s.group_id}`}
+                      className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors min-h-[38px] min-w-[38px] flex items-center justify-center"
+                      title="جزئیات کلاس"
+                    >
+                      <ChevronLeft className="w-4.5 h-4.5" />
+                    </Link>
+                  </div>
                 </div>
               </div>
             ))}

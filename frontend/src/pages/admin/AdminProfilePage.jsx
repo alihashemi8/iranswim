@@ -1263,8 +1263,10 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 {filteredUsers.length === 0 ? (
                   <EmptyState message="کاربری با معیارهای جستجو یافت نشد." />
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-right text-sm min-w-[720px]">
+                  <>
+                    {/* Desktop & Tablet Table View */}
+                    <div className="hidden lg:block overflow-x-auto">
+                      <table className="w-full text-right text-sm min-w-[720px]">
                       <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800 font-bold text-xs sm:text-sm">
                         <tr>
                           <th className="px-4 py-3.5">کاربر و نام</th>
@@ -1427,7 +1429,152 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                       </tbody>
                     </table>
                   </div>
-                )}
+
+                  {/* Mobile & Tablet Cards View */}
+                  <div className="lg:hidden divide-y divide-slate-100 dark:divide-slate-800">
+                    {paginatedUsers.map((u) => {
+                      const isCurrent = u.id === user?.id;
+
+                      return (
+                        <div key={u.id} className="p-4 space-y-3 text-xs">
+                          {/* Top: Avatar, Name, Role & Status */}
+                          <div className="flex items-start justify-between gap-2.5">
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <div className="w-10 h-10 rounded-xl bg-sky-100 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 font-bold flex items-center justify-center text-sm shrink-0">
+                                {u.first_name ? u.first_name.charAt(0) : 'U'}
+                              </div>
+                              <div className="min-w-0">
+                                <div className="flex items-center gap-1.5 flex-wrap">
+                                  <span className="font-bold text-slate-800 dark:text-slate-100 text-sm truncate">
+                                    {u.full_name || 'بدون نام'}
+                                  </span>
+                                  {isCurrent && (
+                                    <span className="text-[10px] bg-sky-100 text-sky-700 dark:bg-sky-900/50 dark:text-sky-300 px-1.5 py-0.2 rounded-md font-bold">
+                                      شما
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-slate-400 text-[11px] block mt-0.5">
+                                  ثبت‌نام: {formatPersianDate(u.created_at)}
+                                </span>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-col items-end gap-1 shrink-0">
+                              <Badge
+                                size="sm"
+                                variant={
+                                  u.role === 'ADMIN' ? 'primary' :
+                                  u.role === 'COACH' ? 'success' : 'info'
+                                }
+                              >
+                                {roleLabels[u.role] || u.role}
+                              </Badge>
+                              <span
+                                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                  u.is_active
+                                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-800/50'
+                                    : 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400 border border-rose-200/50 dark:border-rose-800/50'
+                                }`}
+                              >
+                                <span className={`w-1.5 h-1.5 rounded-full ${u.is_active ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+                                <span>{u.is_active ? 'فعال' : 'معلق'}</span>
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Contact info */}
+                          <div className="flex items-center justify-between text-slate-600 dark:text-slate-300 pt-1 border-t border-slate-100/60 dark:border-slate-800/60">
+                            <div className="flex items-center gap-1.5 font-mono">
+                              <Phone className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                              <a href={`tel:${u.phone}`} className="text-sky-600 dark:text-sky-400 font-semibold hover:underline">
+                                {u.phone}
+                              </a>
+                              <button
+                                type="button"
+                                onClick={() => handleCopyPhone(u.phone)}
+                                className="p-1 rounded text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+                                title="کپی شماره تماس"
+                              >
+                                {copiedPhone === u.phone ? (
+                                  <Check className="w-3.5 h-3.5 text-emerald-500" />
+                                ) : (
+                                  <Copy className="w-3.5 h-3.5" />
+                                )}
+                              </button>
+                            </div>
+                            {u.national_id && (
+                              <span className="font-mono text-slate-500 text-[11px]">
+                                کدملی: {u.national_id}
+                              </span>
+                            )}
+                          </div>
+
+                          {/* Action Buttons Row */}
+                          <div className="grid grid-cols-4 gap-1.5 pt-1.5 border-t border-slate-100/60 dark:border-slate-800/60">
+                            {/* Edit */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenEditModal(u)}
+                              className="py-1.5 px-2 rounded-xl text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 border border-sky-200/60 dark:border-sky-800/60 font-semibold text-xs flex items-center justify-center gap-1 transition-colors cursor-pointer"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span>ویرایش</span>
+                            </button>
+
+                            {/* Reset Password */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenResetPasswordModal(u)}
+                              disabled={isCurrent}
+                              className={`py-1.5 px-2 rounded-xl font-semibold text-xs flex items-center justify-center gap-1 transition-colors ${
+                                isCurrent
+                                  ? 'text-slate-300 dark:text-slate-700 bg-slate-50 dark:bg-slate-800/30 border border-slate-200/40 cursor-not-allowed'
+                                  : 'text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-950/50 hover:bg-indigo-100 border border-indigo-200/60 dark:border-indigo-800/60 cursor-pointer'
+                              }`}
+                            >
+                              <KeyRound className="w-3.5 h-3.5" />
+                              <span>رمز</span>
+                            </button>
+
+                            {/* Suspend / Unlock */}
+                            <button
+                              type="button"
+                              onClick={() => handleToggleSuspend(u)}
+                              disabled={isCurrent || togglingUserId === u.id}
+                              className={`py-1.5 px-2 rounded-xl font-semibold text-xs flex items-center justify-center gap-1 transition-colors ${
+                                isCurrent
+                                  ? 'text-slate-300 dark:text-slate-700 bg-slate-50 dark:bg-slate-800/30 border border-slate-200/40 cursor-not-allowed'
+                                  : u.is_active
+                                    ? 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/50 hover:bg-amber-100 border border-amber-200/60 dark:border-amber-800/60 cursor-pointer'
+                                    : 'text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 hover:bg-emerald-100 border border-emerald-200/60 dark:border-emerald-800/60 cursor-pointer'
+                              }`}
+                            >
+                              {u.is_active ? <Lock className="w-3.5 h-3.5" /> : <Unlock className="w-3.5 h-3.5" />}
+                              <span>{u.is_active ? 'تعلیق' : 'فعال'}</span>
+                            </button>
+
+                            {/* Delete */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenDeleteModal(u)}
+                              disabled={isCurrent}
+                              className={`py-1.5 px-2 rounded-xl font-semibold text-xs flex items-center justify-center gap-1 transition-colors ${
+                                isCurrent
+                                  ? 'text-slate-300 dark:text-slate-700 bg-slate-50 dark:bg-slate-800/30 border border-slate-200/40 cursor-not-allowed'
+                                  : 'text-rose-700 dark:text-rose-300 bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 border border-rose-200/60 dark:border-rose-800/60 cursor-pointer'
+                              }`}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                              <span>حذف</span>
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </>
+              )}
 
                 {/* Pagination */}
                 {filteredUsers.length > pageSize && (

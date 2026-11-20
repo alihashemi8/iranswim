@@ -56,6 +56,7 @@ export const CoachSwimmersPage = () => {
   // ── حالت نمایش: کارت / جدول (با ذخیره انتخاب کاربر) ──
   const [viewMode, setViewMode] = useState(() => {
     try {
+      if (typeof window !== 'undefined' && window.innerWidth < 640) return 'cards';
       return localStorage.getItem(VIEW_PREF_KEY) === 'table' ? 'table' : 'cards';
     } catch {
       return 'cards';

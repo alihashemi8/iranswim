@@ -2,13 +2,14 @@ import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Users, Calendar, CreditCard, TrendingUp,
-  UserCheck, BookOpen, ClipboardCheck, Activity, Server, Bug, Radio
+  UserCheck, BookOpen, ClipboardCheck, Activity, Server, Bug, Radio,
+  Menu
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { CourseLogoIcon } from '../common/AquaticIcons';
 
 
-export const MobileBottomNav = () => {
+export const MobileBottomNav = ({ onMenuClick }) => {
   const { user } = useAuth();
   const location = useLocation();
 
@@ -19,14 +20,14 @@ export const MobileBottomNav = () => {
   // Swimmer Mobile Bottom Navigation (5 items)
   if (user.role === 'SWIMMER' && currentPath.startsWith('/swimmer')) {
     const isHome = currentPath === '/swimmer';
-    const isCourses = currentPath.startsWith('/swimmer/courses') || currentPath.startsWith('/swimmer/schedule');
+    const isCourses = currentPath.startsWith('/swimmer/courses') || currentPath.startsWith('/swimmer/schedule') || currentPath.startsWith('/swimmer/plans');
     const isAttendance = currentPath.startsWith('/swimmer/attendance');
     const isProgress = currentPath.startsWith('/swimmer/progress') || currentPath.startsWith('/swimmer/league');
     const isFinance = currentPath.startsWith('/swimmer/finance');
 
     const swimmerNavItems = [
       { to: '/swimmer', label: 'خانه', icon: LayoutDashboard, active: isHome, end: true },
-      { to: '/swimmer/courses', label: 'دوره‌ها و برنامه', icon: BookOpen, active: isCourses },
+      { to: '/swimmer/courses', label: 'دوره‌ها', icon: BookOpen, active: isCourses },
       { to: '/swimmer/attendance', label: 'حضور', icon: ClipboardCheck, active: isAttendance },
       { to: '/swimmer/progress', label: 'پیشرفت', icon: TrendingUp, active: isProgress },
       { to: '/swimmer/finance', label: 'مالی', icon: CreditCard, active: isFinance },
@@ -76,7 +77,7 @@ export const MobileBottomNav = () => {
     );
   }
 
-  // Admin Mobile Bottom Navigation (4 items)
+  // Admin Mobile Bottom Navigation (5 items)
   if (user.role === 'ADMIN' && currentPath.startsWith('/admin')) {
     const isHomeActive = currentPath === '/admin';
     const isSwimmersActive = currentPath.startsWith('/admin/swimmers');
@@ -85,6 +86,11 @@ export const MobileBottomNav = () => {
       currentPath.startsWith('/admin/classes') ||
       currentPath.startsWith('/admin/sessions');
     const isFinanceActive = currentPath.startsWith('/admin/finance');
+    const isOtherActive =
+      !isHomeActive &&
+      !isSwimmersActive &&
+      !isCoursesActive &&
+      !isFinanceActive;
 
     return (
       <nav
@@ -93,7 +99,7 @@ export const MobileBottomNav = () => {
         style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
         className="fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200/90 dark:border-slate-800 shadow-[0_-4px_20px_rgba(0,0,0,0.06)] md:hidden transition-colors"
       >
-        <div className="grid grid-cols-4 h-16 max-w-md mx-auto px-2 items-center">
+        <div className="grid grid-cols-5 h-16 max-w-md mx-auto px-1 items-center">
           <NavLink
             to="/admin"
             end
@@ -194,18 +200,48 @@ export const MobileBottomNav = () => {
               مالی
             </span>
           </NavLink>
+
+          <button
+            type="button"
+            onClick={onMenuClick}
+            className="flex flex-col items-center justify-center h-full py-1 px-1 transition-colors group select-none cursor-pointer"
+            aria-label="منوی سایر بخش‌های مدیریت"
+          >
+            <div
+              className={`p-1.5 rounded-xl transition-all ${
+                isOtherActive
+                  ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 scale-105'
+                  : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200'
+              }`}
+            >
+              <Menu className="w-5 h-5" />
+            </div>
+            <span
+              className={`text-xs tracking-tight leading-tight mt-0.5 truncate max-w-full ${
+                isOtherActive
+                  ? 'font-bold text-sky-600 dark:text-sky-400'
+                  : 'font-semibold text-slate-500 dark:text-slate-400'
+              }`}
+            >
+              منو
+            </span>
+          </button>
         </div>
       </nav>
     );
   }
 
   // Coach Mobile Bottom Navigation (5 high-frequency daily items)
-  if (user.role === 'COACH' && currentPath.startsWith('/coach')) {
+  if (currentPath.startsWith('/coach')) {
     const isHome = currentPath === '/coach';
     const isClasses = currentPath.startsWith('/coach/classes');
     const isSwimmers = currentPath.startsWith('/coach/swimmers');
     const isAttendance = currentPath.startsWith('/coach/attendance');
-    const isProgress = currentPath.startsWith('/coach/progress') || currentPath.startsWith('/coach/exams');
+    const isProgress =
+      currentPath.startsWith('/coach/progress') ||
+      currentPath.startsWith('/coach/exams') ||
+      currentPath.startsWith('/coach/records') ||
+      currentPath.startsWith('/coach/skills');
 
     const coachNavItems = [
       { to: '/coach', label: 'خانه', icon: LayoutDashboard, active: isHome, end: true },

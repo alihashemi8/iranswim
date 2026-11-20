@@ -7,6 +7,7 @@ import api from '../../api/client';
 import { useSwimmer } from '../../context/SwimmerContext';
 import { useToast } from '../../context/ToastContext';
 import { Badge } from '../../components/common/Badge';
+import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 
 export const SwimmerSupportPage = () => {
@@ -107,7 +108,7 @@ export const SwimmerSupportPage = () => {
         <button
           type="button"
           onClick={() => setShowNewModal(true)}
-          className="px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-2xl transition-all shadow-xs flex items-center gap-2 cursor-pointer self-end md:self-auto"
+          className="w-full sm:w-auto px-5 py-2.5 text-xs sm:text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-2xl transition-all shadow-xs flex items-center justify-center gap-2 cursor-pointer shrink-0"
         >
           <Plus className="w-4.5 h-4.5" />
           <span>ثبت درخواست جدید</span>
@@ -116,88 +117,77 @@ export const SwimmerSupportPage = () => {
 
       {/* New Ticket Modal */}
       {showNewModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150" dir="rtl">
-          <div className="w-full max-w-lg bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <div className="p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-sky-50/50 dark:bg-sky-950/30">
-              <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <MessageSquareQuote className="w-5 h-5 text-sky-600" />
-                ثبت پیام و تیکت پشتیبانی جدید
-              </h3>
+        <Modal
+          isOpen={showNewModal}
+          onClose={() => setShowNewModal(false)}
+          title="ثبت پیام و تیکت پشتیبانی جدید"
+          maxWidth="max-w-lg"
+        >
+          <form onSubmit={handleSubmitTicket} className="space-y-4 text-right" dir="rtl">
+            <div>
+              <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                موضوع درخواست <span className="text-rose-500">*</span>
+              </label>
+              <select
+                value={formData.category}
+                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500"
+              >
+                <option value="SCHEDULE">برنامه کلاس و جابه‌جایی یا غیبت موجه</option>
+                <option value="FINANCE">امور مالی، شهریه و اقساط</option>
+                <option value="REGISTRATION">ثبت‌نام و پذیرش</option>
+                <option value="DOCUMENTS">مدارک و بیمه ورزشی</option>
+                <option value="OTHER">سایر موارد و پیشنهادات</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                عنوان درخواست <span className="text-rose-500">*</span>
+              </label>
+              <input
+                type="text"
+                value={formData.subject}
+                onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                placeholder="مثلاً: درخواست جابه‌جایی سانس روز پنج‌شنبه"
+                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                شرح مشکل یا درخواست <span className="text-rose-500">*</span>
+              </label>
+              <textarea
+                rows={4}
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                placeholder="توضیحات کامل درخواست خود را بنویسید..."
+                className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500 leading-relaxed"
+                required
+              />
+            </div>
+
+            <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-slate-100 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => setShowNewModal(false)}
-                className="text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-base font-bold cursor-pointer"
+                className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 cursor-pointer"
               >
-                ✕
+                انصراف
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="px-5 py-2.5 text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl transition-all shadow-xs disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+              >
+                <Send className="w-4 h-4" />
+                <span>{submitting ? 'در حال ارسال...' : 'ارسال درخواست'}</span>
               </button>
             </div>
-
-            <form onSubmit={handleSubmitTicket} className="p-5 space-y-4">
-              <div>
-                <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  موضوع درخواست <span className="text-rose-500">*</span>
-                </label>
-                <select
-                  value={formData.category}
-                  onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500"
-                >
-                  <option value="SCHEDULE">برنامه کلاس و جابه‌جایی یا غیبت موجه</option>
-                  <option value="FINANCE">امور مالی، شهریه و اقساط</option>
-                  <option value="REGISTRATION">ثبت‌نام و پذیرش</option>
-                  <option value="DOCUMENTS">مدارک و بیمه ورزشی</option>
-                  <option value="OTHER">سایر موارد و پیشنهادات</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  عنوان درخواست <span className="text-rose-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  value={formData.subject}
-                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                  placeholder="مثلاً: درخواست جابه‌جایی سانس روز پنج‌شنبه"
-                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  شرح مشکل یا درخواست <span className="text-rose-500">*</span>
-                </label>
-                <textarea
-                  rows={4}
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="توضیحات کامل درخواست خود را بنویسید..."
-                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-sky-500 leading-relaxed"
-                  required
-                />
-              </div>
-
-              <div className="pt-2 flex items-center justify-end gap-2.5 border-t border-slate-100 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setShowNewModal(false)}
-                  className="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-400 cursor-pointer"
-                >
-                  انصراف
-                </button>
-                <button
-                  type="submit"
-                  disabled={submitting}
-                  className="px-5 py-2.5 text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-xl transition-all shadow-xs disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
-                >
-                  <Send className="w-4 h-4" />
-                  <span>{submitting ? 'در حال ارسال...' : 'ارسال درخواست'}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
+          </form>
+        </Modal>
       )}
 
       {/* Tickets List */}

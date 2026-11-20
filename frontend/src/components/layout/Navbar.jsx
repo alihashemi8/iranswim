@@ -120,7 +120,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             isFullWidth
               ? 'w-full px-3 sm:px-6'
               : 'max-w-7xl mx-auto px-3 sm:px-4 lg:px-8'
-          } h-[74px] sm:h-[68px] lg:h-[72px] flex items-center justify-between gap-2 md:gap-2.5 lg:gap-4 flex-nowrap`}
+          } h-[64px] sm:h-[68px] lg:h-[72px] flex items-center justify-between gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-4 flex-nowrap`}
         >
           {/* Brand & Main Navigation (Right side in RTL) */}
           <div className="flex items-center gap-1.5 md:gap-2 lg:gap-4 xl:gap-8 shrink-0 flex-nowrap min-w-0">
@@ -152,20 +152,20 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             {/* Brand Logo - 1 single line on tablet & mobile */}
             <Link
               to="/"
-              className="flex items-center gap-2 sm:gap-2.5 lg:gap-3 text-[#083B5C] dark:text-white hover:opacity-95 transition-opacity shrink-0 select-none py-1"
+              className="flex items-center gap-1.5 sm:gap-2.5 lg:gap-3 text-[#083B5C] dark:text-white hover:opacity-95 transition-opacity shrink-0 select-none py-1"
             >
               <picture>
                 <source srcSet="/images/logo.webp" type="image/webp" />
                 <img
                   src="/images/logo.webp"
                   alt="لوگوی مدرسه شنای ایران"
-                  className="w-[54px] h-[54px] sm:w-14 sm:h-14 lg:w-[62px] lg:h-[62px] object-contain shrink-0 drop-shadow-sm select-none transition-transform hover:scale-105 duration-200"
+                  className="w-10 h-10 sm:w-14 sm:h-14 lg:w-[62px] lg:h-[62px] object-contain shrink-0 drop-shadow-sm select-none transition-transform hover:scale-105 duration-200"
                   loading="eager"
                   fetchPriority="high"
                 />
               </picture>
               <div className="flex flex-col xl:flex-col shrink-0 text-right">
-                <span className="font-black sm:font-extrabold text-[14.5px] sm:text-sm md:text-[13px] lg:text-base text-[#083B5C] dark:text-white tracking-tight leading-tight whitespace-nowrap">
+                <span className={`${isFullWidth ? 'hidden sm:inline' : 'inline'} font-black sm:font-extrabold text-[14.5px] sm:text-sm md:text-[13px] lg:text-base text-[#083B5C] dark:text-white tracking-tight leading-tight whitespace-nowrap`}>
                   مدرسه شنای ایران
                 </span>
 

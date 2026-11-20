@@ -221,11 +221,11 @@ export const CoachExamsPage = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-4 text-sm">
           <div>
-            <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">انتخاب شناگر:</label>
+            <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5 text-xs sm:text-sm">انتخاب شناگر:</label>
             <select
               value={selectedSwimmerId}
               onChange={(e) => setSelectedSwimmerId(e.target.value)}
-              className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm font-medium"
+              className="w-full min-h-[44px] rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/25 focus:border-purple-500"
             >
               {swimmers.map((sw) => (
                 <option key={sw.id} value={sw.id}>
@@ -237,11 +237,11 @@ export const CoachExamsPage = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">سطح فعلی:</label>
+              <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5 text-xs sm:text-sm">سطح فعلی:</label>
               <select
                 value={currentLevelId}
                 onChange={(e) => setCurrentLevelId(e.target.value)}
-                className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm font-medium"
+                className="w-full min-h-[44px] rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/25 focus:border-purple-500"
               >
                 {levels.map((lvl) => (
                   <option key={lvl.id} value={lvl.id}>
@@ -252,11 +252,11 @@ export const CoachExamsPage = () => {
             </div>
 
             <div>
-              <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">سطح پیشنهادی جدید:</label>
+              <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5 text-xs sm:text-sm">سطح پیشنهادی جدید:</label>
               <select
                 value={proposedLevelId}
                 onChange={(e) => setProposedLevelId(e.target.value)}
-                className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm font-medium"
+                className="w-full min-h-[44px] rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-xs sm:text-sm font-medium focus:outline-none focus:ring-2 focus:ring-purple-500/25 focus:border-purple-500"
               >
                 {levels.map((lvl) => (
                   <option key={lvl.id} value={lvl.id}>
@@ -268,13 +268,13 @@ export const CoachExamsPage = () => {
           </div>
 
           <div>
-            <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">شرح عملکرد و شواهد قبولی در آزمون:</label>
+            <label className="block text-slate-700 dark:text-slate-300 font-bold mb-1.5 text-xs sm:text-sm">شرح عملکرد و شواهد قبولی در آزمون:</label>
             <textarea
               rows="4"
               placeholder="ذکر مهارت‌های کسب‌شده، رکوردهای زمانی یا تسلط بر تکنیک‌های لازم..."
               value={coachNotes}
               onChange={(e) => setCoachNotes(e.target.value)}
-              className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm leading-relaxed"
+              className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 text-slate-800 dark:text-slate-200 text-xs sm:text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-purple-500/25 focus:border-purple-500"
             />
           </div>
 

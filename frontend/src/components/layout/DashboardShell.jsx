@@ -92,7 +92,7 @@ export const DashboardShell = () => {
       </div>
 
       {/* Mobile Bottom Navigation Bar */}
-      <MobileBottomNav />
+      <MobileBottomNav onMenuClick={() => setMobileMenuOpen(true)} />
     </div>
   );
 };

@@ -134,11 +134,11 @@ export const SwimmerPlansPage = () => {
 
       {/* 2. CONTROLS BAR: FILTER PILLS & REFRESH */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl w-fit">
+        <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl w-full sm:w-fit overflow-x-auto no-scrollbar">
           <button
             type="button"
             onClick={() => setPlanFilter('ALL')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer shrink-0 ${
               planFilter === 'ALL'
                 ? 'bg-white dark:bg-slate-900 text-teal-700 dark:text-teal-300 shadow-2xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -149,7 +149,7 @@ export const SwimmerPlansPage = () => {
           <button
             type="button"
             onClick={() => setPlanFilter('TRAINING')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
               planFilter === 'TRAINING'
                 ? 'bg-blue-600 text-white shadow-2xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -161,7 +161,7 @@ export const SwimmerPlansPage = () => {
           <button
             type="button"
             onClick={() => setPlanFilter('DIET')}
-            className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+            className={`px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer flex items-center gap-1.5 shrink-0 ${
               planFilter === 'DIET'
                 ? 'bg-emerald-600 text-white shadow-2xs'
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -176,7 +176,7 @@ export const SwimmerPlansPage = () => {
           type="button"
           onClick={() => loadPlans(true)}
           disabled={refreshing}
-          className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-teal-600 bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-xl transition-all cursor-pointer self-end sm:self-center"
+          className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-teal-600 bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-xl transition-all cursor-pointer w-full sm:w-auto"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-teal-600' : ''}`} />
           <span>به‌روزرسانی</span>

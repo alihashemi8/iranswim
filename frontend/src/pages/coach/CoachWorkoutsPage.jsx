@@ -469,38 +469,38 @@ export const CoachWorkoutsPage = () => {
 
                 {/* Card Action Buttons (Send, Word, PDF, Preview) */}
                 <div className="pt-3.5 mt-3.5 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-2.5">
-                  <div className="flex items-center gap-2 flex-wrap">
+                  <div className="grid grid-cols-3 sm:flex items-center gap-2">
                     {/* View Details Modal */}
                     <button
                       type="button"
                       onClick={() => setPreviewPlan(w)}
-                      className="px-3 sm:px-3.5 py-2 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                      className="px-2 sm:px-3.5 py-2 min-h-[40px] rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                       title="مشاهده جزئیات کامل برنامه"
                     >
-                      <Eye className="w-4 h-4 text-blue-600" />
-                      <span>مشاهده کامل</span>
+                      <Eye className="w-4 h-4 text-blue-600 shrink-0" />
+                      <span className="truncate">مشاهده</span>
                     </button>
 
                     {/* Word Document (.doc) */}
                     <button
                       type="button"
                       onClick={() => exportPlanToWord(w)}
-                      className="px-3 sm:px-3.5 py-2 rounded-xl bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                      className="px-2 sm:px-3.5 py-2 min-h-[40px] rounded-xl bg-blue-50 dark:bg-blue-950/50 hover:bg-blue-100 text-blue-700 dark:text-blue-300 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                       title="دانلود فایل Word (.doc)"
                     >
-                      <Download className="w-4 h-4" />
-                      <span>فایل Word</span>
+                      <Download className="w-4 h-4 shrink-0" />
+                      <span className="truncate">فایل Word</span>
                     </button>
 
                     {/* PDF Print */}
                     <button
                       type="button"
                       onClick={() => printPlanToPdf(w)}
-                      className="px-3 sm:px-3.5 py-2 rounded-xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 text-rose-700 dark:text-rose-300 text-xs sm:text-sm font-bold flex items-center gap-1.5 transition-colors cursor-pointer"
+                      className="px-2 sm:px-3.5 py-2 min-h-[40px] rounded-xl bg-rose-50 dark:bg-rose-950/50 hover:bg-rose-100 text-rose-700 dark:text-rose-300 text-xs sm:text-sm font-bold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
                       title="چاپ یا ذخیره نسخه PDF"
                     >
-                      <Printer className="w-4 h-4" />
-                      <span>نسخه PDF</span>
+                      <Printer className="w-4 h-4 shrink-0" />
+                      <span className="truncate">نسخه PDF</span>
                     </button>
                   </div>
 
@@ -511,7 +511,7 @@ export const CoachWorkoutsPage = () => {
                     size="sm"
                     loading={sendingId === w.id}
                     onClick={() => handleSendPlan(w)}
-                    className={`gap-1.5 text-xs sm:text-sm font-bold rounded-xl px-3.5 py-2 cursor-pointer ${
+                    className={`gap-1.5 text-xs sm:text-sm font-bold rounded-xl px-3.5 py-2 min-h-[40px] w-full sm:w-auto justify-center cursor-pointer ${
                       w.sent_at
                         ? 'text-teal-700 dark:text-teal-300 border-teal-200 hover:bg-teal-50'
                         : isDiet

@@ -199,26 +199,26 @@ export const SwimmerDashboardPage = () => {
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 relative z-10 self-stretch sm:self-auto">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2.5 sm:gap-3 relative z-10 w-full sm:w-auto">
           <Link
             to="/swimmer/courses"
-            className="flex-1 sm:flex-none px-5 py-3 bg-white text-blue-700 hover:bg-blue-50 rounded-2xl text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
+            className="col-span-2 sm:col-span-1 px-4 sm:px-5 py-3 bg-white text-blue-700 hover:bg-blue-50 rounded-2xl text-sm font-bold transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer"
           >
             <BookOpen className="w-4.5 h-4.5 text-blue-600" />
             <span>دوره‌های آموزشی و برنامه</span>
           </Link>
           <Link
             to="/swimmer/attendance"
-            className="flex-1 sm:flex-none px-5 py-3 bg-white/15 hover:bg-white/25 text-white backdrop-blur-md rounded-2xl text-sm font-bold transition-all border border-white/25 flex items-center justify-center gap-2 cursor-pointer"
+            className="col-span-1 px-3.5 sm:px-5 py-3 bg-white/15 hover:bg-white/25 text-white backdrop-blur-md rounded-2xl text-xs sm:text-sm font-bold transition-all border border-white/25 flex items-center justify-center gap-2 cursor-pointer text-center"
           >
-            <ClipboardCheck className="w-4.5 h-4.5 text-cyan-100" />
+            <ClipboardCheck className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-cyan-100" />
             <span>حضور و غیاب</span>
           </Link>
           <Link
             to="/swimmer/documents"
-            className="flex-1 sm:flex-none px-5 py-3 bg-white/15 hover:bg-white/25 text-white backdrop-blur-md rounded-2xl text-sm font-bold transition-all border border-white/25 flex items-center justify-center gap-2 cursor-pointer"
+            className="col-span-1 px-3.5 sm:px-5 py-3 bg-white/15 hover:bg-white/25 text-white backdrop-blur-md rounded-2xl text-xs sm:text-sm font-bold transition-all border border-white/25 flex items-center justify-center gap-2 cursor-pointer text-center"
           >
-            <FileText className="w-4.5 h-4.5 text-cyan-100" />
+            <FileText className="w-4 h-4 sm:w-4.5 sm:h-4.5 text-cyan-100" />
             <span>پرونده و مدارک</span>
           </Link>
         </div>
@@ -365,11 +365,11 @@ export const SwimmerDashboardPage = () => {
         </div>
       ) : (
         <div className="bg-gradient-to-l from-sky-500/10 via-cyan-500/5 to-transparent dark:from-sky-950/30 dark:to-transparent rounded-3xl p-5 sm:p-6 border border-sky-200/80 dark:border-sky-900/60 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-5 transition-all">
-          <div className="flex items-start gap-4">
+          <div className="flex items-start gap-3.5 sm:gap-4 min-w-0 w-full">
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-sky-600 to-cyan-500 text-white flex items-center justify-center shadow-md shadow-sky-500/20 shrink-0">
               <BookOpen className="w-6 h-6" />
             </div>
-            <div className="space-y-1.5 min-w-0">
+            <div className="space-y-1.5 min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-xs font-bold text-sky-800 dark:text-sky-200 bg-sky-100 dark:bg-sky-950/80 px-2.5 py-0.5 rounded-lg border border-sky-200 dark:border-sky-800">
                   دوره آموزشی فعال شما
@@ -379,7 +379,7 @@ export const SwimmerDashboardPage = () => {
                 </Badge>
               </div>
 
-              <h2 className="text-lg sm:text-xl font-black text-slate-900 dark:text-white truncate">
+              <h2 className="text-base sm:text-xl font-black text-slate-900 dark:text-white truncate">
                 {activeEnrollment.course_name}
               </h2>
 
@@ -403,7 +403,7 @@ export const SwimmerDashboardPage = () => {
                 {activeEnrollment.course_days && (
                   <span className="flex items-center gap-1.5">
                     <Clock className="w-4 h-4 text-slate-400" />
-                    <span>{activeEnrollment.course_days} ({activeEnrollment.course_time || ''})</span>
+                    <span>{activeEnrollment.course_days}{activeEnrollment.course_time ? ` (${activeEnrollment.course_time})` : ''}</span>
                   </span>
                 )}
               </div>
@@ -668,21 +668,21 @@ export const SwimmerDashboardPage = () => {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-2">
             <Link
               to="/swimmer/league"
-              className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 hover:bg-amber-50/60 dark:hover:bg-amber-950/30 border border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-800 transition-colors flex items-center gap-2.5 text-sm font-bold text-slate-800 dark:text-slate-200"
+              className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 hover:bg-amber-50/60 dark:hover:bg-amber-950/30 border border-slate-200 dark:border-slate-700 hover:border-amber-300 dark:hover:border-amber-800 transition-colors flex items-center gap-2.5 text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200"
             >
               <Trophy className="w-4.5 h-4.5 text-amber-500 shrink-0" />
               <span>جدول لیگ و رتبه</span>
             </Link>
             <Link
               to="/swimmer/attendance"
-              className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 hover:bg-teal-50/60 dark:hover:bg-teal-950/30 border border-slate-200 dark:border-slate-700 hover:border-teal-300 dark:hover:border-teal-800 transition-colors flex items-center gap-2.5 text-sm font-bold text-slate-800 dark:text-slate-200"
+              className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 hover:bg-teal-50/60 dark:hover:bg-teal-950/30 border border-slate-200 dark:border-slate-700 hover:border-teal-300 dark:hover:border-teal-800 transition-colors flex items-center gap-2.5 text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200"
             >
               <CheckCircle2 className="w-4.5 h-4.5 text-teal-500 shrink-0" />
               <span>دفترچه حضور و غیاب</span>
             </Link>
             <Link
               to="/swimmer/support"
-              className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-800 transition-colors flex items-center gap-2.5 text-sm font-bold text-slate-800 dark:text-slate-200"
+              className="col-span-2 sm:col-span-1 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 hover:bg-blue-50/60 dark:hover:bg-blue-950/30 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-800 transition-colors flex items-center justify-center sm:justify-start gap-2.5 text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200"
             >
               <HelpCircle className="w-4.5 h-4.5 text-blue-500 shrink-0" />
               <span>ارتباط و پشتیبانی</span>

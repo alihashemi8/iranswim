@@ -90,7 +90,7 @@ export const SwimmerDocumentsPage = () => {
 
         <Link
           to="/swimmer/profile"
-          className="px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-2xl transition-colors shadow-2xs flex items-center gap-2 cursor-pointer self-end md:self-auto"
+          className="w-full sm:w-auto px-4 py-2.5 text-xs sm:text-sm font-bold text-white bg-sky-600 hover:bg-sky-700 rounded-2xl transition-colors shadow-2xs flex items-center justify-center gap-2 cursor-pointer shrink-0"
         >
           <Edit3 className="w-4.5 h-4.5" />
           <span>ویرایش مشخصات پرونده</span>
@@ -340,7 +340,7 @@ export const SwimmerDocumentsPage = () => {
 
         <Link
           to="/swimmer/finance"
-          className="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0 self-start sm:self-auto"
+          className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs flex items-center justify-center gap-1.5 transition-all shadow-xs cursor-pointer shrink-0"
         >
           <Upload className="w-4 h-4" />
           <span>مشاهده و بارگذاری رسیدها در بخش مالی</span>

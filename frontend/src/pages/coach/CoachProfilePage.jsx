@@ -613,7 +613,7 @@ export const CoachProfilePage = () => {
 
       {/* Tab 3: Payroll */}
       {activeTab === 'PAYROLL' && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs space-y-4">
           <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-slate-800">
             <CreditCard className="w-5 h-5 text-emerald-600" />
             فیش‌های حقوقی و تاریخچه واریزها
@@ -622,45 +622,93 @@ export const CoachProfilePage = () => {
           {payrolls.length === 0 ? (
             <p className="text-slate-400 text-sm sm:text-base text-center py-8">فیش حقوقی صادر نشده است.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs sm:text-sm">
-                <thead className="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold">
-                  <tr>
-                    <th className="py-3 px-3.5">دوره</th>
-                    <th className="py-3 px-3.5">ساعات تدریس</th>
-                    <th className="py-3 px-3.5">جلسات</th>
-                    <th className="py-3 px-3.5">خالص پرداختی</th>
-                    <th className="py-3 px-3.5">واریزشده</th>
-                    <th className="py-3 px-3.5">مانده</th>
-                    <th className="py-3 px-3.5">وضعیت تسویه</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {payrolls.map((p) => (
-                    <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
-                      <td className="py-3 px-3.5 font-bold text-slate-900 dark:text-white text-sm sm:text-base">{p.period_label}</td>
-                      <td className="py-3 px-3.5 font-mono text-sm sm:text-base">{p.teaching_hours} ساعت</td>
-                      <td className="py-3 px-3.5 font-mono text-sm sm:text-base">{p.completed_sessions_count} جلسه</td>
-                      <td className="py-3 px-3.5 font-mono font-bold text-slate-900 dark:text-white text-sm sm:text-base">{formatPrice(p.net_payable_amount)} ت</td>
-                      <td className="py-3 px-3.5 font-mono text-emerald-600 font-bold text-sm sm:text-base">{formatPrice(p.total_paid)} ت</td>
-                      <td className="py-3 px-3.5 font-mono text-rose-600 font-bold text-sm sm:text-base">{formatPrice(p.remaining_balance)} ت</td>
-                      <td className="py-3 px-3.5">
-                        <Badge variant={p.payment_status === 'PAID' ? 'success' : 'warning'} className="text-xs sm:text-sm font-bold">
-                          {p.payment_status_display}
-                        </Badge>
-                      </td>
+            <>
+              {/* Mobile Card View (< sm) */}
+              <div className="sm:hidden space-y-3">
+                {payrolls.map((p) => (
+                  <div
+                    key={p.id}
+                    className="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-3 shadow-2xs"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-black text-sm text-slate-900 dark:text-white">
+                        {p.period_label}
+                      </span>
+                      <Badge variant={p.payment_status === 'PAID' ? 'success' : 'warning'} className="text-xs font-bold">
+                        {p.payment_status_display}
+                      </Badge>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-2 p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-center">
+                      <div>
+                        <span className="block text-[11px] text-slate-500 dark:text-slate-400">خالص</span>
+                        <span className="font-mono font-bold text-xs text-slate-900 dark:text-white">
+                          {formatPrice(p.net_payable_amount)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-[11px] text-emerald-600 dark:text-emerald-400">واریزی</span>
+                        <span className="font-mono font-bold text-xs text-emerald-600 dark:text-emerald-400">
+                          {formatPrice(p.total_paid)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-[11px] text-rose-600 dark:text-rose-400">مانده</span>
+                        <span className="font-mono font-bold text-xs text-rose-600 dark:text-rose-400">
+                          {formatPrice(p.remaining_balance)}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-medium pt-1">
+                      <span>ساعات تدریس: {p.teaching_hours} ساعت</span>
+                      <span>جلسات: {p.completed_sessions_count} جلسه</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Tablet & Desktop Table (sm+) */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full text-right text-xs sm:text-sm">
+                  <thead className="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold">
+                    <tr>
+                      <th className="py-3 px-3.5">دوره</th>
+                      <th className="py-3 px-3.5">ساعات تدریس</th>
+                      <th className="py-3 px-3.5">جلسات</th>
+                      <th className="py-3 px-3.5">خالص پرداختی</th>
+                      <th className="py-3 px-3.5">واریزشده</th>
+                      <th className="py-3 px-3.5">مانده</th>
+                      <th className="py-3 px-3.5">وضعیت تسویه</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {payrolls.map((p) => (
+                      <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                        <td className="py-3 px-3.5 font-bold text-slate-900 dark:text-white text-sm sm:text-base">{p.period_label}</td>
+                        <td className="py-3 px-3.5 font-mono text-sm sm:text-base">{p.teaching_hours} ساعت</td>
+                        <td className="py-3 px-3.5 font-mono text-sm sm:text-base">{p.completed_sessions_count} جلسه</td>
+                        <td className="py-3 px-3.5 font-mono font-bold text-slate-900 dark:text-white text-sm sm:text-base">{formatPrice(p.net_payable_amount)} ت</td>
+                        <td className="py-3 px-3.5 font-mono text-emerald-600 font-bold text-sm sm:text-base">{formatPrice(p.total_paid)} ت</td>
+                        <td className="py-3 px-3.5 font-mono text-rose-600 font-bold text-sm sm:text-base">{formatPrice(p.remaining_balance)} ت</td>
+                        <td className="py-3 px-3.5">
+                          <Badge variant={p.payment_status === 'PAID' ? 'success' : 'warning'} className="text-xs sm:text-sm font-bold">
+                            {p.payment_status_display}
+                          </Badge>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       )}
 
       {/* Tab 4: Leaves */}
       {activeTab === 'LEAVES' && (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs space-y-4">
           <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800">
             <h3 className="text-base sm:text-lg font-black text-slate-900 dark:text-white flex items-center gap-2">
               <Calendar className="w-5 h-5 text-emerald-600" />
@@ -680,36 +728,78 @@ export const CoachProfilePage = () => {
           {leaves.length === 0 ? (
             <p className="text-slate-400 text-sm sm:text-base text-center py-8">درخواست مرخصی ثبت نشده است.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-right text-xs sm:text-sm">
-                <thead className="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold">
-                  <tr>
-                    <th className="py-3 px-3.5">نوع مرخصی</th>
-                    <th className="py-3 px-3.5">از تاریخ</th>
-                    <th className="py-3 px-3.5">تا تاریخ</th>
-                    <th className="py-3 px-3.5">علت</th>
-                    <th className="py-3 px-3.5">وضعیت بررسی</th>
-                    <th className="py-3 px-3.5">یادداشت مدیریت</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                  {leaves.map((l) => (
-                    <tr key={l.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
-                      <td className="py-3 px-3.5 font-bold text-slate-900 dark:text-slate-100 text-sm sm:text-base">{l.leave_type_display}</td>
-                      <td className="py-3 px-3.5 font-mono text-sm sm:text-base">{new Date(l.start_date).toLocaleDateString('fa-IR-u-nu-latn')}</td>
-                      <td className="py-3 px-3.5 font-mono text-sm sm:text-base">{new Date(l.end_date).toLocaleDateString('fa-IR-u-nu-latn')}</td>
-                      <td className="py-3 px-3.5 text-sm sm:text-base text-slate-800 dark:text-slate-200">{l.reason}</td>
-                      <td className="py-3 px-3.5">
-                        <Badge variant={l.status === 'APPROVED' ? 'success' : l.status === 'PENDING' ? 'warning' : 'error'} className="text-xs sm:text-sm font-bold">
-                          {l.status_display}
-                        </Badge>
-                      </td>
-                      <td className="py-3 px-3.5 text-sm sm:text-base text-slate-500 dark:text-slate-400">{l.admin_notes || '—'}</td>
+            <>
+              {/* Mobile Card View (< sm) */}
+              <div className="sm:hidden space-y-3">
+                {leaves.map((l) => (
+                  <div
+                    key={l.id}
+                    className="p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-2.5 shadow-2xs"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-black text-sm text-slate-900 dark:text-slate-100">
+                        {l.leave_type_display}
+                      </span>
+                      <Badge variant={l.status === 'APPROVED' ? 'success' : l.status === 'PENDING' ? 'warning' : 'error'} className="text-xs font-bold">
+                        {l.status_display}
+                      </Badge>
+                    </div>
+
+                    <div className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                      <div className="flex items-center gap-1.5 font-mono">
+                        <span className="text-slate-400">بازه:</span>
+                        <span>{new Date(l.start_date).toLocaleDateString('fa-IR-u-nu-latn')}</span>
+                        <span>تا</span>
+                        <span>{new Date(l.end_date).toLocaleDateString('fa-IR-u-nu-latn')}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">علت: </span>
+                        <span>{l.reason}</span>
+                      </div>
+                    </div>
+
+                    {l.admin_notes && (
+                      <div className="p-2 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-800 dark:text-amber-200">
+                        <span className="font-bold">پاسخ مدیریت: </span>
+                        <span>{l.admin_notes}</span>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Tablet & Desktop Table (sm+) */}
+              <div className="hidden sm:block overflow-x-auto">
+                <table className="w-full text-right text-xs sm:text-sm">
+                  <thead className="bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 font-bold">
+                    <tr>
+                      <th className="py-3 px-3.5">نوع مرخصی</th>
+                      <th className="py-3 px-3.5">از تاریخ</th>
+                      <th className="py-3 px-3.5">تا تاریخ</th>
+                      <th className="py-3 px-3.5">علت</th>
+                      <th className="py-3 px-3.5">وضعیت بررسی</th>
+                      <th className="py-3 px-3.5">یادداشت مدیریت</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {leaves.map((l) => (
+                      <tr key={l.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                        <td className="py-3 px-3.5 font-bold text-slate-900 dark:text-slate-100 text-sm sm:text-base">{l.leave_type_display}</td>
+                        <td className="py-3 px-3.5 font-mono text-sm sm:text-base">{new Date(l.start_date).toLocaleDateString('fa-IR-u-nu-latn')}</td>
+                        <td className="py-3 px-3.5 font-mono text-sm sm:text-base">{new Date(l.end_date).toLocaleDateString('fa-IR-u-nu-latn')}</td>
+                        <td className="py-3 px-3.5 text-sm sm:text-base text-slate-800 dark:text-slate-200">{l.reason}</td>
+                        <td className="py-3 px-3.5">
+                          <Badge variant={l.status === 'APPROVED' ? 'success' : l.status === 'PENDING' ? 'warning' : 'error'} className="text-xs sm:text-sm font-bold">
+                            {l.status_display}
+                          </Badge>
+                        </td>
+                        <td className="py-3 px-3.5 text-sm sm:text-base text-slate-500 dark:text-slate-400">{l.admin_notes || '—'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </>
           )}
         </div>
       )}

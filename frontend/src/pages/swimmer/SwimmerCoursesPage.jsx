@@ -447,24 +447,24 @@ export const SwimmerCoursesPage = () => {
       {/* 3. NAVIGATION TABS */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-3 sm:p-4 shadow-xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-2">
+          <div className="grid grid-cols-2 sm:flex sm:items-center gap-2 w-full sm:w-auto">
             {/* Tab 1: My Courses & Class Schedule */}
             <button
               type="button"
               onClick={() => handleTabChange('MY_COURSES')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
                 activeTab === 'MY_COURSES'
                   ? 'bg-gradient-to-r from-teal-600 to-sky-600 text-white shadow-xs scale-102 ring-2 ring-teal-500/20'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
-              <Calendar className="w-4 h-4" />
-              <span>دوره‌ها و برنامه جلسات من</span>
+              <Calendar className="w-4 h-4 shrink-0" />
+              <span className="truncate">دوره‌ها و برنامه من</span>
               {loading ? (
-                <span className="w-4 h-4 rounded-full bg-white/20 animate-pulse" />
+                <span className="w-4 h-4 rounded-full bg-white/20 animate-pulse shrink-0" />
               ) : myEnrollments.length > 0 && (
                 <span
-                  className={`text-[11px] px-1.5 py-0.2 rounded-full font-mono ${
+                  className={`text-[11px] px-1.5 py-0.2 rounded-full font-mono shrink-0 ${
                     activeTab === 'MY_COURSES'
                       ? 'bg-white/20 text-white'
                       : 'bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300'
@@ -479,19 +479,19 @@ export const SwimmerCoursesPage = () => {
             <button
               type="button"
               onClick={() => handleTabChange('REGISTER')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
+              className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all cursor-pointer ${
                 activeTab === 'REGISTER'
                   ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white shadow-xs scale-102 ring-2 ring-blue-500/20'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
-              <BookOpen className="w-4 h-4" />
-              <span>ثبت‌نام دوره‌ها</span>
+              <BookOpen className="w-4 h-4 shrink-0" />
+              <span className="truncate">ثبت‌نام دوره‌ها</span>
               {loading ? (
-                <span className="w-4 h-4 rounded-full bg-white/20 animate-pulse" />
+                <span className="w-4 h-4 rounded-full bg-white/20 animate-pulse shrink-0" />
               ) : (
                 <span
-                  className={`text-[11px] px-1.5 py-0.2 rounded-full font-mono ${
+                  className={`text-[11px] px-1.5 py-0.2 rounded-full font-mono shrink-0 ${
                     activeTab === 'REGISTER'
                       ? 'bg-white/20 text-white'
                       : 'bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-300'
@@ -508,7 +508,7 @@ export const SwimmerCoursesPage = () => {
             type="button"
             onClick={() => loadData(true)}
             disabled={refreshing || loading}
-            className="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-sky-600 bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-xl transition-all cursor-pointer self-end sm:self-center"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-sky-600 bg-slate-50 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 rounded-xl transition-all cursor-pointer w-full sm:w-auto"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? 'animate-spin text-sky-600' : ''}`} />
             <span>به‌روزرسانی</span>
@@ -521,14 +521,14 @@ export const SwimmerCoursesPage = () => {
         <div className="space-y-6">
           {/* Active Enrolled Courses Overview */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
               <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <GraduationCap className="w-5 h-5 text-teal-600" />
                 <span>کلاس‌ها و دوره‌های ثبت‌نام‌شده من</span>
               </h2>
               <Link
                 to="/swimmer/support?category=SCHEDULE"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 text-xs font-bold border border-teal-200 dark:border-teal-800 hover:bg-teal-100 transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 text-xs font-bold border border-teal-200 dark:border-teal-800 hover:bg-teal-100 transition-colors w-full sm:w-auto"
               >
                 <ArrowRightLeft className="w-3.5 h-3.5" />
                 <span>درخواست جابه‌جایی یا اعلام غیبت</span>
@@ -720,7 +720,7 @@ export const SwimmerCoursesPage = () => {
               </div>
 
               {/* Sessions Filter Pills */}
-              <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl w-fit">
+              <div className="flex items-center gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl w-full sm:w-fit overflow-x-auto no-scrollbar">
                 <button
                   type="button"
                   onClick={() => setSessionsFilter('ALL')}

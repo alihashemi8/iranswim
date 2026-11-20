@@ -183,63 +183,122 @@ export const SwimmerAttendancePage = () => {
         </h3>
 
         {attendance.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-right text-sm">
-              <thead>
-                <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold text-sm">
-                  <th className="py-3 px-3">تاریخ جلسه</th>
-                  <th className="py-3 px-3">سانس و ساعت</th>
-                  <th className="py-3 px-3">مربی ثبت‌کننده</th>
-                  <th className="py-3 px-3">وضعیت حضور</th>
-                  <th className="py-3 px-3">توضیحات و بازخورد</th>
-                  <th className="py-3 px-3 text-left">اقدام</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                {attendance.map((att) => {
-                  const shamsi = toShamsiDate(att.session_date);
-                  const displayDate = shamsi.fullText || att.session_date || '—';
+          <>
+            {/* Mobile Cards View */}
+            <div className="block sm:hidden space-y-3">
+              {attendance.map((att) => {
+                const shamsi = toShamsiDate(att.session_date);
+                const displayDate = shamsi.fullText || att.session_date || '—';
 
-                  return (
-                    <tr key={att.id} className="text-slate-700 dark:text-slate-300">
-                      <td className="py-3.5 px-3 font-black text-slate-900 dark:text-white text-sm sm:text-base">
-                        {displayDate}
-                      </td>
-                      <td className="py-3.5 px-3 font-mono text-slate-600 dark:text-slate-400 font-medium">
-                        {att.session_time || 'ساعت مقرر کلاس'}
-                      </td>
-                      <td className="py-3.5 px-3 font-semibold">
-                        {att.recorded_by_name || 'کادر مربیان'}
-                      </td>
-                      <td className="py-3.5 px-3">
+                return (
+                  <div
+                    key={att.id}
+                    className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-700/60 space-y-3"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="font-black text-slate-900 dark:text-white text-sm block">
+                          {displayDate}
+                        </span>
+                        <span className="text-xs text-slate-500 font-mono mt-0.5 block">
+                          {att.session_time || 'ساعت مقرر کلاس'}
+                        </span>
+                      </div>
+                      <div className="shrink-0">
                         {getAttendanceStatusBadge(att)}
-                      </td>
-                      <td className="py-3.5 px-3 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
-                        {att.notes || (att.status === 'PRESENT' ? 'حضور کامل و فعال در آب' : '—')}
-                      </td>
-                      <td className="py-3.5 px-3 text-left">
-                        {att.status === 'ABSENT' ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setExcuseModalTarget(att);
-                              setExcuseReason('');
-                            }}
-                            className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/70 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold transition-all inline-flex items-center gap-1 cursor-pointer"
-                          >
-                            <FileText className="w-3.5 h-3.5" />
-                            <span>ثبت غیبت موجه</span>
-                          </button>
-                        ) : (
-                          <span className="text-xs text-slate-400">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                    </div>
+
+                    <div className="text-xs text-slate-600 dark:text-slate-300 space-y-1 pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                      <div>
+                        <span className="text-slate-400">مربی: </span>
+                        <span className="font-semibold">{att.recorded_by_name || 'کادر مربیان'}</span>
+                      </div>
+                      <div>
+                        <span className="text-slate-400">بازخورد: </span>
+                        <span>{att.notes || (att.status === 'PRESENT' ? 'حضور کامل و فعال در آب' : '—')}</span>
+                      </div>
+                    </div>
+
+                    {att.status === 'ABSENT' && (
+                      <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setExcuseModalTarget(att);
+                            setExcuseReason('');
+                          }}
+                          className="w-full px-3 py-2 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/70 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-2xs"
+                        >
+                          <FileText className="w-3.5 h-3.5" />
+                          <span>ثبت درخواست موجه‌سازی غیبت</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-right text-sm">
+                <thead>
+                  <tr className="border-b border-slate-100 dark:border-slate-800 text-slate-500 dark:text-slate-400 font-bold text-sm">
+                    <th className="py-3 px-3">تاریخ جلسه</th>
+                    <th className="py-3 px-3">سانس و ساعت</th>
+                    <th className="py-3 px-3">مربی ثبت‌کننده</th>
+                    <th className="py-3 px-3">وضعیت حضور</th>
+                    <th className="py-3 px-3">توضیحات و بازخورد</th>
+                    <th className="py-3 px-3 text-left">اقدام</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {attendance.map((att) => {
+                    const shamsi = toShamsiDate(att.session_date);
+                    const displayDate = shamsi.fullText || att.session_date || '—';
+
+                    return (
+                      <tr key={att.id} className="text-slate-700 dark:text-slate-300">
+                        <td className="py-3.5 px-3 font-black text-slate-900 dark:text-white text-sm sm:text-base">
+                          {displayDate}
+                        </td>
+                        <td className="py-3.5 px-3 font-mono text-slate-600 dark:text-slate-400 font-medium">
+                          {att.session_time || 'ساعت مقرر کلاس'}
+                        </td>
+                        <td className="py-3.5 px-3 font-semibold">
+                          {att.recorded_by_name || 'کادر مربیان'}
+                        </td>
+                        <td className="py-3.5 px-3">
+                          {getAttendanceStatusBadge(att)}
+                        </td>
+                        <td className="py-3.5 px-3 text-slate-600 dark:text-slate-400 text-xs sm:text-sm">
+                          {att.notes || (att.status === 'PRESENT' ? 'حضور کامل و فعال در آب' : '—')}
+                        </td>
+                        <td className="py-3.5 px-3 text-left">
+                          {att.status === 'ABSENT' ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setExcuseModalTarget(att);
+                                setExcuseReason('');
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/70 dark:hover:bg-amber-900/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 text-xs font-bold transition-all inline-flex items-center gap-1 cursor-pointer"
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              <span>ثبت غیبت موجه</span>
+                            </button>
+                          ) : (
+                            <span className="text-xs text-slate-400">—</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </>
         ) : (
           <div className="p-8 text-center text-sm text-slate-400">
             هنوز جلسه‌ای برای حضور و غیاب ثبت نشده است.

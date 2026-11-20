@@ -197,7 +197,7 @@ export const AdminAttendanceDetailPage = () => {
   const { weekday, dateFormatted } = formatSessionDate(session.session_date);
 
   return (
-    <div className="space-y-6 pb-16">
+    <div className="space-y-6 pb-28 md:pb-16">
       {/* 1. Navigation & Header */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
@@ -450,7 +450,7 @@ export const AdminAttendanceDetailPage = () => {
       </div>
 
       {/* 6. Sticky Save Footer */}
-      <div className="sticky bottom-4 z-30 p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-3">
+      <div className="sticky bottom-20 md:bottom-4 z-30 p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-3">
         {savedSuccess ? (
           <span className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
             <Check className="w-5 h-5" />

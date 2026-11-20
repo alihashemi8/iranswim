@@ -1186,8 +1186,8 @@ export const AdminCoachesPage = () => {
           ) : !reportsData || reportsData.length === 0 ? (
             <div className="py-8 text-center text-slate-400 text-xs sm:text-sm">داده‌ای برای این گزارش ثبت نشده است.</div>
           ) : (
-            <div className="max-h-[50vh] overflow-y-auto space-y-2">
-              <table className="w-full text-right text-xs sm:text-sm">
+            <div className="max-h-[50vh] overflow-y-auto overflow-x-auto space-y-2">
+              <table className="w-full text-right text-xs sm:text-sm min-w-[560px]">
                 <thead className="bg-slate-50 dark:bg-slate-800 text-slate-400 font-bold">
                   <tr>
                     <th className="py-2.5 px-3.5">مربی</th>
