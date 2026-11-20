@@ -620,7 +620,7 @@ export const CoachCompleteProfilePage = () => {
                 >
                   {isDone ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
                 </div>
-                <div className="text-[11px] sm:text-xs">
+                <div className="text-xs sm:text-sm font-bold leading-tight">
                   <span className="hidden sm:inline">مرحله {item.step}: </span>
                   <span>{item.title}</span>
                 </div>
@@ -640,9 +640,9 @@ export const CoachCompleteProfilePage = () => {
 
       {/* Global Error Banner */}
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-200 text-xs sm:text-sm flex items-start gap-3">
+        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-200 text-sm flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-          <div className="flex-1 font-medium">{error}</div>
+          <div className="flex-1 font-semibold">{error}</div>
         </div>
       )}
 
@@ -652,19 +652,19 @@ export const CoachCompleteProfilePage = () => {
         {currentStep === 1 && (
           <div className="space-y-6">
             <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <User className="w-5 h-5 text-emerald-600" />
+              <h2 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <User className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 shrink-0" />
                 <span>مرحله ۱: هویت فردی و مشخصات شناسنامه‌ای مربی</span>
               </h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
                 اطلاعات فردی و کد ملی مربی طبق مندرجات شناسنامه و کارت ملی
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm sm:text-base">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  نام مربی <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  نام مربی <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <input
                   type="text"
@@ -674,7 +674,7 @@ export const CoachCompleteProfilePage = () => {
                     clearFieldError('firstName');
                   }}
                   placeholder="مثال: علی"
-                  className={`w-full p-2.5 rounded-xl border text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-900 transition-colors ${
+                  className={`w-full p-2.5 rounded-xl border text-slate-900 dark:text-white text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm focus:bg-white dark:focus:bg-slate-900 transition-colors ${
                     fieldErrors.firstName
                       ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/40 dark:bg-rose-950/20'
                       : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50'
@@ -682,15 +682,15 @@ export const CoachCompleteProfilePage = () => {
                   required
                 />
                 {fieldErrors.firstName && (
-                  <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
                     {fieldErrors.firstName}
                   </span>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  نام خانوادگی مربی <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  نام خانوادگی مربی <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <input
                   type="text"
@@ -700,7 +700,7 @@ export const CoachCompleteProfilePage = () => {
                     clearFieldError('lastName');
                   }}
                   placeholder="مثال: حسینی"
-                  className={`w-full p-2.5 rounded-xl border text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-900 transition-colors ${
+                  className={`w-full p-2.5 rounded-xl border text-slate-900 dark:text-white text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm focus:bg-white dark:focus:bg-slate-900 transition-colors ${
                     fieldErrors.lastName
                       ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/40 dark:bg-rose-950/20'
                       : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50'
@@ -708,15 +708,15 @@ export const CoachCompleteProfilePage = () => {
                   required
                 />
                 {fieldErrors.lastName && (
-                  <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
                     {fieldErrors.lastName}
                   </span>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  کد ملی ۱۰ رقمی <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  کد ملی ۱۰ رقمی <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <input
                   type="text"
@@ -728,7 +728,7 @@ export const CoachCompleteProfilePage = () => {
                     clearFieldError('nationalId');
                   }}
                   placeholder="0012345678"
-                  className={`w-full p-2.5 rounded-xl border font-mono text-slate-900 dark:text-white ${
+                  className={`w-full p-2.5 rounded-xl border font-mono text-slate-900 dark:text-white text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm ${
                     fieldErrors.nationalId
                       ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/40 dark:bg-rose-950/20'
                       : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50'
@@ -736,7 +736,7 @@ export const CoachCompleteProfilePage = () => {
                   required
                 />
                 {fieldErrors.nationalId && (
-                  <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
                     {fieldErrors.nationalId}
                   </span>
                 )}
@@ -763,21 +763,21 @@ export const CoachCompleteProfilePage = () => {
                   }
                 />
                 {fieldErrors.dateOfBirth && (
-                  <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
                     {fieldErrors.dateOfBirth}
                   </span>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  جنسیت <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  جنسیت <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-2 pt-0.5">
                   <button
                     type="button"
                     onClick={() => setGender('MALE')}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                    className={`py-2.5 px-3 rounded-xl text-sm sm:text-base font-bold border transition-all cursor-pointer ${
                       gender === 'MALE'
                         ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-700 dark:text-emerald-300 shadow-xs'
                         : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
@@ -788,7 +788,7 @@ export const CoachCompleteProfilePage = () => {
                   <button
                     type="button"
                     onClick={() => setGender('FEMALE')}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer ${
+                    className={`py-2.5 px-3 rounded-xl text-sm sm:text-base font-bold border transition-all cursor-pointer ${
                       gender === 'FEMALE'
                         ? 'bg-emerald-50 dark:bg-emerald-950/60 border-emerald-500 text-emerald-700 dark:text-emerald-300 shadow-xs'
                         : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
@@ -800,8 +800,8 @@ export const CoachCompleteProfilePage = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  عکس <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  عکس پرسنلی <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="flex items-center gap-3">
                   {avatarPreview ? (
@@ -826,13 +826,13 @@ export const CoachCompleteProfilePage = () => {
                     </div>
                   )}
                   <label
-                    className={`cursor-pointer px-3 py-2 rounded-xl border flex items-center gap-1.5 transition-colors text-xs font-semibold ${
+                    className={`cursor-pointer px-3.5 py-2.5 rounded-xl border flex items-center gap-2 transition-colors text-xs sm:text-sm font-bold ${
                       fieldErrors.avatar
                         ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/50 dark:bg-rose-950/30 text-rose-700 dark:text-rose-300'
                         : 'border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300'
                     }`}
                   >
-                    <Upload className={`w-4 h-4 ${fieldErrors.avatar ? 'text-rose-600' : 'text-emerald-600'}`} />
+                    <Upload className={`w-4 h-4 shrink-0 ${fieldErrors.avatar ? 'text-rose-600' : 'text-emerald-600'}`} />
                     <span>انتخاب عکس</span>
                     <input
                       type="file"
@@ -846,7 +846,7 @@ export const CoachCompleteProfilePage = () => {
                   </label>
                 </div>
                 {fieldErrors.avatar && (
-                  <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
                     {fieldErrors.avatar}
                   </span>
                 )}
@@ -859,19 +859,19 @@ export const CoachCompleteProfilePage = () => {
         {currentStep === 2 && (
           <div className="space-y-6">
             <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-emerald-600" />
+              <h2 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 shrink-0" />
                 <span>مرحله ۲: نشانی محل سکونت و مخاطب اضطراری</span>
               </h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
                 اطلاعات تماس جهت هماهنگی‌های اداری و موارد اضطراری درون استخر
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm sm:text-base">
               <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  آدرس دقیق محل سکونت <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  آدرس دقیق محل سکونت <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <textarea
                   rows={3}
@@ -881,7 +881,7 @@ export const CoachCompleteProfilePage = () => {
                     clearFieldError('address');
                   }}
                   placeholder="استان، شهر، خیابان اصلی، کوچه، پلاک، واحد..."
-                  className={`w-full p-2.5 rounded-xl border text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-900 transition-colors leading-relaxed ${
+                  className={`w-full p-2.5 rounded-xl border text-slate-900 dark:text-white text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm focus:bg-white dark:focus:bg-slate-900 transition-colors leading-relaxed ${
                     fieldErrors.address
                       ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/40 dark:bg-rose-950/20'
                       : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50'
@@ -889,15 +889,15 @@ export const CoachCompleteProfilePage = () => {
                   required
                 />
                 {fieldErrors.address && (
-                  <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
                     {fieldErrors.address}
                   </span>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  نام و نام خانوادگی مخاطب اضطراری <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  نام و نام خانوادگی مخاطب اضطراری <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <input
                   type="text"
@@ -907,7 +907,7 @@ export const CoachCompleteProfilePage = () => {
                     clearFieldError('emergencyContactName');
                   }}
                   placeholder="مثال: رضا حسینی (برادر / همسر / پدر)"
-                  className={`w-full p-2.5 rounded-xl border text-slate-900 dark:text-white ${
+                  className={`w-full p-2.5 rounded-xl border text-slate-900 dark:text-white text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm ${
                     fieldErrors.emergencyContactName
                       ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/40 dark:bg-rose-950/20'
                       : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50'
@@ -915,15 +915,15 @@ export const CoachCompleteProfilePage = () => {
                   required
                 />
                 {fieldErrors.emergencyContactName && (
-                  <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
                     {fieldErrors.emergencyContactName}
                   </span>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  شماره تماس مخاطب اضطراری <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  شماره تماس مخاطب اضطراری <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="relative">
                   <Phone className={`w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 ${
@@ -938,7 +938,7 @@ export const CoachCompleteProfilePage = () => {
                       clearFieldError('emergencyContactPhone');
                     }}
                     placeholder="0912..."
-                    className={`w-full pr-9 pl-3 py-2.5 rounded-xl border text-slate-900 dark:text-white font-mono ${
+                    className={`w-full pr-9 pl-3 py-2.5 rounded-xl border text-slate-900 dark:text-white font-mono text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm ${
                       fieldErrors.emergencyContactPhone
                         ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/40 dark:bg-rose-950/20'
                         : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50'
@@ -947,7 +947,7 @@ export const CoachCompleteProfilePage = () => {
                   />
                 </div>
                 {fieldErrors.emergencyContactPhone && (
-                  <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
                     {fieldErrors.emergencyContactPhone}
                   </span>
                 )}
@@ -960,19 +960,19 @@ export const CoachCompleteProfilePage = () => {
         {currentStep === 3 && (
           <div className="space-y-6">
             <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Award className="w-5 h-5 text-emerald-600" />
+              <h2 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Award className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 shrink-0" />
                 <span>مرحله ۳: شایستگی‌ها، درجه و مدارک مربیگری</span>
               </h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
                 اطلاعات گواهی رسمی مربیگری، تاریخ اخذ، سابقه و رزومه حرفه‌ای
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm sm:text-base">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  درجه رسمی مربی‌گری <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  درجه رسمی مربی‌گری <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <CustomSelect
                   value={coachingDegree}
@@ -983,6 +983,7 @@ export const CoachCompleteProfilePage = () => {
                   options={degreeOptions}
                   color="emerald"
                   size="md"
+                  textSize="text-sm sm:text-base"
                   icon={Award}
                   buttonClassName={
                     fieldErrors.coachingDegree
@@ -991,7 +992,7 @@ export const CoachCompleteProfilePage = () => {
                   }
                 />
                 {fieldErrors.coachingDegree && (
-                  <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
                     {fieldErrors.coachingDegree}
                   </span>
                 )}
@@ -1018,15 +1019,15 @@ export const CoachCompleteProfilePage = () => {
                   }
                 />
                 {fieldErrors.coachingCertificateDate && (
-                  <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
                     {fieldErrors.coachingCertificateDate}
                   </span>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  سابقه کار و تدریس (سال) <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  سابقه کار و تدریس (سال) <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <input
                   type="number"
@@ -1037,7 +1038,7 @@ export const CoachCompleteProfilePage = () => {
                     setYearsOfExperience(e.target.value);
                     clearFieldError('yearsOfExperience');
                   }}
-                  className={`w-full p-2.5 rounded-xl border text-slate-900 dark:text-white font-mono ${
+                  className={`w-full p-2.5 rounded-xl border text-slate-900 dark:text-white font-mono text-sm sm:text-base ${
                     fieldErrors.yearsOfExperience
                       ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/40 dark:bg-rose-950/20'
                       : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50'
@@ -1045,15 +1046,15 @@ export const CoachCompleteProfilePage = () => {
                   required
                 />
                 {fieldErrors.yearsOfExperience && (
-                  <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
                     {fieldErrors.yearsOfExperience}
                   </span>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  آپلود مدرک مربیگری (PDF یا تصویر) <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  آپلود مدرک مربیگری (PDF یا تصویر) <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <label
                   className={`cursor-pointer flex items-center justify-between p-2.5 rounded-xl border border-dashed transition-colors ${
@@ -1070,7 +1071,7 @@ export const CoachCompleteProfilePage = () => {
                     }`}
                   >
                     <Upload className={`w-4 h-4 shrink-0 ${fieldErrors.coachingCertificateFile ? 'text-rose-600' : 'text-emerald-600'}`} />
-                    <span className="truncate text-xs font-semibold">
+                    <span className="truncate text-xs sm:text-sm font-bold">
                       {coachingCertificateFile ? coachingCertificateFile.name : coachingCertificateFilePreview ? 'مدرک قبلاً بارگذاری شده (تغییر؟)' : 'انتخاب فایل گواهی...'}
                     </span>
                   </div>
@@ -1085,7 +1086,7 @@ export const CoachCompleteProfilePage = () => {
                   />
                 </label>
                 {fieldErrors.coachingCertificateFile && (
-                  <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
                     {fieldErrors.coachingCertificateFile}
                   </span>
                 )}
@@ -1103,13 +1104,13 @@ export const CoachCompleteProfilePage = () => {
                         بازآموزی سال جاری ({currentJalaliYear}) <span className="text-rose-500">*</span>
                       </h3>
                     </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
                       طبق آیین‌نامه فدراسیون شنا، مربیان ملزم به بارگذاری گواهی بازآموزی سالانه هستند. این مدرک تا <strong className="text-emerald-700 dark:text-emerald-300">پایان اسفند ماه ({currentJalaliYear})</strong> دارای اعتبار است.
                     </p>
                   </div>
 
                   <div className="shrink-0">
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-800 text-xs font-bold shadow-2xs">
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-200 border border-emerald-300 dark:border-emerald-800 text-xs sm:text-sm font-bold shadow-2xs">
                       <Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                       <span>اعتبار تا ۲۹ اسفند {retrainingYear || currentJalaliYear}</span>
                     </span>
@@ -1120,16 +1121,16 @@ export const CoachCompleteProfilePage = () => {
                 {retrainingStatus === 'REJECTED' && retrainingRejectionReason && (
                   <div className="p-3 bg-rose-50 dark:bg-rose-950/40 rounded-xl border border-rose-200 dark:border-rose-900/60 flex items-start gap-2.5">
                     <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
-                    <div className="text-xs">
+                    <div className="text-xs sm:text-sm">
                       <span className="font-bold text-rose-800 dark:text-rose-300 block mb-0.5">علت عدم تأیید گواهی قبلی:</span>
                       <p className="text-rose-700 dark:text-rose-300/90 leading-relaxed">{retrainingRejectionReason}</p>
-                      <p className="text-[11px] text-rose-600 dark:text-rose-400 mt-1 font-semibold">لطفاً فایل اصلاح‌شده و معتبر بازآموزی سال جاری را مجدداً انتخاب و ثبت فرمایید.</p>
+                      <p className="text-xs text-rose-600 dark:text-rose-400 mt-1 font-semibold">لطفاً فایل اصلاح‌شده و معتبر بازآموزی سال جاری را مجدداً انتخاب و ثبت فرمایید.</p>
                     </div>
                   </div>
                 )}
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                  <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                     آپلود فایل گواهی بازآموزی سال جاری (PDF یا تصویر) <span className="text-rose-500">*</span>
                   </label>
                   <label
@@ -1147,7 +1148,7 @@ export const CoachCompleteProfilePage = () => {
                       }`}
                     >
                       <Upload className={`w-4 h-4 shrink-0 ${fieldErrors.retrainingCertificateFile ? 'text-rose-600' : 'text-emerald-600'}`} />
-                      <span className="truncate text-xs font-semibold">
+                      <span className="truncate text-xs sm:text-sm font-bold">
                         {retrainingCertificateFile ? retrainingCertificateFile.name : retrainingCertificateFilePreview ? 'گواهی بازآموزی انتخاب شده (تغییر؟)' : 'انتخاب فایل گواهی بازآموزی سال جاری...'}
                       </span>
                     </div>
@@ -1157,7 +1158,7 @@ export const CoachCompleteProfilePage = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="text-[11px] font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-300 flex items-center gap-1 bg-emerald-100/70 dark:bg-emerald-950 px-2.5 py-1 rounded-lg"
+                        className="text-xs font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-300 flex items-center gap-1 bg-emerald-100/70 dark:bg-emerald-950 px-2.5 py-1 rounded-lg"
                       >
                         <Eye className="w-3.5 h-3.5" />
                         <span>مشاهده فایل</span>
@@ -1174,7 +1175,7 @@ export const CoachCompleteProfilePage = () => {
                     />
                   </label>
                   {fieldErrors.retrainingCertificateFile && (
-                    <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                    <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
                       {fieldErrors.retrainingCertificateFile}
                     </span>
                   )}
@@ -1182,7 +1183,7 @@ export const CoachCompleteProfilePage = () => {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   متن رزومه و خلاصه سوابق حرفه‌ای <span className="text-rose-500">*</span>
                 </label>
                 <textarea
@@ -1193,7 +1194,7 @@ export const CoachCompleteProfilePage = () => {
                     clearFieldError('bio');
                   }}
                   placeholder="سوابق کاری، مربیگری در استخرها و باشگاه‌ها، افتخارات، شاگردان قهرمان..."
-                  className={`w-full p-2.5 rounded-xl border text-slate-900 dark:text-white leading-relaxed ${
+                  className={`w-full p-2.5 rounded-xl border text-slate-900 dark:text-white text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm leading-relaxed ${
                     fieldErrors.bio
                       ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/40 dark:bg-rose-950/20'
                       : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50'
@@ -1201,20 +1202,20 @@ export const CoachCompleteProfilePage = () => {
                   required
                 />
                 {fieldErrors.bio && (
-                  <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
                     {fieldErrors.bio}
                   </span>
                 )}
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   فایل پیوست رزومه (اختیاری)
                 </label>
                 <label className="cursor-pointer flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                   <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 truncate">
                     <FileText className="w-4 h-4 shrink-0 text-slate-500" />
-                    <span className="truncate text-xs">
+                    <span className="truncate text-xs sm:text-sm font-semibold">
                       {resumeFile ? resumeFile.name : resumeFileName ? `پیوست فعلی: ${resumeFileName}` : 'بارگذاری فایل PDF یا Word رزومه (اختیاری)'}
                     </span>
                   </div>
@@ -1234,19 +1235,19 @@ export const CoachCompleteProfilePage = () => {
         {currentStep === 4 && (
           <div className="space-y-6">
             <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-emerald-600" />
+              <h2 className="text-base sm:text-lg lg:text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 shrink-0" />
                 <span>مرحله ۴: اطلاعات حساب بانکی و تأیید نهایی</span>
               </h2>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs sm:text-sm text-slate-500 mt-1">
                 اطلاعات شماره کارت و شماره شبا جهت واریز حق‌التدریس و دستمزد ماهیانه
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm sm:text-base">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  شماره کارت بانکی (۱۶ رقمی) <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  شماره کارت بانکی (۱۶ رقمی) <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="relative">
                   <CreditCard className={`w-4 h-4 absolute right-3 top-1/2 -translate-y-1/2 ${
@@ -1262,7 +1263,7 @@ export const CoachCompleteProfilePage = () => {
                       clearFieldError('cardNumber');
                     }}
                     placeholder="6037-9918-XXXX-XXXX"
-                    className={`w-full pr-9 pl-3 py-2.5 rounded-xl border font-mono text-center tracking-wider text-slate-900 dark:text-white ${
+                    className={`w-full pr-9 pl-3 py-2.5 rounded-xl border font-mono text-center tracking-wider text-slate-900 dark:text-white text-sm sm:text-base font-bold ${
                       fieldErrors.cardNumber
                         ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/40 dark:bg-rose-950/20'
                         : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50'
@@ -1271,22 +1272,22 @@ export const CoachCompleteProfilePage = () => {
                   />
                 </div>
                 {fieldErrors.cardNumber ? (
-                  <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
                     {fieldErrors.cardNumber}
                   </span>
                 ) : (
-                  <span className="text-[11px] text-slate-400 mt-1 block">
+                  <span className="text-xs text-slate-400 mt-1 block">
                     کارت بانکی باید به نام شخص مربی ({firstName || '...'} {lastName || '...'}) باشد.
                   </span>
                 )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  شماره شبا بانکی (IBAN) <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  شماره شبا بانکی (IBAN) <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="relative">
-                  <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold ${
+                  <span className={`absolute left-3 top-1/2 -translate-y-1/2 text-sm font-mono font-bold ${
                     fieldErrors.shabaNumber ? 'text-rose-500' : 'text-slate-500'
                   }`}>
                     IR
@@ -1302,7 +1303,7 @@ export const CoachCompleteProfilePage = () => {
                       clearFieldError('shabaNumber');
                     }}
                     placeholder="24 رقمی بدون IR"
-                    className={`w-full pl-9 pr-3 py-2.5 rounded-xl border font-mono text-left tracking-wider text-slate-900 dark:text-white ${
+                    className={`w-full pl-10 pr-3 py-2.5 rounded-xl border font-mono text-left tracking-wider text-slate-900 dark:text-white text-sm sm:text-base font-bold placeholder:text-xs sm:placeholder:text-sm ${
                       fieldErrors.shabaNumber
                         ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/40 dark:bg-rose-950/20'
                         : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50'
@@ -1311,11 +1312,11 @@ export const CoachCompleteProfilePage = () => {
                   />
                 </div>
                 {fieldErrors.shabaNumber ? (
-                  <span className="text-[11px] text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
+                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
                     {fieldErrors.shabaNumber}
                   </span>
                 ) : (
-                  <span className="text-[11px] text-slate-400 mt-1 block">
+                  <span className="text-xs text-slate-400 mt-1 block">
                     شماره شبا بدون احتساب حروف IR دارای ۲۴ رقم عددی است.
                   </span>
                 )}
@@ -1324,28 +1325,28 @@ export const CoachCompleteProfilePage = () => {
 
             {/* Verification Summary Card */}
             <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 space-y-3">
-              <h4 className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                <FileCheck className="w-4 h-4 text-emerald-600" />
+              <h4 className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                <FileCheck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 shrink-0" />
                 <span>خلاصه بازبینی اطلاعات پرونده مربیگری:</span>
               </h4>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs sm:text-sm">
                 <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-400 block mb-0.5 text-[11px]">نام و نام خانوادگی:</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">{firstName} {lastName}</span>
+                  <span className="text-slate-400 block mb-0.5 text-xs">نام و نام خانوادگی:</span>
+                  <span className="font-bold text-sm sm:text-base text-slate-800 dark:text-slate-200">{firstName} {lastName}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-400 block mb-0.5 text-[11px]">کد ملی:</span>
-                  <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{nationalId}</span>
+                  <span className="text-slate-400 block mb-0.5 text-xs">کد ملی:</span>
+                  <span className="font-mono font-bold text-sm sm:text-base text-slate-800 dark:text-slate-200">{nationalId}</span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-400 block mb-0.5 text-[11px]">درجه مربیگری:</span>
-                  <span className="font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="text-slate-400 block mb-0.5 text-xs">درجه مربیگری:</span>
+                  <span className="font-bold text-sm sm:text-base text-emerald-600 dark:text-emerald-400">
                     {degreeOptions.find((d) => d.value === coachingDegree)?.label || coachingDegree}
                   </span>
                 </div>
                 <div className="p-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
-                  <span className="text-slate-400 block mb-0.5 text-[11px]">سابقه کار:</span>
-                  <span className="font-bold text-slate-800 dark:text-slate-200">{yearsOfExperience} سال</span>
+                  <span className="text-slate-400 block mb-0.5 text-xs">سابقه کار:</span>
+                  <span className="font-bold text-sm sm:text-base text-slate-800 dark:text-slate-200">{yearsOfExperience} سال</span>
                 </div>
               </div>
             </div>
@@ -1360,9 +1361,9 @@ export const CoachCompleteProfilePage = () => {
               type="button"
               variant="outline"
               onClick={handlePrevStep}
-              className="gap-1.5 sm:gap-2 text-xs sm:text-sm px-3 sm:px-4 flex-1 sm:flex-initial sm:min-w-[140px] justify-center min-h-[44px] min-w-0 !shrink"
+              className="gap-1.5 sm:gap-2 text-sm sm:text-base px-3 sm:px-4 flex-1 sm:flex-initial sm:min-w-[140px] justify-center min-h-[44px] min-w-0 !shrink font-bold"
             >
-              <ArrowRight className="w-4 h-4 shrink-0" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
               <span className="truncate">مرحله قبل</span>
             </Button>
           ) : (
@@ -1374,19 +1375,19 @@ export const CoachCompleteProfilePage = () => {
             <Button
               type="button"
               onClick={handleNextStep}
-              className={`gap-1.5 sm:gap-2 text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs px-3 sm:px-5 justify-center min-h-[44px] font-bold min-w-0 !shrink ${
+              className={`gap-1.5 sm:gap-2 text-sm sm:text-base bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs px-3 sm:px-5 justify-center min-h-[44px] font-bold min-w-0 !shrink ${
                 currentStep > 1 ? 'flex-1 sm:flex-initial sm:min-w-[140px]' : 'w-full sm:w-auto sm:min-w-[140px]'
               }`}
             >
               <span className="truncate">مرحله بعد</span>
-              <ArrowLeft className="w-4 h-4 shrink-0" />
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
             </Button>
           ) : (
             <Button
               type="button"
               onClick={handleSubmit}
               disabled={submitting}
-              className="gap-1.5 sm:gap-2 text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 px-3 sm:px-6 py-2.5 flex-1 sm:flex-initial sm:min-w-[180px] justify-center min-h-[44px] font-bold min-w-0 !shrink"
+              className="gap-1.5 sm:gap-2 text-sm sm:text-base bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 px-3 sm:px-6 py-2.5 flex-1 sm:flex-initial sm:min-w-[180px] justify-center min-h-[44px] font-bold min-w-0 !shrink"
             >
               <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
               <span className="truncate hidden sm:inline">

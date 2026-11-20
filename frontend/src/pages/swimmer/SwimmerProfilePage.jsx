@@ -1291,19 +1291,20 @@ export const SwimmerProfilePage = () => {
                     type="button"
                     variant="outline"
                     onClick={handlePrevStep}
-                    className="px-3.5 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold gap-1 sm:gap-2 cursor-pointer rounded-xl sm:rounded-2xl border-slate-200 dark:border-slate-700"
+                    className="px-3 sm:px-5 py-2.5 sm:py-3 text-xs sm:text-sm font-bold gap-1 sm:gap-2 cursor-pointer rounded-xl sm:rounded-2xl border-slate-200 dark:border-slate-700 min-w-0 !shrink"
                   >
-                    <ArrowRight className="w-4 h-4" />
-                    <span>گام قبل</span>
+                    <ArrowRight className="w-4 h-4 shrink-0" />
+                    <span className="truncate">گام قبل</span>
                     <span className="hidden sm:inline">: اطلاعات والدین</span>
                   </Button>
                   <Button
                     type="submit"
                     loading={saving}
-                    className="px-5 sm:px-8 py-2.5 sm:py-3.5 text-xs sm:text-sm font-bold gap-1.5 sm:gap-2 cursor-pointer shadow-md shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl sm:rounded-2xl"
+                    className="px-3.5 sm:px-8 py-2.5 sm:py-3.5 text-xs sm:text-sm font-bold gap-1.5 sm:gap-2 cursor-pointer shadow-md shadow-emerald-500/20 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl sm:rounded-2xl min-w-0 !shrink"
                   >
-                    <CheckCircle2 className="w-4.5 h-4.5" />
-                    <span>ثبت نهایی و ارسال مدارک</span>
+                    <CheckCircle2 className="w-4.5 h-4.5 shrink-0" />
+                    <span className="truncate hidden sm:inline">ثبت نهایی و ارسال مدارک</span>
+                    <span className="truncate sm:hidden">ثبت نهایی مدارک</span>
                   </Button>
                 </div>
               </div>

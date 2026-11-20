@@ -432,8 +432,8 @@ export const AdminCreateCoachPage = () => {
                 >
                   {isDone ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
                 </div>
-                <div className="text-[11px] sm:text-xs">
-                  <span className="hidden lg:inline">مرحله {item.step}: </span>
+                <div className="text-xs sm:text-sm font-bold leading-tight">
+                  <span className="hidden sm:inline">مرحله {item.step}: </span>
                   <span>{item.title}</span>
                 </div>
               </button>
@@ -452,9 +452,9 @@ export const AdminCreateCoachPage = () => {
 
       {/* Global Error Banner */}
       {error && (
-        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-200 text-xs sm:text-sm flex items-start gap-3">
+        <div className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900/60 text-rose-800 dark:text-rose-200 text-sm flex items-start gap-3">
           <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-          <div className="flex-1 font-medium">{error}</div>
+          <div className="flex-1 font-semibold">{error}</div>
         </div>
       )}
 
@@ -464,45 +464,45 @@ export const AdminCreateCoachPage = () => {
         {currentStep === 1 && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-5">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <User className="w-5 h-5 text-sky-600" />
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <User className="w-5 h-5 sm:w-6 sm:h-6 text-sky-600 shrink-0" />
                 <span>مرحله ۱: مشخصات هویتی و اطلاعات حساب کاربری مربی</span>
               </h3>
-              <Badge variant="info">مرحله ۱ از ۴</Badge>
+              <Badge variant="info" className="text-xs sm:text-sm px-2.5 py-1">مرحله ۱ از ۴</Badge>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs sm:text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm sm:text-base">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  نام <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  نام <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <input
                   type="text"
                   value={form.first_name}
                   onChange={(e) => handleChange('first_name', e.target.value)}
                   placeholder="مثال: علیرضا"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-900 transition-colors"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm focus:bg-white dark:focus:bg-slate-900 transition-colors"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  نام خانوادگی <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  نام خانوادگی <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <input
                   type="text"
                   value={form.last_name}
                   onChange={(e) => handleChange('last_name', e.target.value)}
                   placeholder="مثال: رضایی"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white focus:bg-white dark:focus:bg-slate-900 transition-colors"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm focus:bg-white dark:focus:bg-slate-900 transition-colors"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  شماره همراه (نام کاربری ورود) <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  شماره همراه (نام کاربری ورود) <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="relative">
                   <Phone className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
@@ -512,15 +512,15 @@ export const AdminCreateCoachPage = () => {
                     value={form.phone}
                     onChange={(e) => handleChange('phone', e.target.value)}
                     placeholder="09123456789"
-                    className="w-full pr-9 pl-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono"
+                    className="w-full pr-9 pl-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  کد ملی ده رقمی <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  کد ملی ده رقمی <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="relative">
                   <Hash className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
@@ -531,21 +531,21 @@ export const AdminCreateCoachPage = () => {
                     value={form.national_id}
                     onChange={(e) => handleChange('national_id', e.target.value.replace(/\D/g, ''))}
                     placeholder="0012345678"
-                    className="w-full pr-9 pl-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono"
+                    className="w-full pr-9 pl-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm"
                     required
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  جنسیت مربی <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  جنسیت مربی <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-2 pt-0.5">
                   <button
                     type="button"
                     onClick={() => handleChange('gender', 'MALE')}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    className={`py-2.5 px-3 rounded-xl text-sm sm:text-base font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       form.gender === 'MALE'
                         ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-400 text-sky-700 dark:text-sky-300 shadow-xs'
                         : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
@@ -556,7 +556,7 @@ export const AdminCreateCoachPage = () => {
                   <button
                     type="button"
                     onClick={() => handleChange('gender', 'FEMALE')}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                    className={`py-2.5 px-3 rounded-xl text-sm sm:text-base font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
                       form.gender === 'FEMALE'
                         ? 'bg-pink-50 dark:bg-pink-950/60 border-pink-400 text-pink-700 dark:text-pink-300 shadow-xs'
                         : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
@@ -582,8 +582,8 @@ export const AdminCreateCoachPage = () => {
               </div>
 
               <div className="sm:col-span-2 lg:col-span-3">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  عکس
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  عکس پرسنلی مربی
                 </label>
                 <div className="flex items-center gap-3">
                   {avatarPreview ? (
@@ -597,8 +597,8 @@ export const AdminCreateCoachPage = () => {
                       <User className="w-6 h-6" />
                     </div>
                   )}
-                  <label className="cursor-pointer px-3 py-2 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5 transition-colors">
-                    <Upload className="w-4 h-4 text-sky-600" />
+                  <label className="cursor-pointer px-3.5 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2 transition-colors">
+                    <Upload className="w-4 h-4 text-sky-600 shrink-0" />
                     <span>انتخاب عکس</span>
                     <input
                       type="file"
@@ -620,14 +620,14 @@ export const AdminCreateCoachPage = () => {
             {/* Password Setup */}
             <div className="pt-4 border-t border-slate-100 dark:border-slate-800 space-y-3 bg-slate-50/50 dark:bg-slate-800/30 p-4 rounded-xl">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <span className="font-bold text-slate-800 dark:text-slate-200 text-xs flex items-center gap-1.5">
-                  <KeyRound className="w-4 h-4 text-amber-500" />
+                <span className="font-bold text-slate-800 dark:text-slate-200 text-sm sm:text-base flex items-center gap-2">
+                  <KeyRound className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 shrink-0" />
                   تعیین رمز عبور حساب کاربری پرتال مربی
                 </span>
                 <button
                   type="button"
                   onClick={generateRandomPassword}
-                  className="text-xs text-sky-600 hover:text-sky-700 font-semibold flex items-center gap-1 cursor-pointer"
+                  className="text-xs sm:text-sm text-sky-600 hover:text-sky-700 font-bold flex items-center gap-1.5 cursor-pointer"
                 >
                   <Sparkles className="w-3.5 h-3.5" />
                   <span>تولید خودکار کلمه عبور قوی</span>
@@ -642,7 +642,7 @@ export const AdminCreateCoachPage = () => {
                     value={form.password}
                     onChange={(e) => handleChange('password', e.target.value)}
                     placeholder={isEdit ? 'در صورت عدم تغییر، خالی بگذارید...' : 'رمز عبور اولیه (حداقل ۸ کاراکتر)...'}
-                    className="w-full text-xs sm:text-sm pr-3 pl-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono"
+                    className="w-full text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm pr-3 pl-10 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono"
                   />
                   <button
                     type="button"
@@ -654,7 +654,7 @@ export const AdminCreateCoachPage = () => {
                 </div>
 
                 {form.password && (
-                  <div className="text-[11px] text-slate-500 pt-1">
+                  <div className="text-xs text-slate-500 pt-1">
                     <PasswordRequirementsList password={form.password} />
                   </div>
                 )}
@@ -667,45 +667,45 @@ export const AdminCreateCoachPage = () => {
         {currentStep === 2 && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-emerald-600" />
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <MapPin className="w-5 h-5 sm:w-6 sm:h-6 text-emerald-600 shrink-0" />
                 <span>مرحله ۲: نشانی محل سکونت و مخاطب اضطراری</span>
               </h3>
-              <Badge variant="info">مرحله ۲ از ۴</Badge>
+              <Badge variant="info" className="text-xs sm:text-sm px-2.5 py-1">مرحله ۲ از ۴</Badge>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm sm:text-base">
               <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  آدرس دقیق محل سکونت <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  آدرس دقیق محل سکونت <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <textarea
                   rows={3}
                   value={form.address}
                   onChange={(e) => handleChange('address', e.target.value)}
                   placeholder="استان، شهر، خیابان اصلی، کوچه، پلاک، واحد..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white leading-relaxed"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm leading-relaxed"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  نام و نام خانوادگی مخاطب اضطراری <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  نام و نام خانوادگی مخاطب اضطراری <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <input
                   type="text"
                   value={form.emergency_contact_name}
                   onChange={(e) => handleChange('emergency_contact_name', e.target.value)}
                   placeholder="مثال: پدر / همسر / برادر"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  تلفن تماس اضطراری <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  تلفن تماس اضطراری <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <input
                   type="text"
@@ -713,7 +713,7 @@ export const AdminCreateCoachPage = () => {
                   value={form.emergency_contact_phone}
                   onChange={(e) => handleChange('emergency_contact_phone', e.target.value)}
                   placeholder="0912..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm"
                   required
                 />
               </div>
@@ -725,17 +725,17 @@ export const AdminCreateCoachPage = () => {
         {currentStep === 3 && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <Award className="w-5 h-5 text-amber-500" />
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <Award className="w-5 h-5 sm:w-6 sm:h-6 text-amber-500 shrink-0" />
                 <span>مرحله ۳: شایستگی‌های حرفه‌ای، درجه و مدارک مربیگری</span>
               </h3>
-              <Badge variant="info">مرحله ۳ از ۴</Badge>
+              <Badge variant="info" className="text-xs sm:text-sm px-2.5 py-1">مرحله ۳ از ۴</Badge>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm sm:text-base">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  درجه رسمی مربی‌گری <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  درجه رسمی مربی‌گری <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <CustomSelect
                   value={form.coaching_degree}
@@ -743,6 +743,7 @@ export const AdminCreateCoachPage = () => {
                   options={degreeOptions}
                   color="sky"
                   size="md"
+                  textSize="text-sm sm:text-base"
                   icon={Award}
                 />
               </div>
@@ -762,13 +763,13 @@ export const AdminCreateCoachPage = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  آپلود مدرک مربیگری (PDF یا تصویر) <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  آپلود مدرک مربیگری (PDF یا تصویر) <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <label className="cursor-pointer flex items-center justify-between p-2.5 rounded-xl border border-dashed border-sky-400 dark:border-sky-600 bg-sky-50/50 dark:bg-sky-950/20 hover:bg-sky-100/50 transition-colors">
                   <div className="flex items-center gap-2 text-sky-800 dark:text-sky-300 truncate">
                     <Upload className="w-4 h-4 shrink-0 text-sky-600" />
-                    <span className="truncate text-xs font-semibold">
+                    <span className="truncate text-xs sm:text-sm font-bold">
                       {coachingCertificateFile ? coachingCertificateFile.name : coachingCertificateFilePreview ? 'مدرک بارگذاری شده (تغییر؟)' : 'انتخاب فایل گواهی...'}
                     </span>
                   </div>
@@ -785,8 +786,8 @@ export const AdminCreateCoachPage = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  سابقه تدریس و مربیگری (سال) <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  سابقه تدریس و مربیگری (سال) <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <input
                   type="number"
@@ -794,33 +795,33 @@ export const AdminCreateCoachPage = () => {
                   max="50"
                   value={form.years_of_experience}
                   onChange={(e) => handleChange('years_of_experience', e.target.value)}
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono text-sm sm:text-base"
                   required
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  بیوگرافی رسمی و رزومه مربی <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  بیوگرافی رسمی و رزومه مربی <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <textarea
                   rows={3}
                   value={form.bio}
                   onChange={(e) => handleChange('bio', e.target.value)}
                   placeholder="متن بیوگرافی که اولیا و شناگران در صفحه مربیان مشاهده خواهند کرد..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white leading-relaxed"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm leading-relaxed"
                   required
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   فایل پیوست رزومه (اختیاری)
                 </label>
                 <label className="cursor-pointer flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
                   <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 truncate">
                     <FileText className="w-4 h-4 shrink-0 text-slate-500" />
-                    <span className="truncate text-xs">
+                    <span className="truncate text-xs sm:text-sm font-semibold">
                       {resumeFile ? resumeFile.name : resumeFileName ? `پیوست فعلی: ${resumeFileName}` : 'بارگذاری فایل PDF یا Word رزومه (اختیاری)'}
                     </span>
                   </div>
@@ -840,7 +841,7 @@ export const AdminCreateCoachPage = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   مدرک و کارت نجات‌غریق
                 </label>
                 <input
@@ -848,7 +849,7 @@ export const AdminCreateCoachPage = () => {
                   value={form.lifeguard_certificate}
                   onChange={(e) => handleChange('lifeguard_certificate', e.target.value)}
                   placeholder="مثال: نجات غریق درجه ۲ فدراسیون"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm"
                 />
               </div>
 
@@ -867,7 +868,7 @@ export const AdminCreateCoachPage = () => {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   سایر مهارت‌ها و دوره‌ها
                 </label>
                 <input
@@ -875,12 +876,12 @@ export const AdminCreateCoachPage = () => {
                   value={form.additional_skills}
                   onChange={(e) => handleChange('additional_skills', e.target.value)}
                   placeholder="مثال: آب‌درمانی، کمک‌های اولیه، آمادگی جسمانی"
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   سوابق کاری در باشگاه‌های قبلی
                 </label>
                 <textarea
@@ -888,7 +889,7 @@ export const AdminCreateCoachPage = () => {
                   value={form.previous_experience}
                   onChange={(e) => handleChange('previous_experience', e.target.value)}
                   placeholder="مربیگری در باشگاه‌های قبلی، افتخارات و جوایز..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm"
                 />
               </div>
             </div>
@@ -899,24 +900,24 @@ export const AdminCreateCoachPage = () => {
         {currentStep === 4 && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <CreditCard className="w-5 h-5 text-indigo-600" />
+              <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <CreditCard className="w-5 h-5 sm:w-6 sm:h-6 text-indigo-600 shrink-0" />
                 <span>مرحله ۴: اطلاعات حساب بانکی و شرایط همکاری</span>
               </h3>
-              <Badge variant="info">مرحله ۴ از ۴</Badge>
+              <Badge variant="info" className="text-xs sm:text-sm px-2.5 py-1">مرحله ۴ از ۴</Badge>
             </div>
 
             {/* Banking Fields (Mandatory) */}
             <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/80 dark:border-slate-800 space-y-4">
-              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                <CreditCard className="w-4 h-4 text-emerald-600" />
+              <span className="text-sm sm:text-base font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                <CreditCard className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 shrink-0" />
                 اطلاعات بانکی جهت واریز حق‌الزحمه مربی (الزامی)
               </span>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm sm:text-base">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    شماره کارت بانکی (۱۶ رقمی) <span className="text-rose-500">*</span>
+                  <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    شماره کارت بانکی (۱۶ رقمی) <span className="text-rose-500 font-bold">*</span>
                   </label>
                   <input
                     type="text"
@@ -925,17 +926,17 @@ export const AdminCreateCoachPage = () => {
                     value={formatCardInput(form.card_number)}
                     onChange={(e) => handleChange('card_number', e.target.value.replace(/\D/g, ''))}
                     placeholder="6037-9918-XXXX-XXXX"
-                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono text-center tracking-wider font-bold"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono text-center tracking-wider font-bold text-sm sm:text-base"
                     required
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    شماره شبا بانکی (IBAN) <span className="text-rose-500">*</span>
+                  <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    شماره شبا بانکی (IBAN) <span className="text-rose-500 font-bold">*</span>
                   </label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-slate-500">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-mono font-bold text-slate-500">
                       IR
                     </span>
                     <input
@@ -948,7 +949,7 @@ export const AdminCreateCoachPage = () => {
                         handleChange('shaba_number', `IR${clean}`);
                       }}
                       placeholder="24 رقمی بدون IR"
-                      className="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono text-left tracking-wider"
+                      className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white font-mono text-left tracking-wider text-sm sm:text-base font-bold placeholder:text-xs sm:placeholder:text-sm"
                       required
                     />
                   </div>
@@ -957,35 +958,37 @@ export const AdminCreateCoachPage = () => {
             </div>
 
             {/* Employment Status & Rates */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs sm:text-sm pt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm sm:text-base pt-2">
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  وضعیت اولیه همکاری <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  وضعیت اولیه همکاری <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <CustomSelect
                   value={form.employment_status}
                   onChange={(val) => handleChange('employment_status', val)}
                   options={statusOptions}
                   size="md"
+                  textSize="text-sm sm:text-base"
                   color="sky"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                  مدل محاسبه جبران خدمات <span className="text-rose-500">*</span>
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                  مدل محاسبه جبران خدمات <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <CustomSelect
                   value={form.employment_type}
                   onChange={(val) => handleChange('employment_type', val)}
                   options={employmentTypeOptions}
                   size="md"
+                  textSize="text-sm sm:text-base"
                   color="sky"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                   ساعات تعهد موظف هفتگی
                 </label>
                 <div className="relative">
@@ -996,15 +999,15 @@ export const AdminCreateCoachPage = () => {
                     max="100"
                     value={form.contractual_weekly_hours}
                     onChange={(e) => handleChange('contractual_weekly_hours', e.target.value)}
-                    className="w-full pr-9 pl-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono"
+                    className="w-full pr-9 pl-3 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono text-sm sm:text-base"
                   />
                 </div>
               </div>
 
               {form.employment_type === 'HOURLY' && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    نرخ دستمزد ساعتی (تومان) <span className="text-rose-500">*</span>
+                  <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    نرخ دستمزد ساعتی (تومان) <span className="text-rose-500 font-bold">*</span>
                   </label>
                   <input
                     type="number"
@@ -1012,7 +1015,7 @@ export const AdminCreateCoachPage = () => {
                     step="5000"
                     value={form.hourly_rate}
                     onChange={(e) => handleChange('hourly_rate', e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono font-bold"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono font-bold text-sm sm:text-base"
                     required
                   />
                 </div>
@@ -1020,8 +1023,8 @@ export const AdminCreateCoachPage = () => {
 
               {form.employment_type === 'FIXED' && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                    حقوق ثابت ماهانه (تومان) <span className="text-rose-500">*</span>
+                  <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                    حقوق ثابت ماهانه (تومان) <span className="text-rose-500 font-bold">*</span>
                   </label>
                   <input
                     type="number"
@@ -1029,7 +1032,7 @@ export const AdminCreateCoachPage = () => {
                     step="100000"
                     value={form.fixed_monthly_salary}
                     onChange={(e) => handleChange('fixed_monthly_salary', e.target.value)}
-                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono font-bold"
+                    className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono font-bold text-sm sm:text-base"
                     required
                   />
                 </div>
@@ -1038,8 +1041,8 @@ export const AdminCreateCoachPage = () => {
               {form.employment_type === 'PERCENTAGE' && (
                 <>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
-                      درصد سهم مربی از درآمد (۰ تا ۱۰۰) <span className="text-rose-500">*</span>
+                    <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
+                      درصد سهم مربی از درآمد (۰ تا ۱۰۰) <span className="text-rose-500 font-bold">*</span>
                     </label>
                     <input
                       type="number"
@@ -1047,13 +1050,13 @@ export const AdminCreateCoachPage = () => {
                       max="100"
                       value={form.revenue_percentage}
                       onChange={(e) => handleChange('revenue_percentage', e.target.value)}
-                      className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono font-bold"
+                      className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white font-mono font-bold text-sm sm:text-base"
                       required
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
+                    <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
                       مبنای محاسبه درصد درآمد
                     </label>
                     <CustomSelect
@@ -1061,6 +1064,7 @@ export const AdminCreateCoachPage = () => {
                       onChange={(val) => handleChange('percentage_revenue_basis', val)}
                       options={revenueBasisOptions}
                       size="md"
+                      textSize="text-sm sm:text-base"
                       color="sky"
                     />
                   </div>
@@ -1068,8 +1072,8 @@ export const AdminCreateCoachPage = () => {
               )}
 
               <div className="sm:col-span-2 lg:col-span-3">
-                <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1 flex items-center gap-1.5">
-                  <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
+                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
+                  <ShieldAlert className="w-4 h-4 text-amber-500 shrink-0" />
                   <span>یادداشت‌های محرمانه اداری مدیریت (غیرقابل رویت برای مربی)</span>
                 </label>
                 <textarea
@@ -1077,7 +1081,7 @@ export const AdminCreateCoachPage = () => {
                   value={form.internal_notes}
                   onChange={(e) => handleChange('internal_notes', e.target.value)}
                   placeholder="توضیحات و توافقات پشت پرده، مصاحبه اولیه، ارزیابی گزینش..."
-                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white"
+                  className="w-full p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 text-slate-900 dark:text-white text-sm sm:text-base placeholder:text-xs sm:placeholder:text-sm"
                 />
               </div>
             </div>
@@ -1091,9 +1095,9 @@ export const AdminCreateCoachPage = () => {
               type="button"
               variant="outline"
               onClick={handlePrevStep}
-              className="gap-1.5 sm:gap-2 text-xs sm:text-sm px-3 sm:px-4 flex-1 sm:flex-initial sm:min-w-[140px] justify-center min-h-[42px] min-w-0 !shrink"
+              className="gap-1.5 sm:gap-2 text-sm sm:text-base px-3 sm:px-4 flex-1 sm:flex-initial sm:min-w-[140px] justify-center min-h-[42px] sm:min-h-[44px] min-w-0 !shrink font-bold"
             >
-              <ArrowRight className="w-4 h-4 shrink-0" />
+              <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
               <span className="truncate">مرحله قبل</span>
             </Button>
           ) : (
@@ -1101,7 +1105,7 @@ export const AdminCreateCoachPage = () => {
               type="button"
               variant="outline"
               onClick={() => navigate('/admin/coaches')}
-              className="gap-1.5 sm:gap-2 text-xs sm:text-sm px-3 sm:px-4 flex-1 sm:flex-initial sm:min-w-[140px] justify-center min-h-[42px] min-w-0 !shrink"
+              className="gap-1.5 sm:gap-2 text-sm sm:text-base px-3 sm:px-4 flex-1 sm:flex-initial sm:min-w-[140px] justify-center min-h-[42px] sm:min-h-[44px] min-w-0 !shrink font-bold"
             >
               <span className="truncate">انصراف و بازگشت</span>
             </Button>
@@ -1111,19 +1115,19 @@ export const AdminCreateCoachPage = () => {
             <Button
               type="button"
               onClick={handleNextStep}
-              className="gap-1.5 sm:gap-2 text-xs sm:text-sm bg-sky-600 hover:bg-sky-500 text-white shadow-xs px-3 sm:px-5 flex-1 sm:flex-initial sm:min-w-[140px] justify-center min-h-[42px] font-bold min-w-0 !shrink"
+              className="gap-1.5 sm:gap-2 text-sm sm:text-base bg-sky-600 hover:bg-sky-500 text-white shadow-xs px-3 sm:px-5 flex-1 sm:flex-initial sm:min-w-[140px] justify-center min-h-[42px] sm:min-h-[44px] font-bold min-w-0 !shrink"
             >
               <span className="truncate">مرحله بعد</span>
-              <ArrowLeft className="w-4 h-4 shrink-0" />
+              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
             </Button>
           ) : (
             <Button
               type="button"
               onClick={handleSubmit}
               disabled={submitting}
-              className="gap-1.5 sm:gap-2 text-xs sm:text-sm bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/30 px-3 sm:px-6 py-2.5 flex-1 sm:flex-initial sm:min-w-[160px] justify-center min-h-[42px] font-bold min-w-0 !shrink"
+              className="gap-1.5 sm:gap-2 text-sm sm:text-base bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/30 px-3 sm:px-6 py-2.5 flex-1 sm:flex-initial sm:min-w-[160px] justify-center min-h-[42px] sm:min-h-[44px] font-bold min-w-0 !shrink"
             >
-              <Save className="w-4 h-4 shrink-0" />
+              <Save className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
               <span className="truncate hidden sm:inline">
                 {submitting ? 'در حال ثبت...' : isEdit ? 'ذخیره تغییرات پرونده' : 'ثبت و تشکیل نهایی پرونده مربی'}
               </span>

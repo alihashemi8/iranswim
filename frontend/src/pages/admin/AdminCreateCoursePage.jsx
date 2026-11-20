@@ -979,17 +979,17 @@ export const AdminCreateCoursePage = () => {
                   <Whistle className="w-4 h-4" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
                     <span>مرحله ۳: کادر مربیان دوره آموزشی</span>
                     <span className="text-rose-500 text-sm font-bold" title="انتخاب مربی الزامی است">*</span>
                   </h2>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
                     انتخاب حداقل یک مربی الزامی است؛ به ازای هر مربی، یک کلاس اختصاصی برای این دوره تشکیل می‌شود
                   </p>
                 </div>
               </div>
 
-              <span className={`text-xs font-mono font-bold px-3.5 py-1.5 rounded-xl self-start sm:self-auto border transition-colors ${
+              <span className={`text-xs sm:text-sm font-mono font-bold px-3.5 py-1.5 rounded-xl self-start sm:self-auto border transition-colors ${
                 formData.coach_ids.length > 0
                   ? 'text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/70 border-sky-200 dark:border-sky-800'
                   : 'text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/70 border-amber-300 dark:border-amber-800'
@@ -1001,7 +1001,7 @@ export const AdminCreateCoursePage = () => {
             </div>
 
             {formData.coach_ids.length === 0 && (
-              <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-800/80 rounded-2xl flex items-center gap-2.5 text-xs text-amber-800 dark:text-amber-300 animate-in fade-in duration-150">
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-800/80 rounded-2xl flex items-center gap-2.5 text-xs sm:text-sm text-amber-800 dark:text-amber-300 animate-in fade-in duration-150">
                 <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
                 <span>
                   برای ادامه و رفتن به مرحله بعدی، لطفاً حداقل یک مربی را از فهرست زیر برای دوره انتخاب کنید.
@@ -1019,7 +1019,7 @@ export const AdminCreateCoursePage = () => {
                   value={coachSearch}
                   onChange={(e) => setCoachSearch(e.target.value)}
                   placeholder="جستجو در نام مربی یا تخصص..."
-                  className="w-full pl-3 pr-10 py-2 text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
+                  className="w-full pl-3 pr-10 py-2 text-xs sm:text-sm bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500 text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
                 />
                 {coachSearch && (
                   <button
@@ -1034,7 +1034,7 @@ export const AdminCreateCoursePage = () => {
 
               {/* Default Course Sessions Config */}
               <div className="flex flex-wrap items-center gap-2 shrink-0">
-                <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs shadow-2xs">
+                <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 text-xs sm:text-sm shadow-2xs">
                   <span className="font-semibold text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
                     <Layers className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
                     <span>تعداد جلسه دوره:</span>
@@ -1057,7 +1057,7 @@ export const AdminCreateCoursePage = () => {
                         const val = Math.max(1, parseInt(e.target.value, 10) || 1);
                         setFormData((prev) => ({ ...prev, sessions_count: val }));
                       }}
-                      className="w-9 text-center font-mono font-bold text-xs bg-transparent text-slate-900 dark:text-white focus:outline-none"
+                      className="w-9 text-center font-mono font-bold text-xs sm:text-sm bg-transparent text-slate-900 dark:text-white focus:outline-none"
                     />
                     <button
                       type="button"
@@ -1068,7 +1068,7 @@ export const AdminCreateCoursePage = () => {
                       <Plus className="w-3 h-3" />
                     </button>
                   </div>
-                  <span className="text-[11px] text-slate-400 font-semibold">جلسه</span>
+                  <span className="text-xs text-slate-400 font-semibold">جلسه</span>
                 </div>
 
                 {formData.coach_ids.length > 0 && (
@@ -1076,7 +1076,7 @@ export const AdminCreateCoursePage = () => {
                     type="button"
                     onClick={applyDefaultSessionsToAllCoaches}
                     title="اعمال این تعداد جلسه روی همه مربیان انتخاب شده"
-                    className="text-[11px] font-semibold px-2.5 py-1.5 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900 transition-colors cursor-pointer"
+                    className="text-xs font-semibold px-2.5 py-1.5 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900 transition-colors cursor-pointer"
                   >
                     همگام‌سازی مربیان
                   </button>
@@ -1085,8 +1085,8 @@ export const AdminCreateCoursePage = () => {
             </div>
 
             {/* Informative Tip */}
-            <div className="text-[11px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 px-1">
-              <Sparkles className="w-3.5 h-3.5 text-sky-500 shrink-0" />
+            <div className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1.5 px-1">
+              <Sparkles className="w-4 h-4 text-sky-500 shrink-0" />
               <span>
                 با انتخاب هر مربی، تعداد جلسات دیفالت برابر با تعداد جلسه دوره ({formData.sessions_count} جلسه) تنظیم می‌شود ولی می‌توانید آن را ویرایش کنید. مبلغ دوره از ضرب تعداد جلسات در مبلغ هر جلسه محاسبه می‌گردد.
               </span>
@@ -1151,14 +1151,14 @@ export const AdminCreateCoursePage = () => {
                           </div>
 
                           <div className="min-w-0">
-                            <span className="font-bold text-xs text-slate-900 dark:text-white block truncate group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
+                            <span className="font-bold text-xs sm:text-sm text-slate-900 dark:text-white block truncate group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
                               {c.full_name}
                             </span>
-                            <span className="text-[11px] text-slate-400 block truncate mt-0.5">
+                            <span className="text-xs text-slate-500 dark:text-slate-400 block truncate mt-0.5">
                               {c.coaching_degree_display || c.coaching_degree || 'مربی رسمی شنا'}
                             </span>
                             {isSelected && (
-                              <span className="inline-block text-[10px] text-sky-700 dark:text-sky-300 font-bold bg-sky-100/90 dark:bg-sky-900/60 px-2 py-0.5 rounded-md mt-1">
+                              <span className="inline-block text-[11px] sm:text-xs text-sky-700 dark:text-sky-300 font-bold bg-sky-100/90 dark:bg-sky-900/60 px-2 py-0.5 rounded-md mt-1">
                                 کلاس اختصاصی فعال شد
                               </span>
                             )}
@@ -1186,7 +1186,7 @@ export const AdminCreateCoursePage = () => {
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                             {/* 1. تعداد جلسات (دیفالت برابر با تعداد جلسه دوره، ولی قابل ادیت) */}
                             <div>
-                              <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                              <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
                                 تعداد جلسات مربی:
                               </label>
                               <div className="flex items-center rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 overflow-hidden focus-within:ring-2 focus-within:ring-sky-500">
@@ -1205,7 +1205,7 @@ export const AdminCreateCoursePage = () => {
                                   max="100"
                                   value={config.sessions_count}
                                   onChange={(e) => updateCoachSessions(c.id, e.target.value)}
-                                  className="w-full text-center py-1 text-xs font-mono font-bold text-slate-900 dark:text-white bg-transparent focus:outline-none"
+                                  className="w-full text-center py-1 text-xs sm:text-sm font-mono font-bold text-slate-900 dark:text-white bg-transparent focus:outline-none"
                                 />
                                 <button
                                   type="button"
@@ -1216,14 +1216,14 @@ export const AdminCreateCoursePage = () => {
                                   <Plus className="w-3.5 h-3.5" />
                                 </button>
                               </div>
-                              <span className="text-[10px] text-slate-400 block mt-0.5 text-center">
+                              <span className="text-[11px] sm:text-xs text-slate-400 block mt-0.5 text-center">
                                 {config.sessions_count === Number(formData.sessions_count) ? 'مطابق با پیش‌فرض دوره' : 'جلسات اختصاصی مربی'}
                               </span>
                             </div>
 
                             {/* 2. اینپوت مبلغ هر جلسه */}
                             <div>
-                              <label className="block text-[11px] font-bold text-slate-700 dark:text-slate-300 mb-1">
+                              <label className="block text-xs sm:text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
                                 مبلغ هر جلسه (تومان):
                               </label>
                               <div className="relative">
@@ -1233,25 +1233,25 @@ export const AdminCreateCoursePage = () => {
                                   placeholder="مثال: ۱۵۰,۰۰۰"
                                   value={config.session_price !== '' ? Number(config.session_price).toLocaleString('fa-IR') : ''}
                                   onChange={(e) => updateCoachSessionPrice(c.id, e.target.value)}
-                                  className="w-full pl-12 pr-2.5 py-1.5 text-xs font-mono font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                  className="w-full pl-12 pr-2.5 py-1.5 text-xs sm:text-sm font-mono font-bold text-slate-900 dark:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:outline-none focus:ring-2 focus:ring-sky-500"
                                 />
-                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 select-none">
+                                <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-xs font-bold text-slate-400 select-none">
                                   تومان
                                 </span>
                               </div>
-                              <span className="text-[10px] text-slate-400 block mt-0.5 truncate">
+                              <span className="text-[11px] sm:text-xs text-slate-400 block mt-0.5 truncate">
                                 {config.session_price > 0 ? `${formatPrice(config.session_price)} تومان برای هر جلسه` : 'مبلغ را وارد کنید'}
                               </span>
                             </div>
                           </div>
 
-                          {/* 3. نمایش مبلغ دوره: تعداد جلسه * مبلغ هر جلسه */}
+                            {/* 3. نمایش مبلغ دوره: تعداد جلسه * مبلغ هر جلسه */}
                           <div className="p-2.5 bg-gradient-to-r from-emerald-500/10 via-teal-500/10 to-emerald-500/10 dark:from-emerald-950/40 dark:via-teal-950/30 dark:to-emerald-950/40 border border-emerald-300/80 dark:border-emerald-700/60 rounded-xl flex items-center justify-between gap-2">
                             <div className="min-w-0">
-                              <span className="text-[11px] font-bold text-emerald-900 dark:text-emerald-200 block">
+                              <span className="text-xs sm:text-sm font-bold text-emerald-900 dark:text-emerald-200 block">
                                 مبلغ دوره برای این مربی:
                               </span>
-                              <span className="text-[10px] text-emerald-700/90 dark:text-emerald-400 block truncate font-mono">
+                              <span className="text-[11px] sm:text-xs text-emerald-700/90 dark:text-emerald-400 block truncate font-mono">
                                 {config.sessions_count} جلسه × {formatPrice(config.session_price || 0)} تومان
                               </span>
                             </div>
@@ -1646,49 +1646,54 @@ export const AdminCreateCoursePage = () => {
         )}
 
         {/* 4. Wizard Footer Navigation */}
-        <div className="p-4 sm:p-5 bg-slate-50/80 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 rounded-b-3xl flex items-center justify-between gap-3">
-          <div>
+        <div className="p-3 sm:p-5 bg-slate-50/80 dark:bg-slate-800/40 border-t border-slate-100 dark:border-slate-800 rounded-b-3xl flex items-center justify-between gap-2 sm:gap-3">
+          <div className="min-w-0">
             {currentStep > 1 ? (
               <Button
                 type="button"
                 variant="outline"
                 onClick={handlePrevStep}
-                className="text-xs gap-1.5"
+                className="text-xs gap-1.5 px-3 sm:px-4 min-w-0 !shrink"
               >
-                <ArrowRight className="w-4 h-4" />
-                <span>مرحله قبلی</span>
+                <ArrowRight className="w-4 h-4 shrink-0" />
+                <span className="truncate">مرحله قبل</span>
               </Button>
             ) : (
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => navigate('/admin/courses')}
-                className="text-xs"
+                className="text-xs px-3 sm:px-4 min-w-0 !shrink"
               >
-                انصراف و بازگشت
+                <span className="truncate">انصراف و بازگشت</span>
               </Button>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 min-w-0">
             {currentStep < 4 ? (
               <Button
                 type="button"
                 onClick={handleNextStep}
-                className="text-xs bg-sky-600 hover:bg-sky-700 text-white font-bold gap-1.5 px-5 py-2.5 rounded-xl shadow-xs"
+                className="text-xs bg-sky-600 hover:bg-sky-700 text-white font-bold gap-1.5 px-3.5 sm:px-5 py-2.5 rounded-xl shadow-xs min-w-0 !shrink"
               >
-                <span>مرحله بعدی</span>
-                <ArrowLeft className="w-4 h-4" />
+                <span className="truncate">مرحله بعد</span>
+                <ArrowLeft className="w-4 h-4 shrink-0" />
               </Button>
             ) : (
               <Button
                 type="button"
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-1.5 px-6 py-2.5 rounded-xl shadow-sm"
+                className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white font-bold gap-1.5 px-3 sm:px-6 py-2.5 rounded-xl shadow-sm min-w-0 !shrink"
               >
-                <Check className="w-4 h-4" />
-                <span>{submitting ? 'در حال ثبت نهایی...' : 'ثبت قطعی و تعریف دوره آموزشی'}</span>
+                <Check className="w-4 h-4 shrink-0" />
+                <span className="truncate hidden sm:inline">
+                  {submitting ? 'در حال ثبت نهایی...' : 'ثبت قطعی و تعریف دوره آموزشی'}
+                </span>
+                <span className="truncate sm:hidden">
+                  {submitting ? 'در حال ثبت...' : 'ثبت نهایی دوره'}
+                </span>
               </Button>
             )}
           </div>
