@@ -1198,11 +1198,11 @@ export const AdminSwimmersPage = () => {
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)}>
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <Button type="button" variant="outline" onClick={() => setIsAddModalOpen(false)} className="w-full sm:w-auto">
               انصراف
             </Button>
-            <Button type="submit" disabled={submitting}>
+            <Button type="submit" disabled={submitting} className="w-full sm:w-auto">
               {submitting ? 'در حال ثبت...' : 'ثبت قطعی پرونده'}
             </Button>
           </div>
@@ -1246,12 +1246,13 @@ export const AdminSwimmersPage = () => {
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setPendingClassChange(null)}
                 disabled={confirmingClassChange}
+                className="w-full sm:w-auto"
               >
                 انصراف
               </Button>
@@ -1259,7 +1260,7 @@ export const AdminSwimmersPage = () => {
                 size="sm"
                 onClick={handleConfirmClassChange}
                 disabled={confirmingClassChange}
-                className="bg-sky-600 hover:bg-sky-700 text-white gap-1.5"
+                className="bg-sky-600 hover:bg-sky-700 text-white gap-1.5 w-full sm:w-auto"
               >
                 {confirmingClassChange ? 'در حال ثبت...' : 'تأیید و اعمال تغییر'}
               </Button>

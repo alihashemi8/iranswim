@@ -1914,13 +1914,14 @@ export const AdminDossiersPage = () => {
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
                 onClick={() => setApproveModal((prev) => ({ ...prev, isOpen: false }))}
                 disabled={approveModal.submitting}
+                className="w-full sm:w-auto"
               >
                 انصراف
               </Button>
@@ -1929,7 +1930,7 @@ export const AdminDossiersPage = () => {
                 variant="primary"
                 size="sm"
                 disabled={approveModal.submitting || !approveModal.approvedAmount}
-                className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 text-xs font-bold"
+                className="bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5 text-xs font-bold w-full sm:w-auto"
               >
                 <Check className="w-4 h-4" />
                 <span>{approveModal.submitting ? 'در حال اعمال در حسابداری...' : 'تأیید قطعی و کسر از شهریه'}</span>
@@ -2065,12 +2066,13 @@ export const AdminDossiersPage = () => {
             </div>
 
             {/* Modal Actions */}
-            <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
               <Button
                 variant="outline"
                 size="sm"
                 onClick={() => setRejectionModal((prev) => ({ ...prev, isOpen: false }))}
                 disabled={rejectionModal.submitting}
+                className="w-full sm:w-auto"
               >
                 انصراف
               </Button>
@@ -2079,7 +2081,7 @@ export const AdminDossiersPage = () => {
                 size="sm"
                 onClick={handleSubmitRejection}
                 disabled={rejectionModal.submitting || !rejectionModal.reason.trim()}
-                className="bg-rose-600 hover:bg-rose-700 text-white gap-1.5 text-xs font-bold"
+                className="bg-rose-600 hover:bg-rose-700 text-white gap-1.5 text-xs font-bold w-full sm:w-auto"
               >
                 {rejectionModal.submitting
                   ? 'در حال ثبت...'

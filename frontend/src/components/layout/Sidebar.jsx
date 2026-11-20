@@ -701,13 +701,13 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       {/* Mobile Drawer (Overlay + Slide-over on the Right) */}
       {isOpen && createPortal(
         <div
-          className="fixed inset-0 top-0 right-0 bottom-0 left-0 w-screen h-[100dvh] z-[9999] md:hidden flex justify-start overflow-hidden select-none"
+          className="fixed inset-0 z-[9999] md:hidden flex justify-start overflow-hidden select-none"
           dir="rtl"
           style={{ overscrollBehavior: 'none', touchAction: 'none' }}
         >
           {/* Backdrop */}
           <div
-            className="fixed inset-0 top-0 right-0 bottom-0 left-0 w-screen h-[100dvh] bg-slate-950/60 backdrop-blur-xs transition-opacity"
+            className="absolute inset-0 w-full h-full bg-slate-950/60 backdrop-blur-xs transition-opacity"
             onClick={onClose}
             onTouchMove={(e) => e.preventDefault()}
             style={{ touchAction: 'none' }}

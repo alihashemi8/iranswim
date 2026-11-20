@@ -198,6 +198,17 @@ export const AdminDashboard = () => {
   };
 
   // Operational metrics for today's sessions
+  const activeSwimmersCount = useMemo(() => {
+    if (stats?.active_swimmers != null) return stats.active_swimmers;
+    const activeSet = new Set(
+      enrollments
+        .filter((e) => !e.status || e.status === 'ACTIVE' || e.status === 'CONFIRMED')
+        .map((e) => e.swimmer || e.swimmer_id || e.id)
+        .filter(Boolean)
+    );
+    return activeSet.size || enrollments.length;
+  }, [stats, enrollments]);
+
   const completedSessionsCount = useMemo(
     () => todaySessions.filter((s) => s.status === 'COMPLETED').length,
     [todaySessions]
@@ -446,7 +457,7 @@ export const AdminDashboard = () => {
         <Link to="/admin/swimmers" className="block h-full hover:opacity-95 transition-opacity">
           <StatsCard
             title="شناگران فعال"
-            value={`${formatNum(stats?.active_swimmers)} نفر`}
+            value={`${formatNum(activeSwimmersCount)} نفر`}
             subtitle="دارای پرونده آموزشی فعال"
             icon={Users}
             color="sky"
