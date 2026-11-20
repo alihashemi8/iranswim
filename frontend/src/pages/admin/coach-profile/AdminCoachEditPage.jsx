@@ -1252,13 +1252,13 @@ export const AdminCoachEditPage = () => {
         )}
 
         {/* Wizard Navigation Footer */}
-        <div className="flex items-center justify-between pt-4 border-t border-slate-200/80 dark:border-slate-800">
+        <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-200/80 dark:border-slate-800">
           {currentStep > 1 ? (
             <Button
               type="button"
               variant="outline"
               onClick={handlePrevStep}
-              className="gap-2 text-xs sm:text-sm"
+              className="gap-2 text-xs sm:text-sm w-full sm:w-auto justify-center"
             >
               <ArrowRight className="w-4 h-4" />
               <span>مرحله قبل</span>
@@ -1268,7 +1268,7 @@ export const AdminCoachEditPage = () => {
               type="button"
               variant="outline"
               onClick={() => navigate(returnUrl)}
-              className="text-xs sm:text-sm"
+              className="text-xs sm:text-sm w-full sm:w-auto justify-center"
             >
               انصراف و بازگشت
             </Button>
@@ -1278,7 +1278,7 @@ export const AdminCoachEditPage = () => {
             <Button
               type="button"
               onClick={handleNextStep}
-              className="gap-2 text-xs sm:text-sm bg-sky-600 hover:bg-sky-500 text-white shadow-xs px-5 py-2.5"
+              className="gap-2 text-xs sm:text-sm bg-sky-600 hover:bg-sky-500 text-white shadow-xs px-5 py-2.5 w-full sm:w-auto justify-center"
             >
               <span>مرحله بعد</span>
               <ArrowLeft className="w-4 h-4" />
@@ -1288,7 +1288,7 @@ export const AdminCoachEditPage = () => {
               type="button"
               onClick={handleSubmit}
               disabled={submitting}
-              className="gap-2 text-xs sm:text-sm bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/30 px-6 py-2.5"
+              className="gap-2 text-xs sm:text-sm bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/30 px-6 py-2.5 w-full sm:w-auto justify-center"
             >
               <Save className="w-4 h-4" />
               <span>{submitting ? 'در حال ثبت...' : 'ذخیره تغییرات پرونده'}</span>
