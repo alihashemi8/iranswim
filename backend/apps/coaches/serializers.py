@@ -82,6 +82,13 @@ class CoachCertificateSerializer(serializers.ModelSerializer):
         ]
         read_only_fields = ['id', 'coach_name', 'created_at']
 
+    def to_internal_value(self, data):
+        data = data.copy() if hasattr(data, 'copy') else dict(data)
+        for date_field in ['issue_date', 'expiration_date']:
+            if date_field in data and (data[date_field] == '' or data[date_field] is None):
+                data[date_field] = None
+        return super().to_internal_value(data)
+
     def get_file_url(self, obj):
         if obj.file:
             request = self.context.get('request')
@@ -651,6 +658,9 @@ class CoachProfileSerializer(serializers.ModelSerializer):
             if 'resume_file' in request.FILES:
                 profile.resume_file = request.FILES['resume_file']
 
+        if profile.has_required_info:
+            profile.is_profile_completed = True
+
         profile.save()
 
         actor = request.user if request and hasattr(request, 'user') else None
@@ -713,6 +723,9 @@ class CoachProfileSerializer(serializers.ModelSerializer):
                 instance.coaching_certificate_file = request.FILES['coaching_certificate_file']
             if 'resume_file' in request.FILES:
                 instance.resume_file = request.FILES['resume_file']
+
+        if instance.has_required_info and not instance.is_profile_completed:
+            instance.is_profile_completed = True
 
         instance.save()
 

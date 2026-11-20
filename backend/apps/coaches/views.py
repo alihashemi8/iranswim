@@ -314,7 +314,7 @@ class CoachCompleteProfileView(APIView):
             coach.user.avatar = request.FILES['avatar']
             coach.user.save(update_fields=['avatar'])
 
-        # Validate mandatory fields:
+        # Validate mandatory fields (14 core fields):
         missing = []
         fn = coach.first_name or (coach.user.first_name if coach.user else '')
         ln = coach.last_name or (coach.user.last_name if coach.user else '')
@@ -328,8 +328,6 @@ class CoachCompleteProfileView(APIView):
             missing.append('کد ملی ۱۰ رقمی معتبر')
         if not coach.date_of_birth:
             missing.append('تاریخ تولد')
-        if not (coach.user and coach.user.avatar):
-            missing.append('عکس')
         if not coach.coaching_degree or not str(coach.coaching_degree).strip():
             missing.append('درجه مربیگری')
         if not coach.coaching_certificate_date:
@@ -353,8 +351,6 @@ class CoachCompleteProfileView(APIView):
             missing.append('شماره مخاطب اضطراری')
         if not coach.coaching_certificate_file:
             missing.append('آپلود مدرک مربیگری')
-        if not coach.retraining_certificate_file:
-            missing.append('آپلود گواهی بازآموزی سال جاری')
 
         if missing:
             coach.save()
@@ -366,13 +362,13 @@ class CoachCompleteProfileView(APIView):
         coach.is_profile_completed = True
         coach.save()
 
-        # Send notification to admins about newly submitted coach credentials
+        # Send notification to management (admins) about newly submitted coach credentials
         from apps.accounts.models import User
         from apps.content.models import Notification
 
-        admin_users = list(User.objects.filter(role__in=['ADMIN', 'SUPERVISOR'], is_active=True))
+        admin_users = list(User.objects.filter(Q(role=User.Role.ADMIN) | Q(is_superuser=True), is_active=True))
         notification_title = f'تکمیل و ارسال مدارک مربیگری: {coach.full_name}'
-        notification_msg = f'مربی «{coach.full_name}» اطلاعات هویتی، مدرک مربیگری ({coach.coaching_degree}) و شماره حساب خود را تکمیل و ارسال نموده است.'
+        notification_msg = f'مربی «{coach.full_name}» اطلاعات هویتی، مدرک مربیگری ({coach.coaching_degree}) و شماره حساب خود را تکمیل و جهت بررسی و تأیید مدیریت آموزشگاه ارسال نموده است.'
         notification_link = f'/admin/coaches/{coach.id}'
 
         for admin in admin_users:
@@ -386,9 +382,9 @@ class CoachCompleteProfileView(APIView):
 
         return Response({
             'status': 'success',
-            'message': 'پرونده و مشخصات مربی با موفقیت تأیید و تکمیل گردید.',
+            'message': 'پرونده مربیگری شما با موفقیت تکمیل شد و مدارک ارسالی در نوبت تأیید مدیریت قرار گرفت.',
             'profile': CoachProfileSerializer(coach, context={'request': request}).data
-        }, status=status.HTTP_200_OK)
+        })
 
 
 class CoachMyClassesView(APIView):

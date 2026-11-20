@@ -232,10 +232,6 @@ export const AdminCreateCoachPage = () => {
       setError('تاریخ اخذ مدرک مربیگری الزامی است.');
       return false;
     }
-    if (!coachingCertificateFile && !coachingCertificateFilePreview) {
-      setError('بارگذاری فایل یا تصویر مدرک مربیگری الزامی است.');
-      return false;
-    }
     if (form.years_of_experience === '' || Number(form.years_of_experience) < 0) {
       setError('سابقه کار مربیگری الزامی است.');
       return false;

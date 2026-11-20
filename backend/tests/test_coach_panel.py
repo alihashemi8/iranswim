@@ -541,12 +541,10 @@ def test_coach_profile_completion_and_validation(coach_user):
     assert 'missing_fields' in fail_res.data
     assert 'کد ملی ۱۰ رقمی معتبر' in fail_res.data['missing_fields']
     assert 'تاریخ تولد' in fail_res.data['missing_fields']
-    assert 'عکس' in fail_res.data['missing_fields']
     assert 'تاریخ اخذ مربیگری' in fail_res.data['missing_fields']
     assert 'شماره کارت ۱۶ رقمی معتبر' in fail_res.data['missing_fields']
     assert 'شماره شبا معتبر' in fail_res.data['missing_fields']
     assert 'آپلود مدرک مربیگری' in fail_res.data['missing_fields']
-    assert 'آپلود گواهی بازآموزی سال جاری' in fail_res.data['missing_fields']
 
     # 3. Complete submission with all mandatory fields including retraining
     complete_payload = {
@@ -614,5 +612,14 @@ def test_coach_profile_completion_and_validation(coach_user):
     coach_profile.refresh_from_db()
     assert coach_profile.retraining_status == CoachProfile.RetrainingStatus.REJECTED
     assert coach_profile.is_retraining_valid is False
+
+    # 6. Technical Inspector / Supervisor CANNOT approve or reject coach documents (must be Admin/Management)
+    supervisor_user = User.objects.create_user(phone='09128887766', password='SupervisorPass123!', role=User.Role.SUPERVISOR)
+    supervisor_client = APIClient()
+    supervisor_client.force_authenticate(user=supervisor_user)
+
+    sup_verify_res = supervisor_client.post(f'/api/coaches/{coach_profile.id}/verify-retraining/', {'action': 'APPROVE'})
+    assert sup_verify_res.status_code == 403, "Technical inspector / supervisor must NOT be allowed to verify coach documents"
+
 
 

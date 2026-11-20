@@ -254,17 +254,20 @@ class CoachProfile(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.personnel_id:
-            # Generate EMP-XXXX personnel ID if not set
-            last_id = CoachProfile.objects.exclude(personnel_id__isnull=True).exclude(personnel_id='').order_by('-id').first()
-            seq = 1001
-            if last_id and last_id.personnel_id and last_id.personnel_id.startswith('EMP-'):
+            # Generate EMP-XXXX personnel ID if not set by finding the highest existing sequence
+            emp_profiles = CoachProfile.objects.filter(personnel_id__startswith='EMP-')
+            max_seq = 1000
+            for cp in emp_profiles:
                 try:
-                    seq = int(last_id.personnel_id.split('-')[-1]) + 1
-                except ValueError:
-                    seq = 1001 + (self.id or 1)
-            else:
-                seq = 1001 + (self.id or 0)
-            self.personnel_id = f"EMP-{seq}"
+                    num = int(cp.personnel_id.split('-')[-1])
+                    if num > max_seq:
+                        max_seq = num
+                except (ValueError, IndexError):
+                    pass
+            new_seq = max_seq + 1
+            while CoachProfile.objects.filter(personnel_id=f"EMP-{new_seq}").exists():
+                new_seq += 1
+            self.personnel_id = f"EMP-{new_seq}"
 
         if self.user:
             user_changed = False

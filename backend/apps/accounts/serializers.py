@@ -209,7 +209,21 @@ class UserSerializer(serializers.ModelSerializer):
                 swimmer_prof.save(update_fields=['avatar'])
         elif role == User.Role.COACH:
             from apps.coaches.models import CoachProfile
-            CoachProfile.objects.get_or_create(user=user)
+            coach_prof, _ = CoachProfile.objects.get_or_create(
+                user=user,
+                defaults={
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'national_id': user.national_id or '',
+                }
+            )
+            if not coach_prof.first_name and user.first_name:
+                coach_prof.first_name = user.first_name
+            if not coach_prof.last_name and user.last_name:
+                coach_prof.last_name = user.last_name
+            if not coach_prof.national_id and user.national_id:
+                coach_prof.national_id = user.national_id
+            coach_prof.save()
 
         # Audit Log
         request = self.context.get('request')
@@ -281,7 +295,21 @@ class UserSerializer(serializers.ModelSerializer):
             )
         elif instance.role == User.Role.COACH:
             from apps.coaches.models import CoachProfile
-            CoachProfile.objects.get_or_create(user=instance)
+            coach_prof, _ = CoachProfile.objects.get_or_create(
+                user=instance,
+                defaults={
+                    'first_name': instance.first_name,
+                    'last_name': instance.last_name,
+                    'national_id': instance.national_id or '',
+                }
+            )
+            if not coach_prof.first_name and instance.first_name:
+                coach_prof.first_name = instance.first_name
+            if not coach_prof.last_name and instance.last_name:
+                coach_prof.last_name = instance.last_name
+            if not coach_prof.national_id and instance.national_id:
+                coach_prof.national_id = instance.national_id
+            coach_prof.save()
 
         # Audit Log
         request = self.context.get('request')

@@ -409,11 +409,13 @@ class CoachChangeStatusView(APIView):
 
 class CoachVerifyRetrainingView(APIView):
     """
-    بررسی و تأیید یا رد مدرک بازآموزی سال جاری مربی توسط مدیر / سوپروایزر
+    بررسی و تأیید یا رد مدرک بازآموزی سال جاری مربی منحصراً توسط مدیریت آموزشگاه (نه ناظر فنی)
     """
-    permission_classes = [IsAdminOrSupervisor]
+    permission_classes = [IsAdminUserRole]
 
     def post(self, request, pk):
+        if not (request.user.role == 'ADMIN' or request.user.is_superuser):
+            raise PermissionDenied('تنها مدیریت آموزشگاه مجاز به بررسی و تأیید مدارک مربی است.')
         coach = get_target_coach(request, pk)
         action = str(request.data.get('action', '')).upper()
         reason = str(request.data.get('reason', '')).strip()
@@ -459,7 +461,7 @@ class CoachVerifyRetrainingView(APIView):
 
             return Response({
                 'status': 'success',
-                'message': f'گواهی بازآموزی سال {coach.retraining_year} مربی با موفقیت تأیید شد.',
+                'message': f'گواهی بازآموزی سال {coach.retraining_year} مربی توسط مدیریت آموزشگاه با موفقیت تأیید شد.',
                 'coach': CoachProfileSerializer(coach, context={'request': request}).data
             })
 
@@ -474,7 +476,7 @@ class CoachVerifyRetrainingView(APIView):
                 coach=coach,
                 event_type=CoachActivityLog.EventType.PROFILE_UPDATED,
                 actor=request.user,
-                description=f"عدم تأیید گواهی بازآموزی سال {coach.retraining_year} - علت: {coach.retraining_rejection_reason}",
+                description=f"عدم تأیید گواهی بازآموزی سال {coach.retraining_year} توسط مدیریت - علت: {coach.retraining_rejection_reason}",
                 metadata={'action': 'REJECT', 'year': coach.retraining_year, 'reason': coach.retraining_rejection_reason}
             )
 
@@ -482,14 +484,14 @@ class CoachVerifyRetrainingView(APIView):
                 Notification.objects.create(
                     recipient=coach.user,
                     title='نیاز به اصلاح گواهی بازآموزی',
-                    message=f'گواهی بازآموزی سال {coach.retraining_year} شما مورد تأیید قرار نگرفت. علت: {coach.retraining_rejection_reason}. لطفاً نسبت به اصلاح و بارگذاری مجدد در مرحله ۳ پرونده اقدام فرمایید.',
+                    message=f'گواهی بازآموزی سال {coach.retraining_year} شما توسط مدیریت آموزشگاه مورد تأیید قرار نگرفت. علت: {coach.retraining_rejection_reason}. لطفاً نسبت به اصلاح و بارگذاری مجدد در مرحله ۳ پرونده اقدام فرمایید.',
                     category=Notification.Category.ANNOUNCEMENT,
                     link='/coach/complete-profile'
                 )
 
             return Response({
                 'status': 'success',
-                'message': 'وضعیت بازآموزی مربی به «رد شده / نیازمند اصلاح» تغییر یافت.',
+                'message': 'وضعیت بازآموزی مربی توسط مدیریت آموزشگاه به «رد شده / نیازمند اصلاح» تغییر یافت.',
                 'coach': CoachProfileSerializer(coach, context={'request': request}).data
             })
 
