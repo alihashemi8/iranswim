@@ -296,7 +296,7 @@ class PaymentReceiptListCreateView(generics.ListCreateAPIView):
 
     def create(self, request, *args, **kwargs):
         user = request.user
-        data = request.data.copy()
+        data = request.data.dict() if hasattr(request.data, 'dict') else request.data.copy()
 
         # Determine swimmer
         swimmer_id = data.get('swimmer_id') or data.get('swimmer')
