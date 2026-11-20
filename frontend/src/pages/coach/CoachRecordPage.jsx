@@ -1881,7 +1881,7 @@ export const CoachRecordPage = () => {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-5 lg:space-y-6 pb-4 sm:pb-6 coach-panel">
+    <div className="space-y-4 sm:space-y-5 lg:space-y-6 pb-16 sm:pb-8 coach-panel">
       {/* هدر صفحه */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">

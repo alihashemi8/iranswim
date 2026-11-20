@@ -68,13 +68,13 @@ export const CoachCreateWorkoutPage = () => {
         ]);
 
         if (cRes.status === 'fulfilled') {
-          setClasses(Array.isArray(cRes.value.data) ? cRes.value.data : []);
+          setClasses(Array.isArray(cRes.value.data) ? cRes.value.data : (cRes.value.data?.results || []));
         }
         if (sRes.status === 'fulfilled') {
-          setSwimmers(Array.isArray(sRes.value.data) ? sRes.value.data : []);
+          setSwimmers(Array.isArray(sRes.value.data) ? sRes.value.data : (sRes.value.data?.results || []));
         }
         if (lRes.status === 'fulfilled') {
-          setLevels(Array.isArray(lRes.value.data) ? lRes.value.data : []);
+          setLevels(Array.isArray(lRes.value.data) ? lRes.value.data : (lRes.value.data?.results || []));
         }
 
         // If editing, load the plan details
@@ -251,13 +251,13 @@ export const CoachCreateWorkoutPage = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 self-end sm:self-auto">
+        <div className="grid grid-cols-2 sm:flex items-center gap-2.5 w-full sm:w-auto">
           <Button
             type="button"
             variant="outline"
             size="md"
             onClick={() => navigate('/coach/workouts')}
-            className="text-sm sm:text-base font-bold px-4 py-2"
+            className="w-full sm:w-auto justify-center text-sm sm:text-base font-bold px-4 py-2"
           >
             انصراف
           </Button>
@@ -267,7 +267,7 @@ export const CoachCreateWorkoutPage = () => {
             size="md"
             loading={saving}
             onClick={handleSubmit}
-            className={`gap-2 text-sm sm:text-base font-bold text-white shadow-xs px-5 py-2 ${
+            className={`w-full sm:w-auto justify-center gap-2 text-sm sm:text-base font-bold text-white shadow-xs px-5 py-2 ${
               planType === 'DIET' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'
             }`}
           >
@@ -773,13 +773,13 @@ export const CoachCreateWorkoutPage = () => {
         </div>
 
         {/* Bottom Actions */}
-        <div className="flex items-center justify-between gap-3 pt-2">
+        <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2">
           <Button
             type="button"
             variant="outline"
             size="md"
             onClick={() => navigate('/coach/workouts')}
-            className="text-sm sm:text-base font-bold px-5 py-2.5"
+            className="w-full sm:w-auto justify-center text-sm sm:text-base font-bold px-5 py-2.5"
           >
             انصراف و بازگشت
           </Button>
@@ -789,7 +789,7 @@ export const CoachCreateWorkoutPage = () => {
             variant="primary"
             size="md"
             loading={saving}
-            className={`gap-2 font-black text-base sm:text-lg px-8 py-3 text-white shadow-md cursor-pointer ${
+            className={`w-full sm:w-auto justify-center gap-2 font-black text-base sm:text-lg px-8 py-3 text-white shadow-md cursor-pointer ${
               planType === 'DIET' ? 'bg-emerald-600 hover:bg-emerald-700' : 'bg-blue-600 hover:bg-blue-700'
             }`}
           >

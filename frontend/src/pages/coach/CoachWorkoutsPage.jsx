@@ -202,7 +202,7 @@ export const CoachWorkoutsPage = () => {
       {/* Unified Filter & Search Bar: In Desktop Search is placed between the tabs */}
       <div className="bg-white dark:bg-slate-900 p-3 sm:p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-2xs flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
         {/* Right side: Plan Type Tabs */}
-        <div className="inline-flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl gap-1 shrink-0 overflow-x-auto select-none">
+        <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-xl gap-1 shrink-0 overflow-x-auto max-w-full select-none">
           <button
             type="button"
             onClick={() => setActiveTab('ALL')}
@@ -262,7 +262,7 @@ export const CoachWorkoutsPage = () => {
         </div>
 
         {/* Left side: Scope Filter Pills */}
-        <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto pb-1 lg:pb-0 select-none">
+        <div className="flex items-center gap-1.5 shrink-0 overflow-x-auto max-w-full pb-1 lg:pb-0 select-none">
           <button
             type="button"
             onClick={() => setTargetFilter('ALL')}
@@ -749,14 +749,14 @@ export const CoachWorkoutsPage = () => {
             )}
 
             {/* Modal Bottom Actions */}
-            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 flex-wrap">
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
                 <Button
                   type="button"
                   variant="primary"
                   size="md"
                   onClick={() => exportPlanToWord(previewPlan)}
-                  className="gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm sm:text-base cursor-pointer px-4 py-2.5"
+                  className="w-full sm:w-auto justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm sm:text-base cursor-pointer px-4 py-2.5"
                 >
                   <Download className="w-4.5 h-4.5" />
                   <span>دانلود فایل Word (.doc)</span>
@@ -767,34 +767,34 @@ export const CoachWorkoutsPage = () => {
                   variant="outline"
                   size="md"
                   onClick={() => printPlanToPdf(previewPlan)}
-                  className="gap-2 text-rose-700 border-rose-300 hover:bg-rose-50 font-bold text-sm sm:text-base cursor-pointer px-4 py-2.5"
+                  className="w-full sm:w-auto justify-center gap-2 text-rose-700 border-rose-300 hover:bg-rose-50 font-bold text-sm sm:text-base cursor-pointer px-4 py-2.5"
                 >
                   <Printer className="w-4.5 h-4.5" />
                   <span>چاپ / ذخیره PDF</span>
                 </Button>
               </div>
 
-              <div className="flex items-center gap-2.5">
+              <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2.5">
                 <Button
                   type="button"
                   variant="outline"
                   size="md"
-                  loading={sendingId === previewPlan.id}
-                  onClick={() => handleSendPlan(previewPlan)}
-                  className="gap-2 text-teal-700 border-teal-300 hover:bg-teal-50 font-bold text-sm sm:text-base cursor-pointer px-4 py-2.5"
+                  onClick={() => setPreviewPlan(null)}
+                  className="w-full sm:w-auto justify-center text-sm sm:text-base font-bold px-4 py-2.5"
                 >
-                  <Send className="w-4.5 h-4.5" />
-                  <span>{previewPlan.sent_at ? 'ارسال مجدد' : 'ارسال به مخاطب'}</span>
+                  بستن
                 </Button>
 
                 <Button
                   type="button"
                   variant="outline"
                   size="md"
-                  onClick={() => setPreviewPlan(null)}
-                  className="text-sm sm:text-base font-bold px-4 py-2.5"
+                  loading={sendingId === previewPlan.id}
+                  onClick={() => handleSendPlan(previewPlan)}
+                  className="w-full sm:w-auto justify-center gap-2 text-teal-700 border-teal-300 hover:bg-teal-50 font-bold text-sm sm:text-base cursor-pointer px-4 py-2.5"
                 >
-                  بستن
+                  <Send className="w-4.5 h-4.5" />
+                  <span>{previewPlan.sent_at ? 'ارسال مجدد' : 'ارسال به مخاطب'}</span>
                 </Button>
               </div>
             </div>

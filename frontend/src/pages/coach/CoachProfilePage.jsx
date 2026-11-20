@@ -335,7 +335,7 @@ export const CoachProfilePage = () => {
       )}
 
       {/* Tabs Switcher */}
-      <div className="flex items-center gap-1.5 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-x-auto">
+      <div className="flex items-center gap-1.5 p-1.5 bg-slate-100 dark:bg-slate-800 rounded-2xl overflow-x-auto max-w-full">
         {coachTabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -824,11 +824,11 @@ export const CoachProfilePage = () => {
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <Button variant="outline" type="button" onClick={() => setIsLeaveModalOpen(false)} className="text-sm font-bold">
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <Button variant="outline" type="button" onClick={() => setIsLeaveModalOpen(false)} className="w-full sm:w-auto text-sm font-bold">
               انصراف
             </Button>
-            <Button type="submit" disabled={submittingLeave} className="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold">
+            <Button type="submit" disabled={submittingLeave} className="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold">
               {submittingLeave ? 'در حال ارسال...' : 'ارسال درخواست'}
             </Button>
           </div>

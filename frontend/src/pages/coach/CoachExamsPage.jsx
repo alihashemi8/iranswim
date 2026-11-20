@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import api from '../../api/client';
 import { Button } from '../../components/common/Button';
+import { Modal } from '../../components/common/Modal';
 import { LoadingState } from '../../components/common/LoadingState';
 import { useToast } from '../../context/ToastContext';
 
@@ -53,7 +54,9 @@ export const CoachExamsPage = () => {
         setSelectedSwimmerId(swimmerArr[0].id);
       }
 
-      const lvlList = lvlRes.data || [];
+      const lvlList = Array.isArray(lvlRes.data)
+        ? lvlRes.data
+        : (lvlRes.data?.results || []);
       setLevels(lvlList);
       if (lvlList.length >= 2) {
         setCurrentLevelId(lvlList[0].id);
@@ -210,97 +213,93 @@ export const CoachExamsPage = () => {
       </div>
 
       {/* New Proposal Modal */}
-      {showModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 max-w-md w-full p-6 space-y-4 shadow-xl">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-              <Award className="w-5 h-5 text-purple-600" />
-              ثبت پیشنهاد ارتقای سطح شناگر
-            </h3>
-
-            <form onSubmit={handleSubmit} className="space-y-4 text-sm">
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">انتخاب شناگر:</label>
-                <select
-                  value={selectedSwimmerId}
-                  onChange={(e) => setSelectedSwimmerId(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm font-medium"
-                >
-                  {swimmers.map((sw) => (
-                    <option key={sw.id} value={sw.id}>
-                      {sw.name} ({sw.group_name})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">سطح فعلی:</label>
-                  <select
-                    value={currentLevelId}
-                    onChange={(e) => setCurrentLevelId(e.target.value)}
-                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm font-medium"
-                  >
-                    {levels.map((lvl) => (
-                      <option key={lvl.id} value={lvl.id}>
-                        {lvl.name} (سطح {lvl.order})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">سطح پیشنهادی جدید:</label>
-                  <select
-                    value={proposedLevelId}
-                    onChange={(e) => setProposedLevelId(e.target.value)}
-                    className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm font-medium"
-                  >
-                    {levels.map((lvl) => (
-                      <option key={lvl.id} value={lvl.id}>
-                        {lvl.name} (سطح {lvl.order})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">شرح عملکرد و شواهد قبولی در آزمون:</label>
-                <textarea
-                  rows="4"
-                  placeholder="ذکر مهارت‌های کسب‌شده، رکوردهای زمانی یا تسلط بر تکنیک‌های لازم..."
-                  value={coachNotes}
-                  onChange={(e) => setCoachNotes(e.target.value)}
-                  className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm leading-relaxed"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2.5 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowModal(false)}
-                  className="text-sm font-medium"
-                >
-                  انصراف
-                </Button>
-                <Button
-                  type="submit"
-                  variant="primary"
-                  size="sm"
-                  loading={submitting}
-                  className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm"
-                >
-                  ارسال پیشنهاد
-                </Button>
-              </div>
-            </form>
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title="ثبت پیشنهاد ارتقای سطح شناگر"
+        maxWidth="max-w-md"
+      >
+        <form onSubmit={handleSubmit} className="space-y-4 text-sm">
+          <div>
+            <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">انتخاب شناگر:</label>
+            <select
+              value={selectedSwimmerId}
+              onChange={(e) => setSelectedSwimmerId(e.target.value)}
+              className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm font-medium"
+            >
+              {swimmers.map((sw) => (
+                <option key={sw.id} value={sw.id}>
+                  {sw.name} ({sw.group_name})
+                </option>
+              ))}
+            </select>
           </div>
-        </div>
-      )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">سطح فعلی:</label>
+              <select
+                value={currentLevelId}
+                onChange={(e) => setCurrentLevelId(e.target.value)}
+                className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm font-medium"
+              >
+                {levels.map((lvl) => (
+                  <option key={lvl.id} value={lvl.id}>
+                    {lvl.name} (سطح {lvl.order})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">سطح پیشنهادی جدید:</label>
+              <select
+                value={proposedLevelId}
+                onChange={(e) => setProposedLevelId(e.target.value)}
+                className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm font-medium"
+              >
+                {levels.map((lvl) => (
+                  <option key={lvl.id} value={lvl.id}>
+                    {lvl.name} (سطح {lvl.order})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-slate-700 dark:text-slate-300 font-semibold mb-1.5">شرح عملکرد و شواهد قبولی در آزمون:</label>
+            <textarea
+              rows="4"
+              placeholder="ذکر مهارت‌های کسب‌شده، رکوردهای زمانی یا تسلط بر تکنیک‌های لازم..."
+              value={coachNotes}
+              onChange={(e) => setCoachNotes(e.target.value)}
+              className="w-full rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-2.5 text-slate-800 dark:text-slate-200 text-sm leading-relaxed"
+            />
+          </div>
+
+          <div className="flex flex-col-reverse sm:flex-row justify-end gap-2.5 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowModal(false)}
+              className="w-full sm:w-auto text-sm font-medium"
+            >
+              انصراف
+            </Button>
+            <Button
+              type="submit"
+              variant="primary"
+              size="sm"
+              loading={submitting}
+              className="w-full sm:w-auto bg-purple-600 hover:bg-purple-700 text-white font-bold text-sm"
+            >
+              ارسال پیشنهاد
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
