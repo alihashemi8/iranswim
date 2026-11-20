@@ -635,43 +635,43 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
       </div>
 
       {/* Main Page Navigation Tabs */}
-      <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 text-sm sm:text-base font-bold gap-1 sm:gap-2">
+      <div className="flex overflow-x-auto sm:overflow-visible bg-slate-100 dark:bg-slate-800/80 p-1.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 text-xs sm:text-base font-bold gap-1 sm:gap-2 no-scrollbar">
         <button
           type="button"
           onClick={() => handleTabChange('PROFILE')}
-          className={`flex-1 py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-w-max sm:min-w-0 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap ${
             activeMainTab === 'PROFILE'
               ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          <User className="w-5 h-5 shrink-0" />
+          <User className="w-4.5 h-4.5 sm:w-5 sm:h-5 shrink-0" />
           <span>مشخصات و پروفایل</span>
         </button>
 
         <button
           type="button"
           onClick={() => handleTabChange('SETTINGS')}
-          className={`flex-1 py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-w-max sm:min-w-0 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap ${
             activeMainTab === 'SETTINGS'
               ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          <Settings className="w-5 h-5 shrink-0" />
+          <Settings className="w-4.5 h-4.5 sm:w-5 sm:h-5 shrink-0" />
           <span>تنظیمات آموزشگاه</span>
         </button>
 
         <button
           type="button"
           onClick={() => handleTabChange('USERS')}
-          className={`flex-1 py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer ${
+          className={`flex-1 min-w-max sm:min-w-0 py-2 sm:py-2.5 px-2.5 sm:px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer whitespace-nowrap ${
             activeMainTab === 'USERS'
               ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
           }`}
         >
-          <ShieldAlert className="w-5 h-5 shrink-0" />
+          <ShieldAlert className="w-4.5 h-4.5 sm:w-5 sm:h-5 shrink-0" />
           <span>کاربران و امنیت</span>
         </button>
       </div>
@@ -889,7 +889,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
       {activeMainTab === 'SETTINGS' && (
         <div className="space-y-6 animate-fade-in">
           {/* Subtabs for Settings */}
-          <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-sm font-bold w-fit overflow-x-auto gap-1">
+          <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-xs sm:text-sm font-bold max-w-full overflow-x-auto no-scrollbar gap-1">
             {[
               { key: 'ACADEMY', label: 'اطلاعات آموزشگاه و استخر', icon: Building2 },
               { key: 'CLASS', label: 'قوانین کلاس‌ها و ظرفیت', icon: Clock },
