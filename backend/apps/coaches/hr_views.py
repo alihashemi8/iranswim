@@ -515,7 +515,7 @@ class CoachCertificateListCreateView(APIView):
         if not (request.user.role == 'ADMIN' or request.user.is_superuser):
             raise PermissionDenied('تنها مدیران مجاز به ثبت و تایید مدرک مربی هستند.')
 
-        data = request.data.copy()
+        data = request.data.dict() if hasattr(request.data, 'dict') else request.data.copy()
         data['coach'] = coach.id
         serializer = CoachCertificateSerializer(data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)
@@ -724,7 +724,7 @@ class PayrollAdjustmentCreateView(APIView):
                 status=status.HTTP_400_BAD_REQUEST
             )
 
-        data = request.data.copy()
+        data = request.data.dict() if hasattr(request.data, 'dict') else request.data.copy()
         data['payroll'] = payroll.id
         serializer = PayrollAdjustmentSerializer(data=data)
         serializer.is_valid(raise_exception=True)
@@ -823,7 +823,7 @@ class CoachLeaveRequestListCreateView(APIView):
         coach = get_target_coach(request, pk)
         if not (request.user.role == 'ADMIN' or request.user.is_superuser or (coach.user_id and coach.user_id == request.user.id)):
             raise PermissionDenied('فقط مربی مربوطه یا مدیر مجاز به ثبت درخواست مرخصی است.')
-        data = request.data.copy()
+        data = request.data.dict() if hasattr(request.data, 'dict') else request.data.copy()
         data['coach'] = coach.id
 
         serializer = CoachLeaveRequestSerializer(data=data, context={'request': request})
@@ -902,7 +902,7 @@ class CoachPerformanceEvaluationListCreateView(APIView):
         if not (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser):
             raise PermissionDenied('تنها مدیران و ناظران فنی مجاز به ثبت ارزیابی عملکرد هستند.')
 
-        data = request.data.copy()
+        data = request.data.dict() if hasattr(request.data, 'dict') else request.data.copy()
         data['coach'] = coach.id
         serializer = CoachPerformanceEvaluationSerializer(data=data)
         serializer.is_valid(raise_exception=True)
@@ -940,7 +940,7 @@ class CoachAdministrativeNoteListCreateView(APIView):
 
     def post(self, request, pk):
         coach = get_target_coach(request, pk)
-        data = request.data.copy()
+        data = request.data.dict() if hasattr(request.data, 'dict') else request.data.copy()
         data['coach'] = coach.id
         serializer = CoachAdministrativeNoteSerializer(data=data, context={'request': request})
         serializer.is_valid(raise_exception=True)

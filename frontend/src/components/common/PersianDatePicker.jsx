@@ -49,6 +49,48 @@ export const parseJalaliString = (str) => {
 };
 
 /**
+ * Compare two Jalali date objects
+ * Returns < 0 if a < b, 0 if a == b, > 0 if a > b
+ */
+export const compareJalali = (a, b) => {
+  if (!a || !b) return 0;
+  if (a.jy !== b.jy) return a.jy - b.jy;
+  if (a.jm !== b.jm) return a.jm - b.jm;
+  return a.jd - b.jd;
+};
+
+export const isJalaliAfter = (a, b) => compareJalali(a, b) > 0;
+export const isJalaliBefore = (a, b) => compareJalali(a, b) < 0;
+
+/**
+ * Parse any date representation (Jalali string, Gregorian ISO string, Date object, or {jy,jm,jd})
+ * into a Jalali object { jy, jm, jd }
+ */
+export const parseDateToJalali = (val) => {
+  if (!val) return null;
+  if (typeof val === 'object' && val !== null && 'jy' in val && 'jm' in val && 'jd' in val) {
+    return { jy: Number(val.jy), jm: Number(val.jm), jd: Number(val.jd) };
+  }
+  if (val instanceof Date && !isNaN(val.getTime())) {
+    return jalaali.toJalaali(val.getFullYear(), val.getMonth() + 1, val.getDate());
+  }
+  if (typeof val === 'string') {
+    const p = parseJalaliString(val);
+    if (p && p.jy >= 1300 && p.jy <= 1500) {
+      return p;
+    }
+    if (p && p.jy > 1900) {
+      return jalaali.toJalaali(p.jy, p.jm, p.jd);
+    }
+    const d = new Date(val);
+    if (!isNaN(d.getTime())) {
+      return jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate());
+    }
+  }
+  return null;
+};
+
+/**
  * Convert any Date / ISO string to Jalali string YYYY/MM/DD
  */
 export const toJalaliString = (dateInput) => {
@@ -88,6 +130,9 @@ export const PersianDatePicker = ({
   required = false,
   minYear = 1320,
   maxYear = 1415,
+  minDate = null,
+  maxDate = null,
+  disableFuture = true, // By default, users cannot select future dates (از امروز به قبل فقط)
   placement = 'auto', // 'auto' | 'top' | 'bottom'
   align = 'auto', // 'auto' | 'left' | 'right'
   englishDigits = false,
@@ -190,46 +235,80 @@ export const PersianDatePicker = ({
 
   // Parse current value
   const parsedValue = useMemo(() => {
-    if (!value) return null;
-    if (typeof value === 'string') {
-      const p = parseJalaliString(value);
-      // Check if it's already Jalali (e.g. starting with 13xx or 14xx)
-      if (p && (p.jy >= 1300 && p.jy <= 1500)) {
-        return p;
-      }
-      // If it's a Gregorian YYYY-MM-DD or YYYY/MM/DD
-      if (p && p.jy > 1900) {
-        return jalaali.toJalaali(p.jy, p.jm, p.jd);
-      }
-      // Fallback Date object parsing
-      const d = new Date(value);
-      if (!isNaN(d.getTime())) {
-        return jalaali.toJalaali(d.getFullYear(), d.getMonth() + 1, d.getDate());
-      }
-    } else if (value instanceof Date && !isNaN(value.getTime())) {
-      return jalaali.toJalaali(value.getFullYear(), value.getMonth() + 1, value.getDate());
-    }
-    return null;
+    return parseDateToJalali(value);
   }, [value]);
 
+  // Min limit Jalali object
+  const minLimit = useMemo(() => {
+    if (minDate) return parseDateToJalali(minDate);
+    return null;
+  }, [minDate]);
+
+  // Max limit Jalali object (Defaults to today when disableFuture is true)
+  const maxLimit = useMemo(() => {
+    let parsedMax = null;
+    if (maxDate) {
+      parsedMax = parseDateToJalali(maxDate);
+    }
+    if (disableFuture) {
+      if (parsedMax) {
+        return compareJalali(parsedMax, todayJalali) < 0 ? parsedMax : todayJalali;
+      }
+      return todayJalali;
+    }
+    return parsedMax;
+  }, [maxDate, disableFuture, todayJalali]);
+
   // View state (which month/year is currently being viewed)
-  const [viewYear, setViewYear] = useState(parsedValue?.jy || todayJalali.jy);
-  const [viewMonth, setViewMonth] = useState(parsedValue?.jm || todayJalali.jm);
+  const [viewYear, setViewYear] = useState(() => {
+    if (parsedValue) {
+      if (maxLimit && compareJalali(parsedValue, maxLimit) > 0) return maxLimit.jy;
+      if (minLimit && compareJalali(parsedValue, minLimit) < 0) return minLimit.jy;
+      return parsedValue.jy;
+    }
+    return maxLimit && compareJalali(todayJalali, maxLimit) > 0 ? maxLimit.jy : todayJalali.jy;
+  });
+
+  const [viewMonth, setViewMonth] = useState(() => {
+    if (parsedValue) {
+      if (maxLimit && compareJalali(parsedValue, maxLimit) > 0) return maxLimit.jm;
+      if (minLimit && compareJalali(parsedValue, minLimit) < 0) return minLimit.jm;
+      return parsedValue.jm;
+    }
+    return maxLimit && compareJalali(todayJalali, maxLimit) > 0 ? maxLimit.jm : todayJalali.jm;
+  });
+
   const [pickerMode, setPickerMode] = useState('days'); // 'days' | 'months' | 'years'
 
   // Update view when value or popup opens
   useEffect(() => {
     if (isOpen) {
       if (parsedValue) {
-        setViewYear(parsedValue.jy);
-        setViewMonth(parsedValue.jm);
+        const isFuture = maxLimit && compareJalali(parsedValue, maxLimit) > 0;
+        const isPast = minLimit && compareJalali(parsedValue, minLimit) < 0;
+        if (isFuture) {
+          setViewYear(maxLimit.jy);
+          setViewMonth(maxLimit.jm);
+        } else if (isPast) {
+          setViewYear(minLimit.jy);
+          setViewMonth(minLimit.jm);
+        } else {
+          setViewYear(parsedValue.jy);
+          setViewMonth(parsedValue.jm);
+        }
       } else {
-        setViewYear(todayJalali.jy);
-        setViewMonth(todayJalali.jm);
+        const defaultYear = maxLimit && compareJalali(todayJalali, maxLimit) > 0
+          ? maxLimit.jy
+          : todayJalali.jy;
+        const defaultMonth = maxLimit && compareJalali(todayJalali, maxLimit) > 0
+          ? maxLimit.jm
+          : todayJalali.jm;
+        setViewYear(defaultYear);
+        setViewMonth(defaultMonth);
       }
       setPickerMode('days');
     }
-  }, [isOpen, parsedValue, todayJalali]);
+  }, [isOpen, parsedValue, todayJalali, maxLimit, minLimit]);
 
   // Close on click outside or Escape
   useEffect(() => {
@@ -399,27 +478,100 @@ export const PersianDatePicker = ({
     setIsOpen((prev) => !prev);
   };
 
+  // Year/Month/Day validation against minLimit and maxLimit
+  const isYearDisabled = (y) => {
+    if (minLimit && y < minLimit.jy) return true;
+    if (minYear && y < minYear) return true;
+    if (maxLimit && y > maxLimit.jy) return true;
+    return false;
+  };
+
+  const isMonthDisabled = (m) => {
+    if (minLimit) {
+      if (viewYear < minLimit.jy) return true;
+      if (viewYear === minLimit.jy && m < minLimit.jm) return true;
+    }
+    if (maxLimit) {
+      if (viewYear > maxLimit.jy) return true;
+      if (viewYear === maxLimit.jy && m > maxLimit.jm) return true;
+    }
+    return false;
+  };
+
+  const isDayDisabled = (d) => {
+    if (minLimit) {
+      if (viewYear < minLimit.jy) return true;
+      if (viewYear === minLimit.jy && viewMonth < minLimit.jm) return true;
+      if (viewYear === minLimit.jy && viewMonth === minLimit.jm && d < minLimit.jd) return true;
+    }
+    if (maxLimit) {
+      if (viewYear > maxLimit.jy) return true;
+      if (viewYear === maxLimit.jy && viewMonth > maxLimit.jm) return true;
+      if (viewYear === maxLimit.jy && viewMonth === maxLimit.jm && d > maxLimit.jd) return true;
+    }
+    return false;
+  };
+
+  const isPrevMonthDisabled = useMemo(() => {
+    if (minLimit) {
+      if (viewYear < minLimit.jy) return true;
+      if (viewYear === minLimit.jy && viewMonth <= minLimit.jm) return true;
+    }
+    if (minYear && viewYear <= minYear && viewMonth <= 1) return true;
+    return false;
+  }, [minLimit, minYear, viewYear, viewMonth]);
+
+  const isNextMonthDisabled = useMemo(() => {
+    if (maxLimit) {
+      if (viewYear > maxLimit.jy) return true;
+      if (viewYear === maxLimit.jy && viewMonth >= maxLimit.jm) return true;
+    }
+    return false;
+  }, [maxLimit, viewYear, viewMonth]);
+
   // Navigate months
   const handlePrevMonth = () => {
+    if (isPrevMonthDisabled) return;
     if (viewMonth === 1) {
-      setViewYear(viewYear - 1);
+      setViewYear((prev) => prev - 1);
       setViewMonth(12);
     } else {
-      setViewMonth(viewMonth - 1);
+      setViewMonth((prev) => prev - 1);
     }
   };
 
   const handleNextMonth = () => {
+    if (isNextMonthDisabled) return;
     if (viewMonth === 12) {
-      setViewYear(viewYear + 1);
+      setViewYear((prev) => prev + 1);
       setViewMonth(1);
     } else {
-      setViewMonth(viewMonth + 1);
+      setViewMonth((prev) => prev + 1);
     }
+  };
+
+  // Select month
+  const handleSelectMonth = (monthNum) => {
+    if (isMonthDisabled(monthNum)) return;
+    setViewMonth(monthNum);
+    setPickerMode('days');
+  };
+
+  // Select year
+  const handleSelectYear = (y) => {
+    if (isYearDisabled(y)) return;
+    setViewYear(y);
+    if (maxLimit && y === maxLimit.jy && viewMonth > maxLimit.jm) {
+      setViewMonth(maxLimit.jm);
+    } else if (minLimit && y === minLimit.jy && viewMonth < minLimit.jm) {
+      setViewMonth(minLimit.jm);
+    }
+    setPickerMode('days');
   };
 
   // Select day
   const handleSelectDay = (day) => {
+    if (isDayDisabled(day)) return;
     const formatted = formatJalaliString(viewYear, viewMonth, day);
     const g = jalaali.toGregorian(viewYear, viewMonth, day);
     const gIso = `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}`;
@@ -430,6 +582,8 @@ export const PersianDatePicker = ({
 
   // Select today
   const handleSelectToday = () => {
+    if (maxLimit && compareJalali(todayJalali, maxLimit) > 0) return;
+    if (minLimit && compareJalali(todayJalali, minLimit) < 0) return;
     const formatted = formatJalaliString(todayJalali.jy, todayJalali.jm, todayJalali.jd);
     const g = jalaali.toGregorian(todayJalali.jy, todayJalali.jm, todayJalali.jd);
     const gIso = `${g.gy}-${String(g.gm).padStart(2, '0')}-${String(g.gd).padStart(2, '0')}`;
@@ -462,13 +616,15 @@ export const PersianDatePicker = ({
   // Years list for year picker
   const yearsList = useMemo(() => {
     const years = [];
-    const min = Math.min(minYear, parsedValue?.jy ? parsedValue.jy - 5 : minYear);
-    const max = Math.max(maxYear, parsedValue?.jy ? parsedValue.jy + 5 : maxYear);
+    const minBound = minLimit ? Math.max(minYear, minLimit.jy) : minYear;
+    const min = Math.min(minBound, parsedValue?.jy ? parsedValue.jy - 5 : minBound);
+    const maxBound = maxLimit ? Math.min(maxYear, maxLimit.jy) : maxYear;
+    const max = Math.max(min, maxBound);
     for (let y = max; y >= min; y--) {
       years.push(y);
     }
     return years;
-  }, [minYear, maxYear, parsedValue]);
+  }, [minYear, maxYear, parsedValue, minLimit, maxLimit]);
 
   const isValueActive = Boolean(parsedValue);
 
@@ -498,9 +654,14 @@ export const PersianDatePicker = ({
         {/* Previous month button (Right arrow in RTL) */}
         <button
           type="button"
+          disabled={isPrevMonthDisabled}
           onClick={handlePrevMonth}
-          className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-          title="ماه قبل"
+          className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors ${
+            isPrevMonthDisabled
+              ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-30 select-none'
+              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer'
+          }`}
+          title={isPrevMonthDisabled ? 'امکان بازگشت به قبل وجود ندارد' : 'ماه قبل'}
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -528,9 +689,14 @@ export const PersianDatePicker = ({
         {/* Next month button (Left arrow in RTL) */}
         <button
           type="button"
+          disabled={isNextMonthDisabled}
           onClick={handleNextMonth}
-          className="w-8 h-8 flex items-center justify-center rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
-          title="ماه بعد"
+          className={`w-8 h-8 flex items-center justify-center rounded-xl transition-colors ${
+            isNextMonthDisabled
+              ? 'text-slate-300 dark:text-slate-700 cursor-not-allowed opacity-30 select-none'
+              : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer'
+          }`}
+          title={isNextMonthDisabled ? 'امکان انتخاب ماه‌های آینده وجود ندارد' : 'ماه بعد'}
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -543,20 +709,22 @@ export const PersianDatePicker = ({
             const monthNum = idx + 1;
             const isSelected = viewMonth === monthNum;
             const isCurrentMonth = todayJalali.jm === monthNum && todayJalali.jy === viewYear;
+            const isDisabledMonth = isMonthDisabled(monthNum);
             return (
               <button
                 key={name}
                 type="button"
-                onClick={() => {
-                  setViewMonth(monthNum);
-                  setPickerMode('days');
-                }}
-                className={`py-2 px-1 text-xs font-semibold rounded-xl transition-all cursor-pointer ${
-                  isSelected
-                    ? colorStyles.bgSelected
+                disabled={isDisabledMonth}
+                onClick={() => handleSelectMonth(monthNum)}
+                title={isDisabledMonth ? 'امکان انتخاب ماه‌های آینده وجود ندارد' : undefined}
+                className={`py-2 px-1 text-xs font-semibold rounded-xl transition-all select-none ${
+                  isDisabledMonth
+                    ? 'opacity-25 cursor-not-allowed text-slate-300 dark:text-slate-600 hover:bg-transparent'
+                    : isSelected
+                    ? `${colorStyles.bgSelected} cursor-pointer`
                     : isCurrentMonth
-                    ? colorStyles.bgCurrent
-                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? `${colorStyles.bgCurrent} cursor-pointer`
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer'
                 }`}
               >
                 {name}
@@ -572,21 +740,23 @@ export const PersianDatePicker = ({
           {yearsList.map((y) => {
             const isSelected = viewYear === y;
             const isCurrentYear = todayJalali.jy === y;
+            const isDisabledYear = isYearDisabled(y);
             return (
               <button
                 key={y}
                 type="button"
+                disabled={isDisabledYear}
                 data-selected={isSelected ? 'true' : undefined}
-                onClick={() => {
-                  setViewYear(y);
-                  setPickerMode('days');
-                }}
-                className={`py-2 px-1 text-xs font-mono font-bold rounded-xl transition-all cursor-pointer ${
-                  isSelected
-                    ? colorStyles.bgSelected
+                onClick={() => handleSelectYear(y)}
+                title={isDisabledYear ? 'امکان انتخاب سال‌های آینده وجود ندارد' : undefined}
+                className={`py-2 px-1 text-xs font-mono font-bold rounded-xl transition-all select-none ${
+                  isDisabledYear
+                    ? 'opacity-25 cursor-not-allowed text-slate-300 dark:text-slate-600 hover:bg-transparent'
+                    : isSelected
+                    ? `${colorStyles.bgSelected} cursor-pointer`
                     : isCurrentYear
-                    ? colorStyles.bgCurrent
-                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                    ? `${colorStyles.bgCurrent} cursor-pointer`
+                    : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer'
                 }`}
               >
                 {formatNum(y, { useGrouping: false })}
@@ -636,20 +806,25 @@ export const PersianDatePicker = ({
                 todayJalali.jm === viewMonth &&
                 todayJalali.jd === day;
               const isFriday = (startWeekday + i) % 7 === 6;
+              const isDisabledDay = isDayDisabled(day);
 
               return (
                 <button
                   key={day}
                   type="button"
+                  disabled={isDisabledDay}
                   onClick={() => handleSelectDay(day)}
-                  className={`h-8 rounded-xl font-mono text-xs flex items-center justify-center transition-all cursor-pointer ${
-                    isSelected
-                      ? colorStyles.bgSelected
+                  title={isDisabledDay ? 'امکان انتخاب تاریخ آینده وجود ندارد (فقط تا امروز)' : undefined}
+                  className={`h-8 rounded-xl font-mono text-xs flex items-center justify-center transition-all select-none ${
+                    isDisabledDay
+                      ? 'opacity-25 cursor-not-allowed text-slate-300 dark:text-slate-600 hover:bg-transparent'
+                      : isSelected
+                      ? `${colorStyles.bgSelected} cursor-pointer`
                       : isToday
-                      ? colorStyles.borderToday
+                      ? `${colorStyles.borderToday} cursor-pointer`
                       : isFriday
-                      ? 'text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-semibold'
-                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? 'text-rose-500 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 font-semibold cursor-pointer'
+                      : 'text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer'
                   }`}
                 >
                   {formatNum(day)}
@@ -667,6 +842,11 @@ export const PersianDatePicker = ({
             >
               انتخاب امروز
             </button>
+            {disableFuture && (
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium select-none px-1">
+                (فقط تا امروز)
+              </span>
+            )}
             {clearable && isValueActive && (
               <button
                 type="button"

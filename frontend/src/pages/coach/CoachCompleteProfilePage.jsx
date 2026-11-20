@@ -1353,17 +1353,17 @@ export const CoachCompleteProfilePage = () => {
         )}
 
         {/* Wizard Controls Footer */}
-        <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800 flex flex-row items-center justify-between gap-3">
+        <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800 flex flex-row items-center justify-between gap-2 sm:gap-3">
           {/* دکمه سمت راست: مرحله قبل */}
           {currentStep > 1 ? (
             <Button
               type="button"
               variant="outline"
               onClick={handlePrevStep}
-              className="gap-2 text-xs sm:text-sm flex-1 sm:flex-initial sm:min-w-[140px] justify-center min-h-[44px]"
+              className="gap-1.5 sm:gap-2 text-xs sm:text-sm px-3 sm:px-4 flex-1 sm:flex-initial sm:min-w-[140px] justify-center min-h-[44px] min-w-0 !shrink"
             >
-              <ArrowRight className="w-4 h-4" />
-              <span>مرحله قبل</span>
+              <ArrowRight className="w-4 h-4 shrink-0" />
+              <span className="truncate">مرحله قبل</span>
             </Button>
           ) : (
             <div className="hidden sm:block" />
@@ -1374,22 +1374,27 @@ export const CoachCompleteProfilePage = () => {
             <Button
               type="button"
               onClick={handleNextStep}
-              className={`gap-2 text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs justify-center min-h-[44px] font-bold ${
+              className={`gap-1.5 sm:gap-2 text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs px-3 sm:px-5 justify-center min-h-[44px] font-bold min-w-0 !shrink ${
                 currentStep > 1 ? 'flex-1 sm:flex-initial sm:min-w-[140px]' : 'w-full sm:w-auto sm:min-w-[140px]'
               }`}
             >
-              <span>مرحله بعد</span>
-              <ArrowLeft className="w-4 h-4" />
+              <span className="truncate">مرحله بعد</span>
+              <ArrowLeft className="w-4 h-4 shrink-0" />
             </Button>
           ) : (
             <Button
               type="button"
               onClick={handleSubmit}
               disabled={submitting}
-              className="gap-2 text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 px-4 sm:px-6 py-2.5 flex-1 sm:flex-initial sm:min-w-[180px] justify-center min-h-[44px] font-bold"
+              className="gap-1.5 sm:gap-2 text-xs sm:text-sm bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 px-3 sm:px-6 py-2.5 flex-1 sm:flex-initial sm:min-w-[180px] justify-center min-h-[44px] font-bold min-w-0 !shrink"
             >
-              <CheckCircle2 className="w-5 h-5 shrink-0" />
-              <span>{submitting ? 'در حال ثبت نهایی...' : 'ثبت نهایی و تکمیل پرونده مربیگری'}</span>
+              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+              <span className="truncate hidden sm:inline">
+                {submitting ? 'در حال ثبت نهایی...' : 'ثبت نهایی و تکمیل پرونده مربیگری'}
+              </span>
+              <span className="truncate sm:hidden">
+                {submitting ? 'در حال ثبت...' : 'ثبت نهایی پرونده'}
+              </span>
             </Button>
           )}
         </div>

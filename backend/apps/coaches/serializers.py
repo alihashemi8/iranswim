@@ -83,7 +83,7 @@ class CoachCertificateSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'coach_name', 'created_at']
 
     def to_internal_value(self, data):
-        data = data.copy() if hasattr(data, 'copy') else dict(data)
+        data = data.dict() if hasattr(data, 'dict') else dict(data)
         for date_field in ['issue_date', 'expiration_date']:
             if date_field in data and (data[date_field] == '' or data[date_field] is None):
                 data[date_field] = None
@@ -525,7 +525,7 @@ class CoachProfileSerializer(serializers.ModelSerializer):
         return None
 
     def to_internal_value(self, data):
-        data = data.copy() if hasattr(data, 'copy') else dict(data)
+        data = data.dict() if hasattr(data, 'dict') else dict(data)
         for date_field in ['date_of_birth', 'coaching_certificate_date', 'lifeguard_expiration', 'employment_start_date', 'retraining_expiry_date']:
             if date_field in data and (data[date_field] == '' or data[date_field] is None):
                 data[date_field] = None

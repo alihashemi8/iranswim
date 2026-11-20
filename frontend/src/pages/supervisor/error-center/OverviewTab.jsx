@@ -68,15 +68,25 @@ export const OverviewTab = ({
           <div className="flex flex-wrap items-center gap-2 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100 dark:border-slate-800">
             <input
               type="date"
+              max={new Date().toISOString().split('T')[0]}
               value={customStart}
-              onChange={(e) => setCustomStart(e.target.value)}
+              onChange={(e) => {
+                const todayStr = new Date().toISOString().split('T')[0];
+                if (e.target.value && e.target.value > todayStr) return;
+                setCustomStart(e.target.value);
+              }}
               className="text-xs px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200"
             />
             <span className="text-xs text-slate-400">تا</span>
             <input
               type="date"
+              max={new Date().toISOString().split('T')[0]}
               value={customEnd}
-              onChange={(e) => setCustomEnd(e.target.value)}
+              onChange={(e) => {
+                const todayStr = new Date().toISOString().split('T')[0];
+                if (e.target.value && e.target.value > todayStr) return;
+                setCustomEnd(e.target.value);
+              }}
               className="text-xs px-2.5 py-1.5 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-700 dark:text-slate-200"
             />
             <button

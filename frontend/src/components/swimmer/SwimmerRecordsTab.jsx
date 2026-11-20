@@ -1153,8 +1153,13 @@ export const SwimmerRecordsTab = ({
               </label>
               <input
                 type="date"
+                max={new Date().toISOString().split('T')[0]}
                 value={newRecordForm.recorded_at}
-                onChange={(e) => setNewRecordForm((p) => ({ ...p, recorded_at: e.target.value }))}
+                onChange={(e) => {
+                  const todayStr = new Date().toISOString().split('T')[0];
+                  if (e.target.value && e.target.value > todayStr) return;
+                  setNewRecordForm((p) => ({ ...p, recorded_at: e.target.value }));
+                }}
                 className="w-full text-xs sm:text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-slate-800 dark:text-slate-200 font-mono"
                 required
               />
