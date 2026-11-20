@@ -289,7 +289,7 @@ export const AdminAttendancePage = () => {
       {/* 2. Search & Category Filters Panel */}
       <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3.5 transition-colors relative z-20">
         {/* Top Filter Row: Search & Attendance Status Pills */}
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           {/* Real-time Search Box */}
           <div className="relative flex-1">
             <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2" />
@@ -582,8 +582,8 @@ export const AdminAttendancePage = () => {
       ) : (
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-4 sm:p-6 shadow-xs transition-colors space-y-4">
           {/* Desktop Table View */}
-          <div className="hidden md:block overflow-hidden rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-            <table className="w-full text-sm text-right border-collapse">
+          <div className="hidden lg:block overflow-x-auto rounded-xl border border-slate-200/80 dark:border-slate-800 shadow-2xs">
+            <table className="w-full text-sm text-right border-collapse min-w-[760px]">
               <thead className="bg-slate-50 dark:bg-slate-800/80 text-xs font-bold text-slate-700 dark:text-slate-200 border-b border-slate-200/80 dark:border-slate-700/80 select-none">
                 <tr>
                   <th className="px-3.5 py-3 text-right w-[28%]">گروه و دوره آموزشی</th>
@@ -708,8 +708,8 @@ export const AdminAttendancePage = () => {
             </table>
           </div>
 
-          {/* Mobile Cards View */}
-          <div className="md:hidden space-y-3">
+          {/* Mobile & Tablet Cards View */}
+          <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {paginatedSessions.map((session) => (
               <div
                 key={session.id}

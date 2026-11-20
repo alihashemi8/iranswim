@@ -199,7 +199,7 @@ export const AdminAttendanceDetailPage = () => {
   return (
     <div className="space-y-6 pb-16">
       {/* 1. Navigation & Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <BackButton fallback="/admin/attendance" title="بازگشت به لیست جلسات" />
           <div className="min-w-0">
@@ -219,12 +219,12 @@ export const AdminAttendanceDetailPage = () => {
           </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2 w-full lg:w-auto">
           <Button
             type="button"
             variant="outline"
             onClick={() => navigate('/admin/attendance')}
-            className="flex-1 sm:flex-initial text-xs"
+            className="flex-1 lg:flex-initial text-xs"
           >
             انصراف
           </Button>
@@ -233,7 +233,7 @@ export const AdminAttendanceDetailPage = () => {
             loading={saving}
             disabled={saving || enrollments.length === 0}
             onClick={handleSaveAttendance}
-            className="flex-1 sm:flex-initial gap-1.5 text-xs bg-sky-600 hover:bg-sky-700 text-white font-bold px-4"
+            className="flex-1 lg:flex-initial gap-1.5 text-xs bg-sky-600 hover:bg-sky-700 text-white font-bold px-4"
           >
             <Save className="w-4 h-4" />
             {saving ? 'در حال ثبت...' : 'ثبت و نهایی‌سازی حضور و غیاب'}
@@ -311,8 +311,8 @@ export const AdminAttendanceDetailPage = () => {
         </div>
 
         {/* 3. Toolbar: Search Swimmers, Status Tabs, Mark All Present */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-          <div className="relative flex-1 max-w-sm">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
+          <div className="relative w-full lg:max-w-xs">
             <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -450,7 +450,7 @@ export const AdminAttendanceDetailPage = () => {
       </div>
 
       {/* 6. Sticky Save Footer */}
-      <div className="sticky bottom-4 z-30 p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 shadow-xl flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div className="sticky bottom-4 z-30 p-4 rounded-2xl bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-slate-200/90 dark:border-slate-800 shadow-xl flex flex-col lg:flex-row items-center justify-between gap-3">
         {savedSuccess ? (
           <span className="text-xs sm:text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
             <Check className="w-5 h-5" />
@@ -462,12 +462,12 @@ export const AdminAttendanceDetailPage = () => {
           </div>
         )}
 
-        <div className="flex items-center gap-2 w-full sm:w-auto">
+        <div className="flex items-center gap-2 w-full lg:w-auto">
           <Button
             type="button"
             variant="outline"
             onClick={() => navigate('/admin/attendance')}
-            className="flex-1 sm:flex-initial text-xs"
+            className="flex-1 lg:flex-initial text-xs"
           >
             انصراف
           </Button>
@@ -476,7 +476,7 @@ export const AdminAttendanceDetailPage = () => {
             loading={saving}
             disabled={saving || enrollments.length === 0}
             onClick={handleSaveAttendance}
-            className="flex-1 sm:flex-initial gap-1.5 text-xs bg-sky-600 hover:bg-sky-700 text-white font-bold px-5"
+            className="flex-1 lg:flex-initial gap-1.5 text-xs bg-sky-600 hover:bg-sky-700 text-white font-bold px-5"
           >
             <Save className="w-4 h-4" />
             {saving ? 'در حال ثبت...' : 'ثبت و نهایی‌سازی حضور و غیاب'}

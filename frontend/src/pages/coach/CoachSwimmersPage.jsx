@@ -230,9 +230,9 @@ export const CoachSwimmersPage = () => {
 
       {/* نوار فیلترها */}
       <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 lg:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-2.5 sm:gap-3">
           {/* جست‌وجو */}
-          <div className="relative md:col-span-4">
+          <div className="relative sm:col-span-2 lg:col-span-4">
             <Search className="w-4.5 h-4.5 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
@@ -256,7 +256,7 @@ export const CoachSwimmersPage = () => {
           </div>
 
           {/* فیلتر دوره */}
-          <div className="md:col-span-2">
+          <div className="sm:col-span-1 lg:col-span-2">
             <CustomSelect
               value={selectedCourse}
               onChange={(val) => setSelectedCourse(val || '')}
@@ -272,7 +272,7 @@ export const CoachSwimmersPage = () => {
           </div>
 
           {/* فیلتر استخر */}
-          <div className="md:col-span-2">
+          <div className="sm:col-span-1 lg:col-span-2">
             <CustomSelect
               value={selectedPool}
               onChange={(val) => setSelectedPool(val || '')}
@@ -288,7 +288,7 @@ export const CoachSwimmersPage = () => {
           </div>
 
           {/* فیلتر سطح */}
-          <div className="md:col-span-2">
+          <div className="sm:col-span-1 lg:col-span-2">
             <CustomSelect
               value={selectedLevel}
               onChange={(val) => setSelectedLevel(val || '')}
@@ -304,7 +304,7 @@ export const CoachSwimmersPage = () => {
           </div>
 
           {/* فیلتر وضعیت ثبت‌نام */}
-          <div className="md:col-span-2">
+          <div className="sm:col-span-1 lg:col-span-2">
             <CustomSelect
               value={selectedStatus}
               onChange={(val) => setSelectedStatus(val || '')}

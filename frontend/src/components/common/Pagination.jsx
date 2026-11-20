@@ -68,7 +68,7 @@ export const Pagination = ({
 
   return (
     <div
-      className={`flex flex-col md:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 ${className}`}
+      className={`flex flex-col lg:flex-row items-center justify-between gap-3 pt-4 border-t border-slate-100 dark:border-slate-800 text-xs text-slate-500 dark:text-slate-400 ${className}`}
     >
       <div className="whitespace-nowrap">
         <span>

@@ -318,7 +318,7 @@ export const CoachAttendancePage = () => {
 
       {/* 2. Current Session Summary Card */}
       {currentSession && (
-        <div className="bg-gradient-to-r from-emerald-50/80 to-teal-50/60 dark:from-emerald-950/30 dark:to-teal-950/20 p-4 sm:p-5 rounded-2xl border border-emerald-200 dark:border-emerald-800/60 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-gradient-to-r from-emerald-50/80 to-teal-50/60 dark:from-emerald-950/30 dark:to-teal-950/20 p-4 sm:p-5 rounded-2xl border border-emerald-200 dark:border-emerald-800/60 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div className="space-y-1.5">
             <div className="flex items-center gap-2 flex-wrap">
               <span className="text-xs sm:text-sm font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/60 px-2.5 py-0.5 rounded-md">
@@ -346,21 +346,21 @@ export const CoachAttendancePage = () => {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5">
+          <div className="flex items-center gap-2.5 w-full lg:w-auto">
             <button
               type="button"
               onClick={handleMarkAllPresent}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-bold border border-emerald-200 dark:border-emerald-800 shadow-xs transition-all active:scale-95 cursor-pointer"
+              className="flex-1 lg:flex-initial inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white dark:bg-slate-800 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-slate-700 text-xs sm:text-sm font-bold border border-emerald-200 dark:border-emerald-800 shadow-xs transition-all active:scale-95 cursor-pointer whitespace-nowrap min-h-[42px]"
             >
-              <CheckCheck className="w-4.5 h-4.5 text-emerald-600" />
-              علامت‌گذاری همه به عنوان حاضر
+              <CheckCheck className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
+              <span>حاضر کردن همه</span>
             </button>
             <Button
               variant="primary"
               size="sm"
               loading={saving}
               onClick={handleSave}
-              className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm px-4 py-2.5 cursor-pointer shadow-xs"
+              className="flex-1 lg:flex-initial gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm px-4 py-2.5 cursor-pointer shadow-xs whitespace-nowrap min-h-[42px] justify-center"
             >
               <Save className="w-4.5 h-4.5" />
               ذخیره نهایی
@@ -586,7 +586,7 @@ export const CoachAttendancePage = () => {
                       placeholder="توضیح یا یادداشت شناگر..."
                       value={cur.note}
                       onChange={(e) => setNote(enr.swimmer, e.target.value)}
-                      className="text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 w-full sm:w-52 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      className="text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-2 w-full sm:flex-1 lg:w-52 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-1 focus:ring-emerald-500"
                     />
                   </div>
                 </div>
@@ -595,7 +595,7 @@ export const CoachAttendancePage = () => {
           </div>
 
           {/* Footer Save Area */}
-          <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+          <div className="p-4 sm:p-5 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
             {savedSuccess ? (
               <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-2">
                 <Check className="w-5 h-5" />
@@ -612,7 +612,7 @@ export const CoachAttendancePage = () => {
               size="md"
               loading={saving}
               onClick={handleSave}
-              className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base px-5 py-2.5 cursor-pointer"
+              className="w-full lg:w-auto justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm sm:text-base px-5 py-2.5 cursor-pointer shrink-0"
             >
               <Save className="w-5 h-5" />
               ذخیره نهایی حضور و غیاب و ارزیابی

@@ -466,7 +466,7 @@ export const AdminSwimmersPage = () => {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition-colors">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Users className="w-6 h-6 text-sky-600" />
@@ -476,7 +476,7 @@ export const AdminSwimmersPage = () => {
             مشاهده، ثبت‌نام، تخصیص کلاس و فیلتر پیشرفته بر اساس سال تولد، استخر، جنسیت و مربی
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
           {/* Link to Dossiers Page */}
           <Link
             to="/admin/dossiers"
@@ -506,7 +506,7 @@ export const AdminSwimmersPage = () => {
       {/* Advanced Filter and Search Section */}
       <div className="bg-white dark:bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4 transition-colors">
         {/* Top Row: Search input and Status filter tabs */}
-        <div className="flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3">
+        <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3">
           <form onSubmit={handleSearchSubmit} className="flex-1 flex items-center gap-2">
             <div className="relative flex-1">
               <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -988,8 +988,8 @@ export const AdminSwimmersPage = () => {
                   </div>
 
                   {/* Bottom Action Row: Class Selector & Action Buttons */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
-                    <div className="w-full sm:w-auto">
+                  <div className="flex flex-col md:flex-row md:items-center justify-between gap-2.5 pt-2 border-t border-slate-200/50 dark:border-slate-700/50">
+                    <div className="w-full md:w-auto">
                       <ClassSelectorDropdown
                         currentClass={
                           swimmer.coach_id || swimmer.group_id || swimmer.class_name
@@ -1010,11 +1010,11 @@ export const AdminSwimmersPage = () => {
                       />
                     </div>
 
-                    <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                    <div className="flex items-center gap-2 w-full md:w-auto justify-end">
                       <button
                         type="button"
                         onClick={() => handleOpenDossier(swimmer)}
-                        className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 font-semibold border border-sky-200/80 dark:border-sky-800 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap shadow-2xs"
+                        className="flex-1 md:flex-initial px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 font-semibold border border-sky-200/80 dark:border-sky-800 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap shadow-2xs"
                       >
                         <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
                         <span className="whitespace-nowrap">پرونده</span>
@@ -1022,7 +1022,7 @@ export const AdminSwimmersPage = () => {
                       <button
                         type="button"
                         onClick={() => navigate(`/admin/swimmers/${swimmer.id}/enroll`)}
-                        className="flex-1 sm:flex-initial px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 font-semibold border border-emerald-200/80 dark:border-emerald-800 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap shadow-2xs"
+                        className="flex-1 md:flex-initial px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 font-semibold border border-emerald-200/80 dark:border-emerald-800 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap shadow-2xs"
                       >
                         <PlusCircle className="w-3.5 h-3.5 shrink-0" />
                         <span className="whitespace-nowrap">ثبت‌نام</span>

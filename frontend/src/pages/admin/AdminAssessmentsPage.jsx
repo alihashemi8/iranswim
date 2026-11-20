@@ -173,11 +173,11 @@ export const AdminAssessmentsPage = () => {
       </div>
 
       {/* Tabs Switcher */}
-      <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-xs w-fit">
+      <div className="flex bg-slate-100 dark:bg-slate-800/80 p-1 rounded-2xl border border-slate-200/60 dark:border-slate-700 text-xs max-w-full overflow-x-auto no-scrollbar gap-1">
         <button
           type="button"
           onClick={() => setActiveTab('RECORDS')}
-          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 ${
+          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap shrink-0 ${
             activeTab === 'RECORDS'
               ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -193,7 +193,7 @@ export const AdminAssessmentsPage = () => {
         <button
           type="button"
           onClick={() => setActiveTab('ASSESSMENTS')}
-          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer ${
+          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === 'ASSESSMENTS'
               ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -204,7 +204,7 @@ export const AdminAssessmentsPage = () => {
         <button
           type="button"
           onClick={() => setActiveTab('SKILLS')}
-          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer ${
+          className={`px-4 py-2 rounded-xl font-bold transition-colors cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === 'SKILLS'
               ? 'bg-white dark:bg-slate-900 text-sky-700 dark:text-sky-300 shadow-2xs'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
@@ -540,13 +540,13 @@ export const AdminAssessmentsPage = () => {
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
             <Button
               type="button"
               variant="outline"
               disabled={verifying}
               onClick={() => handleVerifyDecision('REJECT')}
-              className="text-rose-600 hover:bg-rose-50 border-rose-200"
+              className="text-rose-600 hover:bg-rose-50 border-rose-200 w-full sm:w-auto"
             >
               رد رکورد
             </Button>
@@ -554,6 +554,7 @@ export const AdminAssessmentsPage = () => {
               type="button"
               disabled={verifying}
               onClick={() => handleVerifyDecision('VERIFY')}
+              className="w-full sm:w-auto"
             >
               {verifying ? 'در حال ثبت...' : 'تأیید رسمی و ورود به لیگ'}
             </Button>
@@ -649,11 +650,11 @@ export const AdminAssessmentsPage = () => {
             />
           </div>
 
-          <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
-            <Button type="button" variant="outline" onClick={() => setIsNewAssessModalOpen(false)}>
+          <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <Button type="button" variant="outline" onClick={() => setIsNewAssessModalOpen(false)} className="w-full sm:w-auto">
               انصراف
             </Button>
-            <Button type="submit" disabled={submittingAssess}>
+            <Button type="submit" disabled={submittingAssess} className="w-full sm:w-auto">
               {submittingAssess ? 'در حال ثبت...' : 'ثبت قطعی ارزیابی'}
             </Button>
           </div>

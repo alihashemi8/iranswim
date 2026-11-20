@@ -97,7 +97,7 @@ export const CoachDashboard = () => {
 
       {/* 1. Header Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-l from-emerald-600 via-teal-600 to-cyan-700 p-6 sm:p-8 text-white shadow-sm">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div>
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/20 backdrop-blur-md text-sm font-semibold mb-3">
               <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse" />
@@ -119,17 +119,17 @@ export const CoachDashboard = () => {
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-2.5 w-full lg:w-auto">
             <Link
               to="/coach/attendance"
-              className="flex-1 md:flex-initial justify-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-emerald-800 text-sm sm:text-base font-bold shadow-md hover:bg-emerald-50 transition-all active:scale-95 whitespace-nowrap"
+              className="flex-1 lg:flex-initial justify-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-emerald-800 text-sm sm:text-base font-bold shadow-md hover:bg-emerald-50 transition-all active:scale-95 whitespace-nowrap"
             >
               <ClipboardCheck className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
               <span>ثبت حضور و غیاب</span>
             </Link>
             <Link
               to="/coach/workouts"
-              className="flex-1 md:flex-initial justify-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-700/60 hover:bg-emerald-700 text-white text-sm sm:text-base font-semibold backdrop-blur-sm border border-emerald-400/30 transition-all active:scale-95 whitespace-nowrap"
+              className="flex-1 lg:flex-initial justify-center inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-700/60 hover:bg-emerald-700 text-white text-sm sm:text-base font-semibold backdrop-blur-sm border border-emerald-400/30 transition-all active:scale-95 whitespace-nowrap"
             >
               <PlusCircle className="w-4.5 h-4.5 shrink-0" />
               <span>طرح تمرین امروز</span>

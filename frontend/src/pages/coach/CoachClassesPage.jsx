@@ -177,14 +177,14 @@ export const CoachClassesPage = () => {
               <div className="pt-4 mt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2.5">
                 <Link
                   to={`/coach/classes/${cls.id}`}
-                  className="w-full inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-200 text-sm font-bold transition-all"
+                  className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-slate-800 hover:bg-emerald-600 hover:text-white text-slate-700 dark:text-slate-200 text-sm font-bold transition-all"
                 >
                   مشاهده پرونده و جلسات
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-4 h-4 shrink-0" />
                 </Link>
                 <Link
                   to={`/coach/attendance?group_id=${cls.id}`}
-                  className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-colors"
+                  className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-colors shrink-0"
                   title="ثبت سریع حضور و غیاب"
                 >
                   <ClipboardCheck className="w-5 h-5" />

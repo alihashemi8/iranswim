@@ -339,7 +339,7 @@ export const AdminCoursesPage = () => {
                 value={`${summaryStats.overallOccupancy}%`}
                 subtitle={
                   summaryStats.totalCap > summaryStats.totalEnr
-                    ? `${summaryStats.totalCap - summaryStats.totalEnr} صندلی خالی`
+                    ? `${summaryStats.totalCap - summaryStats.totalEnr} ظرفیت خالی`
                     : 'ظرفیت تکمیل'
                 }
                 icon={CheckCircle2}
@@ -351,9 +351,9 @@ export const AdminCoursesPage = () => {
           {/* 4. Controls Toolbar: Search, Filters & View Mode Switcher */}
           {courses.length > 0 && (
             <div className="space-y-2.5">
-              <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors">
+              <div className="bg-white dark:bg-slate-900 p-3.5 sm:p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-3 transition-colors">
                 {/* Search & Filters */}
-                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 flex-1 flex-wrap">
                   {/* Search Input */}
                   <div className="relative flex-1 min-w-[200px]">
                     <Search className="w-4 h-4 text-slate-400 absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
@@ -404,7 +404,7 @@ export const AdminCoursesPage = () => {
                 </div>
 
                 {/* View Switcher: ONLY VISIBLE ON DESKTOP & TABLET (HIDDEN ON MOBILE) */}
-                <div className="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shrink-0">
+                <div className="hidden sm:flex items-center gap-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200/80 dark:border-slate-700/80 shrink-0 self-end lg:self-auto">
                   <button
                     type="button"
                     onClick={() => handleViewModeChange('cards')}

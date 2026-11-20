@@ -547,7 +547,7 @@ export const AdminDossiersPage = () => {
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition-colors">
         <div>
           <h1 className="text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
             <FolderCheck className="w-7 h-7 text-sky-600" />
@@ -557,7 +557,7 @@ export const AdminDossiersPage = () => {
             بررسی و اعتبارسنجی فیش‌های واریزی کارت‌به‌کارت شهریه، مدارک هویتی شناگران و کادر مربیان
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
           <Button
             variant="outline"
             onClick={() => {
@@ -583,9 +583,9 @@ export const AdminDossiersPage = () => {
       </div>
 
       {/* KPI Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3.5">
         {/* Total Pending */}
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-amber-200/80 dark:border-amber-900/40 shadow-2xs flex items-center gap-3">
+        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-amber-200/80 dark:border-amber-900/40 shadow-2xs flex items-center gap-3 md:col-span-2 lg:col-span-1">
           <div className="w-11 h-11 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/60 dark:border-amber-800 flex items-center justify-center shrink-0">
             <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
           </div>
@@ -697,20 +697,20 @@ export const AdminDossiersPage = () => {
       </div>
 
       {/* Main Tabs Navigation */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 gap-3">
+      <div className="flex border-b border-slate-200 dark:border-slate-800 gap-3 overflow-x-auto no-scrollbar max-w-full pb-px">
         <button
           type="button"
           onClick={() => handleTabChange('SWIMMERS')}
-          className={`pb-3.5 px-4 font-black text-sm sm:text-base transition-all border-b-2 flex items-center gap-2.5 cursor-pointer ${
+          className={`pb-3.5 px-4 font-black text-sm sm:text-base transition-all border-b-2 flex items-center gap-2.5 cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === 'SWIMMERS'
               ? 'border-sky-600 text-sky-600 dark:text-sky-400'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
           }`}
         >
-          <Users className="w-4 h-4" />
+          <Users className="w-4 h-4 shrink-0" />
           <span>پرونده‌ها و مدارک شناگران</span>
           {summaryStats.swimmers_pending > 0 && (
-            <span className="px-2 py-0.5 text-xs rounded-full bg-amber-500 text-white font-mono">
+            <span className="px-2 py-0.5 text-xs rounded-full bg-amber-500 text-white font-mono shrink-0">
               {toEnglishDigits(summaryStats.swimmers_pending)}
             </span>
           )}
@@ -719,16 +719,16 @@ export const AdminDossiersPage = () => {
         <button
           type="button"
           onClick={() => handleTabChange('COACHES')}
-          className={`pb-3.5 px-4 font-black text-sm sm:text-base transition-all border-b-2 flex items-center gap-2.5 cursor-pointer ${
+          className={`pb-3.5 px-4 font-black text-sm sm:text-base transition-all border-b-2 flex items-center gap-2.5 cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === 'COACHES'
               ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
           }`}
         >
-          <Whistle className="w-4 h-4" />
+          <Whistle className="w-4 h-4 shrink-0" />
           <span>پرونده‌ها و مدارک مربیان</span>
           {summaryStats.coaches_pending > 0 && (
-            <span className="px-2 py-0.5 text-xs rounded-full bg-emerald-500 text-white font-mono">
+            <span className="px-2 py-0.5 text-xs rounded-full bg-emerald-500 text-white font-mono shrink-0">
               {toEnglishDigits(summaryStats.coaches_pending)}
             </span>
           )}
@@ -737,16 +737,16 @@ export const AdminDossiersPage = () => {
         <button
           type="button"
           onClick={() => handleTabChange('RECEIPTS')}
-          className={`pb-3.5 px-4 font-black text-sm sm:text-base transition-all border-b-2 flex items-center gap-2.5 cursor-pointer ${
+          className={`pb-3.5 px-4 font-black text-sm sm:text-base transition-all border-b-2 flex items-center gap-2.5 cursor-pointer whitespace-nowrap shrink-0 ${
             activeTab === 'RECEIPTS'
               ? 'border-amber-600 text-amber-600 dark:text-amber-400'
               : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
           }`}
         >
-          <Receipt className="w-4 h-4" />
+          <Receipt className="w-4 h-4 shrink-0" />
           <span>رسید ها</span>
           {summaryStats.receipts_pending > 0 && (
-            <span className="px-2 py-0.5 text-xs rounded-full bg-amber-500 text-white font-mono">
+            <span className="px-2 py-0.5 text-xs rounded-full bg-amber-500 text-white font-mono shrink-0">
               {toEnglishDigits(summaryStats.receipts_pending)}
             </span>
           )}
@@ -1756,11 +1756,11 @@ export const AdminDossiersPage = () => {
                   {/* Card Bottom Actions */}
                   <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between flex-wrap gap-2">
                     {receipt.status === 'PENDING' ? (
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
                         <Button
                           variant="primary"
                           onClick={() => openApproveModal(receipt)}
-                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 py-2.5 gap-2 shadow-2xs cursor-pointer"
+                          className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm px-4 py-2.5 gap-2 shadow-2xs cursor-pointer w-full sm:w-auto justify-center"
                         >
                           <Check className="w-4 h-4" />
                           <span>تأیید رسید و کسر از شهریه</span>
@@ -1768,7 +1768,7 @@ export const AdminDossiersPage = () => {
                         <Button
                           variant="outline"
                           onClick={() => openRejectionModal('RECEIPT', receipt)}
-                          className="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-rose-300 dark:border-rose-800 font-bold text-sm px-4 py-2.5 gap-2 cursor-pointer"
+                          className="text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 border-rose-300 dark:border-rose-800 font-bold text-sm px-4 py-2.5 gap-2 cursor-pointer w-full sm:w-auto justify-center"
                         >
                           <X className="w-4 h-4" />
                           <span>عدم تأیید / رد رسید</span>

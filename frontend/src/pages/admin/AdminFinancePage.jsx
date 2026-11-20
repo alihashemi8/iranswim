@@ -929,7 +929,7 @@ export const AdminFinancePage = () => {
           )}
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-2.5">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
           {/* 1. جنسیت */}
           <CustomSelect
             label="جنسیت"
@@ -1125,7 +1125,7 @@ export const AdminFinancePage = () => {
           ) : (
             <>
               {/* Desktop Table View */}
-              <div className="hidden md:block overflow-x-auto">
+              <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full text-sm text-right min-w-[700px] border-separate border-spacing-y-2">
                   <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300">
                     <tr>
@@ -1252,7 +1252,7 @@ export const AdminFinancePage = () => {
               </div>
 
               {/* Mobile Cards View */}
-              <div className="md:hidden space-y-3">
+              <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 {paginatedInvoices.map((inv) => {
                   const theme = getInvoiceTheme(inv.status);
                   return (
@@ -1433,7 +1433,7 @@ export const AdminFinancePage = () => {
             ) : (
               <>
                 {/* Desktop Table View */}
-                <div className="hidden md:block overflow-x-auto">
+                <div className="hidden lg:block overflow-x-auto">
                   <table className="w-full text-sm text-right border-separate border-spacing-y-2">
                     <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300">
                       <tr>
@@ -1510,7 +1510,7 @@ export const AdminFinancePage = () => {
                 </div>
 
                 {/* Mobile Cards View */}
-                <div className="md:hidden space-y-3">
+                <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-3.5">
                   {filteredInstallments.map((inst) => (
                     <div
                       key={inst.id}
@@ -1634,7 +1634,7 @@ export const AdminFinancePage = () => {
           ) : (
             <>
               {/* Desktop Table View */}
-              <div className="hidden md:block overflow-x-auto">
+              <div className="hidden lg:block overflow-x-auto">
                 <table className="w-full text-sm text-right">
                   <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                     <tr>
@@ -1693,7 +1693,7 @@ export const AdminFinancePage = () => {
               </div>
 
               {/* Mobile Cards View */}
-              <div className="md:hidden space-y-3">
+              <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-3.5">
                 {filteredPayments.map((p) => (
                   <div
                     key={p.id}

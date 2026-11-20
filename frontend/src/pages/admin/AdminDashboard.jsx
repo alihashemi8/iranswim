@@ -422,7 +422,7 @@ export const AdminDashboard = () => {
         </div>
 
         {/* Action Counter & Refresh Button */}
-        <div className="flex items-center gap-2 self-stretch sm:self-auto justify-between sm:justify-end shrink-0">
+        <div className="flex items-center gap-2 self-stretch lg:self-auto justify-between lg:justify-end shrink-0 pt-2 lg:pt-0">
           <button
             type="button"
             onClick={() => fetchDashboardData(true)}
@@ -646,7 +646,7 @@ export const AdminDashboard = () => {
 
       {/* 4. Today's Pool Classes Schedule */}
       <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-5 sm:p-6 shadow-xs transition-colors space-y-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 gap-3">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 gap-3">
           <div>
             <h2 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
               <Calendar className="w-4 h-4 text-sky-600 shrink-0" />
@@ -726,7 +726,7 @@ export const AdminDashboard = () => {
         ) : (
           <>
             {/* Desktop & Tablet Table View */}
-            <div className="hidden md:block overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-slate-800">
+            <div className="hidden lg:block overflow-x-auto rounded-2xl border border-slate-200/80 dark:border-slate-800">
               <table className="w-full text-sm text-right min-w-[700px]">
                 <thead className="bg-slate-50 dark:bg-slate-800/60 text-xs font-semibold text-slate-600 dark:text-slate-300 border-b border-slate-200/80 dark:border-slate-800">
                   <tr>
@@ -834,7 +834,7 @@ export const AdminDashboard = () => {
             </div>
 
             {/* Mobile Card View */}
-            <div className="md:hidden space-y-3">
+            <div className="lg:hidden grid grid-cols-1 md:grid-cols-2 gap-3.5">
               {filteredSchedule.map((session) => {
                 const liveState = getSessionLiveState(session);
                 const groupInfo = groupMap.get(session.group);

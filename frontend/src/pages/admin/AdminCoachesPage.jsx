@@ -423,7 +423,7 @@ export const AdminCoachesPage = () => {
         }
       `}</style>
       {/* 1. Header with Title & Action Controls */}
-      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-4 transition-colors">
+      <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition-colors">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
             <Whistle className="w-6 h-6 sm:w-7 sm:h-7 text-sky-600 shrink-0" />
@@ -434,7 +434,7 @@ export const AdminCoachesPage = () => {
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2.5">
+        <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
           {/* Add Coach Button */}
           <Button
             onClick={() => navigate('/admin/coaches/new')}
@@ -549,9 +549,9 @@ export const AdminCoachesPage = () => {
 
       {/* 3. Search and Multi-Filter Bar */}
       <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-2.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-6 gap-2.5">
           {/* Search Box */}
-          <div className="relative lg:col-span-2">
+          <div className="relative md:col-span-2 lg:col-span-2">
             <Search className="w-4 h-4 text-slate-400 absolute right-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"

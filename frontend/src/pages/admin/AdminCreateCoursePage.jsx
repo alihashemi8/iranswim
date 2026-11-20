@@ -500,7 +500,7 @@ export const AdminCreateCoursePage = () => {
           >
             انصراف
           </Button>
-          <span className="text-xs font-mono font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 px-3 py-1.5 rounded-xl">
+          <span className="text-xs font-mono font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 px-3 py-1.5 rounded-xl whitespace-nowrap shrink-0">
             مرحله {currentStep} از ۴
           </span>
         </div>
@@ -567,7 +567,7 @@ export const AdminCreateCoursePage = () => {
 
         {/* Current Active Step Title Display (only the active step is written here) */}
         <div className="mt-5 pt-4 text-center border-t border-slate-100 dark:border-slate-800/80">
-          <span className="inline-block text-[11px] font-bold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-3 py-1 rounded-full border border-sky-200/60 dark:border-sky-800/60 mb-1.5">
+          <span className="inline-block text-[11px] font-bold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 px-3 py-1 rounded-full border border-sky-200/60 dark:border-sky-800/60 mb-1.5 whitespace-nowrap">
             مرحله {currentStep} از {STEPS.length}
           </span>
           <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-white">
@@ -705,7 +705,7 @@ export const AdminCreateCoursePage = () => {
                       key={preset.label}
                       type="button"
                       onClick={() => setQuickAgeRange(preset.min, preset.max)}
-                      className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all cursor-pointer ${
+                      className={`text-[10px] px-2 py-0.5 rounded-lg border transition-all cursor-pointer whitespace-nowrap shrink-0 ${
                         formData.age_min === preset.min && formData.age_max === preset.max
                           ? 'bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300 border-sky-300 dark:border-sky-700 font-bold'
                           : 'bg-slate-100/70 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border-slate-200/60 dark:border-slate-700 hover:bg-slate-200/60 dark:hover:bg-slate-700'

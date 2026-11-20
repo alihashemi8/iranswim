@@ -427,21 +427,11 @@ export const AdminCoachEditPage = () => {
               <span className="text-xs text-slate-300 dark:text-slate-700">/</span>
               <span className="text-xs font-bold text-sky-600 dark:text-sky-400">ویرایش پرونده</span>
             </div>
-            <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white mt-1 flex items-center gap-2 truncate">
+            <h1 className="text-lg sm:text-2xl font-black text-slate-900 dark:text-white mt-1 flex items-center gap-2">
               <UserCheck className="w-6 h-6 text-sky-600 shrink-0" />
               <span>ویرایش مشخصات مربی: {coach?.full_name}</span>
             </h1>
           </div>
-        </div>
-
-        <div className="flex items-center gap-2.5">
-          <Button
-            variant="outline"
-            onClick={() => navigate(returnUrl)}
-            className="text-xs"
-          >
-            انصراف
-          </Button>
         </div>
       </div>
 
@@ -484,7 +474,7 @@ export const AdminCoachEditPage = () => {
                   {isDone ? <Check className="w-5 h-5" /> : <Icon className="w-5 h-5" />}
                 </div>
                 <div className="text-[11px] sm:text-xs">
-                  <span className="hidden sm:inline">مرحله {item.step}: </span>
+                  <span className="hidden lg:inline">مرحله {item.step}: </span>
                   <span>{item.title}</span>
                 </div>
               </button>

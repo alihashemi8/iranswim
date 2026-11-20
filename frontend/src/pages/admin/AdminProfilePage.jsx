@@ -682,7 +682,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
       {activeMainTab === 'PROFILE' && (
         <div className="space-y-6 animate-fade-in">
           {/* Identity & Account Card */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-xl bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 flex items-center justify-center border border-sky-200/60 dark:border-sky-800/70 shrink-0">
                 <BadgeCheck className="w-6 h-6" />
@@ -703,13 +703,13 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               </div>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-3.5">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center gap-3.5 sm:col-span-2 lg:col-span-1">
               <div className="w-12 h-12 rounded-xl bg-purple-50 dark:bg-purple-950/70 text-purple-600 dark:text-purple-400 flex items-center justify-center border border-purple-200/60 dark:border-purple-800/70 shrink-0">
                 <Shield className="w-6 h-6" />
               </div>
               <div className="min-w-0">
                 <span className="text-xs sm:text-sm text-slate-400 block font-medium">سطح دسترسی</span>
-                <span className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">دسترسی کامل (Super Admin)</span>
+                <span className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100">دسترسی کامل (مدیر ارشد)</span>
               </div>
             </div>
           </div>
@@ -1192,8 +1192,8 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
               </div>
 
               {/* Filter & Search Bar */}
-              <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                <div className="relative flex-1 max-w-sm">
+              <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3">
+                <div className="relative w-full xl:max-w-xs">
                   <Search className="w-4 h-4 text-slate-400 absolute right-3 top-3.5" />
                   <input
                     type="text"
@@ -1207,8 +1207,8 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                   />
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
-                  <div className="w-full sm:w-48">
+                <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 w-full xl:w-auto">
+                  <div className="flex-1 sm:w-44">
                     <CustomSelect
                       value={roleFilter}
                       onChange={(val) => {
@@ -1223,7 +1223,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                     />
                   </div>
 
-                  <div className="w-full sm:w-44">
+                  <div className="flex-1 sm:w-40">
                     <CustomSelect
                       value={statusFilter}
                       onChange={(val) => {
@@ -1241,7 +1241,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                   <button
                     type="button"
                     onClick={fetchUsersData}
-                    className="p-2.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+                    className="p-2.5 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer shrink-0"
                     title="به‌روزرسانی جدول"
                   >
                     <RefreshCw className="w-4 h-4" />
@@ -1250,9 +1250,9 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                   <Button
                     variant="primary"
                     onClick={handleOpenAddModal}
-                    className="gap-1.5 text-sm font-bold py-2.5 px-4 shadow-sm"
+                    className="w-full sm:w-auto gap-1.5 text-xs sm:text-sm font-bold py-2.5 px-3.5 shadow-sm shrink-0 whitespace-nowrap justify-center"
                   >
-                    <UserPlus className="w-4 h-4" />
+                    <UserPlus className="w-4 h-4 shrink-0" />
                     <span>افزودن کاربر جدید</span>
                   </Button>
                 </div>
@@ -1264,7 +1264,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                   <EmptyState message="کاربری با معیارهای جستجو یافت نشد." />
                 ) : (
                   <div className="overflow-x-auto">
-                    <table className="w-full text-right text-sm">
+                    <table className="w-full text-right text-sm min-w-[720px]">
                       <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800 font-bold text-xs sm:text-sm">
                         <tr>
                           <th className="px-4 py-3.5">کاربر و نام</th>
@@ -1448,7 +1448,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                 <EmptyState message="هیچ لاگ ممیزی در سامانه ثبت نشده است." />
               ) : (
                 <div className="overflow-x-auto">
-                  <table className="w-full text-right text-sm">
+                  <table className="w-full text-right text-sm min-w-[650px]">
                     <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-600 dark:text-slate-300 border-b border-slate-100 dark:border-slate-800 font-bold text-xs sm:text-sm">
                       <tr>
                         <th className="px-4 py-3.5">زمان رخداد</th>
