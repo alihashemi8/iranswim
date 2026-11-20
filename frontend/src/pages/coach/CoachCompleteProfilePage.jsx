@@ -3,7 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   User, Calendar, CreditCard, Home, Phone, Upload, CheckCircle2,
   AlertCircle, ShieldCheck, FileText, Sparkles, ArrowLeft, ArrowRight,
-  Eye, MapPin, Briefcase, Award, Shield, FileCheck, Check, Clock
+  Eye, MapPin, Briefcase, Award, Shield, FileCheck, Check, Clock, Loader2
 } from 'lucide-react';
 import * as jalaali from 'jalaali-js';
 import api from '../../api/client';
@@ -15,6 +15,7 @@ import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { AvatarUpload } from '../../components/common/AvatarUpload';
 import { MapLocationPicker } from '../../components/common/MapLocationPicker';
+import { FileUploadField } from '../../components/common/FileUploadField';
 import { toEnglishDigits } from '../../utils/digits';
 
 export const CoachCompleteProfilePage = () => {
@@ -27,6 +28,16 @@ export const CoachCompleteProfilePage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
   const [fieldErrors, setFieldErrors] = useState({});
+
+  // File loading & processing states
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [certLoading, setCertLoading] = useState(false);
+  const [retrainLoading, setRetrainLoading] = useState(false);
+  const [resumeLoading, setResumeLoading] = useState(false);
+
+  const isStep1Loading = avatarLoading;
+  const isStep3Loading = certLoading || retrainLoading || resumeLoading;
+  const isAnyFileLoading = avatarLoading || certLoading || retrainLoading || resumeLoading;
 
   const DRAFT_KEY = user?.id ? `coach_profile_draft_${user.id}` : 'coach_profile_draft';
   const STEP_KEY = user?.id ? `coach_profile_step_${user.id}` : 'coach_profile_step';
@@ -464,6 +475,15 @@ export const CoachCompleteProfilePage = () => {
   };
 
   const handleNextStep = () => {
+    if (currentStep === 1 && isStep1Loading) {
+      toast.warning('لطفاً تا اتمام بارگذاری تصویر پروفایل شکیبا باشید.');
+      return;
+    }
+    if (currentStep === 3 && isStep3Loading) {
+      toast.warning('لطفاً تا اتمام بارگذاری مدارک شکیبا باشید.');
+      return;
+    }
+
     if (currentStep === 1) {
       if (!validateStep1()) {
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -504,6 +524,10 @@ export const CoachCompleteProfilePage = () => {
   };
 
   const handleStepClick = (step) => {
+    if (isAnyFileLoading) {
+      toast.warning('لطفاً تا اتمام بارگذاری فایل‌ها شکیبا باشید.');
+      return;
+    }
     if (step < currentStep) {
       setError('');
       setFieldErrors({});
@@ -902,6 +926,7 @@ export const CoachCompleteProfilePage = () => {
                   size="lg"
                   canDelete={true}
                   autoUpload={false}
+                  onLoadingChange={setAvatarLoading}
                   onAvatarChange={(newUrl, croppedFile) => {
                     if (newUrl) {
                       setAvatar(croppedFile);
@@ -1158,43 +1183,35 @@ export const CoachCompleteProfilePage = () => {
               </div>
 
               <div>
-                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  آپلود مدرک مربیگری (PDF یا تصویر) <span className="text-rose-500 font-bold">*</span>
-                </label>
-                <label
-                  className={`cursor-pointer flex items-center justify-between p-2.5 rounded-xl border border-dashed transition-colors ${
-                    fieldErrors.coachingCertificateFile
-                      ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/50 dark:bg-rose-950/30'
-                      : 'border-emerald-400 dark:border-emerald-600 bg-emerald-50/50 dark:bg-emerald-950/20 hover:bg-emerald-100/50'
-                  }`}
-                >
-                  <div
-                    className={`flex items-center gap-2 truncate ${
-                      fieldErrors.coachingCertificateFile
-                        ? 'text-rose-800 dark:text-rose-300'
-                        : 'text-emerald-800 dark:text-emerald-300'
-                    }`}
-                  >
-                    <Upload className={`w-4 h-4 shrink-0 ${fieldErrors.coachingCertificateFile ? 'text-rose-600' : 'text-emerald-600'}`} />
-                    <span className="truncate text-xs sm:text-sm font-bold">
-                      {coachingCertificateFile ? coachingCertificateFile.name : coachingCertificateFilePreview ? 'مدرک قبلاً بارگذاری شده (تغییر؟)' : 'انتخاب فایل گواهی...'}
-                    </span>
-                  </div>
-                  <input
-                    type="file"
-                    accept=".pdf,image/*"
-                    onChange={(e) => {
-                      handleFileChange(e, setCoachingCertificateFile, setCoachingCertificateFilePreview, `coach_cert_draft_${userKey}`);
-                      clearFieldError('coachingCertificateFile');
-                    }}
-                    className="hidden"
-                  />
-                </label>
-                {fieldErrors.coachingCertificateFile && (
-                  <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
-                    {fieldErrors.coachingCertificateFile}
-                  </span>
-                )}
+                <FileUploadField
+                  id="coaching-certificate-upload"
+                  file={coachingCertificateFile}
+                  previewUrl={coachingCertificateFilePreview}
+                  onFileSelect={(selectedFile, dataUrl) => {
+                    setCoachingCertificateFile(selectedFile);
+                    setCoachingCertificateFilePreview(dataUrl);
+                    clearFieldError('coachingCertificateFile');
+                    try {
+                      sessionStorage.setItem(`coach_cert_draft_${userKey}`, JSON.stringify({
+                        dataUrl,
+                        name: selectedFile.name,
+                        type: selectedFile.type,
+                      }));
+                    } catch (e) {
+                      console.warn('Could not cache cert draft:', e);
+                    }
+                  }}
+                  onFileRemove={() => {
+                    setCoachingCertificateFile(null);
+                    setCoachingCertificateFilePreview(null);
+                    sessionStorage.removeItem(`coach_cert_draft_${userKey}`);
+                  }}
+                  accept=".pdf,image/*"
+                  label="آپلود مدرک مربیگری (PDF یا تصویر)"
+                  required
+                  error={fieldErrors.coachingCertificateFile}
+                  onLoadingChange={setCertLoading}
+                />
               </div>
 
               {/* بخش بازآموزی سال جاری */}
@@ -1232,55 +1249,35 @@ export const CoachCompleteProfilePage = () => {
                 )}
 
                 <div>
-                  <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                    آپلود فایل گواهی بازآموزی سال جاری (PDF یا تصویر) <span className="text-rose-500">*</span>
-                  </label>
-                  <label
-                    className={`cursor-pointer flex items-center justify-between p-3 rounded-xl border border-dashed transition-all shadow-2xs ${
-                      fieldErrors.retrainingCertificateFile
-                        ? 'border-rose-500 ring-2 ring-rose-500/20 bg-rose-50/50 dark:bg-rose-950/30'
-                        : 'border-emerald-500 dark:border-emerald-600 bg-white/80 dark:bg-slate-900/80 hover:bg-emerald-50/50 dark:hover:bg-emerald-950/30'
-                    }`}
-                  >
-                    <div
-                      className={`flex items-center gap-2 truncate ${
-                        fieldErrors.retrainingCertificateFile
-                          ? 'text-rose-800 dark:text-rose-300'
-                          : 'text-emerald-800 dark:text-emerald-300'
-                      }`}
-                    >
-                      <Upload className={`w-4 h-4 shrink-0 ${fieldErrors.retrainingCertificateFile ? 'text-rose-600' : 'text-emerald-600'}`} />
-                      <span className="truncate text-xs sm:text-sm font-bold">
-                        {retrainingCertificateFile ? retrainingCertificateFile.name : retrainingCertificateFilePreview ? 'گواهی بازآموزی انتخاب شده (تغییر؟)' : 'انتخاب فایل گواهی بازآموزی سال جاری...'}
-                      </span>
-                    </div>
-                    {retrainingCertificateFilePreview && (
-                      <a
-                        href={retrainingCertificateFilePreview}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-xs font-bold text-emerald-700 hover:text-emerald-800 dark:text-emerald-300 flex items-center gap-1 bg-emerald-100/70 dark:bg-emerald-950 px-2.5 py-1 rounded-lg"
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                        <span>مشاهده فایل</span>
-                      </a>
-                    )}
-                    <input
-                      type="file"
-                      accept=".pdf,image/*"
-                      onChange={(e) => {
-                        handleFileChange(e, setRetrainingCertificateFile, setRetrainingCertificateFilePreview, `coach_retrain_draft_${userKey}`);
-                        clearFieldError('retrainingCertificateFile');
-                      }}
-                      className="hidden"
-                    />
-                  </label>
-                  {fieldErrors.retrainingCertificateFile && (
-                    <span className="text-xs sm:text-sm text-rose-500 dark:text-rose-400 font-semibold mt-1 block">
-                      {fieldErrors.retrainingCertificateFile}
-                    </span>
-                  )}
+                  <FileUploadField
+                    id="retraining-certificate-upload"
+                    file={retrainingCertificateFile}
+                    previewUrl={retrainingCertificateFilePreview}
+                    onFileSelect={(selectedFile, dataUrl) => {
+                      setRetrainingCertificateFile(selectedFile);
+                      setRetrainingCertificateFilePreview(dataUrl);
+                      clearFieldError('retrainingCertificateFile');
+                      try {
+                        sessionStorage.setItem(`coach_retrain_draft_${userKey}`, JSON.stringify({
+                          dataUrl,
+                          name: selectedFile.name,
+                          type: selectedFile.type,
+                        }));
+                      } catch (e) {
+                        console.warn('Could not cache retrain draft:', e);
+                      }
+                    }}
+                    onFileRemove={() => {
+                      setRetrainingCertificateFile(null);
+                      setRetrainingCertificateFilePreview(null);
+                      sessionStorage.removeItem(`coach_retrain_draft_${userKey}`);
+                    }}
+                    accept=".pdf,image/*"
+                    label="آپلود فایل گواهی بازآموزی سال جاری (PDF یا تصویر)"
+                    required
+                    error={fieldErrors.retrainingCertificateFile}
+                    onLoadingChange={setRetrainLoading}
+                  />
                 </div>
               </div>
 
@@ -1311,23 +1308,25 @@ export const CoachCompleteProfilePage = () => {
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block text-sm sm:text-[15px] font-bold text-slate-700 dark:text-slate-300 mb-1.5">
-                  فایل پیوست رزومه (اختیاری)
-                </label>
-                <label className="cursor-pointer flex items-center justify-between p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
-                  <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 truncate">
-                    <FileText className="w-4 h-4 shrink-0 text-slate-500" />
-                    <span className="truncate text-xs sm:text-sm font-semibold">
-                      {resumeFile ? resumeFile.name : resumeFileName ? `پیوست فعلی: ${resumeFileName}` : 'بارگذاری فایل PDF یا Word رزومه (اختیاری)'}
-                    </span>
-                  </div>
-                  <input
-                    type="file"
-                    accept=".pdf,.doc,.docx"
-                    onChange={(e) => handleFileChange(e, setResumeFile, (f) => setResumeFileName(f.name))}
-                    className="hidden"
-                  />
-                </label>
+                <FileUploadField
+                  id="resume-file-upload"
+                  file={resumeFile}
+                  previewUrl={null}
+                  fileName={resumeFileName}
+                  onFileSelect={(selectedFile) => {
+                    setResumeFile(selectedFile);
+                    setResumeFileName(selectedFile.name);
+                    clearFieldError('bio');
+                  }}
+                  onFileRemove={() => {
+                    setResumeFile(null);
+                    setResumeFileName('');
+                  }}
+                  accept=".pdf,.doc,.docx"
+                  label="فایل پیوست رزومه (اختیاری)"
+                  hint="فرمت‌های مجاز (PDF یا Word) تا سقف ۸ مگابایت"
+                  onLoadingChange={setResumeLoading}
+                />
               </div>
             </div>
           </div>
@@ -1482,24 +1481,46 @@ export const CoachCompleteProfilePage = () => {
             <Button
               type="button"
               onClick={handleNextStep}
+              disabled={(currentStep === 1 && isStep1Loading) || (currentStep === 3 && isStep3Loading)}
               className={`gap-1.5 sm:gap-2 text-sm sm:text-base bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs px-3 sm:px-5 justify-center min-h-[44px] font-bold min-w-0 !shrink ${
                 currentStep > 1 ? 'flex-1 sm:flex-initial sm:min-w-[140px]' : 'w-full sm:w-auto sm:min-w-[140px]'
               }`}
             >
-              <span className="truncate">مرحله بعد</span>
-              <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+              {currentStep === 1 && isStep1Loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
+                  <span className="truncate">در حال بارگذاری عکس...</span>
+                </>
+              ) : currentStep === 3 && isStep3Loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
+                  <span className="truncate">در حال بارگذاری مدارک...</span>
+                </>
+              ) : (
+                <>
+                  <span className="truncate">مرحله بعد</span>
+                  <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                </>
+              )}
             </Button>
           ) : (
             <Button
               type="button"
               onClick={handleSubmit}
-              disabled={submitting}
+              disabled={submitting || isAnyFileLoading}
               className="gap-1.5 sm:gap-2 text-sm sm:text-base bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-600/30 px-3 sm:px-6 py-2.5 flex-1 sm:flex-initial sm:min-w-[140px] justify-center min-h-[44px] font-bold min-w-0 !shrink"
             >
-              <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-              <span className="truncate">
-                {submitting ? 'در حال ثبت...' : 'ثبت نهایی'}
-              </span>
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
+                  <span className="truncate">در حال ثبت...</span>
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                  <span className="truncate">ثبت نهایی</span>
+                </>
+              )}
             </Button>
           )}
         </div>

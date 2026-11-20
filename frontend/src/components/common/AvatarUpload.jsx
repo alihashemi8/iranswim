@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Trash2, Loader2, User, UploadCloud, Crop } from 'lucide-react';
+import { Camera, Trash2, Loader2, User, UploadCloud, Crop, Edit3, Pencil, CheckCircle2 } from 'lucide-react';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
@@ -28,6 +28,7 @@ export const AvatarUpload = ({
   canDelete = true,
   autoUpload = true,
   onAvatarChange,
+  onLoadingChange,
   label = 'تصویر پروفایل',
   subtitle = 'فقط یک عکس مجاز است (قابلیت زوم، کراپ و چرخش قبل از ذخیره)',
   className = '',
@@ -50,6 +51,10 @@ export const AvatarUpload = ({
     setAvatarUrl(normalized);
     setImgError(false);
   }, [currentAvatar, user?.avatar]);
+
+  useEffect(() => {
+    onLoadingChange?.(loading || isCropModalOpen);
+  }, [loading, isCropModalOpen, onLoadingChange]);
 
   const handleFileSelect = (e) => {
     const file = e.target.files?.[0];
@@ -74,10 +79,16 @@ export const AvatarUpload = ({
     }
 
     // Open image cropper modal with file preview
+    setLoading(true);
     const reader = new FileReader();
     reader.onload = () => {
+      setLoading(false);
       setCropImageSrc(reader.result);
       setIsCropModalOpen(true);
+    };
+    reader.onerror = () => {
+      setLoading(false);
+      toast.error('خطا در خواندن فایل تصویر');
     };
     reader.readAsDataURL(file);
   };
@@ -128,18 +139,23 @@ export const AvatarUpload = ({
         setLoading(false);
       }
     } else {
-      // Local preview mode
-      setAvatarUrl(previewUrl);
-      setImgError(false);
-      if (onAvatarChange) {
-        onAvatarChange(previewUrl, croppedFile);
-      }
+      // Local preview mode with animated feedback
+      setLoading(true);
+      setTimeout(() => {
+        setAvatarUrl(previewUrl);
+        setImgError(false);
+        if (onAvatarChange) {
+          onAvatarChange(previewUrl, croppedFile);
+        }
+        setLoading(false);
+      }, 450);
     }
   };
 
   const handleCloseCropModal = () => {
     setIsCropModalOpen(false);
     setCropImageSrc(null);
+    setLoading(false);
   };
 
   const handleDelete = async (e) => {
@@ -209,6 +225,7 @@ export const AvatarUpload = ({
         imageSrc={cropImageSrc}
         onClose={handleCloseCropModal}
         onCropComplete={handleCropComplete}
+        onPickAnother={() => fileInputRef.current?.click()}
       />
 
       {/* Avatar Container with Hover Controls */}
@@ -241,11 +258,28 @@ export const AvatarUpload = ({
 
           {/* Loading spinner overlay */}
           {loading && (
-            <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xs flex items-center justify-center z-10">
+            <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-2xs flex items-center justify-center z-10 animate-in fade-in duration-200">
               <Loader2 className="w-7 h-7 text-sky-600 animate-spin" />
             </div>
           )}
         </div>
+
+        {/* Quick Edit Badge Button on Avatar */}
+        {avatarUrl && !loading && (
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setCropImageSrc(avatarUrl);
+              setIsCropModalOpen(true);
+            }}
+            className="absolute -top-1.5 -left-1.5 w-7 h-7 bg-sky-600 hover:bg-sky-700 text-white rounded-full flex items-center justify-center shadow-md border-2 border-white dark:border-slate-900 cursor-pointer transition-transform hover:scale-110"
+            title="ویرایش و تنظیم مجدد کادر"
+            aria-label="ویرایش کادربندی"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+        )}
 
         {/* Quick Delete Badge Button */}
         {canDelete && avatarUrl && !loading && (
@@ -262,13 +296,25 @@ export const AvatarUpload = ({
       </div>
 
       {/* Action Texts and Buttons */}
-      <div className="flex flex-col items-center sm:items-start text-center sm:text-right space-y-1.5">
+      <div className="flex flex-col items-center sm:items-start text-center sm:text-right space-y-1.5 flex-1 min-w-0">
         {label && (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">{label}</h4>
-            <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 font-medium">
-              فقط یک عکس
-            </span>
+            {loading ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-sky-600 dark:text-sky-400 bg-sky-50 dark:bg-sky-950/60 border border-sky-200 dark:border-sky-800 px-2 py-0.5 rounded-full animate-pulse">
+                <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                <span>در حال پردازش عکس...</span>
+              </span>
+            ) : avatarUrl ? (
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded-full animate-in fade-in duration-300">
+                <CheckCircle2 className="w-3 h-3 shrink-0" />
+                <span>بارگذاری شد</span>
+              </span>
+            ) : (
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 font-medium">
+                فقط یک عکس
+              </span>
+            )}
           </div>
         )}
         {subtitle && (
@@ -276,42 +322,56 @@ export const AvatarUpload = ({
             {subtitle}
           </p>
         )}
+
+        {/* Action Button: Single Edit Icon / Select */}
         <div className="flex items-center gap-2 pt-1">
-          <button
-            type="button"
-            disabled={loading}
-            onClick={() => fileInputRef.current?.click()}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/70 border border-sky-200/80 dark:border-sky-800 cursor-pointer transition-colors"
-          >
-            <Crop className="w-3.5 h-3.5" />
-            <span>{avatarUrl ? 'تغییر و کراپ عکس' : 'انتخاب عکس'}</span>
-          </button>
+          {avatarUrl ? (
+            <>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => {
+                  setCropImageSrc(avatarUrl);
+                  setIsCropModalOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/70 border border-sky-200/80 dark:border-sky-800 cursor-pointer transition-colors shadow-2xs"
+                title="ویرایش و تنظیم مجدد کادر"
+              >
+                <Edit3 className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                <span>ویرایش عکس</span>
+              </button>
 
-          {avatarUrl && (
+              {canDelete && (
+                <button
+                  type="button"
+                  disabled={loading}
+                  onClick={handleDelete}
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer transition-colors"
+                  title="حذف تصویر"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>حذف</span>
+                </button>
+              )}
+            </>
+          ) : (
             <button
               type="button"
               disabled={loading}
-              onClick={() => {
-                setCropImageSrc(avatarUrl);
-                setIsCropModalOpen(true);
-              }}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-750 dark:text-slate-250 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 cursor-pointer transition-colors"
-              title="تغییر کادربندی، چرخش یا زوم عکس فعلی"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs sm:text-sm font-bold rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white shadow-xs cursor-pointer transition-colors"
             >
-              <Crop className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>کادربندی مجدد</span>
-            </button>
-          )}
-
-          {canDelete && avatarUrl && (
-            <button
-              type="button"
-              disabled={loading}
-              onClick={handleDelete}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-xl text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer transition-colors"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span>حذف</span>
+              {loading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                  <span>در حال بارگذاری...</span>
+                </>
+              ) : (
+                <>
+                  <UploadCloud className="w-4 h-4 shrink-0" />
+                  <span>انتخاب عکس پرسنلی</span>
+                </>
+              )}
             </button>
           )}
         </div>

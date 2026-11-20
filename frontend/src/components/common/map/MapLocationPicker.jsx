@@ -49,6 +49,7 @@ export const MapLocationPicker = ({
   readOnly = false,
   height = '360px',
   label = 'مشخص کردن موقعیت منزل روی نقشه',
+  showCoordinates = false,
 }) => {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
@@ -332,20 +333,6 @@ export const MapLocationPicker = ({
           <span>{geoError}</span>
         </div>
       )}
-
-      {/* Coordinates Status Bar */}
-      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400 font-mono bg-slate-50 dark:bg-slate-800/40 px-3 py-1.5 rounded-xl border border-slate-200/60 dark:border-slate-800">
-        <span>مختصات ثبت‌شده:</span>
-        {currentLat && currentLng ? (
-          <span className="text-sky-700 dark:text-sky-400 font-bold">
-            عرض: {currentLat.toFixed(5)} | طول: {currentLng.toFixed(5)}
-          </span>
-        ) : (
-          <span className="text-amber-600 dark:text-amber-400 font-sans">
-            هنوز موقعیتی انتخاب نشده است (الزامی)
-          </span>
-        )}
-      </div>
     </div>
   );
 };

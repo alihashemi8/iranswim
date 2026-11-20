@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  X, ZoomIn, ZoomOut, RotateCw, Check, Undo2, Move, Crop, RefreshCcw
+  X, ZoomIn, ZoomOut, RotateCw, Check, Undo2, Move, Crop, RefreshCcw, Upload
 } from 'lucide-react';
 
 const CROP_VIEWPORT_SIZE = 300; // Visible interactive box in pixels
@@ -11,6 +11,7 @@ export const ImageCropModal = ({
   imageSrc,
   onClose,
   onCropComplete,
+  onPickAnother,
   title = 'ویرایش و کادربندی تصویر',
   subtitle = 'تصویر را جابجا کنید و با زوم یا چرخش، کادر چهره را تنظیم نمایید.',
 }) => {
@@ -360,30 +361,46 @@ export const ImageCropModal = ({
         </div>
 
         {/* Modal Footer Buttons */}
-        <div className="flex items-center justify-end gap-2.5 px-5 py-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800">
-          <button
-            type="button"
-            onClick={onClose}
-            disabled={isProcessing}
-            className="px-4 py-2 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl cursor-pointer transition-colors"
-          >
-            انصراف
-          </button>
-          <button
-            type="button"
-            onClick={handleConfirmCrop}
-            disabled={isProcessing}
-            className="inline-flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-black text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 rounded-xl shadow-md shadow-sky-500/20 cursor-pointer transition-all disabled:opacity-50"
-          >
-            {isProcessing ? (
-              <span>در حال آماده‌سازی...</span>
-            ) : (
-              <>
-                <Check className="w-4 h-4" />
-                <span>برش و ذخیره عکس</span>
-              </>
+        <div className="flex items-center justify-between gap-2.5 px-5 py-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800">
+          <div>
+            {onPickAnother && (
+              <button
+                type="button"
+                onClick={onPickAnother}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/50 rounded-xl cursor-pointer transition-colors"
+                title="انتخاب یک فایل عکس جدید از دستگاه"
+              >
+                <Upload className="w-3.5 h-3.5" />
+                <span>انتخاب عکس دیگر</span>
+              </button>
             )}
-          </button>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isProcessing}
+              className="px-4 py-2 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl cursor-pointer transition-colors"
+            >
+              انصراف
+            </button>
+            <button
+              type="button"
+              onClick={handleConfirmCrop}
+              disabled={isProcessing}
+              className="inline-flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-black text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 rounded-xl shadow-md shadow-sky-500/20 cursor-pointer transition-all disabled:opacity-50"
+            >
+              {isProcessing ? (
+                <span>در حال آماده‌سازی...</span>
+              ) : (
+                <>
+                  <Check className="w-4 h-4" />
+                  <span>برش و ذخیره عکس</span>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </div>
