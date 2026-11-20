@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { HelpCircle, ChevronDown, CheckCircle2, PhoneCall } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { HelpCircle, ChevronDown, PhoneCall } from 'lucide-react';
 import { Badge } from '../common/Badge';
 
 export const FAQ_ITEMS = [
