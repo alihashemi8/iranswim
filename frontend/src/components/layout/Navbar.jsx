@@ -120,7 +120,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             isFullWidth
               ? 'w-full px-2.5 sm:px-6'
               : 'max-w-7xl mx-auto px-2.5 sm:px-4 lg:px-8'
-          } h-[68px] sm:h-[68px] lg:h-[72px] flex items-center justify-between gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-4 flex-nowrap`}
+          } h-[70px] sm:h-[70px] lg:h-[72px] flex items-center justify-between gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-4 flex-nowrap`}
         >
           {/* Brand & Main Navigation (Right side in RTL) */}
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2 lg:gap-4 xl:gap-8 shrink-0 flex-nowrap min-w-0">
@@ -159,13 +159,13 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 <img
                   src="/images/logo.webp"
                   alt="لوگوی مدرسه شنای ایران"
-                  className="w-11 h-11 sm:w-14 sm:h-14 lg:w-[62px] lg:h-[62px] object-contain shrink-0 drop-shadow-sm select-none transition-transform hover:scale-105 duration-200"
+                  className="w-12 h-12 sm:w-14 sm:h-14 lg:w-[62px] lg:h-[62px] object-contain shrink-0 drop-shadow-sm select-none transition-transform hover:scale-105 duration-200"
                   loading="eager"
                   fetchPriority="high"
                 />
               </picture>
               <div className="flex flex-col xl:flex-col shrink-0 text-right">
-                <span className="font-black text-[17px] sm:text-[17.5px] md:text-sm lg:text-base xl:text-lg text-[#083B5C] dark:text-white leading-tight whitespace-nowrap">
+                <span className="font-black text-[19.5px] min-[390px]:text-[21px] sm:text-[22px] md:text-sm lg:text-base xl:text-lg text-[#083B5C] dark:text-white leading-tight whitespace-nowrap">
                   مدرسه شنای ایران
                 </span>
               </div>
@@ -290,7 +290,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 ) : (
                   <Link
                     to="/login"
-                    className="group inline-flex items-center gap-1.5 md:gap-1.5 lg:gap-2 px-3 sm:px-3.5 lg:px-4.5 py-1.5 sm:py-2 text-xs sm:text-xs lg:text-sm font-bold !text-white hover:!text-white bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] rounded-xl shadow-xs hover:shadow-md hover:shadow-cyan-500/25 transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
+                    className="group inline-flex items-center gap-1.5 md:gap-1.5 lg:gap-2 px-3 sm:px-3.5 lg:px-4.5 py-2 md:py-2 text-[13.5px] sm:text-sm font-bold !text-white hover:!text-white bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] rounded-xl shadow-xs hover:shadow-md hover:shadow-cyan-500/25 transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                   >
                     <LogIn className="w-4 h-4 sm:w-4 sm:h-4 shrink-0 !text-white transition-transform duration-200 group-hover:-translate-x-0.5" />
                     <span className="!text-white">ورود / ثبت‌نام</span>
@@ -384,7 +384,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                   />
                 </picture>
                 <div className="flex flex-col min-w-0">
-                  <span className="font-black text-base sm:text-lg text-[#083B5C] dark:text-white truncate">
+                  <span className="font-black text-lg sm:text-xl text-[#083B5C] dark:text-white truncate">
                     مدرسه شنای ایران
                   </span>
                 </div>
