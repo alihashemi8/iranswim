@@ -16,9 +16,12 @@ from .serializers import (
     EnrollmentRequestSerializer, EnrollmentSerializer
 )
 from apps.accounts.permissions import IsAdminUserRole, IsAdminOrSupervisor, IsAdminOrCoach
-from apps.coaches.models import CoachProfile
+from apps.coaches.models import CoachProfile, CoachPayroll, CoachPaymentRecord
+from apps.coaches.serializers import CoachPayrollSerializer, CoachPaymentRecordSerializer
+from apps.coaches.services import PayrollService
 from apps.swimmers.models import SwimmerProfile
-from apps.finance.models import Invoice, InvoiceItem, Installment
+from apps.finance.models import Invoice, InvoiceItem, Installment, Payment, PaymentAllocation, FinancialAdjustment, PaymentReceipt
+from apps.finance.serializers import InvoiceSerializer, InstallmentSerializer, PaymentSerializer, PaymentReceiptSerializer
 from apps.supervisor.models import AuditLog
 
 
@@ -837,3 +840,311 @@ class GroupCoachDetailView(generics.RetrieveUpdateDestroyAPIView):
         if self.request.method in permissions.SAFE_METHODS:
             return [IsAdminOrSupervisor()]
         return [IsAdminUserRole()]
+
+
+class CourseFinancesView(APIView):
+    """
+    دریافت تجمیعی و موشکافانه تمامی داده‌های مالی مربوط به یک دوره اختصاصی:
+    ۱. بخش شناگران: شهریه مصوب، فاکتورها، واریزی‌ها، اقساط معوق، فیش‌های واریزی کارت‌به‌کارت
+    ۲. بخش مربیان: برآورد دستمزد کادر دوره بر اساس مدل‌های ساعتی/درصدی/ثابت، فیش‌های حقوقی و واریزی‌های انجام‌شده
+    """
+    permission_classes = [IsAdminOrSupervisor]
+
+    def get(self, request, pk):
+        course = generics.get_object_or_404(
+            Course.objects.prefetch_related('coaches__user', 'groups__coach_assignments'),
+            pk=pk
+        )
+
+        # -------------------------------------------------------------
+        # 1. Swimmers Financials (امور مالی شناگران)
+        # -------------------------------------------------------------
+        invoices_qs = Invoice.objects.filter(
+            enrollment__course=course
+        ).select_related(
+            'swimmer', 'enrollment', 'enrollment__coach', 'enrollment__group'
+        ).prefetch_related(
+            'items', 'installments', 'adjustments', 'allocations__payment'
+        ).order_by('-issue_date', '-created_at')
+
+        total_swimmers = course.enrollments.count()
+        total_invoiced = sum(inv.total_amount for inv in invoices_qs) or Decimal('0.00')
+        total_paid = sum(inv.total_paid for inv in invoices_qs) or Decimal('0.00')
+        total_remaining = sum(inv.remaining_balance for inv in invoices_qs) or Decimal('0.00')
+        total_discount = sum(inv.total_discount for inv in invoices_qs) or Decimal('0.00')
+        total_expected_tuition = Decimal(str(course.base_price or 0)) * total_swimmers
+
+        collection_rate = 0
+        if total_invoiced > 0:
+            collection_rate = min(100, round(float(total_paid / total_invoiced) * 100))
+        elif total_expected_tuition > 0:
+            collection_rate = min(100, round(float(total_paid / total_expected_tuition) * 100))
+
+        paid_count = sum(1 for inv in invoices_qs if inv.status == Invoice.Status.PAID)
+        partially_paid_count = sum(1 for inv in invoices_qs if inv.status == Invoice.Status.PARTIALLY_PAID)
+        unpaid_count = sum(1 for inv in invoices_qs if inv.status in [Invoice.Status.ISSUED, Invoice.Status.DRAFT])
+        cancelled_count = sum(1 for inv in invoices_qs if inv.status == Invoice.Status.CANCELLED)
+
+        # اقساط مرتبط با این دوره
+        installments_qs = Installment.objects.filter(
+            invoice__enrollment__course=course
+        ).select_related('invoice__swimmer', 'invoice').order_by('due_date', 'installment_number')
+        
+        today_date = timezone.now().date()
+        overdue_installments = [
+            inst for inst in installments_qs
+            if inst.status in ['UNPAID', 'PARTIAL', 'OVERDUE'] and inst.due_date < today_date
+        ]
+
+        # واریزی‌ها و تراکنش‌های شناگران دوره
+        payments_qs = Payment.objects.filter(
+            Q(allocations__invoice__enrollment__course=course) |
+            Q(swimmer__enrollments__course=course)
+        ).distinct().select_related('swimmer').prefetch_related('allocations').order_by('-paid_at')
+
+        # فیش‌های واریزی کارت‌به‌کارت ارسالی شناگران برای این دوره
+        receipts_qs = PaymentReceipt.objects.filter(
+            Q(enrollment__course=course) |
+            Q(invoice__enrollment__course=course)
+        ).distinct().select_related('swimmer', 'enrollment', 'invoice').order_by('-created_at')
+
+        # -------------------------------------------------------------
+        # 2. Coaches Financials (امور مالی و حقوق مربیان دوره)
+        # -------------------------------------------------------------
+        coaches_list = []
+        total_estimated_coach_comp = Decimal('0.00')
+        total_coach_paid = Decimal('0.00')
+
+        sessions_count = course.sessions_count or 12
+        duration_hours = Decimal('1.5')  # پیش‌فرض ۱.۵ ساعت
+        if course.start_time and course.end_time:
+            t1 = datetime.datetime.combine(today_date, course.start_time)
+            t2 = datetime.datetime.combine(today_date, course.end_time)
+            secs = (t2 - t1).total_seconds()
+            if secs > 0:
+                duration_hours = Decimal(str(round(secs / 3600.0, 2)))
+
+        course_coaches = course.coaches.all()
+        all_coach_payments_set = set()
+
+        for coach in course_coaches:
+            swimmer_cnt = course.enrollments.filter(coach=coach).count()
+            c_type = coach.employment_type
+            comp = Decimal('0.00')
+            comp_formula = ''
+
+            if c_type == CoachProfile.EmploymentType.HOURLY:
+                rate = coach.hourly_rate or Decimal('0.00')
+                total_hours = duration_hours * sessions_count
+                comp = (total_hours * rate).quantize(Decimal('0.01'))
+                comp_formula = f"{sessions_count} جلسه × {duration_hours} ساعت × {int(rate):,} تومان (نرخ ساعتی)"
+            elif c_type == CoachProfile.EmploymentType.PERCENTAGE:
+                pct = coach.revenue_percentage or Decimal('0.00')
+                course_swimmers_rev = Decimal(str(course.base_price or 0)) * swimmer_cnt
+                comp = (course_swimmers_rev * (pct / Decimal('100.00'))).quantize(Decimal('0.01'))
+                comp_formula = f"{pct}% از شهریه {swimmer_cnt} شاگرد ({int(course_swimmers_rev):,} تومان)"
+            elif c_type == CoachProfile.EmploymentType.FIXED:
+                comp = (coach.fixed_monthly_salary or Decimal('0.00')).quantize(Decimal('0.01'))
+                comp_formula = f"حقوق ثابت ماهانه ({int(comp):,} تومان)"
+            else:
+                comp = Decimal('0.00')
+                comp_formula = 'حق‌الزحمه توافقی'
+
+            total_estimated_coach_comp += comp
+
+            # فیش‌های حقوقی و پرداخت‌ها
+            payrolls = CoachPayroll.objects.filter(coach=coach).order_by('-period_start')
+            coach_payments = CoachPaymentRecord.objects.filter(coach=coach).select_related('payroll').order_by('-payment_date')
+
+            # یافتن فیش حقوقی منطبق با بازه زمانی دوره
+            matching_payroll = None
+            if course.start_date and course.end_date:
+                matching_payroll = payrolls.filter(
+                    period_start__lte=course.end_date,
+                    period_end__gte=course.start_date
+                ).first()
+            if not matching_payroll:
+                matching_payroll = payrolls.first()
+
+            coach_paid_for_course = Decimal('0.00')
+            if matching_payroll:
+                coach_paid_for_course = matching_payroll.total_paid
+            elif coach_payments.exists():
+                coach_paid_for_course = sum((p.amount for p in coach_payments if not p.is_reversal), Decimal('0.00'))
+
+            total_coach_paid += coach_paid_for_course
+
+            for cp in coach_payments:
+                all_coach_payments_set.add(cp)
+
+            avatar_url = None
+            if coach.user and getattr(coach.user, 'avatar', None):
+                avatar_url = request.build_absolute_uri(coach.user.avatar.url)
+
+            # Class name
+            group = course.groups.filter(coach_assignments__coach=coach).first()
+            class_name = group.name if group else f"کلاس مربی {coach.full_name}"
+
+            settlement_status = (
+                'PAID' if coach_paid_for_course >= comp and comp > 0
+                else ('PARTIAL' if coach_paid_for_course > 0 else 'UNPAID')
+            )
+
+            coaches_list.append({
+                'id': coach.id,
+                'full_name': coach.full_name,
+                'avatar': avatar_url,
+                'personnel_id': coach.personnel_id or f"EMP-{coach.id}",
+                'employment_type': coach.employment_type,
+                'employment_type_display': coach.get_employment_type_display(),
+                'hourly_rate': str(coach.hourly_rate),
+                'fixed_monthly_salary': str(coach.fixed_monthly_salary),
+                'revenue_percentage': str(coach.revenue_percentage),
+                'card_number': coach.card_number,
+                'shaba_number': coach.shaba_number,
+                'class_name': class_name,
+                'swimmers_count': swimmer_cnt,
+                'calculated_compensation': str(comp),
+                'compensation_formula': comp_formula,
+                'paid_amount': str(coach_paid_for_course),
+                'remaining_balance': str(max(Decimal('0.00'), comp - coach_paid_for_course)),
+                'settlement_status': settlement_status,
+                'latest_payroll': CoachPayrollSerializer(matching_payroll, context={'request': request}).data if matching_payroll else None,
+                'payrolls_count': payrolls.count(),
+            })
+
+        all_coach_payments = sorted(list(all_coach_payments_set), key=lambda x: x.payment_date or today_date, reverse=True)
+
+        return Response({
+            'course': {
+                'id': course.id,
+                'name': course.name,
+                'base_price': str(course.base_price or 0),
+                'sessions_count': sessions_count,
+                'installments_count': course.installments_count or 1,
+                'start_date': course.start_date,
+                'end_date': course.end_date,
+                'pool_location': course.pool_location or 'استخر اصلی',
+                'card_number': course.card_number,
+                'card_holder': course.card_holder,
+            },
+            'swimmers_finance': {
+                'summary': {
+                    'total_swimmers': total_swimmers,
+                    'total_expected_tuition': str(total_expected_tuition),
+                    'total_invoiced': str(total_invoiced),
+                    'total_paid': str(total_paid),
+                    'total_remaining': str(total_remaining),
+                    'total_discount': str(total_discount),
+                    'collection_rate': collection_rate,
+                    'paid_count': paid_count,
+                    'partially_paid_count': partially_paid_count,
+                    'unpaid_count': unpaid_count,
+                    'cancelled_count': cancelled_count,
+                    'overdue_installments_count': len(overdue_installments),
+                    'pending_receipts_count': receipts_qs.filter(status='PENDING').count(),
+                },
+                'invoices': InvoiceSerializer(invoices_qs, many=True, context={'request': request}).data,
+                'installments': InstallmentSerializer(installments_qs, many=True, context={'request': request}).data,
+                'payments': PaymentSerializer(payments_qs, many=True, context={'request': request}).data,
+                'receipts': PaymentReceiptSerializer(receipts_qs, many=True, context={'request': request}).data,
+            },
+            'coaches_finance': {
+                'summary': {
+                    'total_coaches': course_coaches.count(),
+                    'total_estimated_compensation': str(total_estimated_coach_comp),
+                    'total_paid_to_coaches': str(total_coach_paid),
+                    'total_remaining_payable': str(max(Decimal('0.00'), total_estimated_coach_comp - total_coach_paid)),
+                    'settlement_rate': min(100, round(float(total_coach_paid / total_estimated_coach_comp) * 100)) if total_estimated_coach_comp > 0 else 100,
+                },
+                'coaches': coaches_list,
+                'payments': CoachPaymentRecordSerializer(all_coach_payments, many=True, context={'request': request}).data,
+            }
+        })
+
+
+class CourseCoachPaymentQuickRecordView(APIView):
+    """
+    ثبت سریع واریز وجه حقوق یا دستمزد به مربی در چارچوب یک دوره آموزشی
+    """
+    permission_classes = [IsAdminUserRole]
+
+    def post(self, request, pk):
+        course = generics.get_object_or_404(Course, pk=pk)
+        coach_id = request.data.get('coach_id')
+        amount_raw = request.data.get('amount')
+        payment_date_str = request.data.get('payment_date') or timezone.now().date().isoformat()
+        payment_method = request.data.get('payment_method', CoachPaymentRecord.PaymentMethod.BANK_TRANSFER)
+        reference_number = request.data.get('reference_number', '')
+        description = request.data.get('description', '')
+        receipt_document = request.FILES.get('receipt_document') or request.FILES.get('receipt')
+
+        if not coach_id or not amount_raw:
+            return Response({'detail': 'شناسه مربی و مبلغ واریزی الزامی هستند.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        coach = generics.get_object_or_404(CoachProfile, pk=coach_id)
+
+        try:
+            amount = Decimal(str(amount_raw))
+            if amount <= Decimal('0.00'):
+                raise ValueError
+        except Exception:
+            return Response({'detail': 'مبلغ واریزی نامعتبر است.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            p_date = datetime.date.fromisoformat(str(payment_date_str))
+        except ValueError:
+            p_date = timezone.now().date()
+
+        with transaction.atomic():
+            payroll = CoachPayroll.objects.filter(
+                coach=coach,
+                period_start__lte=course.end_date,
+                period_end__gte=course.start_date,
+                approval_status=CoachPayroll.ApprovalStatus.APPROVED
+            ).first()
+
+            if not payroll:
+                candidate = CoachPayroll.objects.filter(
+                    coach=coach,
+                    period_start__lte=course.end_date,
+                    period_end__gte=course.start_date
+                ).first()
+                if candidate:
+                    payroll = PayrollService.approve_payroll(candidate, approved_by=request.user)
+                else:
+                    payroll = PayrollService.calculate_monthly_payroll(
+                        coach=coach,
+                        period_start=course.start_date,
+                        period_end=course.end_date,
+                        period_label=f"حقوق دوره {course.name}",
+                        created_by=request.user
+                    )
+                    payroll = PayrollService.approve_payroll(payroll, approved_by=request.user)
+
+            payment = PayrollService.register_payment(
+                payroll=payroll,
+                amount=amount,
+                payment_date=p_date,
+                payment_method=payment_method,
+                reference_number=reference_number,
+                description=description or f"واریز حقوق مربی بابت دوره {course.name}",
+                receipt_document=receipt_document,
+                registered_by=request.user
+            )
+
+            AuditLog.objects.create(
+                actor=request.user,
+                action=AuditLog.Action.PAYMENT_RECORD,
+                entity_type='CoachPaymentRecord',
+                entity_id=str(payment.id),
+                details={
+                    'coach': coach.full_name,
+                    'course': course.name,
+                    'amount': str(amount),
+                    'ref': reference_number
+                }
+            )
+
+        serializer = CoachPaymentRecordSerializer(payment, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

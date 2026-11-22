@@ -32,6 +32,9 @@ class InvoiceListView(generics.ListCreateAPIView):
         swimmer_id = self.request.query_params.get('swimmer_id')
         if swimmer_id:
             qs = qs.filter(swimmer_id=swimmer_id)
+        course_id = self.request.query_params.get('course_id')
+        if course_id:
+            qs = qs.filter(enrollment__course_id=course_id)
         status_filter = self.request.query_params.get('status')
         if status_filter:
             qs = qs.filter(status=status_filter)
@@ -78,6 +81,9 @@ class InstallmentListView(generics.ListAPIView):
         swimmer_id = self.request.query_params.get('swimmer_id')
         if swimmer_id:
             qs = qs.filter(invoice__swimmer_id=swimmer_id)
+        course_id = self.request.query_params.get('course_id')
+        if course_id:
+            qs = qs.filter(invoice__enrollment__course_id=course_id)
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs.order_by('due_date')
         elif user.role == 'SWIMMER':
@@ -98,6 +104,12 @@ class PaymentListView(generics.ListAPIView):
         swimmer_id = self.request.query_params.get('swimmer_id')
         if swimmer_id:
             qs = qs.filter(swimmer_id=swimmer_id)
+        course_id = self.request.query_params.get('course_id')
+        if course_id:
+            qs = qs.filter(
+                Q(allocations__invoice__enrollment__course_id=course_id) |
+                Q(swimmer__enrollments__course_id=course_id)
+            ).distinct()
 
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs
@@ -273,6 +285,13 @@ class PaymentReceiptListCreateView(generics.ListCreateAPIView):
         swimmer_id = self.request.query_params.get('swimmer_id')
         if swimmer_id:
             qs = qs.filter(swimmer_id=swimmer_id)
+
+        course_id = self.request.query_params.get('course_id')
+        if course_id:
+            qs = qs.filter(
+                Q(enrollment__course_id=course_id) |
+                Q(invoice__enrollment__course_id=course_id)
+            ).distinct()
 
         search = self.request.query_params.get('search')
         if search:

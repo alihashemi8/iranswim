@@ -21,6 +21,7 @@ import { CustomSelect } from '../../components/common/CustomSelect';
 import { SwimmerCourseCard } from '../../components/common/SwimmerCourseCard';
 import { Modal } from '../../components/common/Modal';
 import { useToast } from '../../context/ToastContext';
+import { CourseFinanceTab } from './course-detail/CourseFinanceTab';
 
 export const AdminCourseDetailPage = () => {
   const { id } = useParams();
@@ -35,15 +36,15 @@ export const AdminCourseDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Tab state synced with URL search params (?tab=classes or swimmers or info)
+  // Tab state synced with URL search params (?tab=classes or swimmers or finance or info)
   const initialTab = searchParams.get('tab') || 'swimmers';
   const [activeTab, setActiveTab] = useState(
-    ['swimmers', 'classes', 'info'].includes(initialTab) ? initialTab : 'swimmers'
+    ['swimmers', 'classes', 'finance', 'info'].includes(initialTab) ? initialTab : 'swimmers'
   );
 
   useEffect(() => {
     const tabFromUrl = searchParams.get('tab');
-    if (tabFromUrl && ['swimmers', 'classes', 'info'].includes(tabFromUrl) && tabFromUrl !== activeTab) {
+    if (tabFromUrl && ['swimmers', 'classes', 'finance', 'info'].includes(tabFromUrl) && tabFromUrl !== activeTab) {
       setActiveTab(tabFromUrl);
     }
   }, [searchParams]);
@@ -545,8 +546,8 @@ export const AdminCourseDetailPage = () => {
         </div>
       </div>
 
-      {/* 4. Tabs Navigation (Unified 3 tabs: Swimmers, Classes & Coaches, Specs) */}
-      <div className="grid grid-cols-3 bg-slate-200/70 dark:bg-slate-800/80 p-1.5 rounded-2xl gap-1 text-xs sm:text-sm font-bold border border-slate-200/80 dark:border-slate-700/60">
+      {/* 4. Tabs Navigation (Unified 4 tabs: Swimmers, Classes & Coaches, Finance, Specs) */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 bg-slate-200/70 dark:bg-slate-800/80 p-1.5 rounded-2xl gap-1 text-xs sm:text-sm font-bold border border-slate-200/80 dark:border-slate-700/60">
         <button
           type="button"
           onClick={() => handleTabChange('swimmers')}
@@ -589,6 +590,19 @@ export const AdminCourseDetailPage = () => {
           >
             {assignedCoaches.length}
           </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleTabChange('finance')}
+          className={`py-2.5 px-2 sm:px-3 rounded-xl transition-all flex items-center justify-center gap-1.5 sm:gap-2 cursor-pointer ${
+            activeTab === 'finance'
+              ? 'bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-300 shadow-sm border border-slate-200/50 dark:border-slate-800'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+          }`}
+        >
+          <DollarSign className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+          <span className="truncate">امور مالی</span>
         </button>
 
         <button
@@ -901,7 +915,7 @@ export const AdminCourseDetailPage = () => {
             </div>
           ) : (
             /* CARDS VIEW */
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
               {filteredEnrollments.map((enr) => (
                 <SwimmerCourseCard
                   key={enr.id}
@@ -985,7 +999,7 @@ export const AdminCourseDetailPage = () => {
                 <span>هم‌اکنون هیچ مربی‌ای در این دوره کلاس فعال ندارد. از بخش زیر مربیان مورد نظر را انتخاب و اضافه نمایید.</span>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 lg:gap-6">
                 {assignedCoaches.map((c) => {
                   const group = getCoachGroup(c.id, c.full_name);
                   const swimmerCount = getCoachSwimmersCount(c.id);
@@ -1346,7 +1360,16 @@ export const AdminCourseDetailPage = () => {
         </div>
       )}
 
-      {/* 7. TAB 3: COURSE INFO & DETAILS */}
+      {/* 7. TAB 3: COURSE FINANCES */}
+      {activeTab === 'finance' && (
+        <CourseFinanceTab
+          courseId={id}
+          course={course}
+          onRefreshCourse={() => fetchData(true)}
+        />
+      )}
+
+      {/* 8. TAB 4: COURSE INFO & DETAILS */}
       {activeTab === 'info' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-4">

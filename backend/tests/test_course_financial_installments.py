@@ -183,3 +183,68 @@ def test_swimmer_enrollment_validation_amounts_sum(api_client, coach_profile):
     res = api_client.post('/api/education/requests/submit/', invalid_payload, format='json')
     assert res.status_code == 400
     assert 'installment_amounts' in res.data
+
+
+@pytest.mark.django_db
+def test_course_finances_view_and_filtering(admin_client, coach_profile):
+    """تست اندپوینیت اختصاصی امور مالی دوره (شناگران + مربیان) و فیلترهای دوره"""
+    start_d = timezone.now().date()
+    end_d = start_d + datetime.timedelta(days=60)
+
+    course = Course.objects.create(
+        name='دوره تخصصی شنای پروانه',
+        start_date=start_d,
+        end_date=end_d,
+        base_price=Decimal('3500000.00'),
+        sessions_count=12,
+        installments_count=2,
+    )
+    course.coaches.add(coach_profile)
+    course.sync_coach_classes()
+
+    # ۱. فراخوانی امور مالی دوره
+    res = admin_client.get(f'/api/education/courses/{course.id}/finances/')
+    assert res.status_code == 200
+    assert 'swimmers_finance' in res.data
+    assert 'coaches_finance' in res.data
+    assert res.data['course']['id'] == course.id
+
+    # بررسی بخش شناگران
+    sw_fin = res.data['swimmers_finance']
+    assert 'summary' in sw_fin
+    assert 'invoices' in sw_fin
+    assert 'installments' in sw_fin
+    assert 'payments' in sw_fin
+    assert 'receipts' in sw_fin
+
+    # بررسی بخش مربیان
+    co_fin = res.data['coaches_finance']
+    assert 'summary' in co_fin
+    assert 'coaches' in co_fin
+    assert co_fin['summary']['total_coaches'] == 1
+    assert len(co_fin['coaches']) == 1
+    assert co_fin['coaches'][0]['id'] == coach_profile.id
+    assert co_fin['coaches'][0]['full_name'] == coach_profile.full_name
+
+    # ۲. ثبت واریز حقوق مربی بابت دوره
+    coach_pay_res = admin_client.post(f'/api/education/courses/{course.id}/coach-payment/', {
+        'coach_id': coach_profile.id,
+        'amount': '1500000',
+        'payment_method': 'BANK_TRANSFER',
+        'reference_number': 'PAYA-998877',
+        'description': 'واریز حقوق دوره تستی'
+    })
+    assert coach_pay_res.status_code == 201
+    assert coach_pay_res.data['coach'] == coach_profile.id
+    assert Decimal(coach_pay_res.data['amount']) == Decimal('1500000.00')
+
+    # ۳. بررسی فیلترهای امور مالی با course_id
+    inv_res = admin_client.get(f'/api/finance/invoices/?course_id={course.id}')
+    assert inv_res.status_code == 200
+
+    inst_res = admin_client.get(f'/api/finance/installments/?course_id={course.id}')
+    assert inst_res.status_code == 200
+
+    pay_res = admin_client.get(f'/api/finance/payments/?course_id={course.id}')
+    assert pay_res.status_code == 200
+
