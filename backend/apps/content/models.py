@@ -188,11 +188,21 @@ class Notification(models.Model):
 
 class SupportTicket(models.Model):
     class Category(models.TextChoices):
+        TECHNICAL = 'TECHNICAL', _('مشکلات فنی و سامانه')
+        BUG = 'BUG', _('گزارش باگ یا خطای عملکردی')
+        ACCOUNT = 'ACCOUNT', _('حساب کاربری و سطوح دسترسی')
+        FEATURE = 'FEATURE', _('پیشنهاد یا درخواست امکانات')
         REGISTRATION = 'REGISTRATION', _('ثبت‌نام و پذیرش')
         FINANCE = 'FINANCE', _('امور مالی و شهریه')
         SCHEDULE = 'SCHEDULE', _('برنامه کلاس و جابه‌جایی')
         DOCUMENTS = 'DOCUMENTS', _('مدارک و بیمه ورزشی')
         OTHER = 'OTHER', _('سایر موارد')
+
+    class Priority(models.TextChoices):
+        LOW = 'LOW', _('عادی')
+        MEDIUM = 'MEDIUM', _('متوسط')
+        HIGH = 'HIGH', _('فوری')
+        URGENT = 'URGENT', _('اضطراری و بحرانی')
 
     class Status(models.TextChoices):
         SUBMITTED = 'SUBMITTED', _('ثبت‌شده')
@@ -219,7 +229,14 @@ class SupportTicket(models.Model):
         _('موضوع درخواست'),
         max_length=30,
         choices=Category.choices,
-        default=Category.OTHER
+        default=Category.TECHNICAL
+    )
+    priority = models.CharField(
+        _('اولویت'),
+        max_length=20,
+        choices=Priority.choices,
+        default=Priority.MEDIUM,
+        db_index=True
     )
     subject = models.CharField(_('عنوان پیام'), max_length=200)
     description = models.TextField(_('شرح درخواست / مشکل'))
@@ -231,7 +248,7 @@ class SupportTicket(models.Model):
         default=Status.SUBMITTED,
         db_index=True
     )
-    response = models.TextField(_('پاسخ آموزشگاه'), blank=True)
+    response = models.TextField(_('پاسخ ناظر یا پشتیبانی'), blank=True)
     responded_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -251,6 +268,32 @@ class SupportTicket(models.Model):
 
     def __str__(self):
         return f"[{self.get_status_display()}] {self.subject}"
+
+
+class TicketMessage(models.Model):
+    ticket = models.ForeignKey(
+        SupportTicket,
+        on_delete=models.CASCADE,
+        related_name='messages',
+        verbose_name=_('تیکت مربوطه')
+    )
+    sender = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='ticket_messages',
+        verbose_name=_('ارسال‌کننده پیام')
+    )
+    message = models.TextField(_('متن پیام'))
+    attachment = models.FileField(_('فایل پیوست'), upload_to='tickets/messages/', null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = _('پیام تیکت')
+        verbose_name_plural = _('پیام‌های تیکت پشتیبانی')
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"پیام {self.sender} در تیکت #{self.ticket_id}"
 
 
 class LandingSection(models.Model):

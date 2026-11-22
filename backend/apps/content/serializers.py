@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from .models import (
     NewsPost, NewsImage, SwimmingPool, PoolImage,
-    Announcement, Notification, SupportTicket, LandingSection,
+    Announcement, Notification, SupportTicket, TicketMessage, LandingSection,
     TopSwimmer
 )
 
@@ -174,21 +174,86 @@ class NotificationSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'created_at']
 
 
+class TicketMessageSerializer(serializers.ModelSerializer):
+    sender_name = serializers.CharField(source='sender.full_name', read_only=True)
+    sender_role = serializers.CharField(source='sender.role', read_only=True)
+    sender_role_display = serializers.CharField(source='sender.get_role_display', read_only=True)
+    sender_avatar = serializers.SerializerMethodField(read_only=True)
+    attachment_url = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = TicketMessage
+        fields = [
+            'id', 'ticket', 'sender', 'sender_name', 'sender_role',
+            'sender_role_display', 'sender_avatar', 'message',
+            'attachment', 'attachment_url', 'created_at'
+        ]
+        read_only_fields = ['id', 'ticket', 'sender', 'created_at']
+
+    def get_sender_avatar(self, obj):
+        if obj.sender and obj.sender.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.sender.avatar.url)
+            return obj.sender.avatar.url
+        return None
+
+    def get_attachment_url(self, obj):
+        if obj.attachment:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.attachment.url)
+            return obj.attachment.url
+        return None
+
+
 class SupportTicketSerializer(serializers.ModelSerializer):
     category_display = serializers.CharField(source='get_category_display', read_only=True)
     status_display = serializers.CharField(source='get_status_display', read_only=True)
+    priority_display = serializers.CharField(source='get_priority_display', read_only=True)
     user_name = serializers.CharField(source='user.full_name', read_only=True)
+    user_role = serializers.CharField(source='user.role', read_only=True)
+    user_role_display = serializers.CharField(source='user.get_role_display', read_only=True)
+    user_phone = serializers.CharField(source='user.phone', read_only=True)
+    user_avatar = serializers.SerializerMethodField(read_only=True)
     swimmer_name = serializers.CharField(source='swimmer.full_name', read_only=True)
+    responded_by_name = serializers.CharField(source='responded_by.full_name', read_only=True)
+    attachment_url = serializers.SerializerMethodField(read_only=True)
+    messages = TicketMessageSerializer(many=True, read_only=True)
+    messages_count = serializers.IntegerField(source='messages.count', read_only=True)
 
     class Meta:
         model = SupportTicket
         fields = [
-            'id', 'user', 'user_name', 'swimmer', 'swimmer_name',
-            'category', 'category_display', 'subject', 'description',
-            'attachment', 'status', 'status_display', 'response',
+            'id', 'user', 'user_name', 'user_role', 'user_role_display', 'user_phone', 'user_avatar',
+            'swimmer', 'swimmer_name',
+            'category', 'category_display', 'priority', 'priority_display',
+            'subject', 'description',
+            'attachment', 'attachment_url', 'status', 'status_display',
+            'response', 'responded_by', 'responded_by_name', 'responded_at',
+            'messages', 'messages_count',
+            'created_at', 'updated_at'
+        ]
+        read_only_fields = [
+            'id', 'user', 'status', 'response', 'responded_by',
             'responded_at', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id', 'user', 'status', 'response', 'responded_at', 'created_at', 'updated_at']
+
+    def get_user_avatar(self, obj):
+        if obj.user and obj.user.avatar:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.user.avatar.url)
+            return obj.user.avatar.url
+        return None
+
+    def get_attachment_url(self, obj):
+        if obj.attachment:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(obj.attachment.url)
+            return obj.attachment.url
+        return None
 
 
 class LandingSectionSerializer(serializers.ModelSerializer):

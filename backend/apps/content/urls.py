@@ -4,7 +4,7 @@ from .views import (
     SwimmingPoolListView, SwimmingPoolDetailView, PoolImageDeleteView, PoolReorderView,
     AnnouncementListView, AnnouncementDetailView,
     NotificationListView, NotificationMarkReadView, NotificationMarkAllReadView,
-    SupportTicketListView, SupportTicketDetailView,
+    SupportTicketListView, SupportTicketDetailView, SupportTicketReplyView, SupportTicketStatsView,
     LandingSectionListView, LandingSectionDetailView, LandingSectionToggleView,
     TopSwimmerListView, TopSwimmerDetailView, TopSwimmerReorderView
 )
@@ -37,7 +37,9 @@ urlpatterns = [
     path('notifications/', NotificationListView.as_view(), name='notification_list'),
     path('notifications/<int:pk>/read/', NotificationMarkReadView.as_view(), name='notification_mark_read'),
     path('notifications/read-all/', NotificationMarkAllReadView.as_view(), name='notification_mark_all_read'),
+    path('tickets/stats/', SupportTicketStatsView.as_view(), name='ticket_stats'),
     path('tickets/', SupportTicketListView.as_view(), name='ticket_list'),
     path('tickets/<int:pk>/', SupportTicketDetailView.as_view(), name='ticket_detail'),
+    path('tickets/<int:pk>/reply/', SupportTicketReplyView.as_view(), name='ticket_reply'),
 ]
 

@@ -1,5 +1,5 @@
 from django.db import models
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.utils import timezone
 from django.utils.text import slugify
 from rest_framework import generics, permissions, views, status
@@ -7,15 +7,17 @@ from rest_framework.views import APIView
 from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from rest_framework.response import Response
 from rest_framework.exceptions import PermissionDenied
+from apps.accounts.models import User
 from .models import (
     NewsPost, NewsImage, SwimmingPool, PoolImage,
-    Announcement, Notification, SupportTicket, LandingSection,
+    Announcement, Notification, SupportTicket, TicketMessage, LandingSection,
     TopSwimmer
 )
 from .serializers import (
     NewsPostSerializer, NewsImageSerializer,
     SwimmingPoolSerializer, PoolImageSerializer,
     AnnouncementSerializer, NotificationSerializer, SupportTicketSerializer,
+    TicketMessageSerializer,
     LandingSectionSerializer, TopSwimmerSerializer
 )
 from apps.accounts.permissions import IsAdminUserRole
@@ -393,15 +395,56 @@ class NotificationMarkAllReadView(views.APIView):
 
 
 class SupportTicketListView(generics.ListCreateAPIView):
-    """ثبت و مشاهده تیکت‌های پشتیبانی شناگر و اولیا"""
+    """ثبت و مشاهده تیکت‌های پشتیبانی کلیه نقش‌ها (مدیریت، مربی، شناگر) خطاب به ناظر فنی"""
     serializer_class = SupportTicketSerializer
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_queryset(self):
         user = self.request.user
-        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
-            return SupportTicket.objects.all().select_related('user', 'swimmer').order_by('-created_at')
-        return SupportTicket.objects.filter(user=user).select_related('user', 'swimmer').order_by('-created_at')
+        qs = SupportTicket.objects.select_related('user', 'swimmer', 'responded_by').prefetch_related('messages__sender')
+
+        # ناظر فنی و کاربر ارشد همه تیکت‌ها را می‌بینند
+        if user.role == 'SUPERVISOR' or user.is_superuser:
+            role_param = self.request.query_params.get('role')
+            if role_param and role_param.upper() in ['ADMIN', 'COACH', 'SWIMMER']:
+                qs = qs.filter(user__role=role_param.upper())
+
+            mine = self.request.query_params.get('mine')
+            if mine == 'true':
+                qs = qs.filter(user=user)
+        else:
+            # سایر کاربران (مدیر، مربی، شناگر) فقط تیکت‌های ارسالی خودشان را مشاهده می‌کنند
+            qs = qs.filter(user=user)
+
+        # فیلترهای مشترک
+        status_param = self.request.query_params.get('status')
+        if status_param:
+            qs = qs.filter(status=status_param)
+
+        category_param = self.request.query_params.get('category')
+        if category_param:
+            qs = qs.filter(category=category_param)
+
+        priority_param = self.request.query_params.get('priority')
+        if priority_param:
+            qs = qs.filter(priority=priority_param)
+
+        search = self.request.query_params.get('search')
+        if search:
+            search = search.strip()
+            q_filter = (
+                Q(subject__icontains=search) |
+                Q(description__icontains=search) |
+                Q(user__first_name__icontains=search) |
+                Q(user__last_name__icontains=search) |
+                Q(user__phone__icontains=search)
+            )
+            if search.isdigit():
+                q_filter |= Q(id=int(search))
+            qs = qs.filter(q_filter)
+
+        return qs.order_by('-created_at')
 
     def perform_create(self, serializer):
         user = self.request.user
@@ -422,51 +465,219 @@ class SupportTicketListView(generics.ListCreateAPIView):
         elif hasattr(user, 'swimmer_profile') and user.swimmer_profile:
             swimmer = user.swimmer_profile
 
-        ticket = serializer.save(user=user, swimmer=swimmer, status=SupportTicket.Status.SUBMITTED)
+        priority = self.request.data.get('priority') or SupportTicket.Priority.MEDIUM
+        category = self.request.data.get('category') or SupportTicket.Category.TECHNICAL
 
-        # Notify academy admin
-        Notification.objects.create(
-            category=Notification.Category.ANNOUNCEMENT,
-            title=f"تیکت پشتیبانی جدید: {ticket.subject}",
-            message=f"تیکت جدیدی در موضوع {ticket.get_category_display()} توسط {user.full_name} ثبت گردید.",
-            link='/admin/support',
-            is_read=False
+        ticket = serializer.save(
+            user=user,
+            swimmer=swimmer,
+            priority=priority,
+            category=category,
+            status=SupportTicket.Status.SUBMITTED
         )
+
+        # ثبت اولین پیام در تاریخچه گفتگو
+        TicketMessage.objects.create(
+            ticket=ticket,
+            sender=user,
+            message=ticket.description,
+            attachment=ticket.attachment
+        )
+
+        # اطلاع‌رسانی به ناظرین فنی سامانه
+        supervisors = User.objects.filter(
+            Q(role=User.Role.SUPERVISOR) | Q(is_superuser=True),
+            is_active=True
+        ).distinct()
+
+        role_label = user.get_role_display()
+        for sup in supervisors:
+            if sup != user:
+                Notification.objects.create(
+                    recipient=sup,
+                    category=Notification.Category.ANNOUNCEMENT,
+                    title=f"تیکت پشتیبانی جدید: {ticket.subject}",
+                    message=f"تیکت جدیدی در دسته‌بندی «{ticket.get_category_display()}» با اولویت «{ticket.get_priority_display()}» توسط {user.full_name} ({role_label}) ثبت گردید.",
+                    link=f"/supervisor/tickets?id={ticket.id}",
+                    is_read=False
+                )
 
 
 class SupportTicketDetailView(generics.RetrieveUpdateAPIView):
-    """مشاهده و پاسخ‌دهی به تیکت پشتیبانی"""
+    """مشاهده، تغییر وضعیت و بروزرسانی تیکت پشتیبانی"""
     serializer_class = SupportTicketSerializer
     permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_queryset(self):
         user = self.request.user
-        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
-            return SupportTicket.objects.all()
-        return SupportTicket.objects.filter(user=user)
+        qs = SupportTicket.objects.select_related('user', 'swimmer', 'responded_by').prefetch_related('messages__sender')
+        if user.role == 'SUPERVISOR' or user.is_superuser:
+            return qs
+        return qs.filter(user=user)
 
     def perform_update(self, serializer):
         user = self.request.user
-        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+        ticket_before = self.get_object()
+
+        if user.role == 'SUPERVISOR' or user.is_superuser:
             response_text = self.request.data.get('response')
-            new_status = self.request.data.get('status', SupportTicket.Status.ANSWERED)
-            ticket = serializer.save(
-                response=response_text or serializer.instance.response,
-                status=new_status,
-                responded_by=user,
-                responded_at=timezone.now()
-            )
-            # Notify user
-            Notification.objects.create(
-                recipient=ticket.user,
-                category=Notification.Category.ANNOUNCEMENT,
-                title=f"پاسخ به تیکت: {ticket.subject}",
-                message=f"پاسخ آموزشگاه: {ticket.response[:200]}",
-                link='/swimmer/support',
-                is_read=False
-            )
+            new_status = self.request.data.get('status', ticket_before.status)
+            new_priority = self.request.data.get('priority', ticket_before.priority)
+
+            update_kwargs = {
+                'status': new_status,
+                'priority': new_priority,
+            }
+
+            if response_text and response_text.strip() and response_text != ticket_before.response:
+                update_kwargs['response'] = response_text.strip()
+                update_kwargs['responded_by'] = user
+                update_kwargs['responded_at'] = timezone.now()
+                if new_status == SupportTicket.Status.SUBMITTED:
+                    update_kwargs['status'] = SupportTicket.Status.ANSWERED
+
+                # ثبت پیام پاسخ در تاریخچه
+                TicketMessage.objects.create(
+                    ticket=ticket_before,
+                    sender=user,
+                    message=response_text.strip()
+                )
+
+            ticket = serializer.save(**update_kwargs)
+
+            # اطلاع‌رسانی به ارسال‌کننده تیکت در صورت پاسخ‌دهی
+            if response_text and response_text.strip() and response_text != ticket_before.response:
+                role = ticket.user.role
+                user_link = '/admin/support' if role == 'ADMIN' else ('/coach/support' if role == 'COACH' else '/swimmer/support')
+                Notification.objects.create(
+                    recipient=ticket.user,
+                    category=Notification.Category.ANNOUNCEMENT,
+                    title=f"پاسخ ناظر فنی به تیکت: {ticket.subject}",
+                    message=f"پاسخ ناظر فنی: {ticket.response[:150]}",
+                    link=user_link,
+                    is_read=False
+                )
         else:
-            serializer.save()
+            # کاربر عادی می‌تواند تیکت خود را ببندد
+            new_status = self.request.data.get('status')
+            if new_status in [SupportTicket.Status.CLOSED, SupportTicket.Status.SUBMITTED]:
+                serializer.save(status=new_status)
+            else:
+                serializer.save()
+
+
+class SupportTicketReplyView(APIView):
+    """ثبت پیام و پاسخ جدید در گفتگوی تیکت (توسط ناظر فنی یا ارسال‌کننده تیکت)"""
+    permission_classes = [permissions.IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def post(self, request, pk):
+        user = request.user
+        try:
+            if user.role == 'SUPERVISOR' or user.is_superuser:
+                ticket = SupportTicket.objects.select_related('user', 'swimmer').get(pk=pk)
+            else:
+                ticket = SupportTicket.objects.select_related('user', 'swimmer').get(pk=pk, user=user)
+        except SupportTicket.DoesNotExist:
+            return Response({'detail': 'تیکت مورد نظر یافت نشد یا شما دسترسی به آن ندارید.'}, status=status.HTTP_404_NOT_FOUND)
+
+        message_text = request.data.get('message', '').strip()
+        attachment = request.FILES.get('attachment')
+        new_status = request.data.get('status')
+
+        if not message_text and not attachment:
+            return Response({'detail': 'لطفاً متن پیام یا فایل پیوست را وارد نمایید.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        # ایجاد پیام جدید در تیکت
+        TicketMessage.objects.create(
+            ticket=ticket,
+            sender=user,
+            message=message_text,
+            attachment=attachment
+        )
+
+        is_supervisor_reply = (user.role == 'SUPERVISOR' or user.is_superuser)
+
+        if is_supervisor_reply:
+            ticket.response = message_text or ticket.response
+            ticket.responded_by = user
+            ticket.responded_at = timezone.now()
+            ticket.status = new_status if new_status else SupportTicket.Status.ANSWERED
+            ticket.save()
+
+            # اطلاع به ارسال‌کننده تیکت
+            if ticket.user != user:
+                role = ticket.user.role
+                user_link = '/admin/support' if role == 'ADMIN' else ('/coach/support' if role == 'COACH' else '/swimmer/support')
+                Notification.objects.create(
+                    recipient=ticket.user,
+                    category=Notification.Category.ANNOUNCEMENT,
+                    title=f"پاسخ ناظر فنی به تیکت #{ticket.id}",
+                    message=f"ناظر فنی: {(message_text or 'فایل پیوست ارسال شد')[:140]}",
+                    link=user_link,
+                    is_read=False
+                )
+        else:
+            # پاسخ توسط صاحب تیکت (مدیر، مربی، شناگر)
+            if new_status:
+                ticket.status = new_status
+            elif ticket.status in [SupportTicket.Status.ANSWERED, SupportTicket.Status.CLOSED]:
+                ticket.status = SupportTicket.Status.IN_PROGRESS
+            ticket.save()
+
+            # اطلاع به ناظرین فنی
+            supervisors = User.objects.filter(
+                Q(role=User.Role.SUPERVISOR) | Q(is_superuser=True),
+                is_active=True
+            ).distinct()
+            role_label = user.get_role_display()
+            for sup in supervisors:
+                if sup != user:
+                    Notification.objects.create(
+                        recipient=sup,
+                        category=Notification.Category.ANNOUNCEMENT,
+                        title=f"پیام جدید در تیکت #{ticket.id}: {ticket.subject}",
+                        message=f"{user.full_name} ({role_label}): {(message_text or 'فایل پیوست ارسال شد')[:140]}",
+                        link=f"/supervisor/tickets?id={ticket.id}",
+                        is_read=False
+                    )
+
+        serialized = SupportTicketSerializer(ticket, context={'request': request})
+        return Response(serialized.data, status=status.HTTP_201_CREATED)
+
+
+class SupportTicketStatsView(APIView):
+    """آمار کلی تیکت‌های پشتیبانی برای داشبورد ناظر و کاربران"""
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        if user.role == 'SUPERVISOR' or user.is_superuser:
+            qs = SupportTicket.objects.all()
+        else:
+            qs = SupportTicket.objects.filter(user=user)
+
+        stats = {
+            'total': qs.count(),
+            'submitted': qs.filter(status=SupportTicket.Status.SUBMITTED).count(),
+            'in_progress': qs.filter(status=SupportTicket.Status.IN_PROGRESS).count(),
+            'need_info': qs.filter(status=SupportTicket.Status.NEED_INFO).count(),
+            'answered': qs.filter(status=SupportTicket.Status.ANSWERED).count(),
+            'closed': qs.filter(status=SupportTicket.Status.CLOSED).count(),
+            'by_role': {
+                'ADMIN': qs.filter(user__role='ADMIN').count(),
+                'COACH': qs.filter(user__role='COACH').count(),
+                'SWIMMER': qs.filter(user__role='SWIMMER').count(),
+            },
+            'by_priority': {
+                'LOW': qs.filter(priority=SupportTicket.Priority.LOW).count(),
+                'MEDIUM': qs.filter(priority=SupportTicket.Priority.MEDIUM).count(),
+                'HIGH': qs.filter(priority=SupportTicket.Priority.HIGH).count(),
+                'URGENT': qs.filter(priority=SupportTicket.Priority.URGENT).count(),
+            }
+        }
+        return Response(stats)
 
 
 DEFAULT_LANDING_SECTIONS = [
