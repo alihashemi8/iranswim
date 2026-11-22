@@ -11,7 +11,7 @@ export default function SearchLocation({
   onSelect,
   coords,
   onOpenChange,
-  placeholder = 'جستجوی آدرس در قزوین (شهر، محله، خیابان، کوچه...)',
+  placeholder = 'جستجوی آدرس (محله، کوچه...)',
   disabled = false,
 }) {
   const [query, setQuery] = useState('');
@@ -122,10 +122,25 @@ export default function SearchLocation({
     for (const p of LOCAL_PLACES) {
       const full = `${p.title || ''} ${p.address || ''} ${p.neighborhood || ''} ${p.street || ''} ${p.alley || ''}`.toLowerCase();
       if (full.includes(cleanQ)) {
+        let title = (p.title || '')
+          .replace(/(استان\s+)?(شهر\s+)?(شهرستان\s+)?قزوین\s*([،,]\s*)?/g, '')
+          .replace(/([،,]\s*)?(استان\s+)?(شهر\s+)?(شهرستان\s+)?قزوین/g, '')
+          .replace(/\s*\([^)]*\)/g, '')
+          .trim();
+        if (p.neighborhood && p.alley && !title.includes(p.neighborhood)) {
+          title = `${p.neighborhood}، ${p.alley}`;
+        }
+
+        const subtitle = (p.address || '')
+          .replace(/(استان\s+)?(شهر\s+)?(شهرستان\s+)?قزوین\s*([،,]\s*)?/g, '')
+          .replace(/([،,]\s*)?(استان\s+)?(شهر\s+)?(شهرستان\s+)?قزوین/g, '')
+          .replace(/^[،,\s]+|[،,\s]+$/g, '')
+          .trim();
+
         matches.push({
           id: `local_${p.lat}_${p.lng}`,
-          title: p.title,
-          subtitle: p.address,
+          title: title || p.title,
+          subtitle,
           category: p.category || 'landmark',
           category_label: p.category === 'pool' ? 'استخر و اماکن ورزشی' : 'اماکن قزوین',
           neighborhood: p.neighborhood,

@@ -302,12 +302,12 @@ class PhotonGeocodingProvider(BaseGeocodingProvider):
                         neighborhood = props.get('locality') or props.get('district') or ''
                         osm_type = props.get('osm_value') or props.get('type') or 'place'
 
-                        # Build standard hierarchy string
-                        parts = ['استان قزوین', 'قزوین']
+                        # Build standard hierarchy string (omitting Qazvin)
+                        parts = []
                         if neighborhood and neighborhood not in parts:
                             parts.append(neighborhood)
                         if street and street not in parts:
-                            parts.append(f"خیابان {street}" if not street.startswith('خیابان') else street)
+                            parts.append(f"خیابان {street}" if not (street.startswith('خیابان') or street.startswith('بلوار')) else street)
                         if name and name not in parts:
                             parts.append(name)
 
@@ -617,10 +617,16 @@ class QazvinSearchEngine:
         }
 
         for item in search_res.get('results', []):
+            clean_addr = remove_qazvin_prefix(item.get('address') or '')
+            clean_title = remove_qazvin_prefix(item.get('title') or '')
+            if item.get('category') == PlaceCategory.ALLEY and item.get('neighborhood'):
+                if item['neighborhood'] not in clean_title:
+                    clean_title = f"{item['neighborhood']}، {clean_title}"
+
             suggestion = {
                 'id': item['id'],
-                'title': item['title'],
-                'subtitle': item['address'],
+                'title': clean_title,
+                'subtitle': clean_addr,
                 'category': item['category'],
                 'category_label': item['category_label'],
                 'neighborhood': item['neighborhood'],
@@ -666,7 +672,7 @@ class QazvinSearchEngine:
                 completions.append({
                     'id': f"comp_{len(completions)}",
                     'title': phrase,
-                    'subtitle': 'تکمیل جستجو در قزوین',
+                    'subtitle': 'تکمیل هوشمند عبارت',
                     'category': 'completion',
                     'category_label': 'تکمیل عبارت',
                     'icon': 'Search',
