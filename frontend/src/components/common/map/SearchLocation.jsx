@@ -7,6 +7,55 @@ import { LOCAL_PLACES } from './iranPlaces';
 const RECENT_SEARCHES_STORAGE_KEY = 'iranswim_qazvin_recent_searches';
 const MAX_RECENT_SEARCHES = 5;
 
+const ARABIC_TO_PERSIAN = {
+  'ي': 'ی', 'ك': 'ک', 'ة': 'ه', 'ۀ': 'ه', 'ؤ': 'و',
+  'إ': 'ا', 'أ': 'ا', 'آ': 'ا', 'ئ': 'ی',
+};
+
+const FA_DIGITS_MAP = {
+  '۰': '0', '۱': '1', '۲': '2', '۳': '3', '۴': '4',
+  '۵': '5', '۶': '6', '۷': '7', '۸': '8', '۹': '9',
+  '٠': '0', '١': '1', '٢': '2', '٣': '3', '٤': '4',
+  '٥': '5', '٦': '6', '٧': '7', '٨': '8', '٩': '9',
+};
+
+const NUMBER_WORDS = {
+  'یک': 1, 'اول': 1, 'یکم': 1, 'دو': 2, 'دوم': 2, 'سه': 3, 'سوم': 3,
+  'چهار': 4, 'چهارم': 4, 'پنج': 5, 'پنجم': 5, 'شش': 6, 'ششم': 6,
+  'هفت': 7, 'هفتم': 7, 'هشت': 8, 'هشتم': 8, 'نه': 9, 'نهم': 9,
+  'ده': 10, 'دهم': 10, 'یازده': 11, 'دوازده': 12, 'سیزده': 13,
+  'چهارده': 14, 'پانزده': 15, 'شانزده': 16, 'هفده': 17, 'هجده': 18,
+  'نوزده': 19, 'بیست': 20, 'سی': 30, 'چهل': 40, 'پنجاه': 50,
+  'شصت': 60, 'هفتاد': 70, 'هشتاد': 80, 'نود': 90,
+};
+
+function normalizeClient(text) {
+  if (!text) return '';
+  let s = String(text);
+  for (const [ar, fa] of Object.entries(ARABIC_TO_PERSIAN)) s = s.replaceAll(ar, fa);
+  for (const [ar, en] of Object.entries(FA_DIGITS_MAP)) s = s.replaceAll(ar, en);
+  s = s.replace(/[\u064B-\u065F\u0670]/g, '').replace(/\u200c/g, ' ');
+  return s.replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+function convertWordsClient(text) {
+  const norm = normalizeClient(text);
+  const tokens = norm.split(' ');
+  for (let i = 0; i < tokens.length; i++) {
+    if (i + 2 < tokens.length && tokens[i + 1] === 'و') {
+      const t = NUMBER_WORDS[tokens[i]];
+      const o = NUMBER_WORDS[tokens[i + 2]];
+      if (t !== undefined && o !== undefined) {
+        tokens.splice(i, 3, String(t + o));
+        continue;
+      }
+    }
+    const single = NUMBER_WORDS[tokens[i]];
+    if (single !== undefined) tokens[i] = String(single);
+  }
+  return tokens.join(' ');
+}
+
 export default function SearchLocation({
   onSelect,
   coords,
@@ -113,15 +162,90 @@ export default function SearchLocation({
     };
   }, []);
 
+const GENERIC_ROAD_WORDS = new Set([
+  'کوچه', 'کوچهی', 'کوچهٔ', 'خیابان', 'بلوار', 'میدان', 'چهارراه',
+  'بزرگراه', 'شهرک', 'محله', 'بن‌بست', 'بن', 'بست', 'فرعی', 'معبر',
+  'راسته', 'گذر', 'فلکه', 'تقاطع'
+]);
+
+function extractNumberClient(text) {
+  if (!text) return null;
+  const withDigits = convertWordsClient(text);
+  const match = withDigits.match(/\b(\d+)\b/);
+  return match ? parseInt(match[1], 10) : null;
+}
+
   // Offline / Fallback Local Search strictly using verified Qazvin places
   const searchLocalFallback = useCallback((q) => {
-    const cleanQ = q.trim().toLowerCase();
-    if (!cleanQ || !LOCAL_PLACES) return [];
+    if (!q || !LOCAL_PLACES) return [];
+    const normQ = normalizeClient(q);
+    const withDigits = convertWordsClient(normQ);
+    const queryNumber = extractNumberClient(normQ);
 
-    const matches = [];
+    const rawTokens = Array.from(new Set([
+      ...normQ.split(' ').filter((t) => t.length > 0 && t !== 'و'),
+      ...withDigits.split(' ').filter((t) => t.length > 0 && t !== 'و'),
+    ]));
+
+    if (rawTokens.length === 0) return [];
+
+    // Distinct content tokens (non-generic road types, non-numeric)
+    const contentTokens = rawTokens.filter(
+      (t) => !GENERIC_ROAD_WORDS.has(t) && !/^\d+$/.test(t)
+    );
+
+    const scored = [];
     for (const p of LOCAL_PLACES) {
-      const full = `${p.title || ''} ${p.address || ''} ${p.neighborhood || ''} ${p.street || ''} ${p.alley || ''}`.toLowerCase();
-      if (full.includes(cleanQ)) {
+      const full = normalizeClient(
+        `${p.title || ''} ${p.address || ''} ${p.neighborhood || ''} ${p.street || ''} ${p.alley || ''} ${(p.keywords || []).join(' ')}`
+      );
+      const fullDigits = convertWordsClient(full);
+
+      // Check number conflict if query has an explicit number
+      const placeNumber =
+        p.alleyNumber !== undefined
+          ? p.alleyNumber
+          : extractNumberClient(p.alley) || extractNumberClient(p.title);
+
+      if (queryNumber !== null) {
+        if (placeNumber !== null) {
+          if (placeNumber !== queryNumber) {
+            continue; // Hard conflict: user asked for alley 38, candidate is 1 or 2
+          }
+        } else {
+          // Candidate place has no number. Only match if candidate matched content token
+          const hasContentMatch = contentTokens.some((t) => full.includes(t) || fullDigits.includes(t));
+          if (!hasContentMatch) continue;
+        }
+      }
+
+      // Check content tokens: if query has specific content words (e.g. "بهار" in "کوچه بهار"),
+      // candidate MUST match at least one content token. Never match purely on "کوچه"!
+      let matchedContentCount = 0;
+      if (contentTokens.length > 0) {
+        for (const t of contentTokens) {
+          if (full.includes(t) || fullDigits.includes(t)) {
+            matchedContentCount++;
+          }
+        }
+        if (matchedContentCount === 0) {
+          continue; // Skipped false positive
+        }
+      }
+
+      let matchCount = 0;
+      for (const t of rawTokens) {
+        if (full.includes(t) || fullDigits.includes(t)) {
+          matchCount++;
+        }
+      }
+
+      if (matchCount > 0 || (queryNumber !== null && placeNumber === queryNumber)) {
+        let score = (matchCount / rawTokens.length) * 100;
+        if (matchCount === rawTokens.length) score += 200;
+        if (full.includes(normQ) || fullDigits.includes(withDigits)) score += 300;
+        if (queryNumber !== null && placeNumber === queryNumber) score += 800;
+
         let title = (p.title || '')
           .replace(/(استان\s+)?(شهر\s+)?(شهرستان\s+)?قزوین\s*([،,]\s*)?/g, '')
           .replace(/([،,]\s*)?(استان\s+)?(شهر\s+)?(شهرستان\s+)?قزوین/g, '')
@@ -137,22 +261,32 @@ export default function SearchLocation({
           .replace(/^[،,\s]+|[،,\s]+$/g, '')
           .trim();
 
-        matches.push({
+        scored.push({
+          score,
+          alleyNumber: placeNumber,
           id: `local_${p.lat}_${p.lng}`,
           title: title || p.title,
           subtitle,
-          category: p.category || 'landmark',
-          category_label: p.category === 'pool' ? 'استخر و اماکن ورزشی' : 'اماکن قزوین',
+          category: p.category || 'alley',
+          category_label: p.category === 'pool' ? 'استخر و اماکن ورزشی' : p.category === 'alley' ? 'کوچه و معابر فرعی' : 'اماکن قزوین',
           neighborhood: p.neighborhood,
           latitude: p.lat,
           longitude: p.lng,
-          icon: p.category === 'pool' ? 'Waves' : 'MapPin',
+          icon: p.category === 'pool' ? 'Waves' : p.category === 'alley' ? 'MapPin' : 'Compass',
           type: p.type,
         });
       }
-      if (matches.length >= 8) break;
     }
-    return matches;
+
+    scored.sort((a, b) => {
+      if (b.score !== a.score) return b.score - a.score;
+      if (queryNumber === null && a.alleyNumber && b.alleyNumber) {
+        return a.alleyNumber - b.alleyNumber;
+      }
+      return 0;
+    });
+
+    return scored.slice(0, 10);
   }, []);
 
   // Main Debounced Autocomplete Effect

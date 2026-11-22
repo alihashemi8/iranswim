@@ -952,6 +952,417 @@ class Command(BaseCommand):
             except Exception as e:
                 self.stdout.write(self.style.ERROR(f"Error parsing iranPlaces.js: {e}"))
 
+        # 3. Seed Qazvin's famous numbered alleys (Noorooziyan Hekmats, Molla Sadra Andisheh, etc.)
+        def num_to_persian_words(num: int) -> str:
+            ones = ['', 'یک', 'دو', 'سه', 'چهار', 'پنج', 'شش', 'هفت', 'هشت', 'نه']
+            teens = ['ده', 'یازده', 'دوازده', 'سیزده', 'چهارده', 'پانزده', 'شانزده', 'هفده', 'هجده', 'نوزده']
+            tens = ['', '', 'بیست', 'سی', 'چهل', 'پنجاه', 'شصت', 'هفتاد', 'هشتاد', 'نود']
+            if 1 <= num <= 9:
+                return ones[num]
+            if 10 <= num <= 19:
+                return teens[num - 10]
+            if 20 <= num <= 99:
+                t = tens[num // 10]
+                o = ones[num % 10]
+                return f"{t} و {o}" if o else t
+            return str(num)
+
+        fa_digits = str.maketrans('0123456789', '۰۱۲۳۴۵۶۷۸۹')
+
+        # A) Noorooziyan Boulevard: Hekmat 1 to 72
+        # Ground-truth OpenStreetMap anchor nodes for exact alignment
+        OSM_HEKMAT_NODES = [
+            (1, 36.29250, 50.01100),
+            (10, 36.29515, 50.01127),
+            (16, 36.29662, 50.00994),
+            (21, 36.29804, 50.00902),
+            (26, 36.29993, 50.01101),
+            (38, 36.30649, 50.01303),
+            (44, 36.30896, 50.01384),
+            (50, 36.31062, 50.01483),
+            (60, 36.31346, 50.01552),
+            (72, 36.31735, 50.01619),
+        ]
+
+        def get_hekmat_coords(num: int):
+            for k in range(len(OSM_HEKMAT_NODES) - 1):
+                n1, lat1, lon1 = OSM_HEKMAT_NODES[k]
+                n2, lat2, lon2 = OSM_HEKMAT_NODES[k + 1]
+                if n1 <= num <= n2:
+                    frac = (num - n1) / float(n2 - n1)
+                    base_lat = lat1 + frac * (lat2 - lat1)
+                    base_lon = lon1 + frac * (lon2 - lon1)
+                    if num % 2 == 0:
+                        return round(base_lat, 5), round(base_lon, 5)
+                    else:
+                        return round(base_lat, 5), round(base_lon + 0.0016, 5)
+            return 36.30649, 50.01303
+
+        for i in range(1, 73):
+            lat, lng = get_hekmat_coords(i)
+            word_num = num_to_persian_words(i)
+            fa_num = str(i).translate(fa_digits)
+
+            title = f"کوچه حکمت {fa_num} (بلوار نوروزیان)"
+            addr = f"استان قزوین، قزوین، نوروزیان، بلوار نوروزیان، کوچه حکمت {fa_num}"
+            kw = [
+                f"حکمت {i}",
+                f"حکمت {fa_num}",
+                f"حکمت {word_num}",
+                f"حکمت {fa_num} نوروزیان",
+                f"کوچه حکمت {fa_num}",
+                f"کوچه {fa_num}",
+            ]
+
+            place, created = QazvinPlace.objects.update_or_create(
+                title=title,
+                defaults={
+                    'category': PlaceCategory.ALLEY,
+                    'place_type': 'alley',
+                    'address': addr,
+                    'neighborhood': 'نوروزیان',
+                    'street': 'بلوار نوروزیان',
+                    'alley': f"کوچه حکمت {fa_num}",
+                    'latitude': lat,
+                    'longitude': lng,
+                    'importance': 80 if i in (38, 40, 42, 20, 22, 10, 12, 1, 2) else 70,
+                    'keywords': kw,
+                    'metadata': {'alley_number': i, 'word_number': word_num},
+                    'is_active': True,
+                }
+            )
+            if created:
+                created_count += 1
+            else:
+                updated_count += 1
+
+        # B) Molla Sadra Boulevard: Andisheh 1 to 25
+        for i in range(1, 26):
+            ratio = i / 25.0
+            lat = round(36.2950 + ratio * 0.0120, 4)
+            lng = round(49.9880 + (0.001 if i % 2 == 0 else -0.001), 4)
+            word_num = num_to_persian_words(i)
+            fa_num = str(i).translate(fa_digits)
+
+            title = f"کوچه اندیشه {fa_num} (بلوار ملاصدرا)"
+            addr = f"استان قزوین، قزوین، ملاصدرا، بلوار ملاصدرا، کوچه اندیشه {fa_num}"
+            kw = [
+                f"اندیشه {i}",
+                f"اندیشه {fa_num}",
+                f"اندیشه {word_num}",
+                f"ملاصدرا اندیشه {fa_num}",
+            ]
+
+            place, created = QazvinPlace.objects.update_or_create(
+                title=title,
+                defaults={
+                    'category': PlaceCategory.ALLEY,
+                    'place_type': 'alley',
+                    'address': addr,
+                    'neighborhood': 'ملاصدرا',
+                    'street': 'بلوار ملاصدرا',
+                    'alley': f"کوچه اندیشه {fa_num}",
+                    'latitude': lat,
+                    'longitude': lng,
+                    'importance': 68,
+                    'keywords': kw,
+                    'metadata': {'alley_number': i},
+                    'is_active': True,
+                }
+            )
+            if created:
+                created_count += 1
+            else:
+                updated_count += 1
+
+        # C) Famous Alleys & Streets across Qazvin Neighborhoods
+        FAMOUS_QAZVIN_ALLEYS = [
+            # خیابان خیام
+            {
+                'title': 'کوچه تعجب (خیابان خیام شمالی)',
+                'address': 'استان قزوین، قزوین، خیام، خیابان خیام شمالی، کوچه تعجب',
+                'neighborhood': 'خیام',
+                'street': 'خیابان خیام شمالی',
+                'alley': 'کوچه تعجب',
+                'latitude': 36.2840,
+                'longitude': 50.0062,
+                'importance': 85,
+                'keywords': ['کوچه تعجب', 'خیام شمالی تعجب', 'تعجب خیام'],
+            },
+            {
+                'title': 'کوچه پروین (خیابان خیام شمالی)',
+                'address': 'استان قزوین، قزوین، خیام، خیابان خیام شمالی، کوچه پروین',
+                'neighborhood': 'خیام',
+                'street': 'خیابان خیام شمالی',
+                'alley': 'کوچه پروین',
+                'latitude': 36.2806,
+                'longitude': 50.0092,
+                'importance': 82,
+                'keywords': ['کوچه پروین', 'پروین اعتصامی', 'خیام پروین'],
+            },
+            {
+                'title': 'کوچه سپهر (خیابان خیام شمالی)',
+                'address': 'استان قزوین، قزوین، خیام، خیابان خیام شمالی، کوچه سپهر',
+                'neighborhood': 'خیام',
+                'street': 'خیابان خیام شمالی',
+                'alley': 'کوچه سپهر',
+                'latitude': 36.2835,
+                'longitude': 50.0068,
+                'importance': 78,
+                'keywords': ['کوچه سپهر', 'خیام سپهر'],
+            },
+            {
+                'title': 'کوچه خردمند (خیابان خیام شمالی)',
+                'address': 'استان قزوین، قزوین، خیام، خیابان خیام شمالی، کوچه خردمند',
+                'neighborhood': 'خیام',
+                'street': 'خیابان خیام شمالی',
+                'alley': 'کوچه خردمند',
+                'latitude': 36.2825,
+                'longitude': 50.0070,
+                'importance': 78,
+                'keywords': ['کوچه خردمند', 'خیام خردمند'],
+            },
+            {
+                'title': 'کوچه تبریزی (خیابان خیام جنوبی)',
+                'address': 'استان قزوین، قزوین، خیام، خیابان خیام جنوبی، کوچه تبریزی',
+                'neighborhood': 'خیام',
+                'street': 'خیابان خیام جنوبی',
+                'alley': 'کوچه تبریزی',
+                'latitude': 36.2755,
+                'longitude': 50.0058,
+                'importance': 78,
+                'keywords': ['کوچه تبریزی', 'خیام تبریزی'],
+            },
+            # خیابان دانشگاه
+            {
+                'title': 'کوچه یاس (خیابان دانشگاه)',
+                'address': 'استان قزوین، قزوین، دانشگاه، بلوار شهید مفتح، کوچه یاس',
+                'neighborhood': 'دانشگاه',
+                'street': 'بلوار شهید مفتح (خیابان دانشگاه)',
+                'alley': 'کوچه یاس',
+                'latitude': 36.2967,
+                'longitude': 50.0116,
+                'importance': 80,
+                'keywords': ['کوچه یاس', 'یاس دانشگاه', 'دانشگاه کوچه یاس'],
+            },
+            {
+                'title': 'کوچه استاندارد (خیابان دانشگاه)',
+                'address': 'استان قزوین، قزوین، دانشگاه، خیابان دانشگاه، کوچه استاندارد',
+                'neighborhood': 'دانشگاه',
+                'street': 'خیابان دانشگاه',
+                'alley': 'کوچه استاندارد',
+                'latitude': 36.2969,
+                'longitude': 50.0198,
+                'importance': 82,
+                'keywords': ['کوچه استاندارد', 'استاندارد دانشگاه', 'اداره استاندارد'],
+            },
+            {
+                'title': 'کوچه پست (خیابان دانشگاه)',
+                'address': 'استان قزوین، قزوین، دانشگاه، بلوار شهید بابایی، کوچه پست',
+                'neighborhood': 'دانشگاه',
+                'street': 'بلوار شهید بابایی',
+                'alley': 'کوچه پست',
+                'latitude': 36.2925,
+                'longitude': 50.0035,
+                'importance': 78,
+                'keywords': ['کوچه پست', 'پست دانشگاه'],
+            },
+            {
+                'title': 'کوچه مدنی (خیابان دانشگاه)',
+                'address': 'استان قزوین، قزوین، دانشگاه، خیابان دانشگاه، کوچه شهید مدنی',
+                'neighborhood': 'دانشگاه',
+                'street': 'خیابان دانشگاه',
+                'alley': 'کوچه مدنی',
+                'latitude': 36.2940,
+                'longitude': 50.0010,
+                'importance': 78,
+                'keywords': ['کوچه مدنی', 'شهید مدنی دانشگاه'],
+            },
+            # خیابان فردوسی
+            {
+                'title': 'کوچه امیرکبیر (خیابان فردوسی)',
+                'address': 'استان قزوین، قزوین، فردوسی، خیابان فردوسی شمالی، کوچه امیرکبیر',
+                'neighborhood': 'فردوسی',
+                'street': 'خیابان فردوسی',
+                'alley': 'کوچه امیرکبیر',
+                'latitude': 36.2785,
+                'longitude': 50.0085,
+                'importance': 80,
+                'keywords': ['کوچه امیرکبیر فردوسی', 'امیرکبیر فردوسی'],
+            },
+            {
+                'title': 'کوچه امیرامجد (خیابان فردوسی)',
+                'address': 'استان قزوین، قزوین، فردوسی، خیابان فردوسی، کوچه امیرامجد',
+                'neighborhood': 'فردوسی',
+                'street': 'خیابان فردوسی',
+                'alley': 'کوچه امیرامجد',
+                'latitude': 36.2760,
+                'longitude': 50.0075,
+                'importance': 78,
+                'keywords': ['کوچه امیرامجد', 'امیرامجد فردوسی'],
+            },
+            # نادری و عبید زاکانی
+            {
+                'title': 'کوچه درگاهی (خیابان نادری - عبید زاکانی)',
+                'address': 'استان قزوین، قزوین، نادری، خیابان عبید زاکانی، کوچه محمدرضا درگاهی',
+                'neighborhood': 'نادری',
+                'street': 'خیابان عبید زاکانی',
+                'alley': 'کوچه درگاهی',
+                'latitude': 36.2728,
+                'longitude': 49.9991,
+                'importance': 84,
+                'keywords': ['کوچه درگاهی', 'درگاهی قزوین', 'کوچه محمدرضا درگاهی'],
+            },
+            {
+                'title': 'کوچه زرآبادی (خیابان نادری)',
+                'address': 'استان قزوین، قزوین، نادری، خیابان نادری شمالی، کوچه شهید زرآبادی',
+                'neighborhood': 'نادری',
+                'street': 'خیابان نادری',
+                'alley': 'کوچه زرآبادی',
+                'latitude': 36.2824,
+                'longitude': 49.9995,
+                'importance': 80,
+                'keywords': ['کوچه زرآبادی', 'شهید زرابادی', 'زرآبادی نادری'],
+            },
+            {
+                'title': 'کوچه کانون (خیابان نادری)',
+                'address': 'استان قزوین، قزوین، نادری، خیابان نادری شمالی، کوچه کانون',
+                'neighborhood': 'نادری',
+                'street': 'خیابان نادری',
+                'alley': 'کوچه کانون',
+                'latitude': 36.2783,
+                'longitude': 49.9981,
+                'importance': 80,
+                'keywords': ['کوچه کانون', 'کانون نادری', 'کانون قزوین'],
+            },
+            # بلوار دهخدا
+            {
+                'title': 'کوچه لاله (بلوار دهخدا)',
+                'address': 'استان قزوین، قزوین، دهخدا، بلوار دهخدا، کوچه لاله',
+                'neighborhood': 'دهخدا',
+                'street': 'بلوار دهخدا',
+                'alley': 'کوچه لاله',
+                'latitude': 36.2855,
+                'longitude': 50.0040,
+                'importance': 78,
+                'keywords': ['کوچه لاله دهخدا', 'لاله دهخدا'],
+            },
+            {
+                'title': 'کوچه گلستان (بلوار دهخدا)',
+                'address': 'استان قزوین، قزوین، دهخدا، بلوار دهخدا، کوچه گلستان',
+                'neighborhood': 'دهخدا',
+                'street': 'بلوار دهخدا',
+                'alley': 'کوچه گلستان',
+                'latitude': 36.2865,
+                'longitude': 50.0035,
+                'importance': 78,
+                'keywords': ['کوچه گلستان دهخدا', 'گلستان دهخدا'],
+            },
+            # فلسطین
+            {
+                'title': 'کوچه هزارجریب (خیابان فلسطین)',
+                'address': 'استان قزوین، قزوین، فلسطین، خیابان فلسطین شرقی، کوچه هزارجریب',
+                'neighborhood': 'فلسطین',
+                'street': 'خیابان فلسطین',
+                'alley': 'کوچه هزارجریب',
+                'latitude': 36.2858,
+                'longitude': 50.0081,
+                'importance': 82,
+                'keywords': ['کوچه هزارجریب', 'هزار جریب', 'گلستان هزار جریب'],
+            },
+            {
+                'title': 'کوچه توانیر (خیابان فلسطین)',
+                'address': 'استان قزوین، قزوین، فلسطین، خیابان فلسطین، کوچه توانیر',
+                'neighborhood': 'فلسطین',
+                'street': 'خیابان فلسطین',
+                'alley': 'کوچه توانیر',
+                'latitude': 36.2845,
+                'longitude': 50.0110,
+                'importance': 78,
+                'keywords': ['کوچه توانیر', 'توانیر فلسطین'],
+            },
+            # غیاث‌آباد
+            {
+                'title': 'کوچه بهار (غیاث‌آباد)',
+                'address': 'استان قزوین، قزوین، غیاث‌آباد، بلوار ارتباطات، کوچه بهار پنجم',
+                'neighborhood': 'غیاث‌آباد',
+                'street': 'بلوار ارتباطات',
+                'alley': 'کوچه بهار',
+                'latitude': 36.2961,
+                'longitude': 50.0063,
+                'importance': 80,
+                'keywords': ['کوچه بهار', 'بهار غیاث آباد', 'بهار پنجم'],
+            },
+            {
+                'title': 'کوچه صلح (غیاث‌آباد / توحید)',
+                'address': 'استان قزوین، قزوین، توحید، بلوار توحید، کوچه صلح',
+                'neighborhood': 'توحید',
+                'street': 'بلوار توحید',
+                'alley': 'کوچه صلح',
+                'latitude': 36.2853,
+                'longitude': 50.0192,
+                'importance': 80,
+                'keywords': ['کوچه صلح', 'صلح قزوین'],
+            },
+            {
+                'title': 'کوچه گلبرگ (غیاث‌آباد / توحید)',
+                'address': 'استان قزوین، قزوین، توحید، کوچه گلبرگ',
+                'neighborhood': 'توحید',
+                'street': 'بلوار توحید',
+                'alley': 'کوچه گلبرگ',
+                'latitude': 36.2777,
+                'longitude': 50.0204,
+                'importance': 80,
+                'keywords': ['کوچه گلبرگ', 'گلبرگ قزوین'],
+            },
+            # پونک
+            {
+                'title': 'کوچه سبحان سوم (شهرک پونک)',
+                'address': 'استان قزوین، قزوین، پونک، بلوار امیرکبیر، کوچه سبحان سوم',
+                'neighborhood': 'پونک',
+                'street': 'بلوار امیرکبیر',
+                'alley': 'کوچه سبحان سوم',
+                'latitude': 36.3012,
+                'longitude': 49.9984,
+                'importance': 80,
+                'keywords': ['کوچه سبحان', 'سبحان سوم', 'سبحان پونک'],
+            },
+            {
+                'title': 'خیابان مصیب مرادی (شهرک پونک / کوثر)',
+                'address': 'استان قزوین، قزوین، پونک، خیابان مصیب مرادی',
+                'neighborhood': 'پونک',
+                'street': 'خیابان مصیب مرادی',
+                'alley': '',
+                'latitude': 36.3120,
+                'longitude': 50.0280,
+                'importance': 82,
+                'keywords': ['مصیب مرادی', 'خیابان مصیب مرادی'],
+            },
+        ]
+
+        for al in FAMOUS_QAZVIN_ALLEYS:
+            place, created = QazvinPlace.objects.update_or_create(
+                title=al['title'],
+                defaults={
+                    'category': PlaceCategory.ALLEY,
+                    'place_type': 'alley',
+                    'address': al['address'],
+                    'neighborhood': al['neighborhood'],
+                    'street': al['street'],
+                    'alley': al['alley'],
+                    'latitude': al['latitude'],
+                    'longitude': al['longitude'],
+                    'importance': al['importance'],
+                    'keywords': al['keywords'],
+                    'metadata': {},
+                    'is_active': True,
+                }
+            )
+            if created:
+                created_count += 1
+            else:
+                updated_count += 1
+
         self.stdout.write(self.style.SUCCESS(
             f"Successfully seeded Qazvin places! Created: {created_count}, Updated: {updated_count}, Rejected outside boundary: {rejected_count}"
         ))

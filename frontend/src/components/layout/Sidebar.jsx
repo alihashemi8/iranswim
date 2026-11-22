@@ -8,7 +8,7 @@ import {
   X, LogOut, ChevronLeft, ChevronRight,
   TrendingUp, MessageSquareQuote, FileText,
   Globe, Server, Radio, GitBranch, Database, Sliders, Whistle,
-  FolderCheck, Dumbbell
+  FolderCheck, Dumbbell, Headphones
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
@@ -28,9 +28,10 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const [collapsed, setCollapsed] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
-  // Badge notification counts for admin
+  // Badge notification counts for admin & supervisor
   const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const [pendingDossiersCount, setPendingDossiersCount] = useState(0);
+  const [pendingTicketsCount, setPendingTicketsCount] = useState(0);
 
   useEffect(() => {
     if (user?.role === 'ADMIN') {
@@ -52,6 +53,18 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
         }
       };
       fetchBadges();
+    } else if (user?.role === 'SUPERVISOR') {
+      const fetchSupervisorBadges = async () => {
+        try {
+          const res = await api.get('/content/tickets/stats/');
+          if (res.data?.submitted) {
+            setPendingTicketsCount(res.data.submitted);
+          }
+        } catch {
+          // Non-critical badge fetch
+        }
+      };
+      fetchSupervisorBadges();
     }
   }, [user]);
 
@@ -151,6 +164,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       items: [
         { to: '/admin/website', label: 'مدیریت وبسایت', icon: Globe },
         { to: '/admin/announcements', label: 'پیام‌ها و اعلان‌ها', icon: Bell },
+        { to: '/admin/support', label: 'ارتباط با پشتیبانی', icon: Headphones },
       ],
     },
   ];
@@ -169,6 +183,13 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       groupTitle: 'خطایابی و استقرار',
       items: [
         { to: '/supervisor/errors', label: 'مدیریت باگ‌ها و استک‌ترس', icon: Bug },
+        {
+          to: '/supervisor/tickets',
+          label: 'تیکت‌های پشتیبانی',
+          icon: Headphones,
+          badge: pendingTicketsCount > 0 ? pendingTicketsCount : null,
+          badgeColor: 'bg-rose-500 text-white',
+        },
         { to: '/supervisor/deployments', label: 'استقرار و CI/CD', icon: GitBranch },
         { to: '/supervisor/backups', label: 'پشتیبان‌گیری (Backup)', icon: Database },
       ],
@@ -209,6 +230,12 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
         { to: '/coach/workouts', label: 'برنامه', icon: Calendar },
       ],
     },
+    {
+      groupTitle: 'ارتباطات',
+      items: [
+        { to: '/coach/support', label: 'ارتباط با پشتیبانی', icon: Headphones },
+      ],
+    },
   ];
 
 
@@ -235,7 +262,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       items: [
         { to: '/swimmer/finance', label: 'امور مالی و اقساط', icon: CreditCard },
         { to: '/swimmer/announcements', label: 'اطلاعیه‌ها و اخبار', icon: Bell },
-        { to: '/swimmer/support', label: 'پشتیبانی و ارتباط', icon: MessageSquareQuote },
+        { to: '/swimmer/support', label: 'ارتباط با پشتیبانی', icon: Headphones },
       ],
     },
     {

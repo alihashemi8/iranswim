@@ -404,8 +404,8 @@ class SupportTicketListView(generics.ListCreateAPIView):
         user = self.request.user
         qs = SupportTicket.objects.select_related('user', 'swimmer', 'responded_by').prefetch_related('messages__sender')
 
-        # ناظر فنی و کاربر ارشد همه تیکت‌ها را می‌بینند
-        if user.role == 'SUPERVISOR' or user.is_superuser:
+        # ناظر فنی و کاربر ارشد (و مدیر با پارامتر all) همه تیکت‌ها را می‌بینند
+        if user.role == 'SUPERVISOR' or user.is_superuser or (user.role == 'ADMIN' and self.request.query_params.get('all') == 'true'):
             role_param = self.request.query_params.get('role')
             if role_param and role_param.upper() in ['ADMIN', 'COACH', 'SWIMMER']:
                 qs = qs.filter(user__role=role_param.upper())
@@ -414,7 +414,7 @@ class SupportTicketListView(generics.ListCreateAPIView):
             if mine == 'true':
                 qs = qs.filter(user=user)
         else:
-            # سایر کاربران (مدیر، مربی، شناگر) فقط تیکت‌های ارسالی خودشان را مشاهده می‌کنند
+            # کاربران (مدیر در پنل پشتیبانی، مربی، شناگر) فقط تیکت‌های ارسالی خودشان را مشاهده می‌کنند
             qs = qs.filter(user=user)
 
         # فیلترهای مشترک
@@ -512,7 +512,7 @@ class SupportTicketDetailView(generics.RetrieveUpdateAPIView):
     def get_queryset(self):
         user = self.request.user
         qs = SupportTicket.objects.select_related('user', 'swimmer', 'responded_by').prefetch_related('messages__sender')
-        if user.role == 'SUPERVISOR' or user.is_superuser:
+        if user.role in ['SUPERVISOR', 'ADMIN'] or user.is_superuser:
             return qs
         return qs.filter(user=user)
 
@@ -520,7 +520,7 @@ class SupportTicketDetailView(generics.RetrieveUpdateAPIView):
         user = self.request.user
         ticket_before = self.get_object()
 
-        if user.role == 'SUPERVISOR' or user.is_superuser:
+        if user.role in ['SUPERVISOR', 'ADMIN'] or user.is_superuser:
             response_text = self.request.data.get('response')
             new_status = self.request.data.get('status', ticket_before.status)
             new_priority = self.request.data.get('priority', ticket_before.priority)
@@ -575,7 +575,7 @@ class SupportTicketReplyView(APIView):
     def post(self, request, pk):
         user = request.user
         try:
-            if user.role == 'SUPERVISOR' or user.is_superuser:
+            if user.role in ['SUPERVISOR', 'ADMIN'] or user.is_superuser:
                 ticket = SupportTicket.objects.select_related('user', 'swimmer').get(pk=pk)
             else:
                 ticket = SupportTicket.objects.select_related('user', 'swimmer').get(pk=pk, user=user)
@@ -597,7 +597,7 @@ class SupportTicketReplyView(APIView):
             attachment=attachment
         )
 
-        is_supervisor_reply = (user.role == 'SUPERVISOR' or user.is_superuser)
+        is_supervisor_reply = (user.role in ['SUPERVISOR', 'ADMIN'] or user.is_superuser)
 
         if is_supervisor_reply:
             ticket.response = message_text or ticket.response

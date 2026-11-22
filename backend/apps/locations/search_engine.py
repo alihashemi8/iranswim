@@ -35,6 +35,7 @@ from apps.locations.persian_normalizer import (
     tokenize_persian,
     convert_number_words_to_digits,
     parse_persian_word_number,
+    extract_number_from_query,
     is_fuzzy_match,
     extract_search_intent,
     STEM_SYNONYMS,
@@ -74,6 +75,13 @@ CATEGORY_LABELS = {
     PlaceCategory.STREET: 'خیابان و معابر اصلی',
     PlaceCategory.NEIGHBORHOOD: 'محله‌های قزوین',
     PlaceCategory.ALLEY: 'کوچه و فرعی',
+}
+
+
+GENERIC_ROAD_WORDS = {
+    'کوچه', 'کوچهی', 'کوچهٔ', 'خیابان', 'بلوار', 'میدان', 'چهارراه',
+    'بزرگراه', 'شهرک', 'محله', 'بن‌بست', 'بن', 'بست', 'فرعی', 'معبر',
+    'راسته', 'گذر', 'فلکه', 'تقاطع', 'مجموعه'
 }
 
 
@@ -123,21 +131,26 @@ def score_place(
     elif norm_query in norm_addr or query_digits in norm_addr:
         score += 250.0
 
-    # 2. Token Matching & Fuzzy / Typo Tolerance
+    # 2. Token Matching & Content vs Generic Token Rules
+    content_tokens = [t for t in query_tokens if t not in GENERIC_ROAD_WORDS and not t.isdigit()]
+    matched_content_tokens = 0
+
     for q_tok in query_tokens:
         tok_matched = False
         tok_score = 0.0
 
+        is_generic = q_tok in GENERIC_ROAD_WORDS
+
         # Exact word match in title
         if q_tok in title_words:
-            tok_score = max(tok_score, 180.0)
+            tok_score = max(tok_score, 15.0 if is_generic else 180.0)
             tok_matched = True
         else:
             # Word prefix match
             for tw in title_words:
                 if tw.startswith(q_tok):
                     ratio = len(q_tok) / float(len(tw))
-                    tok_score = max(tok_score, 120.0 + ratio * 50.0)
+                    tok_score = max(tok_score, 10.0 if is_generic else (120.0 + ratio * 50.0))
                     tok_matched = True
                     break
 
@@ -158,21 +171,21 @@ def score_place(
                     tok_matched = True
                     break
 
-        # Keywords match
+        # Keywords match (do not partial-match generic words like 'کوچه' inside multi-word keywords)
         if not tok_matched and place.keywords:
             for kw in place.keywords:
                 kw_norm = normalize_persian(kw)
                 if kw_norm == q_tok:
-                    tok_score = max(tok_score, 130.0)
+                    tok_score = max(tok_score, 15.0 if is_generic else 130.0)
                     tok_matched = True
                     break
-                elif q_tok in kw_norm:
+                elif not is_generic and q_tok in kw_norm:
                     tok_score = max(tok_score, 90.0)
                     tok_matched = True
                     break
 
-        # Typo-tolerance check (Damerau-Levenshtein)
-        if not tok_matched:
+        # Typo-tolerance check (Damerau-Levenshtein) - only for non-generic words
+        if not tok_matched and not is_generic:
             for tw in title_words:
                 is_match, dist = is_fuzzy_match(tw, q_tok)
                 if is_match:
@@ -183,25 +196,44 @@ def score_place(
 
         if tok_matched:
             matched_tokens_count += 1
+            if q_tok in content_tokens:
+                matched_content_tokens += 1
             score += tok_score
         else:
             # Penalty for missing query token
             score -= 20.0
+
+    # CRITICAL: If the query contains distinct content tokens (e.g. "بهار" in "کوچه بهار"),
+    # the candidate MUST match at least one of those content tokens.
+    # Matching ONLY generic words like "کوچه" is never sufficient to qualify a result!
+    if content_tokens and matched_content_tokens == 0:
+        return 0.0
 
     # If multi-token query has zero matched tokens, skip unless category match
     if len(query_tokens) > 0 and matched_tokens_count == 0:
         if not intent.get('category') or intent.get('category') != place.place_type:
             return 0.0
 
-    # 3. Number Agreement & Conflict Check
-    # e.g., If query specifically asked for "حکمت 40", avoid matching "حکمت 41"
+    # 3. Number Agreement & Strict Conflict Check
+    # HARD FILTER: If query specifically asked for number X, NEVER return number Y!
     if query_number is not None:
-        place_num = parse_persian_word_number(place.alley) or parse_persian_word_number(place.title)
+        place_num = (
+            (place.metadata or {}).get('alley_number')
+            or extract_number_from_query(place.alley)
+            or extract_number_from_query(place.title)
+        )
         if place_num is not None:
             if place_num == query_number:
-                score += 200.0
+                score += 800.0
             else:
-                score -= 400.0  # Conflict penalty
+                return 0.0  # HARD CONFLICT: query wants 38, place is 1 or 2 -> reject!
+        else:
+            # Query explicitly specified a number (e.g. "حکمت ۳۸" or "کوچه ۳۸"),
+            # but this candidate place has NO number.
+            # If the candidate didn't match any specific content token (e.g. "حکمت"), reject it!
+            if matched_content_tokens == 0:
+                return 0.0
+            score -= 100.0
 
     # 4. Context & Intent Match
     intent_cat = intent.get('category')
@@ -393,15 +425,17 @@ class QazvinSearchEngine:
         user_grid = ""
         if user_coords and user_coords.get('lat') and user_coords.get('lng'):
             user_grid = f"_{round(float(user_coords['lat']), 2)}_{round(float(user_coords['lng']), 2)}"
-        raw_key = f"qazvin_search_{norm_query}_{category or 'all'}_{page}_{page_size}{user_grid}"
+        raw_key = f"qazvin_search_{norm_query}_{category or 'all'}_{page}_{page_size}_{enable_external}{user_grid}"
         cache_key = f"qazvin_s_{hashlib.md5(raw_key.encode('utf-8')).hexdigest()}"
         cached = cache.get(cache_key)
         if cached:
             return cached
 
         query_digits = convert_number_words_to_digits(norm_query)
-        query_tokens = tokenize_persian(norm_query)
-        query_number = parse_persian_word_number(norm_query) or parse_persian_word_number(query_digits)
+        query_number = extract_number_from_query(norm_query) or extract_number_from_query(query_digits)
+        # Tokenize avoiding isolated conjunction 'و'
+        raw_tokens = tokenize_persian(query_digits) if query_digits else tokenize_persian(norm_query)
+        query_tokens = [t for t in raw_tokens if t != 'و']
         intent = extract_search_intent(raw_query)
 
         # 2. Candidate Filtering from Cached Places
@@ -507,8 +541,14 @@ class QazvinSearchEngine:
                         'source': 'osm',
                     })
 
-        # 4. Sort by score descending
-        scored_items.sort(key=lambda x: x['score'], reverse=True)
+        # 4. Sort by score descending, with natural alley number tie-breaker
+        def get_sort_key(item):
+            s = item.get('score', 0.0)
+            alley_num = (item.get('metadata') or {}).get('alley_number')
+            num_order = -alley_num if (query_number is None and alley_num is not None) else 0
+            return (s, num_order)
+
+        scored_items.sort(key=get_sort_key, reverse=True)
 
         # 5. Extract available category facets
         category_counts: Dict[str, int] = {}
@@ -605,6 +645,16 @@ class QazvinSearchEngine:
             page_size=limit,
             enable_external=False,
         )
+
+        # If local search yielded 0 results for a multi-character query, fall back to OSM external provider
+        if search_res.get('total_count', 0) == 0 and len(norm_query) >= 3:
+            search_res = self.search(
+                query=raw_query,
+                user_coords=user_coords,
+                page=1,
+                page_size=limit,
+                enable_external=True,
+            )
 
         flat_suggestions = []
         categorized: Dict[str, List[Dict[str, Any]]] = {

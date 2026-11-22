@@ -232,6 +232,21 @@ def convert_number_words_to_digits(query: Optional[str]) -> str:
     return " ".join(tokens)
 
 
+def extract_number_from_query(query: Optional[str]) -> Optional[int]:
+    """
+    Extracts an embedded integer number from a query, whether written
+    in words (e.g. 'سی و هشت', 'چهل', 'دوازدهم') or digits ('38', '۳۸').
+    """
+    if not query:
+        return None
+    norm = normalize_persian(query)
+    with_digits = convert_number_words_to_digits(norm)
+    match = re.search(r'\b(\d+)\b', with_digits)
+    if match:
+        return int(match.group(1))
+    return parse_persian_word_number(norm)
+
+
 # ==============================================================================
 # 3. TYPO TOLERANCE: DAMERAU-LEVENSHTEIN DISTANCE
 # ==============================================================================

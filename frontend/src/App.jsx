@@ -30,6 +30,7 @@ import { SupervisorAuditPage } from './pages/supervisor/SupervisorAuditPage';
 import { SupervisorTestTriggerPage } from './pages/supervisor/SupervisorTestTriggerPage';
 import { SupervisorUsersPage } from './pages/supervisor/SupervisorUsersPage';
 import { SupervisorProfilePage } from './pages/supervisor/SupervisorProfilePage';
+import { SupervisorTicketsPage } from './pages/supervisor/SupervisorTicketsPage';
 
 // Admin Pages
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -68,6 +69,7 @@ import { AdminNewsPage } from './pages/admin/AdminNewsPage';
 import { AdminWebsiteManagerPage } from './pages/admin/AdminWebsiteManagerPage';
 import { AdminAnnouncementsPage } from './pages/admin/AdminAnnouncementsPage';
 import { AdminCreateAnnouncementPage } from './pages/admin/AdminCreateAnnouncementPage';
+import { AdminSupportPage } from './pages/admin/AdminSupportPage';
 import { AdminSettingsPage } from './pages/admin/AdminSettingsPage';
 import { AdminSecurityPage } from './pages/admin/AdminSecurityPage';
 import { AdminProfilePage } from './pages/admin/AdminProfilePage';
@@ -92,6 +94,7 @@ import { CoachWorkoutsPage } from './pages/coach/CoachWorkoutsPage';
 import { CoachCreateWorkoutPage } from './pages/coach/CoachCreateWorkoutPage';
 import { CoachProfilePage } from './pages/coach/CoachProfilePage';
 import { CoachCompleteProfilePage } from './pages/coach/CoachCompleteProfilePage';
+import { CoachSupportPage } from './pages/coach/CoachSupportPage';
 
 
 // Swimmer Pages
@@ -109,6 +112,7 @@ import { SwimmerSupportPage } from './pages/swimmer/SwimmerSupportPage';
 import { SwimmerProfilePage } from './pages/swimmer/SwimmerProfilePage';
 import { SwimmerSettingsPage } from './pages/swimmer/SwimmerSettingsPage';
 import { SwimmerCourseEnrollPage } from './pages/swimmer/SwimmerCourseEnrollPage';
+import { CreateSupportTicketPage } from './pages/common/CreateSupportTicketPage';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const { user } = useAuth();
@@ -200,6 +204,7 @@ export default function App() {
                 <Route path="infrastructure" element={<SupervisorInfrastructurePage />} />
                 <Route path="services" element={<SupervisorServicesPage />} />
                 <Route path="errors" element={<SupervisorErrorsPage />} />
+                <Route path="tickets" element={<SupervisorTicketsPage />} />
                 <Route path="activity" element={<SupervisorActivityPage />} />
                 <Route path="deployments" element={<SupervisorDeploymentsPage />} />
                 <Route path="backups" element={<SupervisorBackupsPage />} />
@@ -266,6 +271,8 @@ export default function App() {
                 <Route path="announcements" element={<AdminAnnouncementsPage />} />
                 <Route path="announcements/new" element={<AdminCreateAnnouncementPage />} />
                 <Route path="announcements/create" element={<Navigate to="/admin/announcements/new" replace />} />
+                <Route path="support" element={<AdminSupportPage />} />
+                <Route path="support/new" element={<CreateSupportTicketPage role="ADMIN" />} />
 
                 {/* 6. Reports & Analytics (Removed, redirect to Admin) */}
                 <Route path="reports" element={<Navigate to="/admin" replace />} />
@@ -331,6 +338,8 @@ export default function App() {
                 {/* 9. Profile & Settings */}
                 <Route path="profile" element={<CoachProfilePage />} />
                 <Route path="complete-profile" element={<CoachCompleteProfilePage />} />
+                <Route path="support" element={<CoachSupportPage />} />
+                <Route path="support/new" element={<CreateSupportTicketPage role="COACH" />} />
               </Route>
 
 
@@ -360,6 +369,7 @@ export default function App() {
                 <Route path="finance" element={<SwimmerFinancePage />} />
                 <Route path="announcements" element={<SwimmerAnnouncementsPage />} />
                 <Route path="support" element={<SwimmerSupportPage />} />
+                <Route path="support/new" element={<CreateSupportTicketPage role="SWIMMER" />} />
 
                 {/* 4. Account & Documents */}
                 <Route path="documents" element={<SwimmerDocumentsPage />} />
