@@ -502,7 +502,7 @@ export const LoginPage = ({ defaultMode }) => {
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 {mode === 'login'
-                  ? 'نام کاربری: شماره تلفن همراه | رمز عبور: کد ملی شناگر'
+                  ? 'نام کاربری: شماره تلفن همراه '
                   : 'عضویت و ورود سریع با شماره همراه و کد تأیید پیامکی (OTP)'}
               </p>
             </div>
@@ -571,7 +571,7 @@ export const LoginPage = ({ defaultMode }) => {
                     <div>
                       <div className="flex items-center justify-between mb-1.5">
                         <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                          رمز عبور (کد ملی شناگر یا رمز)
+                          رمز عبور 
                         </label>
                         <button
                           type="button"
