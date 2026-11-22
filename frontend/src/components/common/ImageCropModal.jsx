@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import {
-  X, ZoomIn, ZoomOut, RotateCw, Check, Undo2, Move, Crop, RefreshCcw, Upload
+  X, ZoomIn, ZoomOut, RotateCw, RotateCcw, Check, Move, Crop, RefreshCcw, Upload, Loader2
 } from 'lucide-react';
 
 const CROP_VIEWPORT_SIZE = 300; // Visible interactive box in pixels
@@ -172,8 +172,12 @@ export const ImageCropModal = ({
     setZoom((prev) => Math.min(Math.max(1, prev + delta), 3));
   };
 
-  const handleRotate = () => {
+  const handleRotateCw = () => {
     setRotation((prev) => (prev + 90) % 360);
+  };
+
+  const handleRotateCcw = () => {
+    setRotation((prev) => (prev - 90 + 360) % 360);
   };
 
   const handleReset = () => {
@@ -313,8 +317,9 @@ export const ImageCropModal = ({
               <button
                 type="button"
                 onClick={() => setZoom((prev) => Math.max(1, prev - 0.1))}
-                className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center justify-center cursor-pointer transition-colors active:scale-95"
                 title="کاهش زوم"
+                aria-label="کاهش زوم"
               >
                 <ZoomOut className="w-4 h-4" />
               </button>
@@ -330,8 +335,9 @@ export const ImageCropModal = ({
               <button
                 type="button"
                 onClick={() => setZoom((prev) => Math.min(3, prev + 0.1))}
-                className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center justify-center cursor-pointer transition-colors active:scale-95"
                 title="افزایش زوم"
+                aria-label="افزایش زوم"
               >
                 <ZoomIn className="w-4 h-4" />
               </button>
@@ -339,39 +345,52 @@ export const ImageCropModal = ({
           </div>
 
           {/* Action Tools: Rotate & Reset */}
-          <div className="flex items-center justify-between pt-1 text-xs">
-            <button
-              type="button"
-              onClick={handleRotate}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 font-bold cursor-pointer transition-colors"
-            >
-              <RotateCw className="w-3.5 h-3.5 text-sky-500" />
-              <span>چرخش ۹۰ درجه</span>
-            </button>
+          <div className="flex items-center justify-between pt-1">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={handleRotateCcw}
+                className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center transition-colors cursor-pointer active:scale-95 shadow-2xs"
+                title="چرخش ۹۰ درجه به چپ (پادساعتگرد)"
+                aria-label="چرخش به چپ"
+              >
+                <RotateCcw className="w-4 h-4 text-sky-500" />
+              </button>
+              <button
+                type="button"
+                onClick={handleRotateCw}
+                className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 flex items-center justify-center transition-colors cursor-pointer active:scale-95 shadow-2xs"
+                title="چرخش ۹۰ درجه به راست (ساعتگرد)"
+                aria-label="چرخش به راست"
+              >
+                <RotateCw className="w-4 h-4 text-sky-500" />
+              </button>
+            </div>
 
             <button
               type="button"
               onClick={handleReset}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-colors"
+              className="w-9 h-9 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 flex items-center justify-center transition-colors cursor-pointer active:scale-95 shadow-2xs"
+              title="تنظیم مجدد کادر، زوم و چرخش"
+              aria-label="تنظیم مجدد"
             >
-              <RefreshCcw className="w-3.5 h-3.5" />
-              <span>تنظیم مجدد</span>
+              <RefreshCcw className="w-4 h-4" />
             </button>
           </div>
         </div>
 
         {/* Modal Footer Buttons */}
-        <div className="flex items-center justify-between gap-2.5 px-5 py-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800">
+        <div className="flex items-center justify-between gap-3 px-5 py-4 bg-slate-50 dark:bg-slate-900/60 border-t border-slate-100 dark:border-slate-800">
           <div>
             {onPickAnother && (
               <button
                 type="button"
                 onClick={onPickAnother}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/50 rounded-xl cursor-pointer transition-colors"
-                title="انتخاب یک فایل عکس جدید از دستگاه"
+                className="w-10 h-10 rounded-xl bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 dark:hover:bg-sky-900/60 text-sky-600 dark:text-sky-400 border border-sky-200/80 dark:border-sky-800 flex items-center justify-center cursor-pointer transition-colors shadow-2xs active:scale-95"
+                title="انتخاب عکس دیگر از دستگاه"
+                aria-label="انتخاب عکس دیگر"
               >
-                <Upload className="w-3.5 h-3.5" />
-                <span>انتخاب عکس دیگر</span>
+                <Upload className="w-5 h-5" />
               </button>
             )}
           </div>
@@ -381,23 +400,24 @@ export const ImageCropModal = ({
               type="button"
               onClick={onClose}
               disabled={isProcessing}
-              className="px-4 py-2 text-xs sm:text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-xl cursor-pointer transition-colors"
+              className="w-10 h-10 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 flex items-center justify-center cursor-pointer transition-colors disabled:opacity-50 active:scale-95"
+              title="انصراف"
+              aria-label="انصراف"
             >
-              انصراف
+              <X className="w-5 h-5" />
             </button>
             <button
               type="button"
               onClick={handleConfirmCrop}
               disabled={isProcessing}
-              className="inline-flex items-center gap-2 px-5 py-2 text-xs sm:text-sm font-black text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 rounded-xl shadow-md shadow-sky-500/20 cursor-pointer transition-all disabled:opacity-50"
+              className="w-10 h-10 rounded-xl flex items-center justify-center text-white bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 shadow-md shadow-sky-500/25 cursor-pointer transition-all disabled:opacity-50 active:scale-95"
+              title={isProcessing ? 'در حال آماده‌سازی...' : 'برش و ذخیره عکس'}
+              aria-label="برش و ذخیره عکس"
             >
               {isProcessing ? (
-                <span>در حال آماده‌سازی...</span>
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <>
-                  <Check className="w-4 h-4" />
-                  <span>برش و ذخیره عکس</span>
-                </>
+                <Check className="w-5 h-5 stroke-[2.5]" />
               )}
             </button>
           </div>

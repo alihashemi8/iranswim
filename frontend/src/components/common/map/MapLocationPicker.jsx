@@ -266,7 +266,7 @@ export const MapLocationPicker = ({
               coords={currentLat && currentLng ? { lat: currentLat, lng: currentLng } : null}
               onSelect={handleSearchSelect}
               onOpenChange={setIsSearchOpen}
-              placeholder="جستجوی آدرس در قزوین (شهر، محله، خیابان، کوچه...)"
+              placeholder="جستجوی آدرس (محله، کوچه...)"
             />
           </div>
         )}

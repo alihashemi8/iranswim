@@ -54,6 +54,7 @@ urlpatterns = [
     path('api/assessments/', include('apps.assessments.urls')),
     path('api/leagues/', include('apps.leagues.urls')),
     path('api/content/', include('apps.content.urls')),
+    path('api/locations/', include('apps.locations.urls')),
 ]
 
 if settings.DEBUG:

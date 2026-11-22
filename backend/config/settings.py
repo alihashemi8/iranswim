@@ -97,6 +97,7 @@ INSTALLED_APPS = [
     'apps.leagues.apps.LeaguesConfig',
     'apps.content.apps.ContentConfig',
     'apps.supervisor.apps.SupervisorConfig',
+    'apps.locations.apps.LocationsConfig',
 ]
 
 MIDDLEWARE = [
