@@ -299,20 +299,15 @@ class CoachCompleteProfileView(APIView):
         serializer.is_valid(raise_exception=True)
         coach = serializer.save()
 
-        # Handle uploaded files
-        if 'coaching_certificate_file' in request.FILES:
-            coach.coaching_certificate_file = request.FILES['coaching_certificate_file']
+        # Handle retraining status if a new retraining certificate was uploaded
         if 'retraining_certificate_file' in request.FILES:
-            coach.retraining_certificate_file = request.FILES['retraining_certificate_file']
             coach.retraining_status = CoachProfile.RetrainingStatus.PENDING
             coach.retraining_year = CoachProfile.get_current_jalali_year()
             coach.retraining_expiry_date = CoachProfile.get_esfand_end_date(coach.retraining_year)
             coach.retraining_rejection_reason = ''
-        if 'resume_file' in request.FILES:
-            coach.resume_file = request.FILES['resume_file']
-        if 'avatar' in request.FILES and coach.user:
-            coach.user.avatar = request.FILES['avatar']
-            coach.user.save(update_fields=['avatar'])
+
+        if coach.user:
+            coach.user.refresh_from_db(fields=['avatar'])
 
         # Validate mandatory fields:
         missing = []
