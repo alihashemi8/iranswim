@@ -31,6 +31,7 @@ import { SupervisorTestTriggerPage } from './pages/supervisor/SupervisorTestTrig
 import { SupervisorUsersPage } from './pages/supervisor/SupervisorUsersPage';
 import { SupervisorProfilePage } from './pages/supervisor/SupervisorProfilePage';
 import { SupervisorTicketsPage } from './pages/supervisor/SupervisorTicketsPage';
+import { SupervisorTicketDetailPage } from './pages/supervisor/SupervisorTicketDetailPage';
 
 // Admin Pages
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -205,6 +206,7 @@ export default function App() {
                 <Route path="services" element={<SupervisorServicesPage />} />
                 <Route path="errors" element={<SupervisorErrorsPage />} />
                 <Route path="tickets" element={<SupervisorTicketsPage />} />
+                <Route path="tickets/:id" element={<SupervisorTicketDetailPage />} />
                 <Route path="activity" element={<SupervisorActivityPage />} />
                 <Route path="deployments" element={<SupervisorDeploymentsPage />} />
                 <Route path="backups" element={<SupervisorBackupsPage />} />
