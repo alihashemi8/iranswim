@@ -18,7 +18,7 @@ import { useToast } from '../../context/ToastContext';
 import { validatePassword, PasswordRequirementsList } from '../../utils/passwordValidator';
 
 export const CoachProfilePage = () => {
-  const { user } = useAuth();
+  const { user, updateUserData } = useAuth();
   const toast = useToast();
 
   const [profile, setProfile] = useState(null);
@@ -162,14 +162,18 @@ export const CoachProfilePage = () => {
 
     try {
       setChangingPass(true);
-      await api.post('/auth/change-password/', {
+      const res = await api.post('/auth/change-password/', {
         old_password: currentPassword,
         new_password: newPassword,
+        confirm_password: confirmPassword,
       });
-      toast.success('کلمه عبور با موفقیت تغییر یافت.');
+      toast.success(res.data?.detail || 'کلمه عبور با موفقیت تغییر یافت.');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      if (user && updateUserData) {
+        updateUserData({ is_password_changed: true });
+      }
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.detail || 'خطا در تغییر کلمه عبور');
