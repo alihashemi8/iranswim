@@ -708,7 +708,7 @@ export const AdminDossiersPage = () => {
           }`}
         >
           <Users className="w-4 h-4 shrink-0" />
-          <span>پرونده‌ها و مدارک شناگران</span>
+          <span>شناگران</span>
           {summaryStats.swimmers_pending > 0 && (
             <span className="px-2 py-0.5 text-xs rounded-full bg-amber-500 text-white font-mono shrink-0">
               {toEnglishDigits(summaryStats.swimmers_pending)}
@@ -726,7 +726,7 @@ export const AdminDossiersPage = () => {
           }`}
         >
           <Whistle className="w-4 h-4 shrink-0" />
-          <span>پرونده‌ها و مدارک مربیان</span>
+          <span>مربیان</span>
           {summaryStats.coaches_pending > 0 && (
             <span className="px-2 py-0.5 text-xs rounded-full bg-emerald-500 text-white font-mono shrink-0">
               {toEnglishDigits(summaryStats.coaches_pending)}
