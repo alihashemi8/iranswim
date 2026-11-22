@@ -26,13 +26,13 @@ export const ChildSwitcher = () => {
       <button
         type="button"
         onClick={() => setDropdownOpen(!dropdownOpen)}
-        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-100 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-all cursor-pointer text-xs sm:text-base font-bold shadow-2xs"
+        className="flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-100 hover:bg-blue-100 dark:hover:bg-blue-900/60 transition-all cursor-pointer text-[13px] sm:text-sm font-bold shadow-2xs"
         title="انتخاب و جابه‌جایی بین پرونده فرزندان"
       >
         <div className="w-6 h-6 rounded-lg bg-blue-600 text-white flex items-center justify-center text-xs shrink-0 font-bold shadow-2xs">
           {activeSwimmer?.first_name ? activeSwimmer.first_name.charAt(0) : <User className="w-3.5 h-3.5" />}
         </div>
-        <span className="truncate max-w-[85px] sm:max-w-[160px] font-bold">
+        <span className="truncate max-w-[70px] min-[400px]:max-w-[85px] sm:max-w-[160px] font-bold">
           {currentName}
         </span>
         <ChevronDown className={`w-3.5 h-3.5 sm:w-4 sm:h-4 text-blue-600 dark:text-blue-400 transition-transform ${dropdownOpen ? 'rotate-180' : ''}`} />

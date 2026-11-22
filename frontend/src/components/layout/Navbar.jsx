@@ -118,12 +118,12 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
         <div
           className={`${
             isFullWidth
-              ? 'w-full px-3 sm:px-6'
-              : 'max-w-7xl mx-auto px-3 sm:px-4 lg:px-8'
-          } h-[64px] sm:h-[68px] lg:h-[72px] flex items-center justify-between gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-4 flex-nowrap`}
+              ? 'w-full px-2.5 sm:px-6'
+              : 'max-w-7xl mx-auto px-2.5 sm:px-4 lg:px-8'
+          } h-[68px] sm:h-[68px] lg:h-[72px] flex items-center justify-between gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-4 flex-nowrap`}
         >
           {/* Brand & Main Navigation (Right side in RTL) */}
-          <div className="flex items-center gap-1.5 md:gap-2 lg:gap-4 xl:gap-8 shrink-0 flex-nowrap min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2 lg:gap-4 xl:gap-8 shrink-0 flex-nowrap min-w-0">
             {/* Dashboard Sidebar Hamburger Button */}
             {isFullWidth && onMenuClick && (
               <button
@@ -152,23 +152,22 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
             {/* Brand Logo - 1 single line on tablet & mobile */}
             <Link
               to="/"
-              className="flex items-center gap-1.5 sm:gap-2.5 lg:gap-3 text-[#083B5C] dark:text-white hover:opacity-95 transition-opacity shrink-0 select-none py-1"
+              className="flex items-center gap-2 sm:gap-2.5 lg:gap-3 text-[#083B5C] dark:text-white hover:opacity-95 transition-opacity shrink-0 select-none py-1"
             >
               <picture>
                 <source srcSet="/images/logo.webp" type="image/webp" />
                 <img
                   src="/images/logo.webp"
                   alt="لوگوی مدرسه شنای ایران"
-                  className="w-10 h-10 sm:w-14 sm:h-14 lg:w-[62px] lg:h-[62px] object-contain shrink-0 drop-shadow-sm select-none transition-transform hover:scale-105 duration-200"
+                  className="w-11 h-11 sm:w-14 sm:h-14 lg:w-[62px] lg:h-[62px] object-contain shrink-0 drop-shadow-sm select-none transition-transform hover:scale-105 duration-200"
                   loading="eager"
                   fetchPriority="high"
                 />
               </picture>
               <div className="flex flex-col xl:flex-col shrink-0 text-right">
-                <span className={`${isFullWidth ? 'hidden sm:inline' : 'inline'} font-black sm:font-extrabold text-[14.5px] sm:text-sm md:text-[13px] lg:text-base text-[#083B5C] dark:text-white tracking-tight leading-tight whitespace-nowrap`}>
+                <span className="font-black text-[17px] sm:text-[17.5px] md:text-sm lg:text-base xl:text-lg text-[#083B5C] dark:text-white leading-tight whitespace-nowrap">
                   مدرسه شنای ایران
                 </span>
-
               </div>
             </Link>
 
@@ -257,24 +256,6 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               </div>
             ) : (
               <>
-                {/* Dark / Light Mode Toggle on Public Navbar */}
-                <button
-                  type="button"
-                  onClick={toggleTheme}
-                  className="w-10 h-10 sm:w-9 sm:h-9 lg:w-10 lg:h-10 flex items-center justify-center text-slate-600 hover:text-amber-500 dark:text-slate-300 dark:hover:text-amber-400 bg-white/80 dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-xl transition-colors border border-slate-200/80 dark:border-slate-700/80 shadow-2xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40"
-                  aria-label={theme === 'dark' ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
-                  title={theme === 'dark' ? 'حالت روز (روشن)' : 'حالت شب (تاریک)'}
-                >
-                  {theme === 'dark' ? (
-                    <Sun className="w-5 h-5 sm:w-4.5 sm:h-4.5 text-amber-400 transition-transform hover:rotate-45" />
-                  ) : (
-                    <Moon className="w-5 h-5 sm:w-4.5 sm:h-4.5 text-slate-600 dark:text-slate-300 transition-transform hover:-rotate-12" />
-                  )}
-                </button>
-
-                {/* Divider */}
-                <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block shrink-0" />
-
                 {user ? (
                   <Link
                     to={getDashboardPath(user.role)}
@@ -309,11 +290,10 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 ) : (
                   <Link
                     to="/login"
-                    className="group inline-flex items-center gap-1.5 md:gap-1.5 lg:gap-2 px-3.5 sm:px-3 lg:px-4.5 py-2 md:py-2 text-[13px] md:text-xs lg:text-sm font-bold !text-white hover:!text-white bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] rounded-xl shadow-xs hover:shadow-md hover:shadow-cyan-500/25 transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
+                    className="group inline-flex items-center gap-1.5 md:gap-1.5 lg:gap-2 px-3 sm:px-3.5 lg:px-4.5 py-1.5 sm:py-2 text-xs sm:text-xs lg:text-sm font-bold !text-white hover:!text-white bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] rounded-xl shadow-xs hover:shadow-md hover:shadow-cyan-500/25 transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                   >
                     <LogIn className="w-4 h-4 sm:w-4 sm:h-4 shrink-0 !text-white transition-transform duration-200 group-hover:-translate-x-0.5" />
-                    <span className="hidden sm:inline !text-white">ورود / ثبت‌نام</span>
-                    <span className="inline sm:hidden !text-white">ورود</span>
+                    <span className="!text-white">ورود / ثبت‌نام</span>
                   </Link>
                 )}
               </>
@@ -404,7 +384,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                   />
                 </picture>
                 <div className="flex flex-col min-w-0">
-                  <span className="font-extrabold text-sm text-[#083B5C] dark:text-white truncate">
+                  <span className="font-black text-base sm:text-lg text-[#083B5C] dark:text-white truncate">
                     مدرسه شنای ایران
                   </span>
                 </div>
