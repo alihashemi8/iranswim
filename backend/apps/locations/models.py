@@ -104,6 +104,14 @@ class QazvinPlace(models.Model):
         self.normalized_address = normalize_persian(self.address)
         self.full_clean()
         super().save(*args, **kwargs)
+        from django.core.cache import cache
+        cache.delete('all_qazvin_places_cache')
+
+    def delete(self, *args, **kwargs):
+        res = super().delete(*args, **kwargs)
+        from django.core.cache import cache
+        cache.delete('all_qazvin_places_cache')
+        return res
 
 
 class SearchQueryLog(models.Model):

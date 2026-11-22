@@ -40,6 +40,24 @@ export const SearchSuggestionItem = ({
 }) => {
   const IconComponent = ICON_MAP[item.icon] || MapPin;
 
+  const cleanTitle = (item.title || '')
+    .replace(/(استان\s+)?(شهر\s+)?(شهرستان\s+)?قزوین\s*([،,]\s*)?/g, '')
+    .replace(/([،,]\s*)?(استان\s+)?(شهر\s+)?(شهرستان\s+)?قزوین/g, '')
+    .replace(/\s*\([^)]*\)/g, '')
+    .replace(/^[،,\s]+|[،,\s]+$/g, '')
+    .trim();
+
+  const cleanSubtitle = (item.subtitle || '')
+    .replace(/(استان\s+)?(شهر\s+)?(شهرستان\s+)?قزوین\s*([،,]\s*)?/g, '')
+    .replace(/([،,]\s*)?(استان\s+)?(شهر\s+)?(شهرستان\s+)?قزوین/g, '')
+    .replace(/^[،,\s]+|[،,\s]+$/g, '')
+    .trim();
+
+  const displayTitle =
+    item.category === 'alley' && item.neighborhood && !cleanTitle.includes(item.neighborhood)
+      ? `${item.neighborhood}، ${cleanTitle}`
+      : cleanTitle || item.title;
+
   return (
     <li
       id={`suggestion-item-${index}`}
@@ -80,7 +98,7 @@ export const SearchSuggestionItem = ({
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <span className="text-xs sm:text-sm font-semibold truncate text-slate-900 dark:text-slate-100">
-              {item.title}
+              {displayTitle}
             </span>
             {item.category_label && (
               <span className="text-[10px] px-1.5 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 shrink-0 font-medium">
@@ -88,9 +106,9 @@ export const SearchSuggestionItem = ({
               </span>
             )}
           </div>
-          {item.subtitle && (
+          {cleanSubtitle && cleanSubtitle !== displayTitle && !displayTitle.includes(cleanSubtitle) && (
             <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5 font-normal leading-relaxed">
-              {item.subtitle}
+              {cleanSubtitle}
             </p>
           )}
         </div>

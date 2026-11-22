@@ -33,6 +33,24 @@ const ICON_MAP = {
 export const SearchResultItem = ({ item, onSelect }) => {
   const IconComponent = ICON_MAP[item.icon] || MapPin;
 
+  const cleanTitle = (item.title || '')
+    .replace(/(استان\s+)?(شهر\s+)?(شهرستان\s+)?قزوین\s*([،,]\s*)?/g, '')
+    .replace(/([،,]\s*)?(استان\s+)?(شهر\s+)?(شهرستان\s+)?قزوین/g, '')
+    .replace(/\s*\([^)]*\)/g, '')
+    .replace(/^[،,\s]+|[،,\s]+$/g, '')
+    .trim();
+
+  const cleanAddress = (item.address || '')
+    .replace(/(استان\s+)?(شهر\s+)?(شهرستان\s+)?قزوین\s*([،,]\s*)?/g, '')
+    .replace(/([،,]\s*)?(استان\s+)?(شهر\s+)?(شهرستان\s+)?قزوین/g, '')
+    .replace(/^[،,\s]+|[،,\s]+$/g, '')
+    .trim();
+
+  const displayTitle =
+    item.category === 'alley' && item.neighborhood && !cleanTitle.includes(item.neighborhood)
+      ? `${item.neighborhood}، ${cleanTitle}`
+      : cleanTitle || item.title;
+
   return (
     <div
       onClick={() => onSelect(item)}
@@ -57,7 +75,7 @@ export const SearchResultItem = ({ item, onSelect }) => {
           <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 group-hover:text-sky-600 dark:group-hover:text-sky-400 transition-colors">
-                {item.title}
+                {displayTitle}
               </h4>
               {item.category_label && (
                 <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-medium">
@@ -66,9 +84,11 @@ export const SearchResultItem = ({ item, onSelect }) => {
               )}
             </div>
 
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed line-clamp-2">
-              {item.address}
-            </p>
+            {cleanAddress && (
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed line-clamp-2">
+                {cleanAddress}
+              </p>
+            )}
 
             {item.neighborhood && (
               <div className="flex items-center gap-2 mt-2 text-[11px] text-slate-400 dark:text-slate-500">

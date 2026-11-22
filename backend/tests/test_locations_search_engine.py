@@ -178,6 +178,8 @@ class TestPersianNormalizer:
 class TestSearchEngine:
     @pytest.fixture(autouse=True)
     def setup_places(self):
+        from django.core.cache import cache
+        cache.clear()
         # Create representative test places in Qazvin
         QazvinPlace.objects.create(
             title='استخر شهید رجایی قزوین',
@@ -330,6 +332,8 @@ class TestSearchEngine:
 class TestLocationAPIEndpoints:
     @pytest.fixture(autouse=True)
     def seed_data(self):
+        from django.core.cache import cache
+        cache.clear()
         QazvinPlace.objects.create(
             title='استخر شهید رجایی قزوین',
             category=PlaceCategory.POOL,
