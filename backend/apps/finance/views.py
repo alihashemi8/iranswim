@@ -148,6 +148,12 @@ class RecordPaymentView(APIView):
         if not swimmer_id or not amount_raw:
             return Response({'detail': 'شناسه شناگر و مبلغ پرداخت الزامی هستند.'}, status=status.HTTP_400_BAD_REQUEST)
 
+        if request.user.role == 'FEMALE_ADMIN':
+            from apps.swimmers.models import SwimmerProfile
+            swimmer = SwimmerProfile.objects.filter(id=swimmer_id).first()
+            if swimmer and swimmer.gender != 'FEMALE':
+                raise PermissionDenied('مدیریت بانوان فقط مجاز به ثبت پرداخت برای شناگران خانم است.')
+
         try:
             amount = Decimal(str(amount_raw))
             if amount <= Decimal('0.00'):
@@ -234,6 +240,9 @@ class FinancialAdjustmentCreateView(generics.CreateAPIView):
     permission_classes = [IsAdminUserRole]
 
     def perform_create(self, serializer):
+        invoice = serializer.validated_data.get('invoice')
+        if self.request.user.role == 'FEMALE_ADMIN' and invoice and invoice.swimmer and invoice.swimmer.gender != 'FEMALE':
+            raise PermissionDenied('مدیریت بانوان فقط مجاز به ثبت تعدیل مالی برای شناگران خانم است.')
         adj = serializer.save(approved_by=self.request.user)
         AuditLog.objects.create(
             actor=self.request.user,
@@ -249,14 +258,22 @@ class FinancialSummaryView(APIView):
     permission_classes = [IsAdminOrSupervisor]
 
     def get(self, request):
-        total_invoiced = Invoice.objects.aggregate(t=models.Sum('total_amount'))['t'] or Decimal('0.00')
-        total_paid = Payment.objects.filter(status='SUCCESSFUL').aggregate(t=models.Sum('amount'))['t'] or Decimal('0.00')
-        total_refunded = FinancialAdjustment.objects.filter(type='REFUND').aggregate(t=models.Sum('amount'))['t'] or Decimal('0.00')
-        total_discounted = FinancialAdjustment.objects.filter(type='DISCOUNT').aggregate(t=models.Sum('amount'))['t'] or Decimal('0.00')
+        user = request.user
+        is_female_admin = user.role == 'FEMALE_ADMIN'
+        inv_qs = Invoice.objects.filter(swimmer__gender='FEMALE') if is_female_admin else Invoice.objects.all()
+        pay_qs = Payment.objects.filter(status='SUCCESSFUL', swimmer__gender='FEMALE') if is_female_admin else Payment.objects.filter(status='SUCCESSFUL')
+        ref_qs = FinancialAdjustment.objects.filter(type='REFUND', invoice__swimmer__gender='FEMALE') if is_female_admin else FinancialAdjustment.objects.filter(type='REFUND')
+        disc_qs = FinancialAdjustment.objects.filter(type='DISCOUNT', invoice__swimmer__gender='FEMALE') if is_female_admin else FinancialAdjustment.objects.filter(type='DISCOUNT')
+        inst_qs = Installment.objects.filter(invoice__swimmer__gender='FEMALE') if is_female_admin else Installment.objects.all()
+
+        total_invoiced = inv_qs.aggregate(t=models.Sum('total_amount'))['t'] or Decimal('0.00')
+        total_paid = pay_qs.aggregate(t=models.Sum('amount'))['t'] or Decimal('0.00')
+        total_refunded = ref_qs.aggregate(t=models.Sum('amount'))['t'] or Decimal('0.00')
+        total_discounted = disc_qs.aggregate(t=models.Sum('amount'))['t'] or Decimal('0.00')
         
         # Outstanding receivables
         receivables = max(Decimal('0.00'), total_invoiced - total_discounted - total_paid + total_refunded)
-        overdue_installments_count = Installment.objects.filter(due_date__lt=timezone.now().date(), status__in=['UNPAID', 'PARTIAL', 'OVERDUE']).count()
+        overdue_installments_count = inst_qs.filter(due_date__lt=timezone.now().date(), status__in=['UNPAID', 'PARTIAL', 'OVERDUE']).count()
 
         return Response({
             'total_invoiced': total_invoiced,
