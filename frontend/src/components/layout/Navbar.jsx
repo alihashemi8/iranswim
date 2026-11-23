@@ -118,21 +118,21 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
         <div
           className={`${
             isFullWidth
-              ? 'w-full px-2.5 sm:px-6'
-              : 'max-w-7xl mx-auto px-2.5 sm:px-4 lg:px-8'
-          } h-[70px] sm:h-[70px] lg:h-[72px] flex items-center justify-between gap-1.5 sm:gap-2 md:gap-2.5 lg:gap-4 flex-nowrap`}
+              ? 'w-full px-2 min-[360px]:px-3 sm:px-6'
+              : 'max-w-7xl mx-auto px-2 min-[360px]:px-3 sm:px-4 lg:px-8'
+          } h-[62px] min-[360px]:h-[68px] sm:h-[70px] lg:h-[72px] flex items-center justify-between gap-1 min-[360px]:gap-2 md:gap-2.5 lg:gap-4 flex-nowrap w-full`}
         >
           {/* Brand & Main Navigation (Right side in RTL) */}
-          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-2 lg:gap-4 xl:gap-8 shrink-0 flex-nowrap min-w-0">
+          <div className="flex items-center gap-1 min-[360px]:gap-1.5 sm:gap-2 md:gap-2 lg:gap-4 xl:gap-8 flex-nowrap min-w-0 flex-1 sm:flex-none">
             {/* Dashboard Sidebar Hamburger Button */}
             {isFullWidth && onMenuClick && (
               <button
                 type="button"
                 onClick={onMenuClick}
-                className="w-10 h-10 flex items-center justify-center -mr-1 md:hidden text-slate-700 dark:text-slate-200 hover:text-sky-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors shrink-0 cursor-pointer"
+                className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center -mr-1 md:hidden text-slate-700 dark:text-slate-200 hover:text-sky-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl transition-colors shrink-0 cursor-pointer"
                 aria-label="باز کردن منوی سایدبار"
               >
-                <Menu className="w-5.5 h-5.5 sm:w-5 sm:h-5" />
+                <Menu className="w-5 h-5 sm:w-5 sm:h-5" />
               </button>
             )}
 
@@ -141,31 +141,31 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
               <button
                 type="button"
                 onClick={() => setMobileMenuOpen(true)}
-                className="w-10 h-10 flex items-center justify-center -mr-1 md:hidden text-[#083B5C] dark:text-slate-200 hover:text-[#087EA4] dark:hover:text-cyan-400 hover:bg-sky-50 dark:hover:bg-slate-800 rounded-xl transition-colors shrink-0 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#087EA4]/40"
+                className="w-8.5 h-8.5 min-[360px]:w-9.5 min-[360px]:h-9.5 sm:w-10 sm:h-10 flex items-center justify-center -mr-0.5 min-[360px]:-mr-1 md:hidden text-[#083B5C] dark:text-slate-200 hover:text-[#087EA4] dark:hover:text-cyan-400 hover:bg-sky-50 dark:hover:bg-slate-800 rounded-xl transition-colors shrink-0 cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-[#087EA4]/40"
                 aria-label="باز کردن منوی ناوبری"
                 aria-expanded={mobileMenuOpen}
               >
-                <Menu className="w-6 h-6 sm:w-6 sm:h-6" />
+                <Menu className="w-5 h-5 min-[360px]:w-5.5 min-[360px]:h-5.5 sm:w-6 sm:h-6" />
               </button>
             )}
 
             {/* Brand Logo - 1 single line on tablet & mobile */}
             <Link
               to="/"
-              className="flex items-center gap-2 sm:gap-2.5 lg:gap-3 text-[#083B5C] dark:text-white hover:opacity-95 transition-opacity shrink-0 select-none py-1"
+              className="flex items-center gap-1.5 min-[360px]:gap-2 sm:gap-2.5 lg:gap-3 text-[#083B5C] dark:text-white hover:opacity-95 transition-opacity min-w-0 select-none py-1"
             >
               <picture>
                 <source srcSet="/images/logo.webp" type="image/webp" />
                 <img
                   src="/images/logo.webp"
                   alt="لوگوی مدرسه شنای ایران"
-                  className="w-12 h-12 sm:w-14 sm:h-14 lg:w-[62px] lg:h-[62px] object-contain shrink-0 drop-shadow-sm select-none transition-transform hover:scale-105 duration-200"
+                  className="w-8 h-8 min-[340px]:w-9 min-[340px]:h-9 min-[380px]:w-10 min-[380px]:h-10 sm:w-12 sm:h-12 lg:w-14 lg:h-14 object-contain shrink-0 drop-shadow-sm select-none transition-transform hover:scale-105 duration-200"
                   loading="eager"
                   fetchPriority="high"
                 />
               </picture>
-              <div className="flex flex-col xl:flex-col shrink-0 text-right">
-                <span className="font-black text-[19.5px] min-[390px]:text-[21px] sm:text-[22px] md:text-sm lg:text-base xl:text-lg text-[#083B5C] dark:text-white leading-tight whitespace-nowrap">
+              <div className="flex flex-col shrink min-w-0 text-right">
+                <span className="font-black text-[12.5px] min-[340px]:text-[13.5px] min-[380px]:text-[15px] min-[420px]:text-[16.5px] sm:text-[19px] md:text-sm lg:text-base xl:text-lg text-[#083B5C] dark:text-white leading-tight truncate">
                   مدرسه شنای ایران
                 </span>
               </div>
@@ -233,9 +233,9 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
           </div>
 
           {/* User Account Controls (Left side in RTL) */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-nowrap">
+          <div className="flex items-center gap-1 min-[360px]:gap-2 sm:gap-3 shrink-0 flex-nowrap">
             {isFullWidth ? (
-              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              <div className="flex items-center gap-1 sm:gap-2 shrink-0">
                 {/* Messages Popover */}
                 <NotificationDropdown />
 
@@ -243,14 +243,14 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 <button
                   type="button"
                   onClick={toggleTheme}
-                  className="w-10 h-10 flex items-center justify-center text-slate-500 hover:text-amber-500 dark:text-slate-300 dark:hover:text-amber-400 bg-white dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-xl transition-colors border border-slate-200/80 dark:border-slate-700/80 shadow-2xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40"
+                  className="w-8.5 h-8.5 sm:w-10 sm:h-10 flex items-center justify-center text-slate-500 hover:text-amber-500 dark:text-slate-300 dark:hover:text-amber-400 bg-white dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700/80 rounded-xl transition-colors border border-slate-200/80 dark:border-slate-700/80 shadow-2xs cursor-pointer focus:outline-hidden focus:ring-2 focus:ring-sky-500/40"
                   aria-label={theme === 'dark' ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
                   title={theme === 'dark' ? 'حالت روز (روشن)' : 'حالت شب (تاریک)'}
                 >
                   {theme === 'dark' ? (
-                    <Sun className="w-5 h-5 text-amber-400 transition-transform hover:rotate-45" />
+                    <Sun className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-amber-400 transition-transform hover:rotate-45" />
                   ) : (
-                    <Moon className="w-5 h-5 text-slate-600 dark:text-slate-300 transition-transform hover:-rotate-12" />
+                    <Moon className="w-4.5 h-4.5 sm:w-5 sm:h-5 text-slate-600 dark:text-slate-300 transition-transform hover:-rotate-12" />
                   )}
                 </button>
               </div>
@@ -259,13 +259,13 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 {user ? (
                   <Link
                     to={getDashboardPath(user.role)}
-                    className="flex items-center gap-2 p-1 sm:px-3 sm:py-1.5 rounded-xl hover:bg-sky-50/80 dark:hover:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/90 transition-colors cursor-pointer group shrink-0"
+                    className="flex items-center gap-1.5 sm:gap-2 p-1 sm:px-3 sm:py-1.5 rounded-xl hover:bg-sky-50/80 dark:hover:bg-slate-800/80 border border-slate-200/90 dark:border-slate-700/90 transition-colors cursor-pointer group shrink-0"
                     title="ورود به داشبورد"
                   >
                     <div
-                      className={`w-9 h-9 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl bg-gradient-to-tr ${
+                      className={`w-8 h-8 sm:w-8.5 sm:h-8.5 rounded-lg sm:rounded-xl bg-gradient-to-tr ${
                         roleGradients[user.role] || 'from-sky-600 to-cyan-500'
-                      } text-white flex items-center justify-center font-bold text-sm sm:text-xs shadow-2xs shrink-0`}
+                      } text-white flex items-center justify-center font-bold text-xs shadow-2xs shrink-0`}
                     >
                       {user.full_name ? user.full_name.trim().charAt(0) : 'U'}
                     </div>
@@ -281,19 +281,21 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                 ) : (location.pathname === '/login' || location.pathname === '/register') ? (
                   <Link
                     to="/"
-                    className="inline-flex items-center gap-1.5 md:gap-1.5 lg:gap-2 px-3 sm:px-3 lg:px-4 py-2 md:py-2 text-[13px] md:text-xs lg:text-sm font-bold text-[#083B5C] dark:text-cyan-300 bg-sky-50 dark:bg-slate-800/90 hover:bg-sky-100 dark:hover:bg-slate-700/80 hover:text-[#087EA4] dark:hover:text-cyan-200 border border-sky-200/90 dark:border-slate-700/90 rounded-xl shadow-2xs transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
+                    className="inline-flex items-center gap-1 sm:gap-1.5 md:gap-1.5 lg:gap-2 px-2 min-[360px]:px-3 lg:px-4 py-1.5 sm:py-2 md:py-2 text-xs min-[360px]:text-[13px] md:text-xs lg:text-sm font-bold text-[#083B5C] dark:text-cyan-300 bg-sky-50 dark:bg-slate-800/90 hover:bg-sky-100 dark:hover:bg-slate-700/80 hover:text-[#087EA4] dark:hover:text-cyan-200 border border-sky-200/90 dark:border-slate-700/90 rounded-xl shadow-2xs transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                   >
-                    <ChevronLeft className="w-4 h-4 sm:w-4 sm:h-4 shrink-0 rotate-180" />
+                    <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 rotate-180" />
                     <span className="hidden sm:inline">بازگشت به سایت</span>
                     <span className="inline sm:hidden">صفحه اصلی</span>
                   </Link>
                 ) : (
                   <Link
                     to="/login"
-                    className="group inline-flex items-center gap-1.5 md:gap-1.5 lg:gap-2 px-3 sm:px-3.5 lg:px-4.5 py-2 md:py-2 text-[13.5px] sm:text-sm font-bold !text-white hover:!text-white bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] rounded-xl shadow-xs hover:shadow-md hover:shadow-cyan-500/25 transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
+                    className="group inline-flex items-center justify-center gap-1 min-[360px]:gap-1.5 md:gap-1.5 lg:gap-2 px-2 min-[340px]:px-2.5 min-[380px]:px-3 sm:px-3.5 lg:px-4.5 py-1.5 sm:py-2 text-[11.5px] min-[340px]:text-xs min-[380px]:text-[13px] sm:text-sm font-bold !text-white hover:!text-white bg-gradient-to-r from-[#087EA4] to-[#16B8B0] hover:from-[#066A8A] hover:to-[#129A93] rounded-xl shadow-xs hover:shadow-md hover:shadow-cyan-500/25 transition-all duration-200 cursor-pointer active:scale-95 shrink-0 whitespace-nowrap"
                   >
-                    <LogIn className="w-4 h-4 sm:w-4 sm:h-4 shrink-0 !text-white transition-transform duration-200 group-hover:-translate-x-0.5" />
-                    <span className="!text-white">ورود / ثبت‌نام</span>
+                    <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 !text-white transition-transform duration-200 group-hover:-translate-x-0.5" />
+                    <span className="!text-white whitespace-nowrap">
+                      ورود<span className="max-[330px]:hidden nav-btn-subtext"> / ثبت‌نام</span>
+                    </span>
                   </Link>
                 )}
               </>

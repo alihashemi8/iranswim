@@ -531,4 +531,12 @@ body[data-panel="coach"] *,
   animation: shimmerBtn 3s linear infinite;
 }
 
+/* Flexible navbar button responsive adaptation */
+@media (max-width: 330px) {
+  .nav-btn-subtext {
+    display: none !important;
+  }
+}
+
+
 
