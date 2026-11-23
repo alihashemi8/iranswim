@@ -142,8 +142,22 @@ class CourseListView(generics.ListCreateAPIView):
             return [permissions.AllowAny()]
         return [IsAdminUserRole()]
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.role == 'FEMALE_ADMIN':
+            if serializer.validated_data.get('gender') == 'MALE':
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError({'gender': 'مدیریت بانوان فقط مجاز به تعریف دوره‌های ویژه دختران / بانوان است.'})
+            serializer.save(gender='FEMALE')
+        else:
+            serializer.save()
+
     def get_queryset(self):
         qs = Course.objects.all().prefetch_related('groups__schedules', 'groups__coach_assignments', 'coaches__user')
+        user = getattr(self.request, 'user', None)
+        if user and user.is_authenticated and user.role == 'FEMALE_ADMIN':
+            qs = qs.filter(Q(gender='FEMALE') | Q(coaches__gender='FEMALE')).distinct()
+
         params = getattr(self.request, 'query_params', None)
         if params is None:
             params = getattr(self.request, 'GET', {})
@@ -214,6 +228,13 @@ class CourseDetailView(generics.RetrieveUpdateDestroyAPIView):
             return [permissions.IsAuthenticated()]
         return [IsAdminUserRole()]
 
+    def perform_update(self, serializer):
+        user = self.request.user
+        if user.role == 'FEMALE_ADMIN' and serializer.validated_data.get('gender') == 'MALE':
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'gender': 'تغییر جنسیت دوره به پسران / آقایان توسط مدیریت بانوان مجاز نیست.'})
+        serializer.save()
+
 
 class SwimmerGroupListView(generics.ListCreateAPIView):
     queryset = SwimmerGroup.objects.all().select_related('course', 'skill_level').prefetch_related('schedules', 'coach_assignments')
@@ -227,6 +248,8 @@ class SwimmerGroupListView(generics.ListCreateAPIView):
     def get_queryset(self):
         user = self.request.user
         qs = SwimmerGroup.objects.all().select_related('course', 'skill_level').prefetch_related('schedules', 'coach_assignments')
+        if user.role == 'FEMALE_ADMIN':
+            return qs.filter(Q(course__gender='FEMALE') | Q(coach_assignments__coach__gender='FEMALE')).distinct()
         if user.role == 'COACH':
             coach_profile = getattr(user, 'coach_profile', None)
             if coach_profile:
@@ -293,13 +316,20 @@ class EnrollmentRequestCreateView(generics.CreateAPIView):
 
 
 class EnrollmentRequestListView(generics.ListAPIView):
-    """مشاهده لیست درخواست‌های ثبت‌نام توسط مدیر و ناظر فنی"""
+    """مشاهده لیست درخواست‌های ثبت‌نام توسط مدیر، مدیریت بانوان و ناظر فنی"""
     queryset = EnrollmentRequest.objects.all().select_related('course', 'group', 'swimmer')
     serializer_class = EnrollmentRequestSerializer
     permission_classes = [IsAdminOrSupervisor]
 
     def get_queryset(self):
+        user = self.request.user
         qs = EnrollmentRequest.objects.all().select_related('course', 'group', 'swimmer')
+        if user and user.is_authenticated and user.role == 'FEMALE_ADMIN':
+            qs = qs.filter(
+                Q(swimmer__gender='FEMALE') |
+                Q(course__gender='FEMALE') |
+                Q(coach__gender='FEMALE')
+            ).distinct()
         status_filter = self.request.query_params.get('status')
         if status_filter:
             qs = qs.filter(status=status_filter)
@@ -318,6 +348,12 @@ class EnrollmentRequestReviewView(APIView):
             req = EnrollmentRequest.objects.select_related('group', 'course').get(pk=pk)
         except EnrollmentRequest.DoesNotExist:
             return Response({'detail': 'درخواست یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.role == 'FEMALE_ADMIN':
+            if req.swimmer and req.swimmer.gender != 'FEMALE':
+                raise PermissionDenied('مدیریت بانوان فقط مجاز به بررسی درخواست‌های شناگران خانم است.')
+            if req.course and req.course.gender == 'MALE':
+                raise PermissionDenied('مدیریت بانوان فقط مجاز به بررسی دوره‌های بانوان است.')
 
         action = request.data.get('action') # 'APPROVE' or 'REJECT'
         rejection_reason = request.data.get('rejection_reason', '')
@@ -353,6 +389,7 @@ class EnrollmentRequestReviewView(APIView):
                     swimmer = SwimmerProfile.objects.create(
                         first_name=first_name,
                         last_name=last_name,
+                        gender='FEMALE' if request.user.role == 'FEMALE_ADMIN' or (req.course and req.course.gender == 'FEMALE') else 'MALE',
                         phone=req.applicant_phone,
                         national_id=req.applicant_national_id or '',
                         current_level=default_level
@@ -504,6 +541,15 @@ class EnrollmentListView(generics.ListCreateAPIView):
         return [IsAdminUserRole()]
 
     def perform_create(self, serializer):
+        if self.request.user.role == 'FEMALE_ADMIN':
+            swimmer_obj = serializer.validated_data.get('swimmer')
+            coach_obj = serializer.validated_data.get('coach')
+            if swimmer_obj and swimmer_obj.gender != 'FEMALE':
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError({'swimmer': 'مدیریت بانوان فقط مجاز به ثبت‌نام شناگران دختر / خانم است.'})
+            if coach_obj and coach_obj.gender != 'FEMALE':
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError({'coach': 'مدیریت بانوان فقط مجاز به انتخاب مربیان خانم است.'})
         enrollment = serializer.save()
         course = enrollment.course
         group = enrollment.group
@@ -615,6 +661,21 @@ class EnrollmentListView(generics.ListCreateAPIView):
             if coach_id:
                 qs = qs.filter(coach_id=coach_id)
             return qs
+        elif user.role == 'FEMALE_ADMIN':
+            qs = qs.filter(swimmer__gender='FEMALE')
+            swimmer_id = self.request.query_params.get('swimmer_id')
+            if swimmer_id:
+                qs = qs.filter(swimmer_id=swimmer_id)
+            group_id = self.request.query_params.get('group_id')
+            if group_id:
+                qs = qs.filter(group_id=group_id)
+            course_id = self.request.query_params.get('course_id')
+            if course_id:
+                qs = qs.filter(course_id=course_id)
+            coach_id = self.request.query_params.get('coach_id')
+            if coach_id:
+                qs = qs.filter(coach_id=coach_id)
+            return qs
         elif user.role == 'COACH':
             coach_profile = getattr(user, 'coach_profile', None)
             if coach_profile:
@@ -649,6 +710,8 @@ class EnrollmentDetailView(generics.RetrieveUpdateDestroyAPIView):
         qs = Enrollment.objects.all().select_related('swimmer', 'course', 'group', 'coach')
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs
+        elif user.role == 'FEMALE_ADMIN':
+            return qs.filter(swimmer__gender='FEMALE')
         elif user.role == 'COACH':
             coach_profile = getattr(user, 'coach_profile', None)
             if coach_profile:
@@ -675,6 +738,10 @@ class EnrollmentAssignCoachView(APIView):
             enrollment = Enrollment.objects.select_related('course', 'group', 'swimmer').get(pk=pk)
         except Enrollment.DoesNotExist:
             return Response({'detail': 'ثبت‌نام یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.role == 'FEMALE_ADMIN':
+            if enrollment.swimmer and enrollment.swimmer.gender != 'FEMALE':
+                raise PermissionDenied('مدیریت بانوان فقط مجاز به ویرایش کلاس شناگران خانم است.')
 
         course_id = request.data.get('course_id')
         group_id = request.data.get('group_id')
@@ -734,6 +801,9 @@ class EnrollmentAssignCoachView(APIView):
                     coach = CoachProfile.objects.get(pk=coach_id)
                 except CoachProfile.DoesNotExist:
                     return Response({'detail': 'مربی مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+                if request.user.role == 'FEMALE_ADMIN' and coach.gender != 'FEMALE':
+                    return Response({'detail': 'مدیریت بانوان فقط مجاز به تخصیص مربیان خانم است.'}, status=status.HTTP_400_BAD_REQUEST)
 
                 enrollment.coach = coach
                 if enrollment.course and not enrollment.course.coaches.filter(id=coach.id).exists():
@@ -813,6 +883,11 @@ class GroupCoachListCreateView(generics.ListCreateAPIView):
         coach = serializer.validated_data.get('coach')
         group = serializer.validated_data.get('group')
         ignore_conflict = self.request.data.get('ignore_conflict', False)
+
+        if self.request.user.role == 'FEMALE_ADMIN':
+            if coach and coach.gender != 'FEMALE':
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError({'coach': 'مدیریت بانوان فقط مجاز به تخصیص مربیان خانم است.'})
 
         if coach and group and not ignore_conflict:
             # Check for schedule conflicts with existing active assignments for this coach

@@ -416,7 +416,13 @@ class UserListView(generics.ListCreateAPIView):
         if self.request.user.is_authenticated and self.request.user.role == User.Role.ADMIN:
             # Manager has access to everyone except other managers and technical supervisors
             qs = qs.exclude(role=User.Role.SUPERVISOR).exclude(
-                Q(role=User.Role.ADMIN) & ~Q(id=self.request.user.id)
+                Q(role__in=[User.Role.ADMIN, User.Role.FEMALE_ADMIN]) & ~Q(id=self.request.user.id)
+            )
+        elif self.request.user.is_authenticated and self.request.user.role == User.Role.FEMALE_ADMIN:
+            qs = qs.filter(
+                Q(id=self.request.user.id) |
+                Q(role=User.Role.SWIMMER, swimmer_profile__gender='FEMALE') |
+                Q(role=User.Role.COACH, coach_profile__gender='FEMALE')
             )
         role = self.request.query_params.get('role')
         if role:
@@ -448,9 +454,9 @@ class UserListView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         user = self.request.user
         role = serializer.validated_data.get('role', User.Role.SWIMMER)
-        if user.is_authenticated and user.role == User.Role.ADMIN:
-            if role in [User.Role.ADMIN, User.Role.SUPERVISOR]:
-                raise ValidationError({'role': 'مدیر آموزشگاه فقط مجاز به ایجاد کاربر شناگر یا مربی است.'})
+        if user.is_authenticated and user.role in [User.Role.ADMIN, User.Role.FEMALE_ADMIN]:
+            if role in [User.Role.ADMIN, User.Role.FEMALE_ADMIN, User.Role.SUPERVISOR]:
+                raise ValidationError({'role': 'مدیر فقط مجاز به ایجاد کاربر شناگر یا مربی است.'})
         new_user = serializer.save()
         try:
             from apps.supervisor.models import AuditLog
@@ -481,7 +487,13 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
         user = self.request.user
         if user.is_authenticated and user.role == User.Role.ADMIN:
             qs = qs.exclude(role=User.Role.SUPERVISOR).exclude(
-                Q(role=User.Role.ADMIN) & ~Q(id=user.id)
+                Q(role__in=[User.Role.ADMIN, User.Role.FEMALE_ADMIN]) & ~Q(id=user.id)
+            )
+        elif user.is_authenticated and user.role == User.Role.FEMALE_ADMIN:
+            qs = qs.filter(
+                Q(id=user.id) |
+                Q(role=User.Role.SWIMMER, swimmer_profile__gender='FEMALE') |
+                Q(role=User.Role.COACH, coach_profile__gender='FEMALE')
             )
         return qs
 
@@ -490,12 +502,12 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
         target = serializer.instance
         if target.id == user.id and serializer.validated_data.get('is_active') is False:
             raise ValidationError({'is_active': 'شما نمی‌توانید حساب کاربری فعال خود را معلق یا غیرفعال کنید.'})
-        if user.is_authenticated and user.role == User.Role.ADMIN:
-            if target.role == User.Role.SUPERVISOR or (target.role == User.Role.ADMIN and target.id != user.id):
+        if user.is_authenticated and user.role in [User.Role.ADMIN, User.Role.FEMALE_ADMIN]:
+            if target.role in [User.Role.SUPERVISOR, User.Role.ADMIN, User.Role.FEMALE_ADMIN] and target.id != user.id:
                 raise ValidationError('شما دسترسی لازم برای ویرایش این کاربر را ندارید.')
             new_role = serializer.validated_data.get('role')
-            if new_role and new_role in [User.Role.ADMIN, User.Role.SUPERVISOR]:
-                raise ValidationError({'role': 'مدیر آموزشگاه فقط مجاز به تخصیص نقش شناگر یا مربی است.'})
+            if new_role and new_role in [User.Role.ADMIN, User.Role.FEMALE_ADMIN, User.Role.SUPERVISOR]:
+                raise ValidationError({'role': 'مدیر فقط مجاز به تخصیص نقش شناگر یا مربی است.'})
 
         has_password = bool(serializer.validated_data.get('password'))
         was_active = target.is_active
@@ -534,8 +546,8 @@ class UserDetailView(generics.RetrieveUpdateDestroyAPIView):
             raise ValidationError('شما نمی‌توانید حساب کاربری فعال خود را حذف نمایید.')
 
         user = self.request.user
-        if user.is_authenticated and user.role == User.Role.ADMIN:
-            if instance.role == User.Role.SUPERVISOR or (instance.role == User.Role.ADMIN and instance.id != user.id):
+        if user.is_authenticated and user.role in [User.Role.ADMIN, User.Role.FEMALE_ADMIN]:
+            if instance.role in [User.Role.SUPERVISOR, User.Role.ADMIN, User.Role.FEMALE_ADMIN] and instance.id != user.id:
                 raise ValidationError('شما دسترسی لازم برای حذف این کاربر را ندارید.')
 
         try:

@@ -160,8 +160,10 @@ class UserSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         # Strict authorization: only authenticated admin or supervisor can modify user role
         if 'role' in attrs:
-            if not request or not request.user or not request.user.is_authenticated or request.user.role not in [User.Role.ADMIN, User.Role.SUPERVISOR]:
+            if not request or not request.user or not request.user.is_authenticated or request.user.role not in [User.Role.ADMIN, User.Role.FEMALE_ADMIN, User.Role.SUPERVISOR]:
                 raise ValidationError({'role': 'فقط مدیر سامانه یا ناظر فنی مجاز به تعیین یا تغییر نقش کاربری هستند.'})
+            if request.user.role == User.Role.FEMALE_ADMIN and attrs['role'] not in [User.Role.SWIMMER, User.Role.COACH]:
+                raise ValidationError({'role': 'مدیریت بانوان فقط مجاز به تعیین نقش شناگر یا مربی است.'})
         return attrs
 
     def create(self, validated_data):

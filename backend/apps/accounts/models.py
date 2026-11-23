@@ -34,6 +34,7 @@ class UserManager(BaseUserManager):
 class User(AbstractUser):
     class Role(models.TextChoices):
         ADMIN = 'ADMIN', _('مدیر آموزشگاه')
+        FEMALE_ADMIN = 'FEMALE_ADMIN', _('مدیریت بانوان')
         COACH = 'COACH', _('مربی')
         SWIMMER = 'SWIMMER', _('شناگر')
         SUPERVISOR = 'SUPERVISOR', _('ناظر فنی سامانه')
@@ -69,6 +70,10 @@ class User(AbstractUser):
     @property
     def is_admin(self):
         return self.role == self.Role.ADMIN or self.is_superuser
+
+    @property
+    def is_female_admin(self):
+        return self.role == self.Role.FEMALE_ADMIN
 
     @property
     def is_coach(self):

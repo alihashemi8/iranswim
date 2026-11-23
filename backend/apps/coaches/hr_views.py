@@ -50,6 +50,11 @@ def get_target_coach(request, pk):
     if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
         return coach
 
+    if user.role == 'FEMALE_ADMIN':
+        if coach.gender != 'FEMALE':
+            raise PermissionDenied('مدیریت بانوان فقط مجاز به دسترسی به مربیان خانم است.')
+        return coach
+
     if user.role == 'COACH' and hasattr(user, 'coach_profile') and user.coach_profile.id == coach.id:
         return coach
 
@@ -65,8 +70,11 @@ class CoachStatisticsView(APIView):
 
     def get(self, request):
         user = request.user
-        if not (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser):
+        if not (user.role in ['ADMIN', 'FEMALE_ADMIN', 'SUPERVISOR'] or user.is_superuser):
             raise PermissionDenied('دسترسی به آمار مدیریت مربیان مجاز نیست.')
+
+        is_female_admin = user.role == 'FEMALE_ADMIN'
+        base_coach_qs = CoachProfile.objects.filter(gender='FEMALE') if is_female_admin else CoachProfile.objects.all()
 
         today = timezone.now().date()
         month_param = request.query_params.get('month')  # e.g. '2026-11' or current
@@ -91,39 +99,42 @@ class CoachStatisticsView(APIView):
             start_date = datetime.date(today.year, today.month, 1)
             end_date = today
 
-        total_coaches = CoachProfile.objects.count()
-        active_coaches = CoachProfile.objects.filter(employment_status=CoachProfile.EmploymentStatus.ACTIVE).count()
-        suspended_coaches = CoachProfile.objects.filter(employment_status=CoachProfile.EmploymentStatus.SUSPENDED).count()
-        inactive_coaches = CoachProfile.objects.filter(employment_status=CoachProfile.EmploymentStatus.INACTIVE).count()
-        archived_coaches = CoachProfile.objects.filter(employment_status=CoachProfile.EmploymentStatus.ARCHIVED).count()
+        total_coaches = base_coach_qs.count()
+        active_coaches = base_coach_qs.filter(employment_status=CoachProfile.EmploymentStatus.ACTIVE).count()
+        suspended_coaches = base_coach_qs.filter(employment_status=CoachProfile.EmploymentStatus.SUSPENDED).count()
+        inactive_coaches = base_coach_qs.filter(employment_status=CoachProfile.EmploymentStatus.INACTIVE).count()
+        archived_coaches = base_coach_qs.filter(employment_status=CoachProfile.EmploymentStatus.ARCHIVED).count()
 
         # مربیانی که هم‌اکنون کلاس فعال یا جلسه تدریس دارند
-        teaching_coaches = CoachProfile.objects.filter(
+        teaching_coaches = base_coach_qs.filter(
             Q(assigned_groups__group__status__in=['OPEN', 'FULL']) |
             Q(sessions__session_date__gte=start_date, sessions__session_date__lte=end_date, sessions__status=ClassSession.Status.SCHEDULED)
         ).distinct().count()
 
         # قراردادهای در شرف انقضا در ۳۰ روز آینده
         thirty_days_later = today + datetime.timedelta(days=30)
-        expiring_contracts_count = CoachContract.objects.filter(
+        contract_qs = CoachContract.objects.filter(coach__gender='FEMALE') if is_female_admin else CoachContract.objects.all()
+        expiring_contracts_count = contract_qs.filter(
             status=CoachContract.Status.ACTIVE,
             end_date__gte=today,
             end_date__lte=thirty_days_later
         ).count()
 
         # مرخصی‌های در انتظار بررسی
-        pending_leave_requests_count = CoachLeaveRequest.objects.filter(
+        leave_qs = CoachLeaveRequest.objects.filter(coach__gender='FEMALE') if is_female_admin else CoachLeaveRequest.objects.all()
+        pending_leave_requests_count = leave_qs.filter(
             status=CoachLeaveRequest.Status.PENDING
         ).count()
 
         # شاخص‌های مالی ماه (مدیران و ناظران فنی مجاز به مشاهده هستند)
-        is_privileged = user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser
+        is_privileged = user.role in ['ADMIN', 'FEMALE_ADMIN', 'SUPERVISOR'] or user.is_superuser
         total_payroll_month = Decimal('0.00')
         outstanding_salary_payments = Decimal('0.00')
         fully_settled_coaches = 0
 
         if is_privileged:
-            payrolls_month = CoachPayroll.objects.filter(
+            payroll_base = CoachPayroll.objects.filter(coach__gender='FEMALE') if is_female_admin else CoachPayroll.objects.all()
+            payrolls_month = payroll_base.filter(
                 period_start__lte=end_date,
                 period_end__gte=start_date
             )
@@ -193,7 +204,8 @@ class CoachListHRView(generics.ListCreateAPIView):
         )
 
         # اگر کاربر احراز هویت نشده یا عموم است
-        if not (user and user.is_authenticated and (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser)):
+        is_privileged = bool(user and user.is_authenticated and (user.role in ['ADMIN', 'FEMALE_ADMIN', 'SUPERVISOR'] or user.is_superuser))
+        if not is_privileged:
             landing_param = self.request.query_params.get('landing')
             if landing_param and landing_param.lower() in ['true', '1']:
                 qs = qs.filter(show_on_landing=True, employment_status=CoachProfile.EmploymentStatus.ACTIVE)
@@ -203,6 +215,9 @@ class CoachListHRView(generics.ListCreateAPIView):
             if gender_param:
                 qs = qs.filter(gender=gender_param)
             return qs.order_by('display_order', 'id')
+
+        if user and user.is_authenticated and user.role == 'FEMALE_ADMIN':
+            qs = qs.filter(gender='FEMALE')
 
         params = self.request.query_params
 
@@ -227,6 +242,8 @@ class CoachListHRView(generics.ListCreateAPIView):
         # 3. Gender
         gender = params.get('gender')
         if gender:
+            if user and user.is_authenticated and user.role == 'FEMALE_ADMIN' and gender == 'MALE':
+                return CoachProfile.objects.none()
             qs = qs.filter(gender=gender)
 
         # 4. Employment Type (HOURLY, FIXED, PERCENTAGE)
@@ -303,6 +320,15 @@ class CoachListHRView(generics.ListCreateAPIView):
 
         return qs
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.role == 'FEMALE_ADMIN':
+            if serializer.validated_data.get('gender') == 'MALE':
+                raise ValidationError({'gender': 'مدیریت بانوان فقط مجاز به ثبت مربیان خانم است.'})
+            serializer.save(gender='FEMALE')
+        else:
+            serializer.save()
+
 
 class CoachDetailHRView(generics.RetrieveUpdateDestroyAPIView):
     """
@@ -316,11 +342,18 @@ class CoachDetailHRView(generics.RetrieveUpdateDestroyAPIView):
         user = self.request.user if hasattr(self, 'request') else None
         if not user or not user.is_authenticated:
             return CoachPublicSerializer
-        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+        if user.role in ['ADMIN', 'FEMALE_ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return CoachProfileSerializer
         if user.role == 'COACH' and hasattr(user, 'coach_profile') and str(user.coach_profile.id) == str(self.kwargs.get('pk')):
             return CoachProfileSerializer
         return CoachPublicSerializer
+
+    def get_queryset(self):
+        user = self.request.user if hasattr(self, 'request') else None
+        qs = CoachProfile.objects.all().select_related('user')
+        if user and user.is_authenticated and user.role == 'FEMALE_ADMIN':
+            qs = qs.filter(gender='FEMALE')
+        return qs
 
     COACH_SELF_UPDATE_ALLOWED_FIELDS = {
         'coaching_degree', 'coaching_certificate_date', 'years_of_experience',
@@ -335,6 +368,12 @@ class CoachDetailHRView(generics.RetrieveUpdateDestroyAPIView):
         if self.request.method == 'DELETE':
             return [IsAdminUserRole()]
         return [IsAdminOrCoach()]
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        if user.role == 'FEMALE_ADMIN' and serializer.validated_data.get('gender') == 'MALE':
+            raise ValidationError({'gender': 'تغییر جنسیت مربی به آقا توسط مدیریت بانوان مجاز نیست.'})
+        super().perform_update(serializer)
 
     def perform_update(self, serializer):
         user = self.request.user

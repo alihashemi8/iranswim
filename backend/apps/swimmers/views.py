@@ -346,6 +346,8 @@ class SwimmerListView(generics.ListCreateAPIView):
 
         if is_privileged:
             qs = SwimmerProfile.objects.all()
+        elif user.role == 'FEMALE_ADMIN':
+            qs = SwimmerProfile.objects.filter(gender='FEMALE')
         elif user.role == 'COACH':
             qs = self._get_coach_swimmer_queryset(user)
         elif user.role == 'SWIMMER':
@@ -402,6 +404,8 @@ class SwimmerListView(generics.ListCreateAPIView):
         # 2. Filter by gender
         gender = self.request.query_params.get('gender')
         if gender and gender in ['MALE', 'FEMALE']:
+            if user.role == 'FEMALE_ADMIN' and gender == 'MALE':
+                return SwimmerProfile.objects.none()
             qs = qs.filter(gender=gender)
 
         # 3. Filter by pool (course pool location)
@@ -439,12 +443,24 @@ class SwimmerListView(generics.ListCreateAPIView):
             'enrollments__course', 'enrollments__coach__user', 'enrollments__group'
         ).order_by('last_name', 'first_name', 'id')
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.role == 'FEMALE_ADMIN':
+            if serializer.validated_data.get('gender') == 'MALE':
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError({'gender': 'مدیریت بانوان فقط مجاز به ثبت شناگران دختر / خانم است.'})
+            serializer.save(gender='FEMALE')
+        else:
+            serializer.save()
+
     def list(self, request, *args, **kwargs):
         # Calculate summary counts for tab counters
         user = request.user
         is_privileged = bool(user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser)
         if is_privileged:
             base_qs = SwimmerProfile.objects.all()
+        elif user.role == 'FEMALE_ADMIN':
+            base_qs = SwimmerProfile.objects.filter(gender='FEMALE')
         elif user.role == 'COACH':
             base_qs = self._get_coach_swimmer_queryset(user)
         elif user.role == 'SWIMMER':
@@ -490,6 +506,27 @@ class SwimmerDetailView(generics.RetrieveUpdateDestroyAPIView):
     serializer_class = SwimmerProfileSerializer
     permission_classes = [IsOwnerSwimmerOrAdmin]
 
+    def get_queryset(self):
+        user = self.request.user
+        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+            return SwimmerProfile.objects.all().select_related('current_level', 'user')
+        elif user.role == 'FEMALE_ADMIN':
+            return SwimmerProfile.objects.filter(gender='FEMALE').select_related('current_level', 'user')
+        elif user.role == 'COACH':
+            return self._get_coach_swimmer_queryset(user).select_related('current_level', 'user')
+        elif user.role == 'SWIMMER':
+            ids = get_accessible_swimmer_ids(user, self.request)
+            return SwimmerProfile.objects.filter(id__in=ids).select_related('current_level', 'user')
+        return SwimmerProfile.objects.none()
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        if user.role == 'FEMALE_ADMIN':
+            if serializer.validated_data.get('gender') == 'MALE':
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError({'gender': 'تغییر جنسیت به آقا توسط مدیریت بانوان مجاز نیست.'})
+        serializer.save()
+
     def get_permissions(self):
         if self.request.method == 'DELETE':
             return [IsAdminUserRole()]
@@ -507,6 +544,10 @@ class SwimmerAssignCoachView(APIView):
             swimmer = SwimmerProfile.objects.get(pk=pk)
         except SwimmerProfile.DoesNotExist:
             return Response({'detail': 'شناگر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.role == 'FEMALE_ADMIN':
+            if swimmer.gender != 'FEMALE':
+                raise PermissionDenied('مدیریت بانوان فقط مجاز به تخصیص مربی برای شناگران خانم است.')
 
         coach_id = request.data.get('coach_id')
         group_id = request.data.get('group_id')
@@ -539,6 +580,9 @@ class SwimmerAssignCoachView(APIView):
                 gc = target_group.coach_assignments.first()
                 if gc:
                     coach = gc.coach
+
+        if request.user.role == 'FEMALE_ADMIN' and coach and coach.gender != 'FEMALE':
+            return Response({'detail': 'مدیریت بانوان فقط مجاز به تخصیص مربیان خانم است.'}, status=status.HTTP_400_BAD_REQUEST)
 
         target_course = None
         if target_group and target_group.course:
@@ -633,6 +677,9 @@ class SwimmerReviewDocumentsView(APIView):
             swimmer = SwimmerProfile.objects.select_related('user').get(pk=pk)
         except SwimmerProfile.DoesNotExist:
             return Response({'detail': 'شناگر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.role == 'FEMALE_ADMIN' and swimmer.gender != 'FEMALE':
+            return Response({'detail': 'مدیریت بانوان فقط مجاز به بررسی مدارک شناگران خانم است.'}, status=status.HTTP_403_FORBIDDEN)
 
         action = request.data.get('action')  # 'APPROVE' or 'REJECT'
         reason = request.data.get('reason', '').strip()
@@ -779,8 +826,8 @@ class SwimmerDocumentDownloadView(APIView):
         except SwimmerProfile.DoesNotExist:
             return Response({'detail': 'شناگر مورد نظر یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
 
-        # 1. Authorization: Admin, Supervisor, or Superuser
-        is_privileged = bool(user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser)
+        # 1. Authorization: Admin, Supervisor, Superuser, or Female Admin (for female swimmers)
+        is_privileged = bool(user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser or (user.role == 'FEMALE_ADMIN' and swimmer.gender == 'FEMALE'))
 
         # 2. Authorization: Swimmer / Verified Guardian (Ownership & Anti-IDOR)
         is_owner = bool(swimmer.user_id and swimmer.user_id == user.id)
@@ -869,6 +916,8 @@ class SwimVideoListCreateView(generics.ListCreateAPIView):
 
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs
+        if user.role == 'FEMALE_ADMIN':
+            return qs.filter(swimmer__gender='FEMALE')
         if user.role == 'COACH':
             coach = getattr(user, 'coach_profile', None)
             if not coach:
@@ -884,6 +933,10 @@ class SwimVideoListCreateView(generics.ListCreateAPIView):
         user = self.request.user
         swimmer = serializer.validated_data.get('swimmer')
         is_privileged = user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser
+        if user.role == 'FEMALE_ADMIN':
+            if swimmer.gender != 'FEMALE':
+                raise PermissionDenied('مدیریت بانوان فقط مجاز به بارگذاری ویدئو برای شناگران خانم است.')
+            is_privileged = True
 
         if user.role == 'COACH':
             coach = getattr(user, 'coach_profile', None)
@@ -983,7 +1036,10 @@ class SwimmerFilterOptionsView(APIView):
             pools = ['استخر شهید رئیسی']
 
         # 2. Coaches
-        coaches_qs = CoachProfile.objects.all().select_related('user').order_by('user__last_name', 'user__first_name')
+        coaches_qs = CoachProfile.objects.all().select_related('user')
+        if request.user.role == 'FEMALE_ADMIN':
+            coaches_qs = coaches_qs.filter(gender='FEMALE')
+        coaches_qs = coaches_qs.order_by('user__last_name', 'user__first_name')
         coaches = []
         for c in coaches_qs:
             c_name = c.full_name
@@ -992,7 +1048,10 @@ class SwimmerFilterOptionsView(APIView):
 
         # 3. Available Jalali birth years among swimmers + realistic range
         birth_years_set = set()
-        dob_list = SwimmerProfile.objects.exclude(date_of_birth__isnull=True).values_list('date_of_birth', flat=True)
+        dob_qs = SwimmerProfile.objects.exclude(date_of_birth__isnull=True)
+        if request.user.role == 'FEMALE_ADMIN':
+            dob_qs = dob_qs.filter(gender='FEMALE')
+        dob_list = dob_qs.values_list('date_of_birth', flat=True)
         for dob in dob_list:
             if dob:
                 jy, _, _ = gregorian_to_jalali(dob.year, dob.month, dob.day)
@@ -1003,10 +1062,15 @@ class SwimmerFilterOptionsView(APIView):
         birth_years = sorted(list(birth_years_set), reverse=True)
 
         # 4. Genders
-        genders = [
-            {'value': 'MALE', 'label': 'پسر / آقایان'},
-            {'value': 'FEMALE', 'label': 'دختر / بانوان'},
-        ]
+        if request.user.role == 'FEMALE_ADMIN':
+            genders = [
+                {'value': 'FEMALE', 'label': 'دختر / بانوان'},
+            ]
+        else:
+            genders = [
+                {'value': 'MALE', 'label': 'پسر / آقایان'},
+                {'value': 'FEMALE', 'label': 'دختر / بانوان'},
+            ]
 
         return Response({
             'pools': pools,
@@ -1025,6 +1089,10 @@ class DossiersSummaryView(APIView):
     def get(self, request):
         from apps.coaches.models import CoachProfile
 
+        is_female_admin = request.user.role == 'FEMALE_ADMIN'
+        swimmer_base = SwimmerProfile.objects.filter(gender='FEMALE') if is_female_admin else SwimmerProfile.objects.all()
+        coach_base = CoachProfile.objects.filter(gender='FEMALE') if is_female_admin else CoachProfile.objects.all()
+
         # Swimmers pending review
         docs_pending_q = (
             Q(birth_certificate_status=DocumentStatus.PENDING) |
@@ -1039,13 +1107,13 @@ class DossiersSummaryView(APIView):
                 )
             )
         )
-        swimmers_pending = SwimmerProfile.objects.filter(docs_pending_q).count()
-        swimmers_approved = SwimmerProfile.objects.filter(
+        swimmers_pending = swimmer_base.filter(docs_pending_q).count()
+        swimmers_approved = swimmer_base.filter(
             birth_certificate_status=DocumentStatus.APPROVED,
             national_card_status=DocumentStatus.APPROVED,
             sports_insurance_status=DocumentStatus.APPROVED
         ).count()
-        swimmers_revision = SwimmerProfile.objects.filter(
+        swimmers_revision = swimmer_base.filter(
             Q(birth_certificate_status=DocumentStatus.REVISION_REQUIRED) |
             Q(national_card_status=DocumentStatus.REVISION_REQUIRED) |
             Q(sports_insurance_status=DocumentStatus.REVISION_REQUIRED)
@@ -1061,11 +1129,11 @@ class DossiersSummaryView(APIView):
             ) |
             Q(certificates__is_verified=False)
         )
-        coaches_pending = CoachProfile.objects.filter(coach_pending_q).distinct().count()
-        coaches_approved = CoachProfile.objects.filter(
+        coaches_pending = coach_base.filter(coach_pending_q).distinct().count()
+        coaches_approved = coach_base.filter(
             retraining_status=CoachProfile.RetrainingStatus.APPROVED
         ).count()
-        coaches_rejected = CoachProfile.objects.filter(
+        coaches_rejected = coach_base.filter(
             retraining_status=CoachProfile.RetrainingStatus.REJECTED
         ).count()
 
@@ -1075,9 +1143,14 @@ class DossiersSummaryView(APIView):
         receipts_rejected = 0
         try:
             from apps.finance.models import PaymentReceipt
-            receipts_pending = PaymentReceipt.objects.filter(status=PaymentReceipt.Status.PENDING).count()
-            receipts_approved = PaymentReceipt.objects.filter(status=PaymentReceipt.Status.APPROVED).count()
-            receipts_rejected = PaymentReceipt.objects.filter(status=PaymentReceipt.Status.REJECTED).count()
+            if is_female_admin:
+                receipts_pending = PaymentReceipt.objects.filter(status=PaymentReceipt.Status.PENDING, invoice__swimmer__gender='FEMALE').count()
+                receipts_approved = PaymentReceipt.objects.filter(status=PaymentReceipt.Status.APPROVED, invoice__swimmer__gender='FEMALE').count()
+                receipts_rejected = PaymentReceipt.objects.filter(status=PaymentReceipt.Status.REJECTED, invoice__swimmer__gender='FEMALE').count()
+            else:
+                receipts_pending = PaymentReceipt.objects.filter(status=PaymentReceipt.Status.PENDING).count()
+                receipts_approved = PaymentReceipt.objects.filter(status=PaymentReceipt.Status.APPROVED).count()
+                receipts_rejected = PaymentReceipt.objects.filter(status=PaymentReceipt.Status.REJECTED).count()
         except Exception:
             pass
 

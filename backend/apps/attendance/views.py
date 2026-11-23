@@ -38,6 +38,8 @@ class AttendanceListView(generics.ListAPIView):
 
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs
+        elif user.role == 'FEMALE_ADMIN':
+            return qs.filter(swimmer__gender='FEMALE')
         elif user.role == 'COACH':
             coach_profile = getattr(user, 'coach_profile', None)
             return qs.filter(session__coach=coach_profile) if coach_profile else qs.none()
@@ -72,6 +74,12 @@ class AttendanceBulkSaveView(APIView):
             coach_profile = getattr(request.user, 'coach_profile', None)
             if not coach_profile or session.coach != coach_profile:
                 return Response({'detail': 'شما مربی این جلسه نیستید.'}, status=status.HTTP_403_FORBIDDEN)
+
+        if request.user.role == 'FEMALE_ADMIN':
+            if session.group and session.group.course and session.group.course.gender == 'MALE':
+                raise PermissionDenied('مدیریت بانوان فقط مجاز به ثبت حضور و غیاب کلاس‌های بانوان است.')
+            if session.coach and session.coach.gender != 'FEMALE':
+                raise PermissionDenied('مدیریت بانوان فقط مجاز به ثبت حضور و غیاب مربیان خانم است.')
 
         saved_records = []
         with transaction.atomic():

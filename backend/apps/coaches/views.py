@@ -45,7 +45,7 @@ class CoachListView(generics.ListCreateAPIView):
 
     def get_serializer_class(self):
         user = self.request.user if hasattr(self, 'request') else None
-        if user and user.is_authenticated and (user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser):
+        if user and user.is_authenticated and (user.role in ['ADMIN', 'FEMALE_ADMIN', 'SUPERVISOR'] or user.is_superuser):
             return CoachProfileSerializer
         return CoachPublicSerializer
 
@@ -54,13 +54,28 @@ class CoachListView(generics.ListCreateAPIView):
             return [permissions.AllowAny()]
         return [IsAdminUserRole()]
 
+    def perform_create(self, serializer):
+        user = self.request.user
+        if user.role == 'FEMALE_ADMIN':
+            if serializer.validated_data.get('gender') == 'MALE':
+                from rest_framework.exceptions import ValidationError
+                raise ValidationError({'gender': 'مدیریت بانوان فقط مجاز به ثبت مربیان خانم است.'})
+            serializer.save(gender='FEMALE')
+        else:
+            serializer.save()
+
     def get_queryset(self):
+        user = self.request.user if hasattr(self, 'request') else None
         qs = CoachProfile.objects.all().select_related('user').order_by('display_order', 'user__last_name', 'user__first_name')
+        if user and user.is_authenticated and user.role == 'FEMALE_ADMIN':
+            qs = qs.filter(gender='FEMALE')
         status_param = self.request.query_params.get('status')
         if status_param:
             qs = qs.filter(employment_status=status_param)
         gender_param = self.request.query_params.get('gender')
         if gender_param:
+            if user and user.is_authenticated and user.role == 'FEMALE_ADMIN' and gender_param == 'MALE':
+                return CoachProfile.objects.none()
             qs = qs.filter(gender=gender_param)
         landing_param = self.request.query_params.get('landing')
         if landing_param and landing_param.lower() in ['true', '1']:
@@ -78,8 +93,8 @@ class CoachDetailView(generics.RetrieveUpdateDestroyAPIView):
         if not user or not user.is_authenticated:
             return CoachPublicSerializer
 
-        # Administrators and technical supervisors receive the full management serializer
-        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+        # Administrators, female management, and technical supervisors receive the full management serializer
+        if user.role in ['ADMIN', 'FEMALE_ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return CoachProfileSerializer
 
         # A coach viewing their own private profile dossier
@@ -90,6 +105,20 @@ class CoachDetailView(generics.RetrieveUpdateDestroyAPIView):
                 return CoachProfileSerializer
 
         return CoachPublicSerializer
+
+    def get_queryset(self):
+        user = self.request.user if hasattr(self, 'request') else None
+        qs = CoachProfile.objects.all().select_related('user')
+        if user and user.is_authenticated and user.role == 'FEMALE_ADMIN':
+            qs = qs.filter(gender='FEMALE')
+        return qs
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        if user.role == 'FEMALE_ADMIN' and serializer.validated_data.get('gender') == 'MALE':
+            from rest_framework.exceptions import ValidationError
+            raise ValidationError({'gender': 'تغییر جنسیت مربی به آقا توسط مدیریت بانوان مجاز نیست.'})
+        serializer.save()
 
     def get_permissions(self):
         if self.request.method == 'GET':
