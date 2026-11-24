@@ -129,7 +129,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 };
 
 const PublicPageWrapper = ({ children }) => (
-  <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-[#163247] dark:text-slate-100 flex flex-col transition-colors selection:bg-cyan-100 selection:text-cyan-900 w-full overflow-x-clip">
+  <div className="min-h-screen bg-slate-50 text-[#163247] flex flex-col transition-colors selection:bg-cyan-100 selection:text-cyan-900 w-full overflow-x-clip">
     <Navbar />
     <main className="flex-1 w-full overflow-x-clip">
       {children}
@@ -139,47 +139,47 @@ const PublicPageWrapper = ({ children }) => (
 
 export default function App() {
   return (
-    <ThemeProvider>
-      <ToastProvider>
-        <AuthProvider>
-          <SwimmerProvider>
-            <LandingSectionsProvider>
-              <BrowserRouter>
-            <Routes>
-              {/* Public Website */}
-              <Route
-                path="/"
-                element={
-                  <div className="min-h-screen bg-pool-caustics water-ripple-pattern dark:bg-slate-950 text-[#163247] dark:text-slate-100 flex flex-col transition-colors selection:bg-cyan-100 selection:text-cyan-900 w-full overflow-x-clip">
-                    <Navbar />
-                    <main className="flex-1 w-full overflow-x-clip">
-                      <HomePage />
-                    </main>
-                  </div>
-                }
-              />
-              <Route
-                path="/login"
-                element={
-                  <div className="min-h-screen text-[#163247] dark:text-slate-100 flex flex-col transition-colors selection:bg-cyan-100 selection:text-cyan-900 w-full overflow-x-clip relative">
-                    <Navbar />
-                    <main className="flex-1 w-full flex items-center justify-center relative z-10">
-                      <LoginPage />
-                    </main>
-                  </div>
-                }
-              />
-              <Route
-                path="/register"
-                element={
-                  <div className="min-h-screen text-[#163247] dark:text-slate-100 flex flex-col transition-colors selection:bg-cyan-100 selection:text-cyan-900 w-full overflow-x-clip relative">
-                    <Navbar />
-                    <main className="flex-1 w-full flex items-center justify-center relative z-10">
-                      <LoginPage defaultMode="register" />
-                    </main>
-                  </div>
-                }
-              />
+    <BrowserRouter>
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <SwimmerProvider>
+              <LandingSectionsProvider>
+                <Routes>
+                  {/* Public Website */}
+                  <Route
+                    path="/"
+                    element={
+                      <div className="min-h-screen bg-pool-caustics water-ripple-pattern text-[#163247] flex flex-col transition-colors selection:bg-cyan-100 selection:text-cyan-900 w-full overflow-x-clip">
+                        <Navbar />
+                        <main className="flex-1 w-full overflow-x-clip">
+                          <HomePage />
+                        </main>
+                      </div>
+                    }
+                  />
+                  <Route
+                    path="/login"
+                    element={
+                      <div className="min-h-screen bg-slate-50 text-[#163247] flex flex-col transition-colors selection:bg-cyan-100 selection:text-cyan-900 w-full overflow-x-clip relative">
+                        <Navbar />
+                        <main className="flex-1 w-full flex items-center justify-center relative z-10">
+                          <LoginPage />
+                        </main>
+                      </div>
+                    }
+                  />
+                  <Route
+                    path="/register"
+                    element={
+                      <div className="min-h-screen bg-slate-50 text-[#163247] flex flex-col transition-colors selection:bg-cyan-100 selection:text-cyan-900 w-full overflow-x-clip relative">
+                        <Navbar />
+                        <main className="flex-1 w-full flex items-center justify-center relative z-10">
+                          <LoginPage defaultMode="register" />
+                        </main>
+                      </div>
+                    }
+                  />
 
               {/* Public Subpages & Dedicated SEO Landing Pages */}
               <Route path="/swimming-classes" element={<PublicPageWrapper><CoursesPage /></PublicPageWrapper>} />
@@ -343,8 +343,8 @@ export default function App() {
                 <Route path="finance" element={<AdminFinancePage />} />
 
                 {/* 5. Content & Communications */}
-                <Route path="website" element={<AdminWebsiteManagerPage />} />
-                <Route path="news" element={<AdminNewsPage />} />
+                <Route path="website" element={<Navigate to="/female-admin" replace />} />
+                <Route path="news" element={<Navigate to="/female-admin" replace />} />
                 <Route path="announcements" element={<AdminAnnouncementsPage />} />
                 <Route path="announcements/new" element={<AdminCreateAnnouncementPage />} />
                 <Route path="announcements/create" element={<Navigate to="/female-admin/announcements/new" replace />} />
@@ -459,7 +459,7 @@ export default function App() {
               <Route
                 path="*"
                 element={
-                  <div className="min-h-screen text-[#163247] dark:text-slate-100 flex flex-col transition-colors selection:bg-cyan-100 selection:text-cyan-900 w-full overflow-x-clip">
+                  <div className="min-h-screen bg-slate-50 text-[#163247] flex flex-col transition-colors selection:bg-cyan-100 selection:text-cyan-900 w-full overflow-x-clip">
                     <Navbar />
                     <main className="flex-1 w-full overflow-x-clip">
                       <NotFoundPage />
@@ -468,11 +468,11 @@ export default function App() {
                 }
               />
             </Routes>
-          </BrowserRouter>
-        </LandingSectionsProvider>
-      </SwimmerProvider>
-    </AuthProvider>
+          </LandingSectionsProvider>
+        </SwimmerProvider>
+      </AuthProvider>
     </ToastProvider>
     </ThemeProvider>
+  </BrowserRouter>
   );
 }

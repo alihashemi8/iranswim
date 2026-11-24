@@ -7,7 +7,7 @@ import {
   Sun, Moon, Waves, Trophy, ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { useTheme } from '../../context/ThemeContext';
+import { useTheme, isDashboardRoute } from '../../context/ThemeContext';
 import { useLandingSections } from '../../context/LandingSectionsContext';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
 import { NotificationDropdown } from './NotificationDropdown';
@@ -101,13 +101,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
     (link) => !link.sectionKey || isSectionEnabled(link.sectionKey)
   );
 
-  const isPublicPage =
-    !isFullWidth &&
-    !location.pathname.startsWith('/admin') &&
-    !location.pathname.startsWith('/female-admin') &&
-    !location.pathname.startsWith('/coach') &&
-    !location.pathname.startsWith('/swimmer') &&
-    !location.pathname.startsWith('/supervisor');
+  const isPublicPage = !isFullWidth && !isDashboardRoute(location.pathname);
 
   return (
     <>
@@ -115,8 +109,8 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
         className={`sticky top-0 z-40 transition-all duration-300 w-full ${
           isPublicPage
             ? isScrolled
-              ? 'pool-header bg-[#f0f9ff]/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-transparent dark:border-slate-800/80 shadow-[0_4px_20px_rgba(8,59,92,0.06)] dark:shadow-[0_4px_20px_rgba(0,0,0,0.4)]'
-              : 'pool-header bg-[#f0f9ff] dark:bg-slate-900 border-b border-transparent dark:border-slate-800/80 shadow-none'
+              ? 'pool-header bg-[#f0f9ff]/95 backdrop-blur-md border-b border-transparent shadow-[0_4px_20px_rgba(8,59,92,0.06)]'
+              : 'pool-header bg-[#f0f9ff] border-b border-transparent shadow-none'
             : 'bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800/80 shadow-xs'
         }`}
       >

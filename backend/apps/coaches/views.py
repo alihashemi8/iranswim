@@ -12,7 +12,7 @@ from .serializers import (
     CoachProfileSerializer, CoachPublicSerializer, WorkoutPlanSerializer,
     CoachClassListSerializer, CoachSwimmerDetailSerializer
 )
-from apps.accounts.permissions import IsAdminOrCoach, IsAdminUserRole, IsAdminOrSupervisorOrCoach
+from apps.accounts.permissions import IsAdminOrCoach, IsAdminUserRole, IsAdminOrSupervisorOrCoach, IsStrictAdminOnly
 from apps.accounts.models import User
 from apps.scheduling.models import ClassSession
 from apps.education.models import SwimmerGroup, Enrollment, Skill, SkillLevel
@@ -130,7 +130,7 @@ class CoachReorderView(APIView):
     """
     تنظیم گروهی ترتیب نمایش مربیان در صفحه لندینگ و پرتال
     """
-    permission_classes = [IsAdminUserRole]
+    permission_classes = [IsStrictAdminOnly]
 
     def post(self, request):
         orders = request.data.get('orders', [])

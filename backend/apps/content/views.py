@@ -20,7 +20,7 @@ from .serializers import (
     TicketMessageSerializer,
     LandingSectionSerializer, TopSwimmerSerializer
 )
-from apps.accounts.permissions import IsAdminUserRole
+from apps.accounts.permissions import IsAdminUserRole, IsStrictAdminOnly
 
 
 class NewsPostListView(generics.ListCreateAPIView):
@@ -30,7 +30,7 @@ class NewsPostListView(generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
-        return [IsAdminUserRole()]
+        return [IsStrictAdminOnly()]
 
     def get_queryset(self):
         user = self.request.user
@@ -65,7 +65,7 @@ class NewsPostDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_permissions(self):
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
-        return [IsAdminUserRole()]
+        return [IsStrictAdminOnly()]
 
     def get_queryset(self):
         user = self.request.user
@@ -85,7 +85,7 @@ class NewsPostDetailView(generics.RetrieveUpdateDestroyAPIView):
 class NewsImageDeleteView(generics.DestroyAPIView):
     """حذف یک تصویر شرح خبر به صورت تفکیک‌شده"""
     queryset = NewsImage.objects.all()
-    permission_classes = [IsAdminUserRole]
+    permission_classes = [IsStrictAdminOnly]
 
 
 def _ensure_initial_pools():
@@ -150,7 +150,7 @@ class SwimmingPoolListView(generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
-        return [IsAdminUserRole()]
+        return [IsStrictAdminOnly()]
 
     def get_queryset(self):
         _ensure_initial_pools()
@@ -181,7 +181,7 @@ class SwimmingPoolDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_permissions(self):
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
-        return [IsAdminUserRole()]
+        return [IsStrictAdminOnly()]
 
     def perform_update(self, serializer):
         pool = serializer.save()
@@ -195,12 +195,12 @@ class SwimmingPoolDetailView(generics.RetrieveUpdateDestroyAPIView):
 class PoolImageDeleteView(generics.DestroyAPIView):
     """حذف تصویر گالری استخر به صورت مستقل"""
     queryset = PoolImage.objects.all()
-    permission_classes = [IsAdminUserRole]
+    permission_classes = [IsStrictAdminOnly]
 
 
 class PoolReorderView(APIView):
     """تنظیم گروهی ترتیب نمایش استخرها در سایت"""
-    permission_classes = [IsAdminUserRole]
+    permission_classes = [IsStrictAdminOnly]
 
     def post(self, request):
         orders = request.data.get('orders', [])
@@ -781,7 +781,7 @@ class LandingSectionListView(generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
-        return [IsAdminUserRole()]
+        return [IsStrictAdminOnly()]
 
     def get_queryset(self):
         _ensure_initial_landing_sections()
@@ -820,7 +820,7 @@ class LandingSectionDetailView(generics.RetrieveUpdateAPIView):
     def get_permissions(self):
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
-        return [IsAdminUserRole()]
+        return [IsStrictAdminOnly()]
 
     def get_object(self):
         key = self.kwargs.get(self.lookup_field)
@@ -837,7 +837,7 @@ class LandingSectionDetailView(generics.RetrieveUpdateAPIView):
 
 class LandingSectionToggleView(APIView):
     """سوئیچ سریع وضعیت فعال/غیرفعال بخش لندینگ توسط مدیر"""
-    permission_classes = [IsAdminUserRole]
+    permission_classes = [IsStrictAdminOnly]
 
     def post(self, request, key):
         _ensure_initial_landing_sections()
@@ -939,7 +939,7 @@ class TopSwimmerListView(generics.ListCreateAPIView):
     def get_permissions(self):
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
-        return [IsAdminUserRole()]
+        return [IsStrictAdminOnly()]
 
     def get_queryset(self):
         _ensure_initial_top_swimmers()
@@ -958,7 +958,7 @@ class TopSwimmerDetailView(generics.RetrieveUpdateDestroyAPIView):
     def get_permissions(self):
         if self.request.method == 'GET':
             return [permissions.AllowAny()]
-        return [IsAdminUserRole()]
+        return [IsStrictAdminOnly()]
 
 
 from django.http import HttpResponse, HttpResponseNotFound
@@ -966,7 +966,7 @@ from django.http import HttpResponse, HttpResponseNotFound
 
 class TopSwimmerReorderView(APIView):
     """مرتب‌سازی ترتیب نمایش شناگران برتر توسط مدیر"""
-    permission_classes = [IsAdminUserRole]
+    permission_classes = [IsStrictAdminOnly]
 
     def post(self, request):
         orders = request.data.get('orders', [])

@@ -5,13 +5,14 @@ import {
   Activity, Bug, ShieldCheck, Zap,
   LayoutDashboard, BookOpen, Users, User, CreditCard, Calendar,
   ClipboardCheck, Award, Trophy, Bell,
-  X, LogOut, ChevronLeft, ChevronRight,
+  X, LogOut, ChevronLeft, ChevronRight, Sun, Moon,
   TrendingUp, MessageSquareQuote, FileText,
   Globe, Server, Radio, GitBranch, Database, Sliders, Whistle,
   FolderCheck, Dumbbell, Headphones
 } from 'lucide-react';
 
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useSwimmer } from '../../context/SwimmerContext';
 import { useToast } from '../../context/ToastContext';
 import { useBodyScrollLock } from '../../hooks/useBodyScrollLock';
@@ -22,6 +23,7 @@ import { getMediaUrl } from '../../utils/media';
 
 export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const { activeSwimmer, childrenList, selectChild, activeSwimmerId } = useSwimmer() || {};
   const navigate = useNavigate();
   const location = useLocation();
@@ -168,7 +170,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
     {
       groupTitle: 'محتوا و ارتباطات',
       items: [
-        { to: `${adminBasePath}/website`, label: 'مدیریت وبسایت', icon: Globe },
+        ...(isFemaleAdmin ? [] : [{ to: `${adminBasePath}/website`, label: 'مدیریت وبسایت', icon: Globe }]),
         { to: `${adminBasePath}/announcements`, label: 'پیام‌ها و اعلان‌ها', icon: Bell },
         { to: `${adminBasePath}/support`, label: 'ارتباط با پشتیبانی', icon: Headphones },
       ],
@@ -678,7 +680,44 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   );
 
   const renderBottomSection = (isMobile = false) => (
-    <div className="shrink-0 p-3 xl:p-3.5 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900">
+    <div className="shrink-0 p-3 xl:p-3.5 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 space-y-2">
+      {/* Dark / Light Mode Toggle Button in Dashboard Sidebar */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        className={`w-full flex items-center justify-center rounded-xl text-xs xl:text-sm font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800/90 hover:bg-slate-200 dark:hover:bg-slate-700/80 border border-slate-200/80 dark:border-slate-700/80 transition-colors shadow-2xs cursor-pointer group relative ${
+          isMobile
+            ? 'gap-2 px-3.5 py-2.5'
+            : collapsed
+            ? 'p-2.5'
+            : 'p-2.5 xl:px-3.5 xl:py-2.5 xl:gap-2.5'
+        }`}
+        title={theme === 'dark' ? 'تغییر به حالت روز (روشن)' : 'تغییر به حالت شب (تاریک)'}
+        aria-label={theme === 'dark' ? 'تغییر به حالت روز' : 'تغییر به حالت شب'}
+      >
+        {theme === 'dark' ? (
+          <Sun className="w-5 h-5 shrink-0 text-amber-400 transition-transform group-hover:rotate-45" />
+        ) : (
+          <Moon className="w-5 h-5 shrink-0 text-slate-600 dark:text-slate-300 transition-transform group-hover:-rotate-12" />
+        )}
+        <span className={isMobile ? 'inline' : collapsed ? 'hidden' : 'hidden xl:inline'}>
+          {theme === 'dark' ? 'حالت روز (روشن)' : 'حالت شب (تاریک)'}
+        </span>
+
+        {/* Tooltip in icon-only mode */}
+        {!isMobile && (
+          <div
+            role="tooltip"
+            className={`absolute right-full mr-2.5 px-3 py-2 bg-slate-900 text-white text-xs sm:text-sm font-bold rounded-lg shadow-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-150 whitespace-nowrap z-50 backdrop-blur-xs ${
+              collapsed ? 'block' : 'block xl:hidden'
+            }`}
+          >
+            <span>{theme === 'dark' ? 'حالت روز (روشن)' : 'حالت شب (تاریک)'}</span>
+            <div className="absolute top-1/2 -right-1 -translate-y-1/2 border-y-4 border-y-transparent border-l-4 border-l-slate-900" />
+          </div>
+        )}
+      </button>
+
       <button
         type="button"
         onClick={handleLogoutClick}

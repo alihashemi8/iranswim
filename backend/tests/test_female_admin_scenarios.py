@@ -306,3 +306,51 @@ def test_finance_isolation_for_female_admin(female_admin_test_env):
 
     assert env['female_inv'].id in inv_ids_admin
     assert env['male_inv'].id in inv_ids_admin
+
+
+@pytest.mark.django_db
+def test_website_management_forbidden_for_female_admin(female_admin_test_env):
+    """
+    Website management (news, pools, landing sections, top swimmers, coach reordering)
+    is strictly restricted to ADMIN and forbidden (403) for FEMALE_ADMIN.
+    """
+    env = female_admin_test_env
+    client = APIClient()
+
+    # 1. As FEMALE_ADMIN
+    client.force_authenticate(user=env['female_admin_user'])
+
+    # Pools creation forbidden
+    res = client.post('/api/content/pools/', {'name': 'استخر جدید', 'location': 'قزوین'})
+    assert res.status_code == 403
+
+    # News creation forbidden
+    res = client.post('/api/content/news/', {'title': 'خبر جدید', 'body': 'متن خبر'})
+    assert res.status_code == 403
+
+    # Landing sections toggle forbidden
+    res = client.post('/api/content/landing-sections/hero/toggle/')
+    assert res.status_code == 403
+
+    # Top swimmers creation forbidden
+    res = client.post('/api/content/top-swimmers/', {'full_name': 'شناگر برتر', 'title': 'قهرمان'})
+    assert res.status_code == 403
+
+    # Coach reorder forbidden
+    res = client.post('/api/coaches/reorder/', {'orders': [{'id': env['female_coach'].id, 'display_order': 1}]}, format='json')
+    assert res.status_code == 403
+
+    # 2. As normal ADMIN
+    client.force_authenticate(user=env['admin_user'])
+
+    # Pools creation allowed
+    res_pool = client.post('/api/content/pools/', {
+        'name': 'استخر آزمایشی',
+        'location': 'قزوین',
+        'description': 'توضیحات استخر',
+    })
+    assert res_pool.status_code in [200, 201]
+
+    # Coach reorder allowed
+    res_reorder = client.post('/api/coaches/reorder/', {'orders': [{'id': env['female_coach'].id, 'display_order': 1}]}, format='json')
+    assert res_reorder.status_code == 200
