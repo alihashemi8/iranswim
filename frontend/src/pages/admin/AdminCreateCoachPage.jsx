@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import {
   UserCheck, ArrowRight, ArrowLeft, Save, User, Phone, Hash, Calendar,
   Briefcase, MapPin, ShieldAlert, Award, CreditCard, Clock, Lock,
@@ -13,6 +13,7 @@ import { CustomSelect } from '../../components/common/CustomSelect';
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { BackButton } from '../../components/common/BackButton';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import { validatePassword, PasswordRequirementsList } from '../../utils/passwordValidator';
 import { toEnglishDigits } from '../../utils/digits';
 
@@ -20,7 +21,12 @@ export const AdminCreateCoachPage = () => {
   const { id } = useParams();
   const isEdit = Boolean(id);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const toast = useToast();
+
+  const isFemaleAdmin = user?.role === 'FEMALE_ADMIN' || location.pathname.startsWith('/female-admin');
+  const basePath = isFemaleAdmin ? '/female-admin' : '/admin';
 
   const [loadingCoach, setLoadingCoach] = useState(isEdit);
   const [currentStep, setCurrentStep] = useState(1);
@@ -42,7 +48,7 @@ export const AdminCreateCoachPage = () => {
     last_name: '',
     phone: '',
     national_id: '',
-    gender: 'MALE',
+    gender: isFemaleAdmin ? 'FEMALE' : 'MALE',
     date_of_birth: '',
     password: '',
 
@@ -150,7 +156,7 @@ export const AdminCreateCoachPage = () => {
       } catch (err) {
         console.error(err);
         toast.error('خطا در دریافت اطلاعات مربی');
-        navigate('/admin/coaches');
+        navigate(`${basePath}/coaches`);
       } finally {
         setLoadingCoach(false);
       }
@@ -338,14 +344,14 @@ export const AdminCreateCoachPage = () => {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         toast.success(`مشخصات مربی ${form.first_name} ${form.last_name} با موفقیت به‌روزرسانی شد.`);
-        navigate(`/admin/coaches/${id}`);
+        navigate(`${basePath}/coaches/${id}`);
       } else {
         const res = await api.post('/coaches/', formData, {
           headers: { 'Content-Type': 'multipart/form-data' },
         });
         toast.success(`پرونده پرسنلی مربی ${form.first_name} ${form.last_name} با موفقیت تشکیل شد.`);
         const newId = res.data.id;
-        navigate(`/admin/coaches/${newId}`);
+        navigate(`${basePath}/coaches/${newId}`);
       }
     } catch (err) {
       console.error(err);
@@ -376,7 +382,7 @@ export const AdminCreateCoachPage = () => {
       {/* Breadcrumb & Navigation */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex items-center gap-3 min-w-0">
-          <BackButton fallback="/admin/coaches" title="بازگشت به فهرست مربیان" />
+          <BackButton fallback={`${basePath}/coaches`} title="بازگشت به فهرست مربیان" />
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="text-xs text-slate-400 font-medium">مدیریت مربیان و منابع انسانی</span>
@@ -546,21 +552,25 @@ export const AdminCreateCoachPage = () => {
                   جنسیت مربی <span className="text-rose-500 font-bold">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-2 pt-0.5">
-                  <button
-                    type="button"
-                    onClick={() => handleChange('gender', 'MALE')}
-                    className={`py-2.5 px-3 rounded-xl text-sm sm:text-base font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
-                      form.gender === 'MALE'
-                        ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-400 text-sky-700 dark:text-sky-300 shadow-xs'
-                        : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
-                    }`}
-                  >
-                    <span>آقا / مرد</span>
-                  </button>
+                  {!isFemaleAdmin ? (
+                    <button
+                      type="button"
+                      onClick={() => handleChange('gender', 'MALE')}
+                      className={`py-2.5 px-3 rounded-xl text-sm sm:text-base font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                        form.gender === 'MALE'
+                          ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-400 text-sky-700 dark:text-sky-300 shadow-xs'
+                          : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
+                      }`}
+                    >
+                      <span>آقا / مرد</span>
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     onClick={() => handleChange('gender', 'FEMALE')}
                     className={`py-2.5 px-3 rounded-xl text-sm sm:text-base font-bold border transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                      isFemaleAdmin ? 'col-span-2' : ''
+                    } ${
                       form.gender === 'FEMALE'
                         ? 'bg-pink-50 dark:bg-pink-950/60 border-pink-400 text-pink-700 dark:text-pink-300 shadow-xs'
                         : 'border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400'
@@ -1114,7 +1124,7 @@ export const AdminCreateCoachPage = () => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => navigate('/admin/coaches')}
+              onClick={() => navigate(`${basePath}/coaches`)}
               className="gap-1.5 sm:gap-2 text-sm sm:text-base px-3 sm:px-4 flex-1 sm:flex-initial sm:min-w-[140px] justify-center min-h-[42px] sm:min-h-[44px] min-w-0 !shrink font-bold"
             >
               <span className="truncate">انصراف و بازگشت</span>

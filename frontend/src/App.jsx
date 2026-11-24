@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useParams } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { SwimmerProvider } from './context/SwimmerContext';
 import { LandingSectionsProvider } from './context/LandingSectionsContext';
@@ -47,7 +47,9 @@ import { AdminCoachAssignGroupPage } from './pages/admin/AdminCoachAssignGroupPa
 // Redirect removed coach contract creation page to coach finance profile
 const CoachContractRedirect = () => {
   const { id } = useParams();
-  return <Navigate to={`/admin/coaches/${id}?tab=FINANCE`} replace />;
+  const location = useLocation();
+  const base = location.pathname.startsWith('/female-admin') ? '/female-admin' : '/admin';
+  return <Navigate to={`${base}/coaches/${id}?tab=FINANCE`} replace />;
 };
 import { AdminCoachCreatePayrollPage } from './pages/admin/coach-profile/AdminCoachCreatePayrollPage';
 import { AdminCoachRegisterPaymentPage } from './pages/admin/coach-profile/AdminCoachRegisterPaymentPage';
@@ -221,7 +223,7 @@ export default function App() {
               <Route
                 path="/admin"
                 element={
-                  <ProtectedRoute allowedRoles={['ADMIN']}>
+                  <ProtectedRoute allowedRoles={['ADMIN', 'FEMALE_ADMIN']}>
                     <DashboardShell />
                   </ProtectedRoute>
                 }
@@ -276,13 +278,86 @@ export default function App() {
                 <Route path="support" element={<AdminSupportPage />} />
                 <Route path="support/new" element={<CreateSupportTicketPage role="ADMIN" />} />
 
-                {/* 6. Reports & Analytics (Removed, redirect to Admin) */}
+                {/* 6. Reports & Analytics (Redirect to Admin) */}
                 <Route path="reports" element={<Navigate to="/admin" replace />} />
 
                 {/* 7. Profile & System Management */}
                 <Route path="profile" element={<AdminProfilePage />} />
                 <Route path="settings" element={<Navigate to="/admin/profile?tab=settings" replace />} />
                 <Route path="security" element={<Navigate to="/admin/profile?tab=users" replace />} />
+
+                {/* Auxiliary direct routes */}
+                <Route path="enrollments" element={<AdminEnrollmentsPage />} />
+                <Route path="enrollments/new" element={<AdminDirectEnrollPage />} />
+                <Route path="sessions" element={<AdminSessionsPage />} />
+              </Route>
+
+              {/* Female Admin Protected Routes (مدیریت بانوان) */}
+              <Route
+                path="/female-admin"
+                element={
+                  <ProtectedRoute allowedRoles={['FEMALE_ADMIN', 'ADMIN']}>
+                    <DashboardShell />
+                  </ProtectedRoute>
+                }
+              >
+                {/* 1. Dashboard */}
+                <Route index element={<AdminDashboard />} />
+
+                {/* 2. Educational Management */}
+                <Route path="swimmers" element={<AdminSwimmersPage />} />
+                <Route path="dossiers" element={<AdminDossiersPage />} />
+                <Route path="swimmers/:id" element={<AdminSwimmerDetailPage />} />
+                <Route path="swimmers/:id/enroll" element={<AdminDirectEnrollPage />} />
+                <Route path="swimmers/enroll" element={<AdminDirectEnrollPage />} />
+                <Route path="coaches" element={<AdminCoachesPage />} />
+                <Route path="coaches/new" element={<AdminCreateCoachPage />} />
+                <Route path="coaches/:id" element={<AdminCoachDetailPage />} />
+                <Route path="coaches/:id/edit" element={<AdminCoachEditPage />} />
+                <Route path="coaches/:id/schedule" element={<AdminCoachSchedulePage />} />
+                <Route path="coaches/:id/assign" element={<AdminCoachAssignGroupPage />} />
+                <Route path="coaches/:id/assign-group" element={<AdminCoachAssignGroupPage />} />
+                <Route path="coaches/:id/contracts/new" element={<CoachContractRedirect />} />
+                <Route path="coaches/:id/contracts" element={<CoachContractRedirect />} />
+                <Route path="coaches/:id/payrolls/new" element={<AdminCoachCreatePayrollPage />} />
+                <Route path="coaches/:id/payments/new" element={<AdminCoachRegisterPaymentPage />} />
+                <Route path="coaches/:id/payrolls/:payrollId/payments/new" element={<AdminCoachRegisterPaymentPage />} />
+                <Route path="coaches/:id/certificates/new" element={<AdminCoachAddCertificatePage />} />
+                <Route path="coaches/:id/evaluations/new" element={<AdminCoachCreateEvaluationPage />} />
+                <Route path="coaches/:id/leaves/new" element={<AdminCoachCreateLeavePage />} />
+                <Route path="coaches/:id/notes/new" element={<AdminCoachCreateNotePage />} />
+                <Route path="courses" element={<AdminCoursesPage />} />
+                <Route path="courses/new" element={<AdminCreateCoursePage />} />
+                <Route path="courses/:id" element={<AdminCourseDetailPage />} />
+                <Route path="courses/:id/swimmers" element={<AdminCourseDetailPage />} />
+                <Route path="courses/:id/add-coach" element={<AdminCourseAddCoachPage />} />
+                <Route path="classes/:id" element={<AdminClassDetailPage />} />
+                <Route path="attendance" element={<AdminAttendancePage />} />
+                <Route path="attendance/:sessionId" element={<AdminAttendanceDetailPage />} />
+
+                {/* 3. Performance & Competitions */}
+                <Route path="assessments" element={<AdminAssessmentsPage />} />
+                <Route path="leagues" element={<AdminLeaguesPage />} />
+
+                {/* 4. Financial Hub */}
+                <Route path="finance" element={<AdminFinancePage />} />
+
+                {/* 5. Content & Communications */}
+                <Route path="website" element={<AdminWebsiteManagerPage />} />
+                <Route path="news" element={<AdminNewsPage />} />
+                <Route path="announcements" element={<AdminAnnouncementsPage />} />
+                <Route path="announcements/new" element={<AdminCreateAnnouncementPage />} />
+                <Route path="announcements/create" element={<Navigate to="/female-admin/announcements/new" replace />} />
+                <Route path="support" element={<AdminSupportPage />} />
+                <Route path="support/new" element={<CreateSupportTicketPage role="FEMALE_ADMIN" />} />
+
+                {/* 6. Reports & Analytics (Redirect to female-admin) */}
+                <Route path="reports" element={<Navigate to="/female-admin" replace />} />
+
+                {/* 7. Profile & System Management */}
+                <Route path="profile" element={<AdminProfilePage />} />
+                <Route path="settings" element={<Navigate to="/female-admin/profile?tab=settings" replace />} />
+                <Route path="security" element={<Navigate to="/female-admin/profile?tab=users" replace />} />
 
                 {/* Auxiliary direct routes */}
                 <Route path="enrollments" element={<AdminEnrollmentsPage />} />

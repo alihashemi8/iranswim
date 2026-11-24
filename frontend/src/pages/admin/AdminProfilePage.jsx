@@ -582,6 +582,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
 
   const roleLabels = {
     ADMIN: 'مدیر آموزشگاه',
+    FEMALE_ADMIN: 'مدیریت بانوان',
     COACH: 'مربی آکادمی',
     SWIMMER: 'شناگر / اولیا',
     SUPERVISOR: 'ناظر فنی سامانه',
@@ -1330,6 +1331,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                                 <Badge
                                   variant={
                                     u.role === 'ADMIN' ? 'primary' :
+                                    u.role === 'FEMALE_ADMIN' ? 'danger' :
                                     u.role === 'COACH' ? 'success' : 'info'
                                   }
                                 >
@@ -1465,6 +1467,7 @@ export const AdminProfilePage = ({ defaultTab = 'PROFILE' }) => {
                                 size="sm"
                                 variant={
                                   u.role === 'ADMIN' ? 'primary' :
+                                  u.role === 'FEMALE_ADMIN' ? 'danger' :
                                   u.role === 'COACH' ? 'success' : 'info'
                                 }
                               >

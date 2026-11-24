@@ -5,7 +5,7 @@ import {
   Award, RefreshCw, MapPin, ClipboardCheck,
   AlertTriangle, Layers
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import api from '../../api/client';
 import { StatsCard } from '../../components/common/StatsCard';
 import { Badge } from '../../components/common/Badge';
@@ -14,6 +14,7 @@ import { LoadingState } from '../../components/common/LoadingState';
 import { EmptyState } from '../../components/common/EmptyState';
 import { BarChart, ProgressBar } from '../../components/common/Charts';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 
 // Helper for local YYYY-MM-DD string
 const getLocalDateStr = (d = new Date()) => {
@@ -33,6 +34,11 @@ const cleanCoachName = (name) => {
 };
 
 export const AdminDashboard = () => {
+  const { user } = useAuth();
+  const location = useLocation();
+  const isFemaleAdmin = user?.role === 'FEMALE_ADMIN' || location.pathname.startsWith('/female-admin');
+  const basePath = isFemaleAdmin ? '/female-admin' : '/admin';
+
   const [stats, setStats] = useState(null);
   const [finance, setFinance] = useState(null);
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -346,21 +352,29 @@ export const AdminDashboard = () => {
       )}
 
       {/* 1. Welcome & Operational Status Banner */}
-      <div className="bg-gradient-to-l from-sky-700 via-sky-800 to-cyan-800 rounded-3xl p-5 sm:p-7 text-white shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 transition-all">
+      <div className={`${
+        isFemaleAdmin
+          ? 'bg-gradient-to-l from-rose-700 via-rose-800 to-pink-800'
+          : 'bg-gradient-to-l from-sky-700 via-sky-800 to-cyan-800'
+      } rounded-3xl p-5 sm:p-7 text-white shadow-sm flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 transition-all`}>
         <div className="space-y-1.5 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-full bg-white/20 text-white text-[11px] font-bold tracking-wide">
-              پیشخوان عملیاتی مدیر
+              {isFemaleAdmin ? 'پیشخوان مدیریت بانوان' : 'پیشخوان عملیاتی مدیر'}
             </span>
             <span className="text-sky-200 text-xs font-medium">
               امروز: {formattedTodayDate}
             </span>
           </div>
           <h1 className="text-xl sm:text-2xl font-black text-white">
-            مرکز کنترل و مدیریت آموزشگاه شنای ایران
+            {isFemaleAdmin
+              ? 'مرکز کنترل و مدیریت آموزشگاه شنا - بخش بانوان'
+              : 'مرکز کنترل و مدیریت آموزشگاه شنای ایران'}
           </h1>
           <p className="text-sky-100 text-xs sm:text-sm font-normal leading-relaxed max-w-2xl">
-            نظارت زنده بر سانس‌های روزانه، وضعیت لاین‌های استخر، وصول مطالبات و تصمیم‌گیری‌های آموزشی
+            {isFemaleAdmin
+              ? 'نظارت زنده بر سانس‌های اختصاصی، کادر مربیان بانوان، شناگران خانم و امور آموزشی و مالی بانوان'
+              : 'نظارت زنده بر سانس‌های روزانه، وضعیت لاین‌های استخر، وصول مطالبات و تصمیم‌گیری‌های آموزشی'}
           </p>
 
           {/* Compact Operational Overview Metrics Row */}
@@ -396,7 +410,7 @@ export const AdminDashboard = () => {
             {/* Unrecorded Attendance Alert Chip */}
             {unrecordedSessions.length > 0 && (
               <Link
-                to="/admin/attendance?filter=UNRECORDED"
+                to={`${basePath}/attendance?filter=UNRECORDED`}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-400/20 hover:bg-amber-400/30 border border-amber-300/40 text-amber-200 transition-colors whitespace-nowrap"
               >
                 <ClipboardCheck className="w-3.5 h-3.5 text-amber-300 shrink-0" />
@@ -409,7 +423,7 @@ export const AdminDashboard = () => {
             {/* Overdue Receivables Alert Chip */}
             {Number(finance?.receivables || 0) > 0 && (
               <Link
-                to="/admin/finance?tab=installments"
+                to={`${basePath}/finance?tab=installments`}
                 className="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-rose-500/20 hover:bg-rose-500/30 border border-rose-300/40 text-rose-200 transition-colors whitespace-nowrap"
               >
                 <AlertCircle className="w-3.5 h-3.5 text-rose-300 shrink-0" />
@@ -454,7 +468,7 @@ export const AdminDashboard = () => {
 
       {/* 2. Operational KPI Cards - Connected to existing routes */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        <Link to="/admin/swimmers" className="block h-full hover:opacity-95 transition-opacity">
+        <Link to={`${basePath}/swimmers`} className="block h-full hover:opacity-95 transition-opacity">
           <StatsCard
             title="شناگران فعال"
             value={`${formatNum(activeSwimmersCount)} نفر`}
@@ -464,7 +478,7 @@ export const AdminDashboard = () => {
           />
         </Link>
 
-        <Link to="/admin/coaches?status=ACTIVE" className="block h-full hover:opacity-95 transition-opacity">
+        <Link to={`${basePath}/coaches?status=ACTIVE`} className="block h-full hover:opacity-95 transition-opacity">
           <StatsCard
             title="مربیان فعال"
             value={`${formatNum(coaches.length)} مربی`}
@@ -474,7 +488,7 @@ export const AdminDashboard = () => {
           />
         </Link>
 
-        <Link to="/admin/finance" className="block h-full hover:opacity-95 transition-opacity">
+        <Link to={`${basePath}/finance`} className="block h-full hover:opacity-95 transition-opacity">
           <StatsCard
             title="درآمد وصول‌شده (تجمعی کل)"
             value={`${formatPrice(finance?.total_paid)} تومان`}
@@ -484,7 +498,7 @@ export const AdminDashboard = () => {
           />
         </Link>
 
-        <Link to="/admin/finance?tab=installments" className="block h-full hover:opacity-95 transition-opacity">
+        <Link to={`${basePath}/finance?tab=installments`} className="block h-full hover:opacity-95 transition-opacity">
           <StatsCard
             title="مطالبات معوق (اقساط سررسید گذشته)"
             value={`${formatPrice(finance?.receivables)} تومان`}
@@ -548,7 +562,7 @@ export const AdminDashboard = () => {
                 </div>
                 <div className="pt-3 mt-3 border-t border-rose-200/60 dark:border-rose-900/60">
                   <Link
-                    to="/admin/finance?tab=installments"
+                    to={`${basePath}/finance?tab=installments`}
                     className="w-full text-center block py-2.5 px-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs whitespace-nowrap"
                   >
                     تسویه اقساط معوق ←
@@ -576,7 +590,7 @@ export const AdminDashboard = () => {
                 </div>
                 <div className="pt-3 mt-3 border-t border-amber-200/60 dark:border-amber-900/60">
                   <Link
-                    to="/admin/attendance?filter=UNRECORDED"
+                    to={`${basePath}/attendance?filter=UNRECORDED`}
                     className="w-full text-center block py-2.5 px-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs whitespace-nowrap"
                   >
                     ثبت حضور و غیاب ←
@@ -604,7 +618,7 @@ export const AdminDashboard = () => {
                 </div>
                 <div className="pt-3 mt-3 border-t border-amber-200/60 dark:border-amber-900/60">
                   <Link
-                    to="/admin/assessments"
+                    to={`${basePath}/assessments`}
                     className="w-full text-center block py-2.5 px-3 bg-amber-600 hover:bg-amber-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs whitespace-nowrap"
                   >
                     تأیید رکوردهای شنا ←
@@ -632,7 +646,7 @@ export const AdminDashboard = () => {
                 </div>
                 <div className="pt-3 mt-3 border-t border-sky-200/60 dark:border-sky-900/60">
                   <Link
-                    to="/admin/enrollments"
+                    to={`${basePath}/enrollments`}
                     className="w-full text-center block py-2.5 px-3 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold transition-all shadow-2xs whitespace-nowrap"
                   >
                     بررسی درخواست‌ها ←
@@ -698,7 +712,7 @@ export const AdminDashboard = () => {
             )}
 
             <Link
-              to="/admin/attendance"
+              to={`${basePath}/attendance`}
               className="text-xs font-semibold text-sky-600 dark:text-sky-400 hover:underline px-2 py-1 rounded-lg transition-colors whitespace-nowrap"
             >
               دفتر حضور و غیاب کلاسی ←
@@ -712,7 +726,7 @@ export const AdminDashboard = () => {
             description="برای بررسی برنامه‌های آموزشی یا تعریف سانس‌های جدید، به بخش دوره‌ها و زمان‌بندی مراجعه نمایید."
             action={
               <Link
-                to="/admin/courses"
+                to={`${basePath}/courses`}
                 className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold inline-flex items-center gap-1.5 transition-colors shadow-2xs"
               >
                 مدیریت گروه‌ها و دوره‌ها
@@ -816,7 +830,7 @@ export const AdminDashboard = () => {
                         <td className="px-4 py-3 text-center">
                           {session.status !== 'CANCELLED' ? (
                             <Link
-                              to={`/admin/attendance?session_id=${session.id}`}
+                              to={`${basePath}/attendance?session_id=${session.id}`}
                               className="px-3 py-1.5 rounded-xl bg-sky-50 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 hover:bg-sky-100 dark:hover:bg-sky-900/60 font-bold text-xs border border-sky-200 dark:border-sky-800 transition-colors inline-flex items-center gap-1 shadow-2xs whitespace-nowrap"
                             >
                               <ClipboardCheck className="w-3.5 h-3.5" />
@@ -885,7 +899,7 @@ export const AdminDashboard = () => {
                     {session.status !== 'CANCELLED' && (
                       <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700">
                         <Link
-                          to={`/admin/attendance?session_id=${session.id}`}
+                          to={`${basePath}/attendance?session_id=${session.id}`}
                           className="w-full py-2.5 px-3 bg-sky-600 hover:bg-sky-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-2xs whitespace-nowrap"
                         >
                           <ClipboardCheck className="w-3.5 h-3.5" />
@@ -938,7 +952,7 @@ export const AdminDashboard = () => {
                   <AlertTriangle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                   گروه‌های نیازمند تکمیل ظرفیت (بیش از ۴۰٪ ظرفیت خالی)
                 </span>
-                <Link to="/admin/enrollments" className="text-[11px] text-sky-600 dark:text-sky-400 hover:underline whitespace-nowrap">
+                <Link to={`${basePath}/enrollments`} className="text-[11px] text-sky-600 dark:text-sky-400 hover:underline whitespace-nowrap">
                   پذیرش متقاضیان ←
                 </Link>
               </div>
@@ -1015,7 +1029,7 @@ export const AdminDashboard = () => {
 
           <div className="pt-4 border-t border-slate-100 dark:border-slate-800 mt-auto">
             <Link
-              to="/admin/courses"
+              to={`${basePath}/courses`}
               className="w-full text-center block py-2.5 px-3 text-xs font-bold text-sky-700 dark:text-sky-300 bg-sky-50 dark:bg-sky-950/50 hover:bg-sky-100 dark:hover:bg-sky-900/50 rounded-xl transition-colors whitespace-nowrap"
             >
               مدیریت دوره‌ها و گروه‌ها ←

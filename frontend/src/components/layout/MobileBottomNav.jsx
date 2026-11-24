@@ -77,15 +77,25 @@ export const MobileBottomNav = ({ onMenuClick }) => {
     );
   }
 
-  // Admin Mobile Bottom Navigation (5 items)
-  if (user.role === 'ADMIN' && currentPath.startsWith('/admin')) {
-    const isHomeActive = currentPath === '/admin';
-    const isSwimmersActive = currentPath.startsWith('/admin/swimmers');
+  // Admin & Female Admin Mobile Bottom Navigation (5 items)
+  if ((user.role === 'ADMIN' && currentPath.startsWith('/admin')) ||
+      (user.role === 'FEMALE_ADMIN' || currentPath.startsWith('/female-admin'))) {
+    const isFemale = user.role === 'FEMALE_ADMIN' || currentPath.startsWith('/female-admin');
+    const basePath = isFemale ? '/female-admin' : '/admin';
+    const activeColor = isFemale
+      ? 'bg-rose-50 dark:bg-rose-950/70 text-rose-600 dark:text-rose-400'
+      : 'bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400';
+    const activeTextColor = isFemale
+      ? 'font-bold text-rose-600 dark:text-rose-400'
+      : 'font-bold text-sky-600 dark:text-sky-400';
+
+    const isHomeActive = currentPath === basePath;
+    const isSwimmersActive = currentPath.startsWith(`${basePath}/swimmers`);
     const isCoursesActive =
-      currentPath.startsWith('/admin/courses') ||
-      currentPath.startsWith('/admin/classes') ||
-      currentPath.startsWith('/admin/sessions');
-    const isFinanceActive = currentPath.startsWith('/admin/finance');
+      currentPath.startsWith(`${basePath}/courses`) ||
+      currentPath.startsWith(`${basePath}/classes`) ||
+      currentPath.startsWith(`${basePath}/sessions`);
+    const isFinanceActive = currentPath.startsWith(`${basePath}/finance`);
     const isOtherActive =
       !isHomeActive &&
       !isSwimmersActive &&
@@ -101,7 +111,7 @@ export const MobileBottomNav = ({ onMenuClick }) => {
       >
         <div className="grid grid-cols-5 h-16 max-w-md mx-auto px-1 items-center">
           <NavLink
-            to="/admin"
+            to={basePath}
             end
             className="flex flex-col items-center justify-center h-full py-1 px-1 transition-colors group select-none"
             aria-label="داشبورد و خانه"
@@ -109,7 +119,7 @@ export const MobileBottomNav = ({ onMenuClick }) => {
             <div
               className={`p-1.5 rounded-xl transition-all ${
                 isHomeActive
-                  ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 scale-105'
+                  ? `${activeColor} scale-105`
                   : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200'
               }`}
             >
@@ -118,7 +128,7 @@ export const MobileBottomNav = ({ onMenuClick }) => {
             <span
               className={`text-xs tracking-tight leading-tight mt-0.5 truncate max-w-full ${
                 isHomeActive
-                  ? 'font-bold text-sky-600 dark:text-sky-400'
+                  ? activeTextColor
                   : 'font-semibold text-slate-500 dark:text-slate-400'
               }`}
             >
@@ -127,14 +137,14 @@ export const MobileBottomNav = ({ onMenuClick }) => {
           </NavLink>
 
           <NavLink
-            to="/admin/swimmers"
+            to={`${basePath}/swimmers`}
             className="flex flex-col items-center justify-center h-full py-1 px-1 transition-colors group select-none"
             aria-label="شناگران"
           >
             <div
               className={`p-1.5 rounded-xl transition-all ${
                 isSwimmersActive
-                  ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 scale-105'
+                  ? `${activeColor} scale-105`
                   : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200'
               }`}
             >
@@ -143,7 +153,7 @@ export const MobileBottomNav = ({ onMenuClick }) => {
             <span
               className={`text-xs tracking-tight leading-tight mt-0.5 truncate max-w-full ${
                 isSwimmersActive
-                  ? 'font-bold text-sky-600 dark:text-sky-400'
+                  ? activeTextColor
                   : 'font-semibold text-slate-500 dark:text-slate-400'
               }`}
             >
@@ -152,14 +162,14 @@ export const MobileBottomNav = ({ onMenuClick }) => {
           </NavLink>
 
           <NavLink
-            to="/admin/courses"
+            to={`${basePath}/courses`}
             className="flex flex-col items-center justify-center h-full py-1 px-1 transition-colors group select-none"
             aria-label="دوره‌ها و کلاس‌ها"
           >
             <div
               className={`p-1.5 rounded-xl transition-all ${
                 isCoursesActive
-                  ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 scale-105'
+                  ? `${activeColor} scale-105`
                   : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200'
               }`}
             >
@@ -168,7 +178,7 @@ export const MobileBottomNav = ({ onMenuClick }) => {
             <span
               className={`text-xs tracking-tight leading-tight mt-0.5 truncate max-w-full ${
                 isCoursesActive
-                  ? 'font-bold text-sky-600 dark:text-sky-400'
+                  ? activeTextColor
                   : 'font-semibold text-slate-500 dark:text-slate-400'
               }`}
             >
@@ -177,14 +187,14 @@ export const MobileBottomNav = ({ onMenuClick }) => {
           </NavLink>
 
           <NavLink
-            to="/admin/finance"
+            to={`${basePath}/finance`}
             className="flex flex-col items-center justify-center h-full py-1 px-1 transition-colors group select-none"
             aria-label="امور مالی و شهریه"
           >
             <div
               className={`p-1.5 rounded-xl transition-all ${
                 isFinanceActive
-                  ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 scale-105'
+                  ? `${activeColor} scale-105`
                   : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200'
               }`}
             >
@@ -193,7 +203,7 @@ export const MobileBottomNav = ({ onMenuClick }) => {
             <span
               className={`text-xs tracking-tight leading-tight mt-0.5 truncate max-w-full ${
                 isFinanceActive
-                  ? 'font-bold text-sky-600 dark:text-sky-400'
+                  ? activeTextColor
                   : 'font-semibold text-slate-500 dark:text-slate-400'
               }`}
             >
@@ -210,7 +220,7 @@ export const MobileBottomNav = ({ onMenuClick }) => {
             <div
               className={`p-1.5 rounded-xl transition-all ${
                 isOtherActive
-                  ? 'bg-sky-50 dark:bg-sky-950/70 text-sky-600 dark:text-sky-400 scale-105'
+                  ? `${activeColor} scale-105`
                   : 'text-slate-500 dark:text-slate-400 group-hover:text-slate-800 dark:group-hover:text-slate-200'
               }`}
             >
@@ -219,7 +229,7 @@ export const MobileBottomNav = ({ onMenuClick }) => {
             <span
               className={`text-xs tracking-tight leading-tight mt-0.5 truncate max-w-full ${
                 isOtherActive
-                  ? 'font-bold text-sky-600 dark:text-sky-400'
+                  ? activeTextColor
                   : 'font-semibold text-slate-500 dark:text-slate-400'
               }`}
             >

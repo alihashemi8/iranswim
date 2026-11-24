@@ -155,6 +155,21 @@ class Command(BaseCommand):
         supervisor.is_superuser = True
         supervisor.save()
 
+        # User 5: Female Admin (مدیریت بانوان) -> 09444444444
+        female_admin, _ = User.objects.get_or_create(
+            phone='09444444444',
+            defaults={
+                'first_name': 'مریم',
+                'last_name': 'رضایی (مدیریت بانوان)',
+                'role': User.Role.FEMALE_ADMIN,
+                'is_staff': True,
+                'is_superuser': False,
+            }
+        )
+        female_admin.set_password(STANDARD_PASS)
+        female_admin.role = User.Role.FEMALE_ADMIN
+        female_admin.save()
+
         # 2. Skill Levels & Skills
         lvl1, _ = SkillLevel.objects.get_or_create(
             name='مبتدی (آشنایی با آب)',

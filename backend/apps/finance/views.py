@@ -332,6 +332,8 @@ class PaymentReceiptListCreateView(generics.ListCreateAPIView):
 
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs.order_by('-created_at')
+        elif user.role == 'FEMALE_ADMIN':
+            return qs.filter(swimmer__gender='FEMALE').order_by('-created_at')
         elif user.role == 'SWIMMER':
             from apps.swimmers.utils import get_accessible_swimmer_ids
             ids = get_accessible_swimmer_ids(user, self.request)
@@ -419,6 +421,9 @@ class PaymentReceiptReviewView(APIView):
             PaymentReceipt.objects.select_related('swimmer', 'enrollment', 'invoice'),
             pk=pk
         )
+
+        if request.user.role == 'FEMALE_ADMIN' and receipt.swimmer and receipt.swimmer.gender != 'FEMALE':
+            raise PermissionDenied('مدیریت بانوان فقط مجاز به بررسی فیش‌های واریزی شناگران خانم است.')
 
         action = request.data.get('action')
         if action not in ['APPROVE', 'REJECT']:
@@ -568,6 +573,8 @@ class PaymentReceiptDetailView(generics.RetrieveDestroyAPIView):
         user = self.request.user
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return self.queryset
+        elif user.role == 'FEMALE_ADMIN':
+            return self.queryset.filter(swimmer__gender='FEMALE')
         from apps.swimmers.utils import get_accessible_swimmer_ids
         ids = get_accessible_swimmer_ids(user, self.request)
         return self.queryset.filter(swimmer_id__in=ids)

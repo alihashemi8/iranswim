@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   UserCheck, Plus, Calendar, Clock, BookOpen, Whistle,
   Award, Shield, Phone, Edit, CheckCircle2, AlertTriangle, FileSpreadsheet,
@@ -17,12 +17,18 @@ import { CustomSelect } from '../../components/common/CustomSelect';
 import { PersianDatePicker, toJalaliString, parseJalaliString } from '../../components/common/PersianDatePicker';
 import * as jalaali from 'jalaali-js';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import { exportToCsv } from '../../utils/exportCsv';
 import { generateStrongPassword, validatePassword } from '../../utils/passwordValidator';
 
 export const AdminCoachesPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const toast = useToast();
+
+  const isFemaleAdmin = user?.role === 'FEMALE_ADMIN' || location.pathname.startsWith('/female-admin');
+  const basePath = isFemaleAdmin ? '/female-admin' : '/admin';
 
   const [coaches, setCoaches] = useState([]);
   const [stats, setStats] = useState(null);
@@ -426,18 +432,20 @@ export const AdminCoachesPage = () => {
       <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition-colors">
         <div>
           <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
-            <Whistle className="w-6 h-6 sm:w-7 sm:h-7 text-sky-600 shrink-0" />
-            <span>سامانه جامع مدیریت مربیان و منابع انسانی</span>
+            <Whistle className={`w-6 h-6 sm:w-7 sm:h-7 ${isFemaleAdmin ? 'text-rose-600' : 'text-sky-600'} shrink-0`} />
+            <span>{isFemaleAdmin ? 'سامانه جامع مدیریت مربیان بانوان' : 'سامانه جامع مدیریت مربیان و منابع انسانی'}</span>
           </h1>
           <p className="text-sm sm:text-base text-slate-500 dark:text-slate-400 mt-1.5 leading-relaxed">
-            پرونده‌های پرسنلی، احکام قراردادی، محاسبه کارکرد و فیش حقوقی، مرخصی‌ها و ارزیابی عملکرد
+            {isFemaleAdmin
+              ? 'پرونده‌های پرسنلی، احکام قراردادی، محاسبه کارکرد و فیش حقوقی مربیان خانم آکادمی'
+              : 'پرونده‌های پرسنلی، احکام قراردادی، محاسبه کارکرد و فیش حقوقی، مرخصی‌ها و ارزیابی عملکرد'}
           </p>
         </div>
 
         <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
           {/* Add Coach Button */}
           <Button
-            onClick={() => navigate('/admin/coaches/new')}
+            onClick={() => navigate(`${basePath}/coaches/new`)}
             className="gap-2 text-xs sm:text-sm font-bold bg-sky-600 hover:bg-sky-500 text-white shadow-xs py-2 sm:py-2.5 px-3.5 sm:px-4"
           >
             <Plus className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
@@ -616,39 +624,47 @@ export const AdminCoachesPage = () => {
           <div className="flex flex-wrap items-center gap-2.5">
             {/* Gender Filter Pills */}
             <div className="flex items-center gap-1 sm:gap-1.5 p-1 bg-slate-100 dark:bg-slate-800 rounded-xl overflow-x-auto max-w-full">
-              <button
-                type="button"
-                onClick={() => setGenderFilter('')}
-                className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-                  genderFilter === ''
-                    ? 'bg-white dark:bg-slate-700 text-sky-700 dark:text-sky-300 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              >
-                همه ({coaches.length})
-              </button>
-              <button
-                type="button"
-                onClick={() => setGenderFilter('MALE')}
-                className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-                  genderFilter === 'MALE'
-                    ? 'bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              >
-                مربیان آقا
-              </button>
-              <button
-                type="button"
-                onClick={() => setGenderFilter('FEMALE')}
-                className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
-                  genderFilter === 'FEMALE'
-                    ? 'bg-white dark:bg-slate-700 text-pink-700 dark:text-pink-300 shadow-2xs'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
-                }`}
-              >
-                مربیان خانم
-              </button>
+              {isFemaleAdmin ? (
+                <span className="px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold bg-white dark:bg-slate-700 text-pink-700 dark:text-pink-300 shadow-2xs">
+                  مربیان بانوان ({coaches.length})
+                </span>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setGenderFilter('')}
+                    className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+                      genderFilter === ''
+                        ? 'bg-white dark:bg-slate-700 text-sky-700 dark:text-sky-300 shadow-2xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                    }`}
+                  >
+                    همه ({coaches.length})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGenderFilter('MALE')}
+                    className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+                      genderFilter === 'MALE'
+                        ? 'bg-white dark:bg-slate-700 text-teal-700 dark:text-teal-300 shadow-2xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                    }`}
+                  >
+                    مربیان آقا
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGenderFilter('FEMALE')}
+                    className={`px-3 sm:px-3.5 py-1.5 rounded-lg text-xs sm:text-sm font-bold transition-all cursor-pointer whitespace-nowrap ${
+                      genderFilter === 'FEMALE'
+                        ? 'bg-white dark:bg-slate-700 text-pink-700 dark:text-pink-300 shadow-2xs'
+                        : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
+                    }`}
+                  >
+                    مربیان خانم
+                  </button>
+                </>
+              )}
             </div>
 
             {/* Export to Excel */}
@@ -716,7 +732,7 @@ export const AdminCoachesPage = () => {
             return (
               <div
                 key={coach.id}
-                onClick={() => navigate(`/admin/coaches/${coach.id}`)}
+                onClick={() => navigate(`${basePath}/coaches/${coach.id}`)}
                 className="group bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 p-5 shadow-xs hover:border-sky-400/80 dark:hover:border-sky-500/80 hover:shadow-md transition-all flex flex-col justify-between cursor-pointer h-full"
               >
                 <div className="flex flex-col flex-1 space-y-4">
@@ -856,7 +872,7 @@ export const AdminCoachesPage = () => {
                 <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2 mt-3.5" onClick={(e) => e.stopPropagation()}>
                   <button
                     type="button"
-                    onClick={() => navigate(`/admin/coaches/${coach.id}/schedule`)}
+                    onClick={() => navigate(`${basePath}/coaches/${coach.id}/schedule`)}
                     className="flex-1 py-2 px-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950 text-slate-700 dark:text-slate-200 rounded-xl text-xs sm:text-sm font-bold border border-slate-200/60 dark:border-slate-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                     title="برنامه هفتگی"
                   >
@@ -866,7 +882,7 @@ export const AdminCoachesPage = () => {
 
                   <button
                     type="button"
-                    onClick={() => navigate(`/admin/coaches/${coach.id}`)}
+                    onClick={() => navigate(`${basePath}/coaches/${coach.id}`)}
                     className="flex-1 py-2 px-2.5 bg-slate-50 dark:bg-slate-800 hover:bg-sky-50 dark:hover:bg-sky-950 text-slate-700 dark:text-slate-200 rounded-xl text-xs sm:text-sm font-bold border border-slate-200/60 dark:border-slate-700 transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
                     title="مشاهده پرونده جامع"
                   >
@@ -919,7 +935,7 @@ export const AdminCoachesPage = () => {
                   return (
                     <tr
                       key={c.id}
-                      onClick={() => navigate(`/admin/coaches/${c.id}`)}
+                      onClick={() => navigate(`${basePath}/coaches/${c.id}`)}
                       className="hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
                     >
                       {/* 1. Profile Avatar (Enlarged) */}
@@ -1046,7 +1062,7 @@ export const AdminCoachesPage = () => {
                         <div className="flex items-center justify-center">
                           <button
                             type="button"
-                            onClick={() => navigate(`/admin/coaches/${c.id}`)}
+                            onClick={() => navigate(`${basePath}/coaches/${c.id}`)}
                             className="px-3 py-1.5 text-xs font-bold text-sky-600 hover:text-sky-700 dark:text-sky-400 bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/50 dark:hover:bg-sky-900/50 rounded-xl border border-sky-200/60 dark:border-sky-800 transition-colors cursor-pointer"
                             title="مشاهده پرونده جامع"
                           >

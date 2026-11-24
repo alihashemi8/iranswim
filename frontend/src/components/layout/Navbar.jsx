@@ -55,6 +55,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
 
   const roleTitles = {
     ADMIN: 'مدیر آموزشگاه',
+    FEMALE_ADMIN: 'مدیریت بانوان',
     COACH: 'میز کار مربی',
     SUPERVISOR: 'ناظر فنی',
     SWIMMER: 'شناگر',
@@ -62,6 +63,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
 
   const roleGradients = {
     ADMIN: 'from-sky-600 to-cyan-500',
+    FEMALE_ADMIN: 'from-rose-600 to-pink-500',
     COACH: 'from-emerald-600 to-teal-500',
     SUPERVISOR: 'from-amber-600 to-orange-500',
     SWIMMER: 'from-cyan-600 to-blue-500',
@@ -71,6 +73,8 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
     switch (role) {
       case 'ADMIN':
         return '/admin';
+      case 'FEMALE_ADMIN':
+        return '/female-admin';
       case 'COACH':
         return '/coach';
       case 'SUPERVISOR':
@@ -100,6 +104,7 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
   const isPublicPage =
     !isFullWidth &&
     !location.pathname.startsWith('/admin') &&
+    !location.pathname.startsWith('/female-admin') &&
     !location.pathname.startsWith('/coach') &&
     !location.pathname.startsWith('/swimmer') &&
     !location.pathname.startsWith('/supervisor');
@@ -193,10 +198,25 @@ export const Navbar = ({ onMenuClick, isFullWidth = false }) => {
                     <ShieldCheck className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                     <span>{user.full_name || 'ناظر فنی'}</span>
                   </Link>
-                ) : (
-                  <span className="hidden sm:inline-block px-3 py-1 rounded-lg text-xs sm:text-sm font-bold bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200/70 dark:border-sky-800/80">
-                    {roleTitles[user.role] || 'داشبورد کاربری'}
+                ) : user.role === 'FEMALE_ADMIN' ? (
+                  <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs sm:text-sm font-bold bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 border border-rose-200/70 dark:border-rose-800/80">
+                    {roleTitles[user.role] || 'مدیریت بانوان'}
                   </span>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <span className="hidden sm:inline-block px-3 py-1 rounded-lg text-xs sm:text-sm font-bold bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 border border-sky-200/70 dark:border-sky-800/80">
+                      {roleTitles[user.role] || 'داشبورد کاربری'}
+                    </span>
+                    {user.role === 'ADMIN' && (
+                      <Link
+                        to={location.pathname.startsWith('/female-admin') ? '/admin' : '/female-admin'}
+                        className="hidden md:inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60 hover:bg-rose-100 dark:hover:bg-rose-900/40 transition-colors"
+                        title={location.pathname.startsWith('/female-admin') ? 'بازگشت به پنل مدیریت عمومی' : 'مشاهده پنل مدیریت بانوان'}
+                      >
+                        <span>{location.pathname.startsWith('/female-admin') ? 'مدیریت کل' : 'مدیریت بانوان'}</span>
+                      </Link>
+                    )}
+                  </div>
                 )}
               </div>
             )}

@@ -65,24 +65,33 @@ class LeagueStatsView(APIView):
 
     def get(self, request, league_id):
         league = get_object_or_404(League, id=league_id)
-        
-        participants_count = league.entries.filter(status=LeagueEntry.Status.ACTIVE).count()
+        user = getattr(request, 'user', None)
+        is_female_admin = bool(user and user.is_authenticated and user.role == 'FEMALE_ADMIN')
+
+        entries_base = league.entries.filter(status=LeagueEntry.Status.ACTIVE)
+        if is_female_admin:
+            entries_base = entries_base.filter(swimmer__gender='FEMALE')
+
+        participants_count = entries_base.count()
         completed_competitions_count = league.competitions.filter(status=LeagueCompetition.Status.COMPLETED).count()
         upcoming_competitions_count = league.competitions.filter(
             status__in=[LeagueCompetition.Status.SCHEDULED, LeagueCompetition.Status.IN_PROGRESS]
         ).count()
         
         # Records count: results that have a valid recorded time or link to SwimmingRecord
-        records_count = LeagueResult.objects.filter(
+        results_qs = LeagueResult.objects.filter(
             entry__league=league,
             duration_seconds__isnull=False
-        ).count()
+        )
+        if is_female_admin:
+            results_qs = results_qs.filter(entry__swimmer__gender='FEMALE')
+        records_count = results_qs.count()
         
         # Total points sum
-        total_points = float(league.entries.aggregate(s=Sum('total_points'))['s'] or 0)
+        total_points = float(entries_base.aggregate(s=Sum('total_points'))['s'] or 0)
 
         # Top 3 podium swimmers
-        top_entries = league.entries.filter(status=LeagueEntry.Status.ACTIVE).order_by('-total_points')[:3]
+        top_entries = entries_base.order_by('-total_points')[:3]
         podium = [
             {
                 'rank': idx + 1,
@@ -129,6 +138,9 @@ class LeagueLeaderboardView(APIView):
             league=league,
             status=LeagueEntry.Status.ACTIVE
         ).select_related('swimmer', 'category').prefetch_related('results')
+
+        if user and user.is_authenticated and user.role == 'FEMALE_ADMIN':
+            entries = entries.filter(swimmer__gender='FEMALE')
 
         if category_id:
             entries = entries.filter(category_id=category_id)
@@ -370,6 +382,10 @@ class LeagueManualScoreView(APIView):
             return Response({'error': 'شناگر و مقدار امتیاز الزامی هستند.'}, status=status.HTTP_400_BAD_REQUEST)
 
         swimmer = get_object_or_404(SwimmerProfile, id=swimmer_id)
+
+        if request.user.role == 'FEMALE_ADMIN' and swimmer.gender != 'FEMALE':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('مدیریت بانوان فقط مجاز به ثبت‌نام شناگران خانم در لیگ است.')
         entry = LeagueEntry.objects.filter(league=league, swimmer=swimmer).first()
         if not entry:
             category = league.categories.first()
@@ -448,6 +464,10 @@ class SwimmerPerformanceDetailView(APIView):
     def get(self, request, league_id, swimmer_id):
         league = get_object_or_404(League, id=league_id)
         swimmer = get_object_or_404(SwimmerProfile, id=swimmer_id)
+
+        if request.user.role == 'FEMALE_ADMIN' and swimmer.gender != 'FEMALE':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('مدیریت بانوان فقط مجاز به ثبت‌نام شناگران خانم در لیگ است.')
 
         user = request.user
         is_privileged = bool(user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser)
@@ -570,6 +590,10 @@ class LeagueEnrollSwimmerView(APIView):
             return Response({'error': 'شناگر انتخاب نشده است.'}, status=status.HTTP_400_BAD_REQUEST)
 
         swimmer = get_object_or_404(SwimmerProfile, id=swimmer_id)
+
+        if request.user.role == 'FEMALE_ADMIN' and swimmer.gender != 'FEMALE':
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('مدیریت بانوان فقط مجاز به ثبت‌نام شناگران خانم در لیگ است.')
 
         if category_id:
             category = get_object_or_404(LeagueCategory, id=category_id, league=league)

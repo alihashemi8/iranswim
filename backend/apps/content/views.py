@@ -240,7 +240,7 @@ def _ensure_initial_announcements():
 def _get_visible_announcements(user):
     _ensure_initial_announcements()
     qs = Announcement.objects.all()
-    if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
+    if user.role in ['ADMIN', 'FEMALE_ADMIN', 'SUPERVISOR'] or user.is_superuser:
         return qs
     elif user.role == 'COACH':
         coach_profile = getattr(user, 'coach_profile', None)

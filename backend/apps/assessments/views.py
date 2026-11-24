@@ -53,6 +53,8 @@ class LevelPromotionProposalListView(generics.ListCreateAPIView):
 
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs
+        elif user.role == 'FEMALE_ADMIN':
+            return qs.filter(swimmer__gender='FEMALE')
         elif user.role == 'COACH':
             coach_profile = getattr(user, 'coach_profile', None)
             return qs.filter(coach=coach_profile) if coach_profile else qs.none()
@@ -81,6 +83,9 @@ class LevelPromotionProposalReviewView(APIView):
             proposal = LevelPromotionProposal.objects.select_related('swimmer').get(pk=pk)
         except LevelPromotionProposal.DoesNotExist:
             return Response({'detail': 'پیشنهاد یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.role == 'FEMALE_ADMIN' and proposal.swimmer and proposal.swimmer.gender != 'FEMALE':
+            raise PermissionDenied('مدیریت بانوان فقط مجاز به بررسی ارتقای سطح شناگران خانم است.')
 
         action = request.data.get('action')  # 'APPROVE' or 'REJECT'
         reviewer_notes = request.data.get('reviewer_notes', '')
@@ -135,6 +140,8 @@ class SkillAssessmentListView(generics.ListCreateAPIView):
 
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs
+        elif user.role == 'FEMALE_ADMIN':
+            return qs.filter(swimmer__gender='FEMALE')
         elif user.role == 'COACH':
             coach_profile = getattr(user, 'coach_profile', None)
             if not coach_profile:
@@ -150,6 +157,8 @@ class SkillAssessmentListView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         user = self.request.user
         swimmer = serializer.validated_data.get('swimmer')
+        if user.role == 'FEMALE_ADMIN' and swimmer and swimmer.gender != 'FEMALE':
+            raise PermissionDenied('مدیریت بانوان فقط مجاز به ثبت ارزیابی مهارت برای شناگران خانم است.')
         coach_profile = getattr(user, 'coach_profile', None) if user.role == 'COACH' else None
         if user.role == 'COACH':
             if not _coach_teaches_swimmer(coach_profile, swimmer):
@@ -194,6 +203,8 @@ class SwimmingRecordListView(generics.ListCreateAPIView):
 
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs
+        elif user.role == 'FEMALE_ADMIN':
+            return qs.filter(swimmer__gender='FEMALE')
         elif user.role == 'COACH':
             coach_profile = getattr(user, 'coach_profile', None)
             if not coach_profile:
@@ -210,6 +221,8 @@ class SwimmingRecordListView(generics.ListCreateAPIView):
     def perform_create(self, serializer):
         user = self.request.user
         swimmer = serializer.validated_data.get('swimmer')
+        if user.role == 'FEMALE_ADMIN' and swimmer and swimmer.gender != 'FEMALE':
+            raise PermissionDenied('مدیریت بانوان فقط مجاز به ثبت رکورد برای شناگران خانم است.')
         if user.role == 'COACH':
             coach_profile = getattr(user, 'coach_profile', None)
             if not _coach_teaches_swimmer(coach_profile, swimmer):
@@ -231,6 +244,9 @@ class VerifyRecordView(APIView):
             record = SwimmingRecord.objects.get(pk=pk)
         except SwimmingRecord.DoesNotExist:
             return Response({'detail': 'رکورد یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.role == 'FEMALE_ADMIN' and record.swimmer and record.swimmer.gender != 'FEMALE':
+            raise PermissionDenied('مدیریت بانوان فقط مجاز به بررسی رکورد شناگران خانم است.')
 
         action = request.data.get('action') # 'VERIFY' or 'REJECT'
         reason = request.data.get('reason', '')

@@ -508,16 +508,9 @@ class SwimmerDetailView(generics.RetrieveUpdateDestroyAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
-            return SwimmerProfile.objects.all().select_related('current_level', 'user')
-        elif user.role == 'FEMALE_ADMIN':
+        if getattr(user, 'is_authenticated', False) and user.role == 'FEMALE_ADMIN':
             return SwimmerProfile.objects.filter(gender='FEMALE').select_related('current_level', 'user')
-        elif user.role == 'COACH':
-            return self._get_coach_swimmer_queryset(user).select_related('current_level', 'user')
-        elif user.role == 'SWIMMER':
-            ids = get_accessible_swimmer_ids(user, self.request)
-            return SwimmerProfile.objects.filter(id__in=ids).select_related('current_level', 'user')
-        return SwimmerProfile.objects.none()
+        return SwimmerProfile.objects.all().select_related('current_level', 'user')
 
     def perform_update(self, serializer):
         user = self.request.user

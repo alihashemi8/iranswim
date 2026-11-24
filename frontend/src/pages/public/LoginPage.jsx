@@ -140,6 +140,9 @@ export const LoginPage = ({ defaultMode }) => {
       case 'ADMIN':
         navigate('/admin');
         break;
+      case 'FEMALE_ADMIN':
+        navigate('/female-admin');
+        break;
       case 'COACH':
         if (!userData.is_profile_completed) {
           navigate('/coach/complete-profile');

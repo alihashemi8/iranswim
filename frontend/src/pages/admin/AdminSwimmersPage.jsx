@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Users, UserPlus, Search, Filter, Phone, CheckCircle2,
   XCircle, FileSpreadsheet, PlusCircle, Award, MapPin,
@@ -18,9 +18,15 @@ import { ClassSelectorDropdown } from '../../components/common/ClassSelectorDrop
 import { PersianDatePicker } from '../../components/common/PersianDatePicker';
 import { CustomSelect } from '../../components/common/CustomSelect';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import { exportToCsv } from '../../utils/exportCsv';
 
 export const AdminSwimmersPage = () => {
+  const { user } = useAuth();
+  const location = useLocation();
+  const isFemaleAdmin = user?.role === 'FEMALE_ADMIN' || location.pathname.startsWith('/female-admin');
+  const basePath = isFemaleAdmin ? '/female-admin' : '/admin';
+
   const [swimmers, setSwimmers] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
@@ -72,7 +78,7 @@ export const AdminSwimmersPage = () => {
     last_name: '',
     phone: '',
     national_id: '',
-    gender: 'MALE',
+    gender: isFemaleAdmin ? 'FEMALE' : 'MALE',
     date_of_birth: '',
     emergency_contact_name: '',
     emergency_contact_phone: '',
@@ -249,7 +255,7 @@ export const AdminSwimmersPage = () => {
   // Open Full Swimmer Dossier
   const handleOpenDossier = (swimmer) => {
     if (swimmer?.id) {
-      navigate(`/admin/swimmers/${swimmer.id}`);
+      navigate(`${basePath}/swimmers/${swimmer.id}`);
     }
   };
 
@@ -273,7 +279,7 @@ export const AdminSwimmersPage = () => {
         last_name: '',
         phone: '',
         national_id: '',
-        gender: 'MALE',
+        gender: isFemaleAdmin ? 'FEMALE' : 'MALE',
         date_of_birth: '',
         emergency_contact_name: '',
         emergency_contact_phone: '',
@@ -469,17 +475,19 @@ export const AdminSwimmersPage = () => {
       <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col lg:flex-row lg:items-center justify-between gap-4 transition-colors">
         <div>
           <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
-            <Users className="w-6 h-6 text-sky-600" />
-            بانک اطلاعات و مدیریت شناگران
+            <Users className={`w-6 h-6 ${isFemaleAdmin ? 'text-rose-600' : 'text-sky-600'}`} />
+            {isFemaleAdmin ? 'بانک اطلاعات و مدیریت شناگران خانم' : 'بانک اطلاعات و مدیریت شناگران'}
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            مشاهده، ثبت‌نام، تخصیص کلاس و فیلتر پیشرفته بر اساس سال تولد، استخر، جنسیت و مربی
+            {isFemaleAdmin
+              ? 'مشاهده، ثبت‌نام، تخصیص کلاس و فیلتر پیشرفته پرونده‌های شناگران دختر و بانوان'
+              : 'مشاهده، ثبت‌نام، تخصیص کلاس و فیلتر پیشرفته بر اساس سال تولد، استخر، جنسیت و مربی'}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2 w-full lg:w-auto">
           {/* Link to Dossiers Page */}
           <Link
-            to="/admin/dossiers"
+            to={`${basePath}/dossiers`}
             className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 border border-amber-200/80 dark:border-amber-800 transition-colors whitespace-nowrap shadow-2xs"
           >
             <FolderCheck className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0" />
@@ -894,7 +902,7 @@ export const AdminSwimmersPage = () => {
                           </button>
                           <button
                             type="button"
-                            onClick={() => navigate(`/admin/swimmers/${swimmer.id}/enroll`)}
+                            onClick={() => navigate(`${basePath}/swimmers/${swimmer.id}/enroll`)}
                             className="px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 font-semibold text-xs border border-emerald-200/80 dark:border-emerald-800 transition-colors inline-flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0 shadow-2xs"
                             title="ثبت‌نام مستقیم در کلاس"
                           >
@@ -1021,7 +1029,7 @@ export const AdminSwimmersPage = () => {
                       </button>
                       <button
                         type="button"
-                        onClick={() => navigate(`/admin/swimmers/${swimmer.id}/enroll`)}
+                        onClick={() => navigate(`${basePath}/swimmers/${swimmer.id}/enroll`)}
                         className="flex-1 md:flex-initial px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 font-semibold border border-emerald-200/80 dark:border-emerald-800 transition-colors inline-flex items-center justify-center gap-1.5 cursor-pointer whitespace-nowrap shadow-2xs"
                       >
                         <PlusCircle className="w-3.5 h-3.5 shrink-0" />
@@ -1089,10 +1097,11 @@ export const AdminSwimmersPage = () => {
               </label>
               <select
                 value={createForm.gender}
+                disabled={isFemaleAdmin}
                 onChange={(e) => setCreateForm({ ...createForm, gender: e.target.value })}
-                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500"
+                className="w-full px-3 py-2 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-sky-500 disabled:opacity-75 disabled:cursor-not-allowed"
               >
-                <option value="MALE">پسر / آقایان</option>
+                {!isFemaleAdmin && <option value="MALE">پسر / آقایان</option>}
                 <option value="FEMALE">دختر / بانوان</option>
               </select>
             </div>

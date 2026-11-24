@@ -180,6 +180,7 @@ export const AuthProvider = ({ children }) => {
     const credentials = {
       SUPERVISOR: { phone: '09045911122', pass: '12345678' },
       ADMIN: { phone: '09111111111', pass: '12345678' },
+      FEMALE_ADMIN: { phone: '09444444444', pass: '12345678' },
       COACH: { phone: '09222222222', pass: '12345678' },
       SWIMMER: { phone: '09333333333', pass: '12345678' },
     };

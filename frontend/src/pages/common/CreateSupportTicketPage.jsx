@@ -39,7 +39,13 @@ export const CreateSupportTicketPage = ({ role = 'ADMIN' }) => {
   const toast = useToast();
 
   const userRole = role || user?.role || 'ADMIN';
-  const basePath = userRole === 'ADMIN' ? '/admin/support' : userRole === 'COACH' ? '/coach/support' : '/swimmer/support';
+  const basePath = (userRole === 'FEMALE_ADMIN' || location.pathname.startsWith('/female-admin'))
+    ? '/female-admin/support'
+    : userRole === 'ADMIN'
+    ? '/admin/support'
+    : userRole === 'COACH'
+    ? '/coach/support'
+    : '/swimmer/support';
 
   // Form State
   const [formData, setFormData] = useState({

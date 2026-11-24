@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { NavLink, useNavigate } from 'react-router-dom';
+import { NavLink, useNavigate, useLocation } from 'react-router-dom';
 import {
   Activity, Bug, ShieldCheck, Zap,
   LayoutDashboard, BookOpen, Users, User, CreditCard, Calendar,
@@ -24,6 +24,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const { user, logout } = useAuth();
   const { activeSwimmer, childrenList, selectChild, activeSwimmerId } = useSwimmer() || {};
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
   const [collapsed, setCollapsed] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
@@ -34,7 +35,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   const [pendingTicketsCount, setPendingTicketsCount] = useState(0);
 
   useEffect(() => {
-    if (user?.role === 'ADMIN') {
+    if (user?.role === 'ADMIN' || user?.role === 'FEMALE_ADMIN') {
       const fetchBadges = async () => {
         try {
           const [reqRes, dosRes] = await Promise.allSettled([
@@ -85,9 +86,12 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   if (!user) return null;
 
   const role = user.role;
+  const isFemaleAdmin = role === 'FEMALE_ADMIN' || location.pathname.startsWith('/female-admin');
+  const adminBasePath = isFemaleAdmin ? '/female-admin' : '/admin';
 
   const roleTitles = {
     ADMIN: 'مدیر آموزشگاه',
+    FEMALE_ADMIN: 'مدیریت بانوان',
     COACH: 'مربی',
     SUPERVISOR: 'ناظر فنی',
     SWIMMER: 'شناگر',
@@ -95,6 +99,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
 
   const roleGradients = {
     ADMIN: 'from-sky-600 to-cyan-500',
+    FEMALE_ADMIN: 'from-rose-600 to-pink-500',
     COACH: 'from-emerald-600 to-teal-500',
     SUPERVISOR: 'from-amber-600 to-orange-500',
     SWIMMER: 'from-blue-600 via-sky-600 to-teal-500',
@@ -102,19 +107,20 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
 
   const roleActiveStyles = {
     ADMIN: 'bg-sky-50 dark:bg-sky-950/70 text-sky-700 dark:text-sky-300 font-black border-r-3 border-sky-600 shadow-2xs',
+    FEMALE_ADMIN: 'bg-rose-50 dark:bg-rose-950/70 text-rose-700 dark:text-rose-300 font-black border-r-3 border-rose-600 shadow-2xs',
     COACH: 'bg-emerald-50 dark:bg-emerald-950/70 text-emerald-700 dark:text-emerald-300 font-black border-r-3 border-emerald-600 shadow-2xs',
     SUPERVISOR: 'bg-amber-50 dark:bg-amber-950/70 text-amber-700 dark:text-amber-300 font-black border-r-3 border-amber-500 shadow-2xs',
     SWIMMER: 'bg-blue-50 dark:bg-blue-950/70 text-blue-700 dark:text-blue-300 font-black border-r-3 border-blue-600 shadow-2xs',
   };
 
-  // Admin Grouped Navigation
+  // Admin & Female Admin Grouped Navigation
   const adminGroups = [
     {
       groupTitle: '',
       items: [
         {
-          to: '/admin',
-          label: 'داشبورد عملیاتی',
+          to: adminBasePath,
+          label: isFemaleAdmin ? 'داشبورد بانوان' : 'داشبورد عملیاتی',
           icon: LayoutDashboard,
           end: true,
           badge: pendingRequestsCount > 0 ? pendingRequestsCount : null,
@@ -126,7 +132,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       groupTitle: 'امور مالی',
       items: [
         {
-          to: '/admin/finance',
+          to: `${adminBasePath}/finance`,
           label: 'شهریه و مطالبات',
           icon: CreditCard,
         },
@@ -136,35 +142,35 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
       groupTitle: 'مدیریت آموزشی',
       items: [
         {
-          to: '/admin/swimmers',
-          label: 'شناگران',
+          to: `${adminBasePath}/swimmers`,
+          label: isFemaleAdmin ? 'شناگران خانم' : 'شناگران',
           icon: Users,
         },
         {
-          to: '/admin/dossiers',
+          to: `${adminBasePath}/dossiers`,
           label: 'رسید و مدارک',
           icon: FolderCheck,
           badge: pendingDossiersCount > 0 ? pendingDossiersCount : null,
           badgeColor: 'bg-amber-500 text-white',
         },
-        { to: '/admin/coaches', label: 'کادر مربیان', icon: Whistle },
-        { to: '/admin/courses', label: 'کلاس‌ها و دوره‌ها', icon: CourseLogoIcon },
-        { to: '/admin/attendance', label: 'حضور و غیاب', icon: ClipboardCheck },
+        { to: `${adminBasePath}/coaches`, label: isFemaleAdmin ? 'مربیان بانوان' : 'کادر مربیان', icon: Whistle },
+        { to: `${adminBasePath}/courses`, label: isFemaleAdmin ? 'دوره‌های بانوان' : 'کلاس‌ها و دوره‌ها', icon: CourseLogoIcon },
+        { to: `${adminBasePath}/attendance`, label: 'حضور و غیاب', icon: ClipboardCheck },
       ],
     },
     {
       groupTitle: 'عملکرد و رقابت',
       items: [
-        { to: '/admin/assessments', label: 'ارزیابی و رکوردها', icon: Award },
-        { to: '/admin/leagues', label: 'لیگ و مسابقات', icon: Trophy },
+        { to: `${adminBasePath}/assessments`, label: 'ارزیابی و رکوردها', icon: Award },
+        { to: `${adminBasePath}/leagues`, label: 'لیگ و مسابقات', icon: Trophy },
       ],
     },
     {
       groupTitle: 'محتوا و ارتباطات',
       items: [
-        { to: '/admin/website', label: 'مدیریت وبسایت', icon: Globe },
-        { to: '/admin/announcements', label: 'پیام‌ها و اعلان‌ها', icon: Bell },
-        { to: '/admin/support', label: 'ارتباط با پشتیبانی', icon: Headphones },
+        { to: `${adminBasePath}/website`, label: 'مدیریت وبسایت', icon: Globe },
+        { to: `${adminBasePath}/announcements`, label: 'پیام‌ها و اعلان‌ها', icon: Bell },
+        { to: `${adminBasePath}/support`, label: 'ارتباط با پشتیبانی', icon: Headphones },
       ],
     },
   ];
@@ -274,7 +280,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
   ];
 
   let activeNavigationGroups = [];
-  if (role === 'ADMIN') {
+  if (role === 'ADMIN' || role === 'FEMALE_ADMIN') {
     activeNavigationGroups = adminGroups;
   } else if (role === 'SUPERVISOR') {
     activeNavigationGroups = supervisorGroups;
@@ -298,7 +304,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
 
   // Fixed Top User Profile Header (Click navigates directly to user's page without dropdown)
   const renderTopProfile = (isMobile = false) => {
-    const profilePath = user.role === 'ADMIN' ? '/admin/profile' :
+    const profilePath = (user.role === 'ADMIN' || user.role === 'FEMALE_ADMIN') ? `${adminBasePath}/profile` :
       user.role === 'COACH' ? '/coach/profile' :
       user.role === 'SWIMMER' ? '/swimmer/profile' :
       user.role === 'SUPERVISOR' ? '/supervisor/profile' : '/';
@@ -321,7 +327,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                     : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
                 }`
               }
-              title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'SWIMMER' ? 'مشاهده پروفایل و عملکرد شناگر' : user.role === 'SUPERVISOR' ? 'مشاهده صفحه پروفایل ناظر فنی' : 'مشاهده پروفایل'}
+              title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'FEMALE_ADMIN' ? 'مشاهده صفحه پروفایل مدیریت بانوان' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'SWIMMER' ? 'مشاهده پروفایل و عملکرد شناگر' : user.role === 'SUPERVISOR' ? 'مشاهده صفحه پروفایل ناظر فنی' : 'مشاهده پروفایل'}
             >
               <div className={`w-13 h-13 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-lg sm:text-xl shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800 relative`}>
                 {getMediaUrl(user.avatar) && (
@@ -423,7 +429,7 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                   : 'hover:bg-slate-50 dark:hover:bg-slate-800/60'
               }`
             }
-            title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'SWIMMER' ? 'مشاهده پروفایل و عملکرد شناگر' : user.role === 'SUPERVISOR' ? 'مشاهده صفحه پروفایل ناظر فنی' : 'مشاهده پروفایل'}
+            title={user.role === 'ADMIN' ? 'مشاهده صفحه پروفایل مدیر' : user.role === 'FEMALE_ADMIN' ? 'مشاهده صفحه پروفایل مدیریت بانوان' : user.role === 'COACH' ? 'مشاهده صفحه پروفایل مربی' : user.role === 'SWIMMER' ? 'مشاهده پروفایل و عملکرد شناگر' : user.role === 'SUPERVISOR' ? 'مشاهده صفحه پروفایل ناظر فنی' : 'مشاهده پروفایل'}
           >
             <div className={`w-14 h-14 rounded-2xl bg-gradient-to-tr ${roleGradients[user.role] || 'from-blue-600 via-sky-600 to-teal-500'} text-white flex items-center justify-center font-black text-xl shrink-0 shadow-2xs group-hover:scale-105 transition-transform overflow-hidden ring-2 ring-slate-100 dark:ring-slate-800 relative`}>
               {getMediaUrl(user.avatar) && (
@@ -485,6 +491,8 @@ export const Sidebar = ({ isOpen = false, onClose = () => {} }) => {
                     ? 'ring-2 ring-amber-500 bg-amber-50 dark:bg-amber-950/70'
                     : user.role === 'COACH'
                     ? 'ring-2 ring-emerald-600 bg-emerald-50 dark:bg-emerald-950/70'
+                    : user.role === 'FEMALE_ADMIN'
+                    ? 'ring-2 ring-rose-500 bg-rose-50 dark:bg-rose-950/70'
                     : 'ring-2 ring-blue-600 bg-blue-50 dark:bg-blue-950/70'
                   : ''
               }`

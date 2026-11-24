@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import {
   ArrowRight, ArrowLeft, MapPin, Clock, Calendar,
   Users, Check, CheckCircle2, Award,
@@ -14,6 +14,7 @@ import { CustomSelect } from '../../components/common/CustomSelect';
 import { BackButton } from '../../components/common/BackButton';
 import { PersianDatePicker, toJalaliString, formatJalaliReadable } from '../../components/common/PersianDatePicker';
 import { useToast } from '../../context/ToastContext';
+import { useAuth } from '../../context/AuthContext';
 import { getBankNameFromCard, formatCardNumberWithDashes, copyCardToClipboard } from '../../utils/bankCard';
 
 const STEPS = [
@@ -25,7 +26,12 @@ const STEPS = [
 
 export const AdminCreateCoursePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
   const toast = useToast();
+
+  const isFemaleAdmin = user?.role === 'FEMALE_ADMIN' || location.pathname.startsWith('/female-admin');
+  const basePath = isFemaleAdmin ? '/female-admin' : '/admin';
 
   const [currentStep, setCurrentStep] = useState(1);
   const [coaches, setCoaches] = useState([]);
@@ -37,7 +43,7 @@ export const AdminCreateCoursePage = () => {
   // Form State
   const [formData, setFormData] = useState({
     name: '',
-    gender: 'MALE',
+    gender: isFemaleAdmin ? 'FEMALE' : 'MALE',
     age_min: '',
     age_max: '',
     age_range: '',
@@ -453,7 +459,7 @@ export const AdminCreateCoursePage = () => {
       await api.post('/education/courses/', postPayload);
 
       toast.success('دوره آموزشی جدید و کلاس‌های مربیان با موفقیت ایجاد گردید.');
-      navigate('/admin/courses');
+      navigate(`${basePath}/courses`);
     } catch (err) {
       console.error(err);
       toast.error(err.response?.data?.detail || 'خطا در ثبت دوره آموزشی');
@@ -479,11 +485,11 @@ export const AdminCreateCoursePage = () => {
       {/* 1. Header Banner */}
       <div className="bg-white dark:bg-slate-900 p-5 sm:p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 transition-colors">
         <div className="flex items-center gap-3 min-w-0">
-          <BackButton fallback="/admin/courses" title="بازگشت به دوره‌ها و کلاس‌ها" />
+          <BackButton fallback={`${basePath}/courses`} title="بازگشت به دوره‌ها و کلاس‌ها" />
           <div className="min-w-0">
             <h1 className="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 truncate">
               <SwimCourseSpecsIcon className="w-5 h-5 text-sky-600 shrink-0" />
-              <span>تعریف دوره آموزشی جدید</span>
+              <span>{isFemaleAdmin ? 'تعریف دوره آموزشی جدید بانوان' : 'تعریف دوره آموزشی جدید'}</span>
             </h1>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
               مراحل ۴ گانه تعریف مشخصات، زمان‌بندی، کادر مربیان و شهریه
@@ -495,7 +501,7 @@ export const AdminCreateCoursePage = () => {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate('/admin/courses')}
+            onClick={() => navigate(`${basePath}/courses`)}
             className="text-xs"
           >
             انصراف
@@ -620,7 +626,14 @@ export const AdminCreateCoursePage = () => {
                 <CustomSelect
                   value={formData.gender}
                   onChange={(val) => setFormData({ ...formData, gender: val })}
-                  options={[
+                  options={isFemaleAdmin ? [
+                    {
+                      value: 'FEMALE',
+                      label: 'دختران / بانوان',
+                      description: 'دوره ویژه دختران و بانوان',
+                      icon: User,
+                    },
+                  ] : [
                     {
                       value: 'MALE',
                       label: 'پسران / آقایان',
@@ -1103,7 +1116,7 @@ export const AdminCreateCoursePage = () => {
                 <p className="font-bold text-slate-700 dark:text-slate-200">مربی فعالی در سیستم یافت نشد.</p>
                 <p className="text-slate-500 dark:text-slate-400">برای ثبت دوره آموزشی باید ابتدا حداقل یک مربی در سامانه ایجاد نمایید.</p>
                 <Link
-                  to="/admin/coaches"
+                  to={`${basePath}/coaches`}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white hover:bg-sky-700 transition-colors"
                 >
                   افزودن مربی جدید
@@ -1662,7 +1675,7 @@ export const AdminCreateCoursePage = () => {
               <Button
                 type="button"
                 variant="outline"
-                onClick={() => navigate('/admin/courses')}
+                onClick={() => navigate(`${basePath}/courses`)}
                 className="text-xs px-3 sm:px-4 min-w-0 !shrink"
               >
                 <span className="truncate">انصراف و بازگشت</span>

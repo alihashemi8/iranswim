@@ -82,6 +82,8 @@ class ClassSessionListView(generics.ListCreateAPIView):
 
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs
+        elif user.role == 'FEMALE_ADMIN':
+            return qs.filter(Q(coach__gender='FEMALE') | Q(group__course__gender='FEMALE')).distinct()
         elif user.role == 'COACH':
             coach_profile = getattr(user, 'coach_profile', None)
             return qs.filter(coach=coach_profile) if coach_profile else qs.none()
@@ -110,6 +112,8 @@ class ClassSessionDetailView(generics.RetrieveUpdateDestroyAPIView):
         qs = ClassSession.objects.all()
         if user.role in ['ADMIN', 'SUPERVISOR'] or user.is_superuser:
             return qs
+        if user.role == 'FEMALE_ADMIN':
+            return qs.filter(Q(coach__gender='FEMALE') | Q(group__course__gender='FEMALE')).distinct()
         if user.role == 'COACH':
             coach_profile = getattr(user, 'coach_profile', None)
             return qs.filter(coach=coach_profile) if coach_profile else qs.none()
@@ -125,6 +129,10 @@ class CancelSessionView(APIView):
             session = ClassSession.objects.get(pk=pk)
         except ClassSession.DoesNotExist:
             return Response({'detail': 'جلسه یافت نشد.'}, status=status.HTTP_404_NOT_FOUND)
+
+        if request.user.role == 'FEMALE_ADMIN':
+            if (session.coach and session.coach.gender != 'FEMALE') and (session.group and session.group.course and session.group.course.gender != 'FEMALE'):
+                raise PermissionDenied('مدیریت بانوان فقط مجاز به لغو جلسات کلاس‌های بانوان است.')
 
         if request.user.role == 'COACH':
             coach_profile = getattr(request.user, 'coach_profile', None)
