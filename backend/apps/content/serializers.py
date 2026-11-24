@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from .image_optimizer import optimize_image_to_webp
 from .models import (
     NewsPost, NewsImage, SwimmingPool, PoolImage,
     Announcement, Notification, SupportTicket, TicketMessage, LandingSection,
@@ -12,6 +13,11 @@ class NewsImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = NewsImage
         fields = ['id', 'image', 'image_url', 'caption', 'order', 'created_at']
+
+    def validate_image(self, value):
+        if value:
+            return optimize_image_to_webp(value, field_name='image')
+        return value
 
     def get_image_url(self, obj):
         if obj.image:
@@ -54,6 +60,11 @@ class NewsPostSerializer(serializers.ModelSerializer):
             attrs['slug'] = f"{slugify(title, allow_unicode=True)[:50]}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
         return attrs
 
+    def validate_image(self, value):
+        if value:
+            return optimize_image_to_webp(value, field_name='image')
+        return value
+
     def get_image_url(self, obj):
         if obj.image:
             request = self.context.get('request')
@@ -69,6 +80,11 @@ class PoolImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = PoolImage
         fields = ['id', 'image', 'image_url', 'caption', 'order', 'created_at']
+
+    def validate_image(self, value):
+        if value:
+            return optimize_image_to_webp(value, field_name='image')
+        return value
 
     def get_image_url(self, obj):
         if obj.image:
@@ -102,6 +118,11 @@ class SwimmingPoolSerializer(serializers.ModelSerializer):
             name = attrs.get('name', 'pool')
             attrs['slug'] = f"{slugify(name, allow_unicode=True)[:50]}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
         return attrs
+
+    def validate_poster_image(self, value):
+        if value:
+            return optimize_image_to_webp(value, field_name='poster_image')
+        return value
 
     def get_poster_image_url(self, obj):
         if obj.poster_image:
@@ -277,6 +298,11 @@ class TopSwimmerSerializer(serializers.ModelSerializer):
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def validate_image(self, value):
+        if value:
+            return optimize_image_to_webp(value, field_name='image')
+        return value
 
     def get_image_url(self, obj):
         if obj.image:

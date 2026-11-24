@@ -654,7 +654,8 @@ class CoachProfileSerializer(serializers.ModelSerializer):
 
         request = self.context.get('request')
         if request and 'avatar' in request.FILES:
-            user.avatar = request.FILES['avatar']
+            from apps.content.image_optimizer import optimize_image_to_webp
+            user.avatar = optimize_image_to_webp(request.FILES['avatar'], field_name='avatar')
             user.save(update_fields=['avatar'])
 
         if request:
@@ -715,7 +716,14 @@ class CoachProfileSerializer(serializers.ModelSerializer):
 
             request = self.context.get('request')
             if request and 'avatar' in request.FILES:
-                user_obj.avatar = request.FILES['avatar']
+                from apps.content.image_optimizer import optimize_image_to_webp
+                if user_obj.avatar and user_obj.avatar.name:
+                    try:
+                        if user_obj.avatar.storage.exists(user_obj.avatar.name):
+                            user_obj.avatar.storage.delete(user_obj.avatar.name)
+                    except Exception:
+                        pass
+                user_obj.avatar = optimize_image_to_webp(request.FILES['avatar'], field_name='avatar')
 
             user_obj.save()
 

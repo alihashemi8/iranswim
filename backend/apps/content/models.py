@@ -36,6 +36,18 @@ class NewsPost(models.Model):
     def __str__(self):
         return self.title
 
+    def save(self, *args, **kwargs):
+        from .image_optimizer import optimize_image_to_webp, cleanup_old_file_on_update
+        if self.image and not getattr(self.image, '_committed', True) and not getattr(self.image, '_is_optimized_webp', False):
+            self.image = optimize_image_to_webp(self.image, field_name='image')
+        cleanup_old_file_on_update(self, 'image')
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        from .image_optimizer import cleanup_file_on_delete
+        cleanup_file_on_delete(self, 'image')
+        super().delete(*args, **kwargs)
+
 
 class NewsImage(models.Model):
     """تصاویر مربوط به شرح اخبار و گالری خبر"""
@@ -57,6 +69,18 @@ class NewsImage(models.Model):
 
     def __str__(self):
         return f"تصویر {self.id} برای {self.news_post.title}"
+
+    def save(self, *args, **kwargs):
+        from .image_optimizer import optimize_image_to_webp, cleanup_old_file_on_update
+        if self.image and not getattr(self.image, '_committed', True) and not getattr(self.image, '_is_optimized_webp', False):
+            self.image = optimize_image_to_webp(self.image, field_name='image')
+        cleanup_old_file_on_update(self, 'image')
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        from .image_optimizer import cleanup_file_on_delete
+        cleanup_file_on_delete(self, 'image')
+        super().delete(*args, **kwargs)
 
 
 class SwimmingPool(models.Model):
@@ -84,6 +108,18 @@ class SwimmingPool(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        from .image_optimizer import optimize_image_to_webp, cleanup_old_file_on_update
+        if self.poster_image and not getattr(self.poster_image, '_committed', True) and not getattr(self.poster_image, '_is_optimized_webp', False):
+            self.poster_image = optimize_image_to_webp(self.poster_image, field_name='poster_image')
+        cleanup_old_file_on_update(self, 'poster_image')
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        from .image_optimizer import cleanup_file_on_delete
+        cleanup_file_on_delete(self, 'poster_image')
+        super().delete(*args, **kwargs)
+
 
 class PoolImage(models.Model):
     """تصاویر بیشتر و جزئیات استخر جهت نمایش در مدال و گالری"""
@@ -105,6 +141,18 @@ class PoolImage(models.Model):
 
     def __str__(self):
         return f"عکس {self.id} برای استخر {self.pool.name}"
+
+    def save(self, *args, **kwargs):
+        from .image_optimizer import optimize_image_to_webp, cleanup_old_file_on_update
+        if self.image and not getattr(self.image, '_committed', True) and not getattr(self.image, '_is_optimized_webp', False):
+            self.image = optimize_image_to_webp(self.image, field_name='image')
+        cleanup_old_file_on_update(self, 'image')
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        from .image_optimizer import cleanup_file_on_delete
+        cleanup_file_on_delete(self, 'image')
+        super().delete(*args, **kwargs)
 
 
 class Announcement(models.Model):
@@ -336,6 +384,18 @@ class TopSwimmer(models.Model):
 
     def __str__(self):
         return f"{self.name} - {self.role} ({self.age})"
+
+    def save(self, *args, **kwargs):
+        from .image_optimizer import optimize_image_to_webp, cleanup_old_file_on_update
+        if self.image and not getattr(self.image, '_committed', True) and not getattr(self.image, '_is_optimized_webp', False):
+            self.image = optimize_image_to_webp(self.image, field_name='image')
+        cleanup_old_file_on_update(self, 'image')
+        super().save(*args, **kwargs)
+
+    def delete(self, *args, **kwargs):
+        from .image_optimizer import cleanup_file_on_delete
+        cleanup_file_on_delete(self, 'image')
+        super().delete(*args, **kwargs)
 
 
 

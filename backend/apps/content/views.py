@@ -21,6 +21,7 @@ from .serializers import (
     LandingSectionSerializer, TopSwimmerSerializer
 )
 from apps.accounts.permissions import IsAdminUserRole, IsStrictAdminOnly
+from .image_optimizer import optimize_image_to_webp
 
 
 class NewsPostListView(generics.ListCreateAPIView):
@@ -49,11 +50,13 @@ class NewsPostListView(generics.ListCreateAPIView):
             base_slug = slugify(title, allow_unicode=True) or 'news'
             validated_data['slug'] = f"{base_slug[:50]}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
 
+        # Validate and optimize multiple description images before saving
+        detail_files = self.request.FILES.getlist('detail_images')
+        optimized_details = [optimize_image_to_webp(f, field_name='detail_images') for f in detail_files]
+
         post = serializer.save(author=author_val)
 
-        # Handle multiple description images
-        detail_files = self.request.FILES.getlist('detail_images')
-        for idx, file in enumerate(detail_files):
+        for idx, file in enumerate(optimized_details):
             NewsImage.objects.create(news_post=post, image=file, order=idx)
 
 
@@ -74,11 +77,13 @@ class NewsPostDetailView(generics.RetrieveUpdateDestroyAPIView):
         return NewsPost.objects.filter(status=NewsPost.Status.PUBLISHED, publish_at__lte=timezone.now())
 
     def perform_update(self, serializer):
-        post = serializer.save()
         detail_files = self.request.FILES.getlist('detail_images')
-        if detail_files:
+        optimized_details = [optimize_image_to_webp(f, field_name='detail_images') for f in detail_files]
+
+        post = serializer.save()
+        if optimized_details:
             current_max = post.detail_images.aggregate(models.Max('order'))['order__max'] or 0
-            for idx, file in enumerate(detail_files):
+            for idx, file in enumerate(optimized_details):
                 NewsImage.objects.create(news_post=post, image=file, order=current_max + idx + 1)
 
 
@@ -166,9 +171,11 @@ class SwimmingPoolListView(generics.ListCreateAPIView):
             base_slug = slugify(name, allow_unicode=True) or 'pool'
             serializer.validated_data['slug'] = f"{base_slug[:50]}-{timezone.now().strftime('%Y%m%d%H%M%S')}"
 
-        pool = serializer.save()
         gallery_files = self.request.FILES.getlist('gallery_images')
-        for idx, file in enumerate(gallery_files):
+        optimized_galleries = [optimize_image_to_webp(f, field_name='gallery_images') for f in gallery_files]
+
+        pool = serializer.save()
+        for idx, file in enumerate(optimized_galleries):
             PoolImage.objects.create(pool=pool, image=file, order=idx)
 
 
@@ -184,11 +191,13 @@ class SwimmingPoolDetailView(generics.RetrieveUpdateDestroyAPIView):
         return [IsStrictAdminOnly()]
 
     def perform_update(self, serializer):
-        pool = serializer.save()
         gallery_files = self.request.FILES.getlist('gallery_images')
-        if gallery_files:
+        optimized_galleries = [optimize_image_to_webp(f, field_name='gallery_images') for f in gallery_files]
+
+        pool = serializer.save()
+        if optimized_galleries:
             current_max = pool.gallery_images.aggregate(models.Max('order'))['order__max'] or 0
-            for idx, file in enumerate(gallery_files):
+            for idx, file in enumerate(optimized_galleries):
                 PoolImage.objects.create(pool=pool, image=file, order=current_max + idx + 1)
 
 
